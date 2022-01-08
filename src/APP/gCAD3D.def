@@ -544,6 +544,7 @@ Brw_obj_upd
 Brw_Prcs_add
 Brw_Prcs_Init
 Brw_Prcs_upd
+Brw_row_main_set
 Brw_row_set
 Brw_sel_sm1
 Brw_sel_sm2
@@ -604,9 +605,6 @@ CNTF_out_cvtrm
 CNTF_out_old
 CNTF_rev__
 CNTF_selPt
-colB1
-colB2
-colR
 ColRGB_NUL
 CopTxtTab
 CSV_read__
@@ -1104,7 +1102,6 @@ GLB_Create
 GLB_DrawExit
 GLB_DrawInit
 GLB_Init
-GLB_pending
 GLB_Query
 GLBT_but_add
 GLBT_but_disp
@@ -1148,7 +1145,6 @@ GL_Disp_rbez
 GL_disp_sph
 GL_Disp_sq1
 GL_disp_tor
-GL_Do_CenRot
 GL_Do_Idle
 GL_Do_Pan__
 GL_Do_Rot__
@@ -1219,7 +1215,6 @@ GL_Query_siz
 GL_Redra__
 GL_Redraw
 GL_Reframe1
-GL_Reframe2
 GL_Regen1
 GL_Rescal0
 GL_Rescal1
@@ -1591,12 +1586,8 @@ GUI_ckbutt_set_noCB
 GUI_ck_version
 GUI_Color_select
 GUI_cursor__
-GUI_Dialog_2b
-GUI_Dialog_e2b
-GUI_DialogEntry
 GUI_DialogEntryCB
 GUI_Dialog_run
-GUI_DialogYN
 GUI_DialogYN_CB
 GUI_dlg_2b
 GUI_dlg_2b
@@ -1699,13 +1690,10 @@ GUI_gl_button
 GUI_gl_draw
 GUI_gl_ev_butt__
 GUI_gl_ev_button
-GUI_gl_ev_butt_upd
 GUI_gl_ev_key
 GUI_gl_ev_move
-GUI_gl_idle1
 GUI_gl_key
 GUI_gl_move
-GUI_gl_set_active
 GUI_Ico_init
 GUI_idle__
 GUI_img__
@@ -1749,7 +1737,6 @@ GUI_menu_radiobutt_get
 GUI_menu_radiobutt_set
 GUI_MsgBox
 GUI_MsgBox
-GUI_MsgBox1
 GUI_msgwin__
 GUI_msgwin_prf
 GUI_msgwin_prt
@@ -2169,6 +2156,7 @@ MDLFN_ffNam_fNam
 MDLFN_ffNam_oFn
 MDLFN_ffNam_syFn
 MDLFN_get__
+MDL_fnModel_main
 MDL_fnModel_mNam
 MDL_fnModLst_iNam
 MDLFN_oFn_fNam
@@ -2271,6 +2259,7 @@ MDL_ren__
 MDL_ren_1
 MDL_ren_flst
 MDL_ren_fmdl
+MDL_ren_sav
 MDL_reset
 MDL_safename
 MDL_safNam_mnam
@@ -2504,6 +2493,7 @@ OS_get_loc_dir
 OS_get_os__
 OS_get_os_bits
 OS_get_printer
+OS_get_scrRes
 OS_get_term
 OS_get_tmp_dir
 OS_get_user
@@ -3321,7 +3311,6 @@ UME_reserve
 UME_reuse
 UME_save
 UME_set_unused
-UME_test1
 UME_write__
 UMT_FresnelIntgls
 UNDO_app__
@@ -3400,8 +3389,8 @@ UT2D_2parvc_3vc
 UT2D_2par_vc_vcx_vcy
 UT2D_2pt_ck_int_2pt
 UT2D_2pt_int2ci
-UT2D_2pt_intcici
 UT2D_2pt_int_ci_ci
+UT2D_2pt_intcici
 UT2D_2pt_intciptvc
 UT2D_2pt_par_int_ln_ci
 UT2D_2pt_projptci
@@ -3567,8 +3556,8 @@ UT2D_pt_int2ln
 UT2D_pt_int_2lnl
 UT2D_pt_int2pt2vc
 UT2D_pt_int2vc2pt
-UT2D_pt_int4pt
 UT2D_pt_int_4pt
+UT2D_pt_int4pt
 UT2D_pt_int_elc_ln
 UT2D_pt_intlnln
 UT2D_pt_intlnx
@@ -4382,8 +4371,9 @@ UT3D_vc__pt_el
 UT3D_VcPts2Crvs
 UT3D_vc_rot3angr
 UT3D_vc_rot_90_sr
-UT3D_vc_rotangr
 UT3D_vc_rotvcangr
+UT3D_vc_rotvc_angX
+UT3D_vc_rotvc_angZ
 UT3D_vc_rotvcvcangr
 UT3D_vc_setLength
 UT3D_vc_setLenLen
@@ -4729,6 +4719,7 @@ UTX_cpLn_2cp
 UTX_cp_nchr_2_upper
 UTX_cp_print
 UTX_cp_right
+UTX_cp_str_quotes
 UTX_cp_word__
 UTX_cp_word_2_upper
 UTX_cp_word_nr1
@@ -4829,6 +4820,7 @@ UtxTab_add
 UtxTab_add_file
 UtxTab_add_uniq__
 UtxTab_bytes_free
+UtxTab_change
 UtxTab_del
 UtxTab_dump
 UtxTab_find

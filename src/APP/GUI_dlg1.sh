@@ -13,8 +13,9 @@
 
 #########################################################
 #par="info \"Directory does not exist\""
+# every string in new line; max 4 lines.
 
-#par="info \"cannot create directory /xyz/tmp/. \\0 Fix gcad_dir_local in startup-script.\""
+par="info \"ERROR\" \"cannot create directory /xyz/tmp/.\" \" Fix gcad_dir_local in startup-script.\""
 
 #########################################################
 # dlgbe = dialog with 1 - n buttons
@@ -29,7 +30,7 @@
 
 
 #########################################################
-# list1 = dialog displays list from file; returns ?
+# list1 = dialog displays list from file; returns selected text
 #par="list1 /mnt/serv2/devel/gcad3d/gCAD3D/tmp/MdlLst.txt \"select model\" \"x40,y30\""
 
 #par="list1 /mnt/serv2/devel/gcad3d/gCAD3D/tmp/catParts.act \"sel.-\" \"x40,y30,a\""
@@ -41,6 +42,9 @@
 fnmak=GUI_dlg1.mak
 VGUI=`cat ../gcad_gui_version`
 cmd=". ../options.sh && make -f ${fnmak} && ${gcad_dir_bin}GUI_dlg1_${VGUI} "
+
+echo ${cmd}
+echo ${par}
 
 eval ${cmd} ${par}
 

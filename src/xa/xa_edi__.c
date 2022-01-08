@@ -516,12 +516,12 @@ static long cPos;
     if(i1 == 2) goto L_addSel;        // at eol: add selection ..
   }
 
-  // query insert selection
-  sprintf(s1, " add / insert selected obj ? ");
-  irc = GUI_dlg_2b (s1, MSG_const__(MSG_ok), MSG_const__(MSG_no));
-    // printf(" GR_CB2__-irc=%d\n",irc);
-
-  if(irc) return 0;  // 0 means first button pressed
+//   // query insert selection
+// PROBLEM MAN: is below list-of-objects-to-select
+//   sprintf(s1, " add / insert selected obj ? ");
+//   irc = GUI_dlg_2b (s1, MSG_const__(MSG_ok), MSG_const__(MSG_no));
+//     // printf(" GR_CB2__-irc=%d\n",irc);
+//   if(irc) return 0;  // 0 means first button pressed
 
 
   //----------------------------------------------------------------

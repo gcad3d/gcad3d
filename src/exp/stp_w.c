@@ -91,6 +91,11 @@ List_functions_end:
 \endcode *//*----------------------------------------
 
 
+Build:
+. ../options.sh && make -f xa_stp_w.mak
+
+
+
 
 ==============================
 Doku STEP =  STP
@@ -309,17 +314,19 @@ display surface: ADVANCED_FACE-OPEN_SHELL-SHELL_BASED_SURFACE_MODEL
 
 #45=CONICAL_SURFACE('A20',#44,0.000000,23.918522);
 // P2: refSys (AXIS2_PLACEMENT_3D); origin = cone-tip; Z-vec=cone-axis
-// P3: distance from tip to first boundary (unused)
-// P4: opening-angle degrees
+// P3: radius of the small-circle.
+// P4: opening-angle degrees. May not be negative.
+//   The origin of the refsys is the small circle of the cone; P3 ist the height.
+//   The bottom-circle must be bigger than the circle at the origin (P4 postive).
 
 #46=RECTANGULAR_TRIMMED_SURFACE('',#45,0.0,360.0,0.0,109.394476,.T.,.T.);
 // P2: CONICAL_SURFACE
-// P3: u1 angle in refSys 1 (bottom-surface)
-// P4: u2 angle in refSys 2
-// P5: v1 height at refSys
-// P6: v2 height at top-surface
-// P7: direction in u
-// P8: direction in v
+// P3: u1 angle in refSys 1 (startAngle around axis)
+// P4: u2 angle in refSys 2 (endAngle around axis)
+// P5: v1 dist of center of small-circle from origin
+// P6: v2 dist of center of big-circle from origin (must be > than P5)
+// P7: direction in u (.T.)
+// P8: direction in v (.T.)
 
 //----------------------------------------------------------------
 // CYLINDRICAL_SURFACE
@@ -1125,6 +1132,7 @@ static jmp_buf     jmp1;
     // skip this types:
     if(iTyp == Typ_PT) continue;
     if(iTyp == Typ_Ditto) continue;
+    if(iTyp == Typ_apDat) continue;
 
 
     dbi = dla[dli].ind;
@@ -2401,6 +2409,18 @@ static jmp_buf     jmp1;
 //================================================================
 // Area: B-Spline-Surf   Typ_SURBSP (55)
 //
+// TODO: - BsplineSurface (SurBsp ObjGX typ=56)
+// - function STP_w_SURSUP__ STP_w_SURBSP creates B_SPLINE_SURFACE_WITH_KNOTS - OK
+// - adds link to B_SPLINE_SURFACE_WITH_KNOTS into OPEN_SHELL                   BUG
+// - must create boundary - eg B_SPLINE_CURVE_WITH_KNOTS (also Line -> BsplineCurve) -
+//   - EDGE_CURVE from curve; ORIENTED_EDGE from EDGE_CURVE;
+//   - EDGE_LOOP from the closed contour of ORIENTED_EDGE's
+//   - FACE_OUTER_BOUND from EDGE_LOOP
+//   - ADVANCED_FACE from FACE_OUTER_BOUND and B_SPLINE_SURFACE_WITH_KNOTS
+//   - add ADVANCED_FACE into OPEN_SHELL
+//     - test also with A<trimmedSur> = FSUB A<suppSur> A<suppSur>
+// 
+//
 // B_SPLINE_SURFACE_WITH_KNOTS(name, u_deg, v_deg,
 //   ((cv1_points),(cvn_points)),
 //   .UNSPECIFIED.,.U.,.U.,.U.,
@@ -2614,14 +2634,20 @@ static jmp_buf     jmp1;
 
   printf("STP_w_SURRU %s\n",oid);
 
+  STP_w_log_err (
+     "NOT-YET-IMPLEMENTED - %s - ruled-surf SURFACE_OF_LINEAR_EXTRUSION",oid);
+  return -1;
 
   OGX_GET_INDEX (&typ1, &dbi1, &oa[0]);
   OGX_GET_INDEX (&typ2, &dbi2, &oa[1]);
 
 
-    // typ1 = UTO__dbo (&obj1, &oNr1, typ1, dbi1);
-    // DEB_dump_obj__ (typ1, obj1, "SurRU[0]=");
-    // DEB_dump_obj__ (typ2, obj2, "SurRU[1]=");
+    // TESTBLOCK
+    typ1 = UTO__dbo (&obj1, &oNr1, typ1, dbi1);
+    typ2 = UTO__dbo (&obj2, &oNr2, typ2, dbi2);
+    DEB_dump_obj__ (typ1, obj1, "SurRU[0]=");
+    DEB_dump_obj__ (typ2, obj2, "SurRU[1]=");
+    // END TESTBLOCK
 
 
 
@@ -2635,6 +2661,7 @@ static jmp_buf     jmp1;
     if(typ1 == Typ_LN) {
       // LINE
       icv = STP_w_CRV__ (&oa[0], dbi1, "", 3);
+
     } else goto L_err1;
 
 // TODO:
@@ -2647,8 +2674,8 @@ static jmp_buf     jmp1;
 //   STP_w_EDGE_LOOP_out (EDGE_LOOP)
 
 
-
     // create SURFACE_OF_LINEAR_EXTRUSION
+// TODO: get oid 
     isu = STP_w_LINEAR_EXTRUSION (ibd, icv, ivc, "");
 
     goto L_exit;
@@ -2727,7 +2754,7 @@ static jmp_buf     jmp1;
   void    *vpCov, *vpCen;
 
 
-  printf("STP_w_SURRV %s\n",oid);
+  printf("STP_w_SURRV %s %d\n",oid,mode);
   DEB_dump_obj__ (Typ_SURRV, srv, "SurRev=");
 
 
@@ -2747,7 +2774,7 @@ static jmp_buf     jmp1;
     iRef = STP_w_axis3_dbo (NULL, "", srv->indCen);
 
   } else {
-    TX_Print("STP_w_SURRV E001 %d",srv->typCen);
+    STP_w_log_err ("STP_w_SURRV E001 %d",srv->typCen);
     return -1;
   }
 
@@ -2755,6 +2782,8 @@ static jmp_buf     jmp1;
   //----------------------------------------------------------------
   if(typCov == Typ_LN) {
     // cov=LINE; CONE|CYLINDER
+    STP_w_log_err (
+      "BUG TODO STP_w_SURRV - revolved-surf-line -CONICAL_SURFACE - %s",oid);
     isu = STP_w_CONICAL_SURFACE (srv, vpCen, vpCov, iRef, oid);
 
 
@@ -2773,14 +2802,15 @@ static jmp_buf     jmp1;
 
     } else {
       // torus
-STP_w_ERREX ("STP_w_SURRV-L1");
+      STP_w_log_err (
+        "NOT-YET-IMPLEMENTED - %s - revolved-surf-circ TOROIDAL_SURFACE",oid);
     }
 
 
   //----------------------------------------------------------------
   // cov=unknown type
   } else {
-    STP_w_log_err ("STP_w_SURRV E002 %s %d",oid,srv->typCov);
+    STP_w_log_err ("STP_w_SURRV revolved-surf E002 %s %d",oid,srv->typCov);
     // TX_Print("STP_w_SURRV E002 %d",srv->typCov);
     return -1;
   }
@@ -2798,6 +2828,16 @@ STP_w_ERREX ("STP_w_SURRV-L1");
 //===========================================================================
   int STP_w_CONICAL_SURFACE (SurRev *srv, Plane *pl1, Line *ln1, int iRef, char *oid) {
 //===========================================================================
+// TODO:
+// - set the origin of axis to the centerpoint of the smaller-circle;
+// - set vz into direction big circ
+// - set vx into direction startPt circ
+// - compute startpoint along contourelement; project onto axis
+// - compute endpoint along contourelement; project onto axis
+// - height = RECTANGULAR_TRIMMED_SURFACE-P6; P5 immer fix 0.
+// - angle = .. must be positive
+// - radius small-circle: (CONICAL_SURFACE-P3) 12.3
+
 
   int       isu, ist;
   double    d1, d2, u1, u2, v1, v2;
@@ -3220,9 +3260,9 @@ STP_w_ERREX ("STP_w_SURRV-L1");
 
   odb1.typ  = AP_typDB_typ (typ);
   odb1.dbi  = dbi;
-  odb1.iCv  = iCv;
-  odb1.iP1  = iP1;
-  odb1.iP2  = iP2;
+  odb1.iCv  = iCv;             // link of curve (eg CIRCLE)
+  odb1.iP1  = iP1;             // link startPt
+  odb1.iP2  = iP2;             // link endPt
 
   MemTab_add (&oDB_cv, &l1, &odb1, 1, 0);
 
@@ -3734,6 +3774,10 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
 //================================================================
 // create AXIS2_PLACEMENT_3D from Z-vector
 // if ipc>0 then this centerpoint is to be used; else get workPlaneOrigin.
+// Input:
+//   obj_act.po   origin
+//   obj_act.vz   z-vector
+//   obj_act.po   origin
 
 
   Vector   vx;
@@ -3757,6 +3801,7 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
 
   //----------------------------------------------------------------
   // create z-axis
+// TODO: if(obj_act.ivz < 1) {  // get active Z-axis
   obj_act.ivz = STP_w_VC_d (&obj_act.vz, ""); // DIRECTION
 
   // create x-axis
@@ -3824,6 +3869,12 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
   int STP_w_axis3__ (int ipc, int ipvz, int ipvx, char *oid) {
 //================================================================
 // #100=AXIS2_PLACEMENT_3D('',#101,#102,#103);  // origin,z-vector,x-vector
+// Input:
+//   ipc     link origin
+//   ipvz    link z-axis
+//   ipvx    link x-axis
+//   oid     objID
+// returns link of axis
 
   char    s1[128];
 
@@ -4109,8 +4160,11 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
 
   //----------------------------------------------------------------
   // mode=2
-  if(ac1->rad > 0) dir = 0;  // fwd
-  else             dir = 1;  // bwd
+  // fwd-bwd already fixed by inverting z-axis for basic-circle
+  dir = 0;
+  // if(ac1->rad > 0) dir = 0;  // fwd
+  // else             dir = 1;  // bwd
+
   // create wirefame-curve (COMPOSITE_CURVE_SEGMENT < TRIMMED_CURVE)
   return STP_w_CRV_wf (ici, ip1, ip2, dir, i360, oid);
 
@@ -5123,11 +5177,22 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
   } else if(typ == Typ_SURCIR) {     // ?? 
     iStp = STP_w_SURCIR ((ObjGX*)oxs, oid);
     goto L_exit;
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_SURBSP) {     // B_Spline_Surf  SurBSpl
+    // supportSurfaces
+    iStp = STP_w_SURSUP__ (oxs, oid);
+    iStp = 0;  // do not yet add to OPEN_SHELL - make ADVANCED_FACE if suppSur is not hidden
+    STP_w_log_err (
+      "NOT-YET-IMPLEMENTED - STP_w_SUR__ - B_Spline_Surf E001 %s",oid);
+    goto L_exit;
+
+  //----------------------------------------------------------------
+  } else {
+    STP_w_log_err (
+      "NOT-YET-IMPLEMENTED - %s - typ = %d",typ,oid);
+    return -1;
   }
-
-  // supportSurfaces
-  iStp = STP_w_SURSUP__ (oxs, oid);
-
 
 /*
   switch(typ) {
@@ -5261,13 +5326,14 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
   } else if(ssTyp == Typ_SURRV) {   // 54
     iss = STP_w_SURRV ((SurRev*)ssDat, oid, 4);  // 3 without trimmed !
 
-/*
+
   //----------------------------------------------------------------
   // B_Spline_Surf
   } else if(ssTyp == Typ_SURBSP) {
     iss = STP_w_SURBSP ((SurBSpl*)ssDat, oid);
 
 
+/*
   //----------------------------------------------------------------
   // Ruled Surf
   } else if(ssTyp == Typ_SURRU) {  // 53

@@ -641,7 +641,7 @@ f 1 6 7
 
   //================================================================
   // TRIANGLE_FAN:
-  if(oxi->aux != GL_TRIANGLE_FAN) goto L_GLS; // 6 L_GLNPF;
+  if(oxi->aux != GL_TRIANGLE_FAN) goto L_GLNPF;
   // printf("fffffffffffffffffffffffff fan fffffffffffffffff\n");
 
 // sollte so zerlegt werden:
@@ -666,11 +666,11 @@ f 1 6 7
   goto L_fertig;
 
 
-/*
+
   //================================================================
   // nonPlanar TRIANGLE_FAN:
   L_GLNPF:
-  if(oxi->aux != GL_FAC_PLANAR) goto L_GLS;
+  if(oxi->aux != GL_FAC_PLANAR) goto L_GLS;                //  16 AP_types.h
   // printf("fffffffffffffffffffffffff fan fffffffffffffffff %d\n",ie);
 
 //    1------2           ptAnz = 4
@@ -688,20 +688,22 @@ f 1 6 7
 // 0 2 3
 // 0 3 4
 
-  i1 = 1;
+  i1 = TSU_ptNr + 1;
+  i2 = TSU_ptNr + 2;
 
   L_n_nxt:
 
-    if(i1 < (ie-2)) fprintf(TSU_fp," 0,%d,%d,-1,\n",i1,i1+1);
-    else        fprintf(TSU_fp," 0,%d,%d,-1 ] } }\n",i1,i1+1);
+    fprintf(TSU_fp,"f %d %d %d\n",i1,i2,i2+1);
+    // if(i1 < (ie-2)) fprintf(TSU_fp," 0,%d,%d,-1,\n",i1,i1+1);
+    // else        fprintf(TSU_fp," 0,%d,%d,-1 ] } }\n",i1,i1+1);
       // printf(" npf: 0,%d,%d,-1\n",i1,i1+1);
 
-    ++i1;
-    if(i1 < (ie-1)) goto L_n_nxt;
+    ++i2;
+    if(i2 < ie) goto L_n_nxt;
 
   goto L_fertig;
 
-*/
+
 
   //================================================================
   L_GLS:

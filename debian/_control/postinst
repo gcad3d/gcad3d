@@ -12,15 +12,15 @@ echo "gcad_dir_bin: $gcad_dir_bin"
 
 
 # create link for active gui-dll
-# default now gtk2 (problems with NV-cards)
+# No-Z-buffer-problem with NV-cards: use Gtk2 or driver nouveau
 libInf=`ldconfig -p | grep "libgtk-x11-2"`
-libInf=`ldconfig -p | grep "libgtk-3"`
-echo "gtk2-libs: $libInf"
 if [ ! -z "$libInf" ]; then
+  echo "gtk2-libs: $libInf"
   ln -fs ${gcad_dir_bin}/xa_gui_gtk2.so ${gcad_dir_bin}/xa_gui.so
 fi
-echo "gtk3-libs: $libInf"
+libInf=`ldconfig -p | grep "libgtk-3"`
 if [ ! -z "$libInf" ]; then
+  echo "gtk3-libs: $libInf"
   ln -fs ${gcad_dir_bin}/xa_gui_gtk3.so ${gcad_dir_bin}/xa_gui.so
 fi
 

@@ -53,6 +53,7 @@ UTX_cp_word__          copy next word
 UTX_cp_word_nr1        copy word nr <wNr> out of string
 UTX_cp_word_t          copy next word, give terminator
 UTX_cp_expr            copy expression (text enclosed in brackets)
+UTX_cp_str_quotes           copy and enclose between quotes if containes blank
 UTX_cp_print           add maxLen printable characters from txi --> txo
 // APT_cp_ausd         kopiert einen Ausdruck (kompletter Klammerinhalt)
 UTX_CP__               copy n chars - terminate with '\0'                  INLINE
@@ -2741,6 +2742,51 @@ static char   TX_buf2[128];
 
 
 //================================================================
+  int UTX_cp_str_quotes (char *sOut, char *sIn, char *sAdd) {
+//================================================================
+// UTX_cp_str_quotes           copy and enclose between quotes if containes blank
+//   no check if sIn + "" + sAdd exceeds sOut !
+// INPUT:
+//   sIn       copy text into sOut; but enclose between quotes if containes blank 
+//   sAdd      add this text to sOut; eg " " or ", " or NULL
+// OUTPUT:     
+//   sOut      
+  
+
+  // printf("UTX_cp_str_quotes |%s|%s|\n",sIn,sAdd);
+
+  
+  // check if starts with quote - if yes return OK
+  if(sIn[0] == '"') goto L_cpy0;
+  
+    
+  // check if blank exists
+  if(strchr(sIn, ' ')) {
+#ifdef _MSC_VER
+    // BUG MS - execute with "START": |\"| removes the |\| - add a blank before |"|
+    sprintf(sOut, "\"%s \"", sIn);
+#else
+    // text has blanks - enclose between quotes
+    sprintf(sOut, "\"%s\"", sIn);
+#endif
+    goto L_add;   
+  }               
+
+
+  L_cpy0:         
+    strcpy (sOut, sIn);
+    
+  L_add:
+  if(sAdd) strcat (sOut, sAdd);
+
+    // printf("ex-UTX_cp_str_quotes |%s|\n",sOut);
+
+  return 0;
+  
+}
+  
+
+//================================================================
   char* UTX_CleanBracks (char* txtbuf, char ch1, char ch2) {
 //================================================================
 /// \code
@@ -3015,7 +3061,9 @@ static char   TX_buf2[128];
   p1 = &s1[*cNr - 1];
 
   if((*p1 == '\r')||(*p1 == '\n')) {
+    if(*cNr < 1) return 0;
     *cNr -= 1;
+      // printf(" endDel_crlf %d\n",s1[*cNr - 1]);
     goto L_nxt;
   }
 
@@ -3487,11 +3535,7 @@ Das folgende ist NICHT aktiv:
 //==============================================================
   int UTX_del_foll0 (char strBuf[]) {
 //==============================================================
-/// \code
-///   Delete following 0's and following ".".
-/// \endcode
-
-//   Darf aber die letzte Null nicht wegloeschen !
+//   Delete following 0's and following ".".
 
 
   char *tpos;
@@ -3518,9 +3562,9 @@ Das folgende ist NICHT aktiv:
   L_done:
   *tpos = '\0';
 
-  // printf("ex UTX_del_foll0 |%s|\n",strBuf);
+    // printf("ex UTX_del_foll0 |%s|\n",strBuf);
 
-  return 1;
+  return 0;
 }
 
 
@@ -3534,7 +3578,7 @@ Das folgende ist NICHT aktiv:
 
 
   FILE  *fpi, *fpo;
-  char  cBuf[256], tempFilNam[260], *p1;
+  char  cBuf[432], tempFilNam[400], *p1;
 
 
   // printf("UTX_del_lNr |%s|%s| %d\n",dtxt,filNam);
@@ -3589,12 +3633,10 @@ Das folgende ist NICHT aktiv:
 //==============================================================
   int UTX_add_fl_u (char strBuf[], double zahl) {
 //==============================================================
-/// \code
-/// UTX_add_fl_u            add double unformatted (del foll. 0's and ".")
-/// 
-///   Delete following 0's and following ".".
-/// see UTX_add_fl_f UTX_db10__
-/// \endcode
+// UTX_add_fl_u            add double unformatted (del foll. 0's and ".")
+// 
+//   Delete following 0's and following ".".
+// see UTX_add_fl_f UTX_db10__
 
 
   double u1;
@@ -3745,21 +3787,19 @@ Das folgende ist NICHT aktiv:
 //==============================================================
   int UTX_add_fl_f (char strBuf[], double zahl, int nkAnz) {
 //==============================================================
-/// \code
-/// UTX_add_fl_f            add double with <nkAnz> digits after dec.point
-///   to string. The nr of digits before dec.point is floating.
-///
-/// IGES verwendet %.10f !
-/// 
-/// see UTX_del_foll0
-/// \endcode
+// UTX_add_fl_f            add double with <nkAnz> digits after dec.point
+//   to string. The nr of digits before dec.point is floating.
+//
+// IGES verwendet %.10f !
+// 
+// see UTX_del_foll0
 
 
   char   auxBuf[40], fmtBuf[16];
   double u1;
 
 
-  // Die Zahl -0.0 auf 0.0 korrigieren
+  // correct -0.0 -> 0.0
   u1 = fabs(zahl);
   if(u1 < FLT_32_MIN1) { strcat (strBuf, "0"); return 0; }
   if(u1 > FLT_32_MAX)  {
@@ -3768,20 +3808,12 @@ Das folgende ist NICHT aktiv:
                                   //   123456789012345678
   }
 
-
-  // zuerst einmal den Formatstring generieren
-  // sprintf (fmtBuf, "%%20.%df", nkAnz);
-  // sprintf (fmtBuf, "%%.%df", nkAnz);
-    // printf("fmtBuf = %s\n", fmtBuf);
-  // sprintf (auxBuf, fmtBuf, zahl);
-
+  // create Formatstring
   sprintf (auxBuf, "%.*f", nkAnz, zahl);
 
-
-  // strcat (strBuf, UTX_pos_1n(auxBuf));
   strcat (strBuf, auxBuf);
 
-  // printf("UTX_add_fl_f |%s|\n",strBuf);
+    // printf("UTX_add_fl_f |%s|\n",strBuf);
 
   return 0;
 }
@@ -6034,7 +6066,7 @@ L_exit:
 //================================================================
   int UTX_cnr_chr (char *txt, char c1) {
 //================================================================
-/// returns nr of char c1 in string txt
+// returns nr of char c1 in string txt
 
 
   int   iNr;

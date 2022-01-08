@@ -354,7 +354,8 @@ UT3D_vc_travcm4           apply transformation to vector (from 4x4-matrix)
 UT3D_vc_tng_crv_pt        vector tangent to curve
 UT3D_vc_tng_ci_pt         tangent-vector to circ (0. - 1.) from point on circ
 UT3D_vc_rot_90_sr         rotate vector 90 deg CCW or CW around axis
-UT3D_vc_rotangr           rotate a vector around Z-axis
+UT3D_vc_rotvc_angZ           rotate a vector around Z-axis
+UT3D_vc_rotvc_angX        rotate a vector around the X-axis
 UT3D_vc_rot3angr          rotate a vector around 3 angles
 UT3D_vc_rotvcvcangr       rotate vec vi around vec va
 UT3D_vc_rotvcangr         rotate a vector around axis
@@ -10021,18 +10022,10 @@ liegt. ohne acos.
 //================================================================
   int UT3D_comp2vc_d (Vector *v1, Vector *v2, double tol) {
 //================================================================
-/// \code
-/// UT3D_comp2vc              compare 2 vectors for parallel and antiparallel
-/// tolerances: see func. UT3D_vc_ck_parpl
-/// RC=1:   die Vektoren sind gleich.
-/// RC=0:   die Vektoren sind unterschiedlich.
-/// \endcode
-
-// hoechsten Zahlenwert suchen (x/y/od Z-Komponente)
-// mit dieser Komponente (ibp) den Multiplikationsfaktor errechnen
-// den ganzen Vektor mit diesem Faktor multiplizieren -
-// nun Vektoren vergleichen; tol ev ebenfalls multiplizieren ?
-//   (Komponente ibp nicht benutzen - ergibt Differenz 0.0)
+// UT3D_comp2vc              compare 2 vectors for parallel and antiparallel
+// tolerances: see func. UT3D_vc_ck_parpl
+// RC=1:   vectors are parallel or antiparallel
+// RC=0:   not (anti)parallel
 
   int      ibp;
   double   d1, dd, dx, dy, dz;
@@ -10042,11 +10035,13 @@ liegt. ohne acos.
   // DEB_dump_obj__ (Typ_VC, v1, " V1:");
   // DEB_dump_obj__ (Typ_VC, v2, " V2:");
 
+
+  // find component with max. value (x|y|z)
+
   dx = fabs(v1->dx);
   dy = fabs(v1->dy);
   dz = fabs(v1->dz);
     // printf(" dx=%f dy=%f dz=%f\n",dx,dy,dz);
-
 
   
   if(dx > dy) {    
@@ -10058,6 +10053,9 @@ liegt. ohne acos.
     else goto L_y_max;
   }
 
+
+  // multiply component ibp with length
+  // get dd = deviation
 
   L_x_max:
     if(dx < UT_TOL_min2) goto L_exit_no;
@@ -11369,48 +11367,46 @@ USBS_TgVecIsoBspSur
 //========================================================================
   void UT3D_vc_perp2vc (Vector *vp, Vector *v1, Vector *v2) {
 //========================================================================
-/// \code
-/// UT3D_vc_perp2vc            vector perpendic. to 2 vectors (angle < PI only)
-///   NO OUTPUT if v1-v2 is parallel or antiparallel (can BE 0,0,0)
-///
-/// Output:
-///   vp       vector normal to v1 and v2;
-///            length = 1 only if v1 and v2 are normalized AND have angle = 90 deg
-/// 
-/// 
-/// Get VZ from VX, VY:    UT3D_vc_perp2vc (&vz, &vx, &vy);
-/// Get VY from VZ, VX:    UT3D_vc_perp2vc (&vy, &vz, &vx);
-/// Get VX from VY, VZ:    UT3D_vc_perp2vc (&vx, &vy, &vz);
-///
-/// Get -VZ from VX, VY:    UT3D_vc_perp2vc (&vz, &vy, &vx);
-/// Get -VY from VX, VZ:    UT3D_vc_perp2vc (&vy, &vx, &vz);
-/// Get -VX from VY, VZ:    UT3D_vc_perp2vc (&vx, &vz, &vy);
-///
-/// Rotation 90 deg CCW:
-///   get vp = v2 rotated 90 deg CCW around axis v1
-///
-/// Rotation 90 deg CW:
-///   get vp = v1 rotated 90 deg CW around axis v2
-///
-///
-///    vp (z)
-///     |    /v2 (y)
-///     |   / 
-///     |  /                  
-///     | / 
-///     x----------v1 (x)      angle v1 v2 < PI
-///      
-///           
-///        /v1 (x)
-///       / 
-///      / 
-///     x----------v2 (y)       angle v1 v2 > PI
-///     |
-///     |
-///     |
-///    vp (z)
-///     
-/// \endcode
+// UT3D_vc_perp2vc            vector perpendic. to 2 vectors (angle < PI only)
+//   NO OUTPUT if v1-v2 is parallel or antiparallel (can BE 0,0,0)
+//
+// Output:
+//   vp       vector normal to v1 and v2;
+//            length = 1 only if v1 and v2 are normalized AND have angle = 90 deg
+// 
+// 
+// Get VZ from VX, VY:    UT3D_vc_perp2vc (&vz, &vx, &vy);
+// Get VY from VZ, VX:    UT3D_vc_perp2vc (&vy, &vz, &vx);
+// Get VX from VY, VZ:    UT3D_vc_perp2vc (&vx, &vy, &vz);
+//
+// Get -VZ from VX, VY:    UT3D_vc_perp2vc (&vz, &vy, &vx);
+// Get -VY from VX, VZ:    UT3D_vc_perp2vc (&vy, &vx, &vz);
+// Get -VX from VY, VZ:    UT3D_vc_perp2vc (&vx, &vz, &vy);
+//
+// Rotation 90 deg CCW:
+//   get vp = v2 rotated 90 deg CCW around axis v1
+//
+// Rotation 90 deg CW:
+//   get vp = v1 rotated 90 deg CW around axis v2
+//
+//
+//    vp (z)
+//     |    /v2 (y)
+//     |   / 
+//     |  /                  
+//     | / 
+//     x----------v1 (x)      angle v1 v2 < PI
+//      
+//           
+//        /v1 (x)
+//       / 
+//      / 
+//     x----------v2 (y)       angle v1 v2 > PI
+//     |
+//     |
+//     |
+//    vp (z)
+//     
 
 
   Vector vn;
@@ -11418,17 +11414,10 @@ USBS_TgVecIsoBspSur
     // DEB_dump_obj__ (Typ_VC, v1, " _perp2vc v1");
     // DEB_dump_obj__ (Typ_VC, v2, " _perp2vc v2");
 
-  // Vergleich Input- Outputadressen
-  // if ((v1 == vp) || (v2 == vp)) {
     vn.dx = v1->dy * v2->dz - v1->dz * v2->dy;
     vn.dy = v1->dz * v2->dx - v1->dx * v2->dz;
     vn.dz = v1->dx * v2->dy - v1->dy * v2->dx;
     *vp = vn;
-  // } else {
-    // vp->dx = v1->dy * v2->dz - v1->dz * v2->dy;
-    // vp->dy = v1->dz * v2->dx - v1->dx * v2->dz;
-    // vp->dz = v1->dx * v2->dy - v1->dy * v2->dx;
-  // }
 
     // DEB_dump_obj__ (Typ_VC, &vn, "ex UT3D_vc_perp2vc vn");
     // DEB_dump_obj__ (Typ_VC, vp, "ex UT3D_vc_perp2vc vp");
@@ -12160,27 +12149,48 @@ Version 2 - auch Mist
 
 
 //================================================================
-  int UT3D_vc_rotangr (Vector *vco, Vector *vci, double *ar) {
+  Vector UT3D_vc_rotvc_angZ (Vector *vci, double angZ) {
 //================================================================
-/// \code
-/// UT3D_vc_rotangr                 rotate a vector around Z-axis
-/// 
-/// vco and vci can be the same adress
-/// \endcode
+// UT3D_vc_rotvc_angZ                 rotate a vector around Z-axis
+// angrZ = radians
+// 
+// vco and vci can be the same adress
 
   Vector  vs;
   double  sin_a, cos_a;
 
-  sin_a = sin(*ar);
-  cos_a = cos(*ar);
+  sin_a = sin(angZ);
+  cos_a = cos(angZ);
 
   vs.dx = cos_a * vci->dx + sin_a * vci->dy;
   vs.dy = cos_a * vci->dy - sin_a * vci->dx;
   vs.dz = vci->dz;
 
-  *vco = vs;
+  return vs;
 
-  return 0;
+}
+
+
+//================================================================
+  Vector UT3D_vc_rotvc_angX (Vector *vci, double angX) {
+//================================================================
+// UT3D_vc_rotvc_angX                rotate a vector around the X-axis
+// angrX = radians
+
+  Vector  vs;
+  double  sin_a, cos_a;
+  
+  sin_a = sin(angX);
+  cos_a = cos(angX);
+
+  vs.dx = vci->dx;
+  vs.dy = cos_a * vci->dy - sin_a * vci->dz;
+  vs.dz = sin_a * vci->dy + cos_a * vci->dz;
+  
+    // printf(" ex-UT3D_vc_rotvc_angX %f %f %f a=%f\n",
+           // vs.dx,vs.dy,vs.dz,UT_DEG(angX));
+
+  return vs;
 
 }
 

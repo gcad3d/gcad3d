@@ -365,10 +365,14 @@ static GdkRGBA colB={0.1, 0.1, 1.0, 1.0};  // blue
 /// get local memSpc UI_tmpSpc & a new memBlockId <UI_umbId>
 /// \endcode
 
-  int    i1;
+  int    i1, xRes, yRes;
 
 
   // printf("GUI_Init__ |%s|\n",fRC);
+
+
+  // get total screensize (unused)
+  OS_get_scrRes (&xRes, &yRes);
 
 
   gtk_disable_setlocale ();  // sonst Beistrich statt Decimalpunkt !! (LC_ALL)

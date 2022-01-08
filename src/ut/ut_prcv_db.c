@@ -75,6 +75,7 @@ List_functions_end:
 #include "../ut/ut_os.h"               // OS_get_bas_dir ..
 #include "../xa/xa_msg.h"              // MSG_* ERR_*
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
+#include "../xa/mdl__.h"               // SIZMF*
 
 
 
@@ -503,7 +504,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
 // see DB_save__
 
   int       i1, i2;
-  char      fnam[256], s1[256];
+  char      fnam[SIZFNam], s1[256];
   CurvPrcv  *cv_act;
   FILE      *fp1;
 
@@ -566,7 +567,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
 
   int       i1, grpNr, rNr;
   long      l1;
-  char      fnam[256], s1[256];
+  char      fnam[SIZFNam], s1[256];
   CurvPrcv  actCv;
   FILE      *fp1;
 

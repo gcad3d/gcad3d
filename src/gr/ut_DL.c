@@ -2064,7 +2064,7 @@ static long   DL_hidden = -1L;
 ///   dash     0=full, 1=dash-dot, 2=shortDash, 3=longDash
 ///   thick    1-6, thickness in pixels
 ///
-/// defaultvalues from ~/gCAD3D/cfg/ltyp.rc
+/// defaultvalues from ~/gCAD3D/cfg_Linux/ltyp.rc
 /// \endcode
 
 
@@ -2096,7 +2096,7 @@ static long   DL_hidden = -1L;
 ///   dash     0=full, 1=dash-dot, 2=shortDash, 3=longDash
 ///   thick    1-6, thickness in pixels
 ///
-/// defaultvalues from ~/gCAD3D/cfg/ltyp.rc
+/// defaultvalues from ~/gCAD3D/cfg_Linux/ltyp.rc
 /// \endcode
 
   int      ia[3];
@@ -2185,7 +2185,7 @@ static long   DL_hidden = -1L;
 //============================================================
 /// \code
 /// DL_InitAttTab       load file ltyp.rc into GR_AttLnTab and create DL-record
-/// Create line-attributes. File is  ~/gCAD3D/cfg/ltyp.rc
+/// Create line-attributes. File is  ~/gCAD3D/cfg_Linux/ltyp.rc
 /// \endcode
 
 //  wird schon früher als DL_Init gebraucht !!!
@@ -2253,7 +2253,7 @@ static long   DL_hidden = -1L;
 ///   lthick 1-6, thickness in pixels
 ///
 /// 
-/// defaultvalues from <tempDir>/cfg/ltyp.rc (../../gCAD3D/cfg/ltyp.rc)   
+/// defaultvalues from <tempDir>/cfg_Linux/ltyp.rc (../../gCAD3D/cfg_Linux/ltyp.rc)   
 /// \endcode
 
 //  wird schon vor DL_Init gebraucht !!!

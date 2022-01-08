@@ -274,7 +274,7 @@ DXF_U   /mnt/serv2/devel/cadfiles/dxf/
 DXF_W  X:\Devel\cadfiles\dxf\
 
 Files:
-../../gCAD3D/cfg/dir.lst
+../../gCAD3D/cfg_Linux/dir.lst
 
 
 Functions:

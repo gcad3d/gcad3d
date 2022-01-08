@@ -6,6 +6,10 @@ Modifications:
 2013-04-02 Extract from DemoProstProc. RF.
 
 
+Build:
+make -f ../prc/cut1/G-Code.mak
+
+
 -----------------------------------------------------
 */
 
@@ -23,7 +27,7 @@ Modifications:
 
 
   static  char   inFilnam[256];
-  static  char   outFilnam[256];
+  static  char   outFilnam[400];
 
   FILE   *fpLog = NULL;
 
@@ -48,7 +52,7 @@ Modifications:
   char    iRpd=0;
   int     iRnr=0;
   FILE    *fpi, *fpo;
-  char    *p1, cbuf[256];
+  char    *p1, cbuf[512];
 
 
   // 1.par = inputfilename

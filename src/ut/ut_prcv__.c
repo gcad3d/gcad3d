@@ -2295,7 +2295,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   int     att;
 
 
-  att = 11;  // see ~/gCAD3D/cfg/ltyp.rc
+  att = 11;  // see ~/gCAD3D/cfg_Linux/ltyp.rc
 
   GR_tDyn_pcv (prc->npt, prc->ptNr, att);
 

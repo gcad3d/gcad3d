@@ -137,7 +137,7 @@ static int     lngNr;
 
 
   int     i1, i2, irc;
-  char    dirLocal[256], txbuf1[800], txbuf2[512], *p1;
+  char    dirLocal[252], txbuf1[800], txbuf2[512], *p1;
   double  d1;
   MemObj  win0;
   stru_FN ofn;
@@ -258,7 +258,7 @@ static int     lngNr;
   // //   if yes: goto L_startup_defaults;  else unpack examples.gz
 
 
-  // test if gCAD3D/cfg/gCAD3D.rc exists; if not: unpack examples.gz
+  // test if gCAD3D/cfg_Linux/gCAD3D.rc exists; if not: unpack examples.gz
   sprintf(txbuf1, "%sgCAD3D.rc", OS_get_cfg_dir());
     // printf(" test configfile |%s|\n",txbuf1);
   if(OS_checkFilExist (txbuf1, 1)) goto L_startup_defaults;
@@ -269,11 +269,11 @@ static int     lngNr;
 // restore all cfg-files;
 #ifdef _MSC_VER
   // create directory if not yet exists
-  sprintf(txbuf1, "mkdir %scfg_%s\\",os_loc_dir, OS_get_os__());
+  sprintf(txbuf1, "mkdir \"%scfg_%s\\\"",os_loc_dir, OS_get_os__());
     printf("%s\n",txbuf1);
   OS_system (txbuf1);
   // copy all files from \cfg\ to \cfg_MS\.  /i /y
-  sprintf(txbuf1, "xcopy/y %scfg\\*.* %scfg_%s\\", os_loc_dir,
+  sprintf(txbuf1, "xcopy/y \"%scfg\\*.*\" \"%scfg_%s\\\"", os_loc_dir,
           os_loc_dir, OS_get_os__());
     printf("%s\n",txbuf1);
   OS_system (txbuf1);

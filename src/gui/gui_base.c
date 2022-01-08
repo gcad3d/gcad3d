@@ -184,6 +184,9 @@ ctags -f gui_base.tag gui_base.c
 #define TMPSPC_SIZ   15000
 #define TMPSPC_INC   15000
 
+#define SIZFNam    400         // max size full filename 
+// also in ../xa/mdl__.h
+
 
 //----------------------------------------------------------------
 // was ../gtk/ut_gtk.c: 
@@ -242,7 +245,7 @@ char*   GUI_Win_tit     (void *gtkWin);
 // GUI_MsgBox           display message with close-button, do not wait
  
   int      irc;
-  char     sEnam[256], s2[512];
+  char     sEnam[SIZFNam], s2[512];
 
   // get full filename for GUI_executable
   irc = AP_GUI_get (sEnam, "GUI_dlg1");
@@ -703,7 +706,7 @@ char*   GUI_Win_tit     (void *gtkWin);
 //   fSiz       max size of filNam in bytes
 //   dirLst     NULL or filename with "symbol directory"-lines (Button DIR-SYM)
 //   filterI    NULL or filtertext; eg "*.c" (enclosed in \" else expands !)
-//   sTit       title
+//   sTit       title  (unused)
 // Output:
 //   filNam     full filename of selected file
 //   retCode    0=OK, -1=Cancel, -2=fSiz/dSiz too small

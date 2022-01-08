@@ -378,10 +378,8 @@ int AP_add_pt (long *dbi, int att, Point *pt1);
 //================================================================
 // inline functions
 
-/// \code
-/// GR_gxt_strLen         get stringlength of textnote
-/// ignore all controlcharacters '['
-/// \endcode
+// GR_gxt_strLen         get stringlength of textnote
+// ignore all controlcharacters '['
 #define GR_gxt_strLen(txt)\
  strlen(txt) - UTX_cnr_chr (txt, '[')
 

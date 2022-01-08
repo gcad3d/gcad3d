@@ -1431,7 +1431,7 @@ extern long      GLT_cta_SIZ;
     ato->val[ii] = d1;
   }
 
-  if(imod) ATO_clean__ (ato);
+  if(imod) ATO_clean__ (ato);          // close gaps
 
   if(ato->nr < 2) goto L_exit;
 
@@ -1479,6 +1479,21 @@ extern long      GLT_cta_SIZ;
       goto L_ope_2;
     }
 */
+
+
+  //----------------------------------------------------------------
+  // output of Typ_ConstOG (fixed vectors and planes DX ..)
+  if(ato->nr == 2) {
+    if(ato->typ[0] == Typ_FncNam) {
+      if((ato->typ[1] == Typ_VC)||(ato->typ[1] == Typ_PLN)) {
+        // out typ=ato->typ[1] val=dbi=ato->val[1]
+        ato->typ[0] = ato->typ[1];
+        ato->val[0] = ato->val[1];
+        ato->nr = 1;
+        goto L_exit;
+      }
+    }
+  }
 
 
   //----------------------------------------------------------------
@@ -1847,8 +1862,8 @@ extern long      GLT_cta_SIZ;
     if(iTyp == TYP_FuncEnd) break;
 
     sPos = tso[its].ioff;
-        // printf("ato_txo__-nxt [%d] iTyp=%d |",its,iTyp);
-               // UTX_dump_cnl(&sl[sPos],50);printf("|\n");
+        // printf("  ato_txo__-nxt [%d] iTyp=%d |",its,iTyp);
+        // UTX_dump_cnl(&sl[sPos],50);printf("|\n");
 
 
     //----------------------------------------------------------------
@@ -1910,6 +1925,7 @@ extern long      GLT_cta_SIZ;
       APED_dbi_src_std_vc_pl (&oTyp, &dbi, ii);
       d1 = dbi;
       ATO_ato_expr_add (ato, oTyp, d1, tso[its].ipar);
+
 
 
     //----------------------------------------------------------------
@@ -2093,7 +2109,7 @@ extern long      GLT_cta_SIZ;
 
 
   //----------------------------------------------------------------
-  printf("ATO_ato_obj_pt iseg=%d oTyp=%d iTyp=%d\n",iseg,oTyp,iTyp);
+  // printf("ATO_ato_obj_pt iseg=%d oTyp=%d iTyp=%d\n",iseg,oTyp,iTyp);
   // ATO_dump__ (ato, " _obj_pt-in");
   // DEB_dump_obj__ (iTyp, iObj, " ato_obj_pt-iObj-in");
   // DEB_dump_obj__ (Typ_PT, ptx, " ato_obj_pt-ptx-in");
@@ -2276,7 +2292,7 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   L_exit:
-    ATO_dump__ (ato, "ex-ATO_ato_obj_pt");
+    // ATO_dump__ (ato, "ex-ATO_ato_obj_pt");
   return 0;
 
 

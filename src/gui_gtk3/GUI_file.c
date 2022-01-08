@@ -31,9 +31,9 @@ Modifications:
 
 . ../options.sh && make -f GUI_file.mak
 
-/home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk3 open /mnt/serv2/devel/cadfiles/gcad/ /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst '*' 'Öffnen'
+/home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk3 open /mnt/serv2/devel/cadfiles/gcad/ /mnt/serv2/devel/gcad3d/gCAD3D/cfg_Linux/dir.lst '*' 'Öffnen'
 
-/home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk3 save /mnt/serv2/devel/cadfiles/gcad/xx.y /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst '*' 'Speichern'
+/home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk3 save /mnt/serv2/devel/cadfiles/gcad/xx.y /mnt/serv2/devel/gcad3d/gCAD3D/cfg_Linux/dir.lst '*' 'Speichern'
 
 cat /tmp/debug.dat
 
@@ -555,7 +555,7 @@ static char* os_tmp_dir = "/tmp/";
 // file:///usr/share/gtk-doc/html/gtk3/GtkFileChooserDialog.html
 
   int       irc;
-  char      s1Dir[320], *filename, s2[320], *p1;
+  char      s1Dir[400], *filename, s2[400], *p1;
   GtkWidget *wb1, *we1, *wl1;
   gint res;
 

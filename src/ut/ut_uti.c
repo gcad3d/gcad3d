@@ -71,6 +71,7 @@ UTI_iNr_chrNr             give nr of ints for n characters (not including \0) IN
 UTI_div4up                change nr to modulo(4)=0; increase (1|2|3|4 -> 4)   INLINE
 UTI_div4diff              get nr of missing bytes for modulo-4 (multiple of 4)INLINE
 UTI_round_4up             round integer up to 4                               INLINE
+UTI_round_8up             round integer up to 8                               INLINE
 UTI_round_32up            round integer up to 32                              INLINE
 UTI_round_i2b             round integer to byte (back: UTI_round_b2i)
 UTI_round_b2i             make integer from byte (back from UTI_round_i2b)

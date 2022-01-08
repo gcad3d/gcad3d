@@ -61,6 +61,9 @@ Brw_sMdl_ren__      rename the active mdlNod
 Brw_sMdl_del__      delete basicModel in browserWin
 Brw_Mdl_ico_mod     modify icon of model-node
 
+Brw_row_set         change rowMode to active, normal, passive
+Brw_row_main_set    update modelname of mainModel
+
 Brw_Clear           clear window
 Brw_sel_sm1         hilite subModels
 Brw_hili_dli        hilite row  (CB M1-selection in GR-Win)
@@ -356,6 +359,19 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   return GUI_tree1_row_set (&winBrw, row, -1, NULL, mode);
 
 }
+
+
+
+//================================================================
+  int Brw_row_main_set (char *mnam) {
+//================================================================
+// Brw_row_main_set     update modelname of mainModel
+
+  return GUI_tree1_row_set (&winBrw, &mdlNod,  -1, mnam, 0);
+
+}
+
+
 
 
 /* UU

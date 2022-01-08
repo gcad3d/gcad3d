@@ -6,7 +6,8 @@ DEB = 2
 
 
 ifeq "$(DEB)" "1"
-  CPDEB = -DDEB -ggdb -pg -fstack-check -O0
+# CPDEB = -DDEB -ggdb -pg -fstack-check -O0
+  CPDEB = -DDEB -ggdb -pg
 # -Wformat-overflow -Wnonnull
   LKDEB = -ggdb -pg
 # -lmcheck does not work with gtk in overlay-lib

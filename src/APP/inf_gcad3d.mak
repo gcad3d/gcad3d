@@ -2,7 +2,8 @@
 #
 # make -f inf_gcad3d.mak
 
-SRC1 = $(shell find ../inf/ -type f -iname "*.c")
+#SRC1 = $(shell find ../inf/ -type f -iname "*.c")
+SRC1 = $(shell find inf/ -type f -iname "*.c")
 
 OBJ1 = $(patsubst %.c,%.tag, $(notdir $(SRC1)))
 OBJ2 = $(addprefix ../tags/, $(OBJ1))
@@ -16,7 +17,8 @@ all: $(OBJ2)
 
 
 #=============================================================
-../tags/%.tag: ../inf/%.c
+#../tags/%.tag: ../inf/%.c
+../tags/%.tag: inf/%.c
 	@echo "===============inf_gcad3d.mak ctags $<"
 	$(CMD)
 

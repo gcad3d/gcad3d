@@ -176,7 +176,6 @@ const Vector2 UT2D_VECTOR_IY  = { 0.0,-1.0 };
 
 
 const Vector  UT3D_VECTOR_NUL = _UT3D_VECTOR_NUL;
-// const Vector  UT3D_VECTOR_NUL = { 0.0, 0.0, 0.yy0 };
 
 const Vector  UT3D_VECTOR_X   = { 1.0, 0.0, 0.0 };
 const Vector  UT3D_VECTOR_Y   = { 0.0, 1.0, 0.0 };

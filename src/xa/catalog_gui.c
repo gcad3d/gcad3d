@@ -129,6 +129,7 @@ APT_work_PrgCmd   :4217
 #include "../ut/func_types.h"              // UI_FuncSet
 #include "../xa/xa_mem.h"              // memspc011
 #include "../xa/xa_msg.h"              // MSG_cancel,
+#include "../xa/mdl__.h"               // SIZMF*
 
 #include "../ut/ut_os.h"               // OS_get_bas_dir
 #include "../db/ut_DB.h"               // DB_get_ModRef
@@ -222,7 +223,7 @@ APT_work_PrgCmd   :4217
 //====================================================================
 /// Catalog selected;
 
-  char   fNam[256], cfn[256];
+  char   fNam[SIZFNam], cfn[256];
 
   if(cNam == NULL) return 0;  // cancel
 
@@ -330,7 +331,7 @@ APT_work_PrgCmd   :4217
 /// delete selected file mit Rueckfrage
 
   int   i1;
-  char  fnam[256], s1[256], s2[256], cfn[256];
+  char  fnam[SIZFNam+SIZMFNam], s1[256], s2[320], cfn[256];
 
   // printf("CTLG_Del__ \n");
 

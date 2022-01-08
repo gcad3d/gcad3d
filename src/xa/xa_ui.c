@@ -1571,7 +1571,7 @@ static char LstBuf[LstSiz][32];
   // only in edit-mode (MAN or CAD)
 
   // printf("ZZZZZZZZZZZZZZZ UI_Set_ConstPl_Z ZZZZZZZZZZZZZZZZZZ\n");
-  // printf(" AP_mode_go=%d\n",AP_mode__);
+  // printf("UI_Set_ConstPl_Z |%s| AP_mode_go=%d\n", WC_sur_txt, AP_mode__);
 
 
   if(AP_mode__ == AP_mode_go) return 0;
@@ -5665,7 +5665,7 @@ See UI_but__ (txt);
 
   int    irc, i1, i2, i3, imode, iCompr;
   long   il1, il2;
-  char   *cp1, *p1, cbuf1[256], cbuf2[400], s1[256], sTit[80];
+  char   *cp1, *p1, s1[800], cbuf1[400], cbuf2[400], sTit[80];
   FILE   *fpo;
   ColRGB col1;
   // stru_FN  ofNam;
@@ -8284,7 +8284,7 @@ box1
         // gtk2-problem: image on the left takes full box !
         winTX = GUI_msgwin__ (&box2B2, "e,e");   // 96,6
         // disp. Logo rechts neben dem Textwindow.
-        wtmp1 = GUI_box_v (&box2B2, "a,a");   // -150
+        wtmp1 = GUI_box_v (&box2B2, "a,6a");   // 6 lines high
         // ../icons/xa_logo.xpm 127x46 pixels
         sprintf(cbuf1, "%sxa_logo.xpm", OS_get_ico_dir ());
         GUI_img__ (&wtmp1, cbuf1, "-127,-64");   // min = 46; 2013-10-05
@@ -8472,6 +8472,9 @@ box1
 //================================================================
 // UI_lb_2D_upd                  update label "2D" | "3D"
 
+
+  // printf("UI_lb_2D_upd %d\n",CONSTRPLN_IS_ON);
+
   // if(CONSTRPLN_IS_OFF)
   if(CONSTRPLN_IS_ON)
     GUI_label_htm_mod(&UI_lb_2D,
@@ -8650,18 +8653,33 @@ box1
 //   retCode       -1   error or cancel
 
   int     irc;
-  char    s1[256], sTit[80];
+  char    s1[408], s2[400], sTit[80];
 
+
+  printf("UI_file_open__ |%s|\n",AP_mod_dir);
 
   // title "Model open"
   strcpy(sTit, MSG_const__(MSG_open));
   // strcpy(sTit, "open file ..");
 
   // get filename of cfg_<os>/dir.lst
-  MDLFN_syFn_f_name (s1);
+
+#ifdef _MSC_VER
+  MDLFN_syFn_f_name (s2);            // get filNam of list of symbolic directories
+  sprintf(s1, "\"%s\"", s2);
+  sprintf(sOut, "\"%s \"", AP_mod_dir);  // |\"| makes BUG in MS 
+#else
+  MDLFN_syFn_f_name (s1);           // get filNam of list of symbolic directories
+  strcpy(sOut, AP_mod_dir);
+#endif
 
   // preset active directory
-  strcpy(sOut, AP_mod_dir);
+    // printf(" UI_file_open__ sOut=|%s|\n",sOut);
+    // printf(" UI_file_open__ s1=|%s|\n",s1);
+    // printf(" UI_file_open__ UI_fnamFilt=|%s|\n",UI_fnamFilt);
+    // printf(" UI_file_open__ sTit=|%s|\n",sTit);
+
+
 
   // get filename for "open file" from user, waiting.
   // call GUI_file/save
@@ -8805,7 +8823,7 @@ box1
 
 
   strcpy(s1, "License: GPL-3");
-  strcat(s1, "\nCopyright: 1999-2021 CADCAM-Services Franz Reiter");
+  strcat(s1, "\nCopyright: 1999-2022 CADCAM-Services Franz Reiter");
   strcat(s1, "\n(support@gcad3d.org)");
   GUI_AboutInfo (INIT_TXT, s1, "http://www.gcad3d.org", "xa_logo.xpm");
 

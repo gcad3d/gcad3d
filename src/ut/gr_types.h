@@ -17,7 +17,7 @@ Korr:
 void INF_ATT_CV (){}
 #endif
 // attributes for lines,curves;
-// for data see INF_COL_CV() or file ~/gCAD3D/cfg/ltyp.rc
+// for data see INF_COL_CV() or file ~/gCAD3D/cfg_Linux/ltyp.rc
 // GL_att_cv
 #define Typ_Att_def        0   // black
 #define Typ_Att_blue       1   // blue

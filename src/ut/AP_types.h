@@ -128,8 +128,10 @@ void INF_OTYP (){}
 #define Typ_GL_iSur       73  ///< tesselated indexed-surface
 #define Typ_EdgSur        74  ///< EdgSur see also EdgeLine
 #define Typ_Fac3          75  ///< Triang; Form = Fac3
-#define Typ_Tria          76  ///< Triang; Form = Triang
-#define Typ_Tria2         77  ///< Triang-2D; Form = Triang2
+#define Typ_Tria          76  ///< Triangle form 3 points
+#define Typ_GL_Trias      77  ///< GL_TRIANGLES
+#define Typ_GL_Tria_fan   78  ///< GL_TRIANGLE_FAN
+#define Typ_GL_Tria_strip 79  ///< GL_TRIANGLE_STRIP
 
 /// DB-bodies 80-89
 #define Typ_SOL           80  ///< B  body (CON, TOR, ..)

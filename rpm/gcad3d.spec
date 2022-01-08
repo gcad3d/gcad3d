@@ -146,14 +146,14 @@ install -m 644 %{gcad_dir_dev}doc/gCAD3D_log.txt %{outDir}/usr/share/doc/gcad3d/
 # create link for active gui-dll
 # back to gtk2 (problems with NV cards)
 libInf=`ldconfig -p | grep "libgtk-3"`
-libInf=`ldconfig -p | grep "libgtk-x11-2"`
-echo "gtk2-libs: $libInf"
 if [ ! -z "$libInf" ]; then
-  ln -fs ${gcad_dir_bin}/xa_gui_gtk2.so ${gcad_dir_bin}/xa_gui.so
-fi
-echo "gtk3-libs: $libInf"
-if [ ! -z "$libInf" ]; then
+  echo "gtk3-libs: $libInf"
   ln -fs ${gcad_dir_bin}/xa_gui_gtk3.so ${gcad_dir_bin}/xa_gui.so
+fi
+libInf=`ldconfig -p | grep "libgtk-x11-2"`
+if [ ! -z "$libInf" ]; then
+  echo "gtk2-libs: $libInf"
+  ln -fs ${gcad_dir_bin}/xa_gui_gtk2.so ${gcad_dir_bin}/xa_gui.so
 fi
 
 

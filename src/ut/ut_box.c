@@ -1984,9 +1984,9 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
     aa = UT_RADIANS(tx1->dir) * -1.;
     // rotate vector vy
     if(lnr > 1) {
-      UT3D_vc_rotangr (&vp1, &vp1, &aa);
+      vp1 = UT3D_vc_rotvc_angZ (&vp1, aa);
     }
-    UT3D_vc_rotangr (&vp2, &vp2, &aa);
+    vp2 = UT3D_vc_rotvc_angZ (&vp2, aa);
   }
 
   // p1 = lower left of box

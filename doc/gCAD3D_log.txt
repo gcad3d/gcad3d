@@ -1,3 +1,18 @@
+Version 2.46.22 / 2022-01-06
+
+- Bugfix dxf-export-crash-bspl-surf
+- Bugfix obj-export-bug-bspl-surf
+- Bugfix stp-export-bug-file-format
+- minor bugfixes
+
+Programlines (C)  531949
+Functions           4996
+
+Release-Notes:
+- some NVIDIA-drivers with Gtk3 cannot get OpenGL-Z-buffer;
+  - use driver nouveau or use gcad-lib xa_gui_gtk2.so for Gtk2
+
+
 ===========================================================================
 Version 2.46.20 / 2021-07-01
 

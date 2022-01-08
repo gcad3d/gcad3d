@@ -2807,23 +2807,21 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 //======================================================================
   int UT2D_sidPerp_ptvc (Point2 *pt,  Point2 *pl, Vector2 *vl) {
 //======================================================================
-/// \code
-/// UT2D_sidPerp_ptvc        compare if pt is right/on/left of a normal to pl+vc
-///
-///              
-///   pt      |           pt
-///   -1      |           1
-///           |  
-///           |--------->vl
-/// ----------X----------------
-///           pl
-///           |
-///
-/// retcode:
-///   0   pt is on a normal to line pl-vl
-///   1   pt is before pl (to the right side of a normal to line pl-vl)
-///  -1   pt is behind pl (to the left side of a normal to line pl-vl)
-/// \endcode
+// UT2D_sidPerp_ptvc        compare if pt is right/on/left of a normal to pl+vc
+//
+//              
+//   pt      |           pt
+//   -1      |           1
+//           |  
+//           |--------->vl
+// ----------X----------------
+//           pl
+//           |
+//
+// retcode:
+//   0   pt is on a normal to line pl-vl
+//   1   pt is before pl (to the right side of a normal to line pl-vl)
+//  -1   pt is behind pl (to the left side of a normal to line pl-vl)
 
 
   int      rc;

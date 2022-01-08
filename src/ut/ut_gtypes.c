@@ -15,8 +15,6 @@
  *
  *
 -----------------------------------------------------
-TODO:
-  remame this file ../ut/ut_otypes.c/h
 
 -----------------------------------------------------
 Modifications:
@@ -387,12 +385,15 @@ char  *ObjCodTab[] = {
 /// \endcode
 
 
-  // printf("APED_dbi_src_std_vc_pl |%s|\n",GcoTxtTab[gti]);
+  // printf("APED_dbi_src_std_vc_pl %d |%s|\n",gti,GcoTxtTab[gti]);
 
   if(gti >= 6) *typ = Typ_PLN;
   else         *typ = Typ_VC;
 
   *dbi = GcoDbiTab[gti];
+
+    // printf(" ex-APED_dbi_src_std_vc_pl %ld\n",*dbi);
+
 
   return 0;
 
@@ -641,27 +642,25 @@ char  *ObjCodTab[] = {
 //================================================================
   int APED_dbo_oid (int *defTyp, long *defInd, char* txtIn) {
 //================================================================
-/// \code
-/// APED_dbo_oid                get type and dbi from object-ID;
-/// eg returns defTyp=Typ_PT and defInd=20 for "P20"
-/// Returns also this constantObjects: DX DY DZ DIX DIY DIZ RX RY RZ
-/// see also AP_cut_defHdr
-/// 
-/// Input:
-///   txtIn
-///
-/// Output:
-///   defTyp: see wincut_base.h
-///           values return 0 !
-///   defInd
-/// 
-/// Retcodes:
-///   0 = OK
-///  -1 = only defTyp (eg P(..) or D(..))
-///  -2 = Error
-///
-/// TODO: combine with DBO_dbo_src__
-/// \endcode
+// APED_dbo_oid                get type and dbi from object-ID;
+// eg returns defTyp=Typ_PT and defInd=20 for "P20"
+// Returns also this constantObjects: DX DY DZ DIX DIY DIZ RX RY RZ
+// see also AP_cut_defHdr
+// 
+// Input:
+//   txtIn
+//
+// Output:
+//   defTyp: see wincut_base.h
+//           values return 0 !
+//   defInd
+// 
+// Retcodes:
+//   0 = OK
+//  -1 = only defTyp (eg P(..) or D(..))
+//  -2 = Error
+//
+// TODO: combine with DBO_dbo_src__
 
 
   int   rc, i1, ilen;

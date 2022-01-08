@@ -135,8 +135,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 
   if(!LOG_A_fp) {
     if ((LOG_A_fp = fopen (LOG_A_fnam, "w")) == NULL) {
-      TX_Print("***** CANNOT OPEN LOG-FILE %s",LOG_A_fnam);
-      printf("%s\n",s1);
+      TX_Print("***** CANNOT OPEN LOG-FILE |%s|",LOG_A_fnam);
       return -1;
 
     } else {

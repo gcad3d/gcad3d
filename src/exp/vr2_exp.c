@@ -60,6 +60,8 @@ VR2_exp_join          join files to export.exp
 List_functions_end:
 =====================================================
 
+Build:
+. ../options.sh && make -f xa_vr2_exp.mak
 
 
 WHAT IS:
@@ -656,7 +658,7 @@ static ColRGB *exp_sCol;
 
   int         irc, i1, oNr, iTyp, mbi;
   long        dbi, dli, dlNr, l1;
-  char        s1[256];
+  char        s1[400];
   DL_Att      *dla;
   ObjGX       ox1;
   ModelRef    *mr;

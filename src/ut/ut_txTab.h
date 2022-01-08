@@ -17,8 +17,8 @@
 /// iNr     next free position in ind (= nr of strings in tab
 /// stat    0=fixed size(cannot reallocate); 1=automatic reallocting
 /// \endcode
-typedef struct {long tabSiz, indSiz; char *tab;
-                int iNr, stat; long *ind;}                   TxtTab;
+typedef struct {int tabSiz, indSiz; char *tab;
+                int iNr, stat; int *ind;}                   TxtTab;
 
 
 #define _UTXTAB_NUL {0,0, NULL, 0,0, NULL}
@@ -32,7 +32,8 @@ typedef struct {long tabSiz, indSiz; char *tab;
 // check if UtxTab is new or already has memspc; 1=new,empty; 0=has_memspc
 #define UtxTab_IS_NEW(xTab) (((xTab)->tabSiz) ? 0 : 1)
 
-
+// get free space in TxtTab.tab (not TxtTab.ind)
+#define UtxTab_TABSPC(xTab) (xTab->tabSiz - xTab->ind[xTab->iNr])
 
 
 //_____________________________________

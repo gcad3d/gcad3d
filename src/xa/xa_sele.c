@@ -2779,6 +2779,7 @@ static int    bck_GR_NoConstrPln;
     case Typ_PLN:
       sele_set_types (Typ_PLN, 
                       Typ_PT,
+                      Typ_LN,
                       Typ_VC,
                       Typ_Model,
                       0);

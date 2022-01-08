@@ -81,6 +81,11 @@ GtkWidget *wfl1;
   
 
 //================================================================
+void TX_Error (char* txt, ...) { printf("%s\n",txt); }
+// see also ../ut/ut_TX.c
+
+
+//================================================================
 void TX_Print (char* txt, ...) { printf("%s\n",txt); }
 // see also ../ut/ut_TX.c
 
@@ -628,7 +633,11 @@ static char* os_tmp_dir = "/tmp/";
     // Open ..
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
     filename = gtk_file_chooser_get_filename (chooser);
-    if(strlen(filename) < sizeof(fnOut)) strcpy(fnOut,filename);
+    if(!filename) goto L_wait;
+    if(strlen(filename) < sizeof(fnOut)) {
+        printd("## chooser-get |%s|\n",filename);
+      strcpy(fnOut,filename);
+    }
     g_free (filename);
 
 

@@ -22,7 +22,7 @@ Use it with "vi -t <code>"
 
 
 ================================================================== */
-void INF_Brw__(){                   /*! \code
+void INF_Brw__(){                   /* 
 obj-browser
 See INF_Brw_gtk
 
@@ -79,8 +79,8 @@ FILES:
 ../xa/xa_brw.h      Brw_getTxt
 
 
-================================================================== */
-void INF_Brw_gtk(){                   /*! \code
+================================================================== */}
+void INF_Brw_gtk(){                   /* 
 obj-browser
 
 Obj-line has 4 columns:
@@ -103,12 +103,8 @@ GUI_tree1_iter_string        find row that starts with <txt>
 
 
 
-
-
-
-
-================================================================== \endcode */}
-void INF_PRCV(){                   /*! \code
+================================================================== */}
+void INF_PRCV(){                   /* 
 polygonal_representation_of_curve    ../ut/ut_prcv__.c
                                      ../ut/ut_prcv_db.c
 
@@ -162,8 +158,8 @@ PRCV_DB_load
 
 
 
-================================================================== \endcode */}
-void INF_CNTF(){                   /*! \code
+================================================================== */}
+void INF_CNTF(){                   /* 
 CNTF                  find and create contour (CCV = trimmed-curves)
 
 used for creating composite-curve from points,lines,circles,curves,trimmed-curves.
@@ -195,8 +191,8 @@ CNTF_exit__
 
 
 
-================================================================== \endcode */}
-void INF_EDMPT(){                   /*! \code
+================================================================== */}
+void INF_EDMPT(){                   /* 
 
 
 OMN_CB_popup
@@ -213,13 +209,13 @@ EDMPT__
 ../xa/edmpt.c
 
 
-================================================================== \endcode */}
-void INF_Search(){                   /*! \code
+================================================================== */}
+void INF_Search(){                   /* 
 
 ckb_such    // checkbox "Search/Name"
 UI_mcl__
 UI_mcl_ctrl        ../xa/xa_objLst.c
 
 
-================================================================== \endcode */}
+================================================================== */}
 // eof

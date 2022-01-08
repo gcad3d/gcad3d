@@ -153,9 +153,14 @@ int IMOD (int *iNr, int *iRem, int ival, int idiv);
 #define UTI_round_4up(ii) (ii + 3) & ~0x3
 
 
+// UTI_round_8up              round integer up to 8
+//   eg 2 -> 4; 4 -> 4;  5 -> 8;
+#define UTI_round_8up(ii) (ii + 7) & ~0x7
+
+
 // UTI_round_32up              round integer up to 32
 //   eg 2 -> 32; 14 -> 32;  60 -> 64; 1036 -> 1056
-#define UTI_round_32up(ii) ii + 32 & ~31
+#define UTI_round_32up(ii) ii + 31 & ~31
 
 
 // UTI_I32_2I16                get int from 2 shorts
@@ -268,15 +273,13 @@ int DSIGN (double);
 #define DSIGN(d)   ((d>=0.)?(1):(-1))
 // see also DLIM01 
 
-/// DSIGTOL                              sign of double with tolerance (-1|0|1)
+// DSIGTOL                              sign of double with tolerance (-1|0|1)
 int DSIGTOL (double, double);
 #define DSIGTOL(dd,tol) ((dd>tol)?(1):((dd<-(tol))?(-1):(0)))
-/// \code
-/// replacing code:
-///   if (fabs(dd) < tol) rc =  0;
-///   else if (dd < 0.)   rc =  1;
-///   else                rc = -1;
-/// \endcode
+// replacing code:
+//   if (fabs(dd) < tol) rc =  0;
+//   else if (dd < 0.)   rc =  1;
+//   else                rc = -1;
 
 
 //----------------------------------------------------------------

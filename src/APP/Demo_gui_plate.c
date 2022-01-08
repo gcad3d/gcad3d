@@ -36,7 +36,8 @@ List_functions_end:
 \endcode *//*----------------------------------------
 
 
-make -f DemoKondensatorplatte.mak
+. ../options.sh && make -f Demo_gui_plate.mak
+
 
 */
 
@@ -170,7 +171,7 @@ extern  char      AP_mod_dir[SIZMFTot];  // Verzeichnis f Open, ..
   int           i1;
   double        d1, d2;
   char          *p1, *p2;
-  char          cbuf[256];
+  char          cbuf[SIZFNam];
   MemObj        box0, wact;
 
 

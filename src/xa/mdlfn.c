@@ -94,7 +94,7 @@ struct stru_FN  has separate spaces for symbolic-directory, filename, filetyp ..
 
  ffnam  full-filename (/path/filename.filetyp)
  syFn   symbolic-filename, eg "Data/Niet1.gcad";  "Data" = syDir
- syDir  symbolic-directory; list is ../../gCAD3D/cfg/dir.lst
+ syDir  symbolic-directory; list is ../../gCAD3D/cfg_Linux/dir.lst
  oFn    filename-obj (stru_MDLFN)
  
 
@@ -559,7 +559,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   char    fn[SIZFNam], symDir[SIZMFSym], *p1, *p2;
 
 
-  // printf("MDLFN_fDir_syFn |%s|\n",symPath);
+  printf("MDLFN_fDir_syFn |%s|\n",symPath);
 
 
   // get symDir out of symPath (ending with first '/')

@@ -211,7 +211,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 //================================================================
 
   int    irc;
-  char   s1[80], fnam[256];
+  char   s1[SIZFNam], fnam[SIZFNam];
 
 
   if(IE_cad_exitFunc()) return -1;
@@ -317,7 +317,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 // AP_dir_prg
 
   int    i1;
-  char   fnam[256], s1[256], s2[256];
+  char   fnam[SIZFNam+SIZMFNam], s1[256], s2[320];
 
   // printf("PRG_Del |%s|\n",AP_dir_prg);
 
@@ -365,7 +365,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   static long lnAct;
 
   int         iFunc, i1, i2;
-  char        cbuf[256], *cPos;
+  char        cbuf[SIZFNam], *cPos;
   MemObj      box0;
 
 
@@ -2110,7 +2110,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 // modify line or create new outputline
 
   int       ii, i1, iNr, iAct;
-  char      *cp1, cbuf[256], auxBuf[256];
+  char      *cp1, cbuf[320], auxBuf[256];
   FormVar   *vf1;
 
 
@@ -2251,7 +2251,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 // Edit active program.
 
 
-  char   cbuf[256];
+  char   cbuf[SIZFNam];
 
 
   // printf("PRG_Ed %d\n",APP_act_typ);

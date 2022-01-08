@@ -119,14 +119,14 @@ UT3D_npt_ci                circular polygon
   int    i1, ie, ii;
 
 
-  printf("UT3D_npt_sort %d\n",ptNr);
-  for(i1=0; i1<ptNr; ++i1) DEB_dump_obj__ (Typ_PT,&pa[i1]," pa[%d]",i1);
+  // printf("UT3D_npt_sort_near %d\n",ptNr);
+  // for(i1=0; i1<ptNr; ++i1) DEB_dump_obj__ (Typ_PT,&pa[i1]," pa[%d]",i1);
 
   ie = ptNr - 1;
   for(i1=0; i1<ie; ++i1) {
     ii = UT3D_ipt_cknear_npt (px, &pa[i1], ptNr - i1);
     ii += i1;
-      printf(" sort_near i1=%d ii=%d\n",i1,ii);
+      // printf(" sort_near i1=%d ii=%d\n",i1,ii);
     if(ii != i1) {
       // swap points ii -i1
       MEM_swap__ (&pa[i1], &pa[ii], sizeof(Point));
@@ -135,8 +135,8 @@ UT3D_npt_ci                circular polygon
 
 
     // TESTBLOCK
-    printf("ex-UT3D_npt_sort \n");
-    for(i1=0; i1<ptNr; ++i1) DEB_dump_obj__ (Typ_PT,&pa[i1]," pa[%d]",i1);
+    // printf("ex-UT3D_npt_sort_near \n");
+    // for(i1=0; i1<ptNr; ++i1) DEB_dump_obj__ (Typ_PT,&pa[i1]," pa[%d]",i1);
     // END TESTBLOCK
 
   return 0;

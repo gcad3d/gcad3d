@@ -5,8 +5,8 @@
 SRC1 = $(shell find ../inf/ -type f -iname "*.c")
 
 DIRSRC1 := ../inf/
-
 VPATH := ../inf/:../tags/
+
 
 .SUFFIXES: .c .tag
 

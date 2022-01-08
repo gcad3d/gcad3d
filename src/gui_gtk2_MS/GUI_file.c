@@ -84,6 +84,11 @@ GtkWidget *wfl1;
   
 
 //================================================================
+void TX_Error (char* txt, ...) { printf("%s\n",txt); }
+// see also ../ut/ut_TX.c
+
+
+//================================================================
 void TX_Print (char* txt, ...) { printf("%s\n",txt); }
 // see also ../ut/ut_TX.c
 
@@ -554,7 +559,7 @@ static char* os_tmp_dir = "/tmp/";
 // file:///usr/share/gtk-doc/html/gtk3/GtkFileChooserDialog.html
 
   int       irc;
-  char      s1Dir[256], *filename, s2[256];
+  char      s1Dir[400], *filename, s2[400];
   GtkWidget *wb1, *we1, *wl1;
   gint res;
 
@@ -567,6 +572,11 @@ static char* os_tmp_dir = "/tmp/";
   fnSymDir = paArg[3];
   sFilter  = paArg[4];
   sTit     = paArg[5];
+
+  printd("## GUI_file_open__ 2 |%s|\n",sDir);
+  printd("## GUI_file_open__ 3 |%s|\n",fnSymDir);
+  printd("## GUI_file_open__ 4 |%s|\n",sFilter);
+  printd("## GUI_file_open__ 5 |%s|\n",sTit);
 
 
   //----------------------------------------------------------------
@@ -633,7 +643,11 @@ static char* os_tmp_dir = "/tmp/";
     // Open ..
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
     filename = gtk_file_chooser_get_filename (chooser);
-    if(strlen(filename) < sizeof(fnOut)) strcpy(fnOut,filename);
+    if(!filename) goto L_wait;
+    if(strlen(filename) < sizeof(fnOut)) {
+        printd("## chooser-get |%s|\n",filename);
+      strcpy(fnOut,filename);
+    }
     g_free (filename);
 
 

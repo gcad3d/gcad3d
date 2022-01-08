@@ -49,6 +49,23 @@ extern int errno;
 
 
 
+
+
+//================================================================
+  void OS_get_scrRes (int *xRes, int *yRes) {
+//================================================================
+// OS_get_scrRes                    get total screensize
+
+  // int  irc;
+  // char s1[80];
+
+
+  TX_Error ("OS_get_scrRes - MS-win - TODO");
+  exit (-1);
+
+}
+
+
 //===================================================================
   int snprintf (char *str, size_t size, const char *format, ...) {
 //===================================================================
@@ -79,8 +96,15 @@ extern int errno;
 
 
   int     i1;
+  char    fn[512];
 
   // printf("OS_checkFilExist |%s| %d\n", filnam, mode);
+
+//   if(strlen(filnam) > 510) {
+//     TX_Error ("OS_checkFilExist E1"); exit (-1);
+//   }
+// 
+//   sprintf(fn, "\"%s\a",filnam);
 
   i1 = GetFileAttributes (filnam);
     // printf(" GetFileAttributes %d %s\n",i1,filnam);

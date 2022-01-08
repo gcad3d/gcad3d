@@ -6354,7 +6354,7 @@ static  TraRot  trr;
   // save the refPlane
   srv->indCen = aus_tab[1];   // Ind of CenterObj (Plane)
   srv->typCen = aus_typ[1];
-
+  srv->dir    = 0;
 
 
   // decode Typ_goRadius
@@ -6496,6 +6496,7 @@ static  TraRot  trr;
   ox1->typ   = Typ_SURRV;
   ox1->form  = Typ_SURRV;
   ox1->siz   = 1;
+  ox1->dir   = 0;
   ox1->data  = srv;
 
 
@@ -6953,10 +6954,10 @@ static ObjGX   oxa[2];
 
 
   // printf("================================================ \n");
-  printf("APT_decode_sbsp: %d\n",aus_anz);
-  for(i1=0; i1<aus_anz; ++i1) {
-    printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
-  }
+  // printf("APT_decode_sbsp: %d\n",aus_anz);
+  // for(i1=0; i1<aus_anz; ++i1) {
+    // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
+  // }
 
 
   // reserve space for output-surf su1 in tbuf1
@@ -7094,7 +7095,7 @@ static ObjGX   oxa[2];
   //     (spannt eine Flaeche ueber einen Punkteraster)
   // 
   L_2curves:
-    printf(" L_2curves:\n");
+    // printf(" L_2curves:\n");
 
   if(aus_typ[i1] == Typ_Group) {         // group of curves
     cv2Nr = aus_tab[i1];
@@ -7108,8 +7109,8 @@ static ObjGX   oxa[2];
     i1 = iu2 + 1;
 
   } else goto Par_err;
-    printf(" _sbsp-iu1=%d cv1Nr=%d iu2=%d cv2Nr=%d i1=%d\n",
-           iu1,cv1Nr,iu2,cv2Nr,i1);
+    // printf(" _sbsp-iu1=%d cv1Nr=%d iu2=%d cv2Nr=%d i1=%d\n",
+           // iu1,cv1Nr,iu2,cv2Nr,i1);
 
   if(i1 > aus_anz) {
     deg1 = aus_tab[i1];
@@ -7124,7 +7125,7 @@ static ObjGX   oxa[2];
   } else {
     deg2 = 0;
   }
-    printf(" _sbsp-deg1=%d deg2=%d\n",deg1,deg2);
+    // printf(" _sbsp-deg1=%d deg2=%d\n",deg1,deg2);
 
 
   //----------------------------------------------------------------
@@ -7147,8 +7148,8 @@ static ObjGX   oxa[2];
     // change points, lines -> bsp-curves
     irc = UT3D_cbsp_dbo (&cv1tab[i1], tbuf1, typ, ind, tbuf3);
     if(irc < 0) return irc;
-      printf(" U1[%d] typ=%d ind=%ld\n",i1,typ,ind);
-      DEB_dump_obj__ (irc, cv1tab[i1], "U1[%d]",i1);
+      // printf(" U1[%d] typ=%d ind=%ld\n",i1,typ,ind);
+      // DEB_dump_obj__ (irc, cv1tab[i1], "U1[%d]",i1);
   }
 
 
@@ -7160,8 +7161,8 @@ static ObjGX   oxa[2];
     // change points, lines -> bsp-curves
     irc = UT3D_cbsp_dbo (&cv2tab[i1], tbuf1, typ, ind, tbuf3);
     if(irc < 0) return irc;
-      printf(" U2[%d] typ=%d ind=%ld\n",i1,typ,ind);
-      DEB_dump_obj__ (irc, cv2tab[i1], "U2[%d]",i1);
+      // printf(" U2[%d] typ=%d ind=%ld\n",i1,typ,ind);
+      // DEB_dump_obj__ (irc, cv2tab[i1], "U2[%d]",i1);
   }
 
 
@@ -7203,8 +7204,8 @@ static ObjGX   oxa[2];
   //================================================================
   L_done:
 
-    DEB_dump_obj__ (Typ_SURBSP, su1, "" );
-    printf("ex APT_decode_sbsp irc=%d\n",irc);
+    // DEB_dump_obj__ (Typ_SURBSP, su1, "" );
+    // printf("ex APT_decode_sbsp irc=%d\n",irc);
 
 
   ox1->typ   = Typ_SURBSP;
@@ -9652,7 +9653,7 @@ goto Error;
         // get get standardCurve from DB-curve S
         irc = UTO_objDat_dbS (&vp1, &typ1, (long)aus_tab[0], iSeg1, iSeg2, obj1);
         if(irc < 0) goto L_parErr;
-          DEB_dump_obj__(typ1, vp1, "  D=S_SEG-1");
+          // DEB_dump_obj__(typ1, vp1, "  D=S_SEG-1");
           
         // extract Line from Polygon
         if(typ1 == Typ_LN) {
@@ -12449,7 +12450,7 @@ Rückgabewert ist der gefundene Index.
 
         UT3D_vc_2ptlen (&vc1, &pt1, &pt2, aus_tab[2]);
         if(fabs(aus_tab[3]) > UT_TOL_min0)
-          UT3D_vc_rotangr (&vc1, &vc1, &aus_tab[3]);
+          vc1 = UT3D_vc_rotvc_angZ (&vc1, aus_tab[3]);
 
         goto EX_PTVC;
 
@@ -12495,7 +12496,7 @@ Rückgabewert ist der gefundene Index.
 
         UT3D_vc_2ptlen (&vc1, &ln1.p1, &ln1.p2, aus_tab[2]);
         if(fabs(aus_tab[3]) > UT_TOL_min0)
-          UT3D_vc_rotangr (&vc1, &vc1, &aus_tab[3]);
+          vc1 = UT3D_vc_rotvc_angZ (&vc1, aus_tab[3]);
 
         goto EX_PTVC;  // pt1 vc1
 

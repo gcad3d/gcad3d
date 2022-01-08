@@ -2208,7 +2208,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
             // printf(" DXF-Model |%s| angr=%lf lNr=%ld\n",
                    // BlockNam,recwin[0],dxf_LineNr);
           d1 = -UT_RADIANS(recwin[0]);
-          UT3D_vc_rotangr (&vc1, &vc1, &d1);
+          vc1 = UT3D_vc_rotvc_angZ (&vc1, d1);
         }
       }
 

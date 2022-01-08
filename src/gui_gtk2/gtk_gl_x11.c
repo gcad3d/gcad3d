@@ -89,12 +89,15 @@ static  int         UI_GR_STAT = 0;
   Colormap    xcolormap;
   int         attributes[] = {
                 GLX_RGBA,
+                GLX_DOUBLEBUFFER,
+                GLX_DEPTH_SIZE, 24,
                 GLX_RED_SIZE, 1,
                 GLX_GREEN_SIZE, 1,
                 GLX_BLUE_SIZE, 1,
-                GLX_DOUBLEBUFFER, True,
-                GLX_DEPTH_SIZE, 24,
                 None };
+
+
+  printf("GLB_Create\n");
 
   // GLB_x_id = 0;   // reset
 

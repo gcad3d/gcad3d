@@ -1771,7 +1771,7 @@ use in GL_disp_cone
   FILE     *fpo;
 
 
-  printf("tess_res_CB__ \n");
+  // printf("tess_res_CB__ \n");
 
 
   // get 1.obj = tess. model
@@ -1827,9 +1827,9 @@ use in GL_disp_cone
   ObjGX   *oxs, *oxd;
 
 
-  printf("\n====================\n");
-  printf("tess_res_CB_sur typ=%d form=%d siz=%d\n",
-          oxi->typ,oxi->form,oxi->siz);
+  // printf("\n====================\n");
+  // printf("tess_res_CB_sur typ=%d form=%d siz=%d\n",
+          // oxi->typ,oxi->form,oxi->siz);
 
 
   if(oxi->typ == Typ_GL_Sur) {
@@ -1839,7 +1839,7 @@ use in GL_disp_cone
 
   } else if(oxi->typ == Typ_Color) {
     sCol = (ColRGB*)&oxi->data;
-      printf("  defCol r%d g%d b%d\n",sCol->cr,sCol->cg,sCol->cb);
+      // printf("  defCol r%d g%d b%d\n",sCol->cr,sCol->cg,sCol->cb);
     funcnam (oxi);
     return 0;
 
@@ -1917,7 +1917,7 @@ use in GL_disp_cone
         if(oxs->typ == Typ_Color) {
           iTex = -1;
           sCol = (ColRGB*)&oxs->data;
-            printf("  Col r%d g%d b%d\n",sCol->cr,sCol->cg,sCol->cb);
+            // printf("  Col r%d g%d b%d\n",sCol->cr,sCol->cg,sCol->cb);
           funcnam (oxs);
 
 

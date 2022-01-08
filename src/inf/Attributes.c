@@ -50,7 +50,7 @@ DL_InitAttRec ((int)AttributIndex,(int)color,(int)linetyp,(int)thick);
 // lineTyp: 0 = full-line (VollLinie); 1 = dash-dot (Strich-Punkt),
 // 2 = dashed (kurz strichliert) 3 = dashed-long (lang strichliert),
 // lineThick: 1-6, thickness in pixels
-// Defaults see File ~/gCAD3D/cfg/ltyp.rc
+// Defaults see File ~/gCAD3D/cfg_Linux/ltyp.rc
 // - readonly <cfgdir>/ltyp.rc
 // Example: Attribut 20 = green, dash, thickness 3:
 DL_InitAttRec (20, 90, 2, 3);
@@ -226,6 +226,7 @@ COL_DL_ATT         get color out of struct DL_Att
 
 
 Files:
+../ut/ut_col.c      UTcol__3i ..
 ../ut/ut_col.h      COL_DL_ATT INT32P_COL ..
 ../xa/xa.c          APcol_* COL_* UTcol_* 
 

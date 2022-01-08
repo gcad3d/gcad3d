@@ -80,6 +80,11 @@ GtkWidget  *wEnt;
 
 
 //================================================================
+void TX_Error (char* txt, ...) { printf("%s\n",txt); }
+// see also ../ut/ut_TX.c
+
+
+//================================================================
 void TX_Print (char* txt, ...) { printf("%s\n",txt); }
 // see also ../ut/ut_TX.c
 

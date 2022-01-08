@@ -3,6 +3,7 @@
 " /bin/cp -f ~/.vimrc ${DIR_DEV}gcad3d/src/APP/.
 " /bin/cp -f ~/.vimdoc ${DIR_UTI}vim/.
 " /bin/cp -f ~/.vimdoc ${DIR_DEV}gcad3d/src/APP/.
+" /bin/cp -f ~/.vim/vi-bookmarks.vim ${DIR_UTI}vim/.
 " F#; Shift F1 = 23; Ctl-F# geht in Linux nicht !!
 " shift <S-F1> Ctrl <C-F1> Alt <M-F1>
 " MS: also /mnt/serv1/MSwin/bin/_vimrc
@@ -136,12 +137,9 @@ endif
 " p print buffer from yy
 " Ctl-p = goto Definition of struct (retour m. Ctl o)
 map <C-P> :call To_proto()
-"" Alt-p = Display Prototyp from Includefile
-"map p [i
+" Alt-p = Display Prototyp from Includefile
+map p [i
 
-
-"" Alt-R readonly
-"nmap ?? :set readonly
 
 
 " q = quit

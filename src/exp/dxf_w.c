@@ -78,7 +78,8 @@ List_functions_end:
 \endcode *//*----------------------------------------
 
 
-make -f xa_dxf_w.mak
+Build:
+. ../options.sh && make -f xa_dxf_w.mak
 
 ==============================================================================
 Memory-Usage  memspc (../xa/xa_mem.h):
@@ -87,6 +88,11 @@ dxf-Write:
    memspc55   list_of_subModels dxfw_smTab
    memspc011  f Text ..
    memspc201  f curves ..
+
+
+==============================================================================
+DEBUG:
+./do gdb <mdlNam>
 
 
 ==============================================================================
@@ -478,6 +484,7 @@ int DXFW_test (char *txt1) {
   MemTab_ini__ (&dxfw_smTab, sizeof(int), Typ_Int4, SIZ_SMTAB);
 
 
+  LOG_A_init ("export_dxf");          // init logFile
 
 
   //----------------------------------------------------------------
@@ -629,6 +636,8 @@ int DXFW_test (char *txt1) {
   // sprintf(s1,"%sdxfw_*",OS_get_tmp_dir());
   // OS_file_delGrp (s1);
 
+
+  LOG_A_exit (dxfw_errNr);           // close logfile
 
 
   //----------------------------------------------------------------
@@ -808,7 +817,7 @@ int DXFW_test (char *txt1) {
   // 5 8 62 370
 
 
-  printf("dxfw_SPLINE \n");
+  // printf("dxfw_SPLINE \n");
   // DEB_dump_obj__ (Typ_CVBSP, cv1, "cv1:");
 
   fprintf(fp_in,"0\nSPLINE\n");
@@ -1895,8 +1904,8 @@ usw.
   ObjG          *el;
 
 
-  printf("DXFW_ox ox1-typ=%d ox1-form=%d tr=%d typ=%d dbi=%ld\n",
-         ox1->typ,ox1->form,TrInd,typ,dbi);
+  // printf("DXFW_ox ox1-typ=%d ox1-form=%d tr=%d typ=%d dbi=%ld\n",
+         // ox1->typ,ox1->form,TrInd,typ,dbi);
 
 
   // IG_TrInd = TrInd;
@@ -2072,7 +2081,7 @@ usw.
 
     // skip this types:
     if(iTyp == Typ_Ditto) continue;
-
+    if(iTyp == Typ_apDat) continue;
 
     // get DB-obj
     ox1 = DB_GetObjGX (iTyp, oTab[i1].dbInd);
@@ -2183,7 +2192,7 @@ usw.
         sCol = *((ColRGB*)&oxi->data);
         if(MEM_cmp__(&sCol, &actCol, sizeof(ColRGB))) {
           actCol = sCol;
-          printf(" Col r%d g%d b%d\n",sCol.cr,sCol.cg,sCol.cb);
+            // printf(" Col r%d g%d b%d\n",sCol.cr,sCol.cg,sCol.cb);
           // change RGB-color -> ACI-color
           iCol = DXF_colACI_colRGB (sCol.cr,sCol.cg,sCol.cb);
         }
@@ -2345,9 +2354,12 @@ usw.
 
 
   l1 = OS_FilSiz (fnam);
-  fBuf = MEM_alloc_tmp ((int)(l1 + 128));
+  // fBuf = MEM_alloc_tmp ((int)(l1 + 128));
+  fBuf = malloc ((int)(l1 + 128));
+  if(!fBuf) { LOG_A__ (MSG_ERR_typ_ERR, "DXFW_cat_file EOM"); return -1;}
   MEM_get_file (fBuf, &l1, fnam);
   fwrite (fBuf, 1, l1, fpo);
+  free(fBuf);
 
   return 0;
 

@@ -63,8 +63,11 @@ PRCE_Out_write_txt
 List_functions_end:
 =====================================================
 
+Build:
+. ../options.sh && make -f PRC_cut1.mak
 
 
+//----------------------------------------------------------------
 FROM  = defines the starting position in the machine (G92).
         Correlates the CAD-position with the machine-position.
         At the machine: set the tooltip manually to the defined position, start.
@@ -197,7 +200,7 @@ static int     rapid;                // ON=0; OFF=1;
 static int     tlActNr;     
 // int     tlActSid = 0;   // (RI LE OFF)   def = off
 
-static char    outBuf[256];
+static char    outBuf[400];
 
 #define cmd_SIZ 100
 static int     cmd_anz;

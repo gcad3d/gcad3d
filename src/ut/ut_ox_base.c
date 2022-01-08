@@ -864,8 +864,8 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
   void   *sDat;
 
 
-  printf("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO \n");
-  printf("OGX_siz_obj typ=%d iNr=%d, isol=%d\n",typ,iNr,isolate);
+  // printf("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO \n");
+  // printf("OGX_siz_obj typ=%d iNr=%d, isol=%d\n",typ,iNr,isolate);
   // if(typ == Typ_ObjGX) DEB_dump_ox_s_ (obj1, "OGX_siz_obj");   else
   // DEB_dump_obj__ (typ, obj1, "OGX_siz_obj");
 
@@ -895,14 +895,14 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
   // it is a struct with pointers; 
   // loop tru primary ObjGX-Record(s)
   for(i1=0; i1<iNr; ++i1) {
-      DEB_dump_obj__ (typ, po, "_siz_obj [%d] ------------",i1);
+      // DEB_dump_obj__ (typ, po, "_siz_obj [%d] ------------",i1);
 
     //----------------------------------------------------------------
     if(typ == Typ_ObjGX) {
 
       sTyp  = ((ObjGX*)po)->typ;               // get child-typ
       sForm = ((ObjGX*)po)->form;              // get type of structure of child
-        printf(" _siz_obj-OGX i1=%d sTyp=%d sForm=%d\n",i1,sTyp,sForm);
+        // printf(" _siz_obj-OGX i1=%d sTyp=%d sForm=%d\n",i1,sTyp,sForm);
 
 
       // ignore all primary ObjGX-Records with no child-data
@@ -937,7 +937,7 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
 
     //----------------------------------------------------------------
     } else if(typ == Typ_CVPOL) {     // DB_StoreCvPlg
-        printf(" _siz_obj- i1=%d Typ_CVPOL",i1);
+        // printf(" _siz_obj- i1=%d Typ_CVPOL",i1);
       *oSiz += sizeof(double) * ((CurvPoly*)po)->ptNr;  // lvTab
       *oSiz += sizeof(Point) * ((CurvPoly*)po)->ptNr;   // cpTab
 
@@ -984,7 +984,7 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
 
   //================================================================
   L_fertig:
-    printf(" ex-OGX_siz_obj %d\n",irc);
+    // printf(" ex-OGX_siz_obj %d\n",irc);
 
   return irc;
 

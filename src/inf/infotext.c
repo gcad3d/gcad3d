@@ -385,7 +385,7 @@ inputObjects  pt 2pt  ..
  onam object-name                        string (eg: onam="height" for oid=V20)
  ffnam  full-filename (/path/filename.filetyp)
  syFn   symbolic-filename, eg "Data/Niet1.gcad";  "Data" = syDir
- syDir  symbolic-directory; list is ../../gCAD3D/cfg/dir.lst
+ syDir  symbolic-directory; list is ../../gCAD3D/cfg_Linux/dir.lst
  oFn    filename-obj (stru_FN)
 
 Line = linesegment (2 points, both sides limited (lnLL)
@@ -1185,8 +1185,8 @@ Example:
   att = 9; // col hilite-red (822), full-line (0), lineThickness 4 pixels wide
 
 
-sourcefile-runtime: <cfgdir>/ltyp.rc     /mnt/serv1/Devel/gcad3d/gCAD3D/cfg/ltyp.rc
-sourcefile-devel:   ../../gCAD3D/cfg/ltyp.rc -> examples.gz
+sourcefile-runtime: <cfgdir>/ltyp.rc    /mnt/serv1/Devel/gcad3d/gCAD3D/cfg_Linux/ltyp.rc
+sourcefile-devel:   ../../gCAD3D/cfg_Linux/ltyp.rc -> examples.gz
 
 ind col typ thk
   0 000  0  1      // Normal               Typ_Att_def

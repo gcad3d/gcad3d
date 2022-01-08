@@ -1342,15 +1342,14 @@ static int       UI_act_Id;
 //================================================================
   MemObj GUI_box_v (MemObj *o_par, char *opts) {
 //================================================================
-/// \code
-/// GUI_box_v              vertical container for widgets
-///   opts       options; (HorSiz VertSiz)
-///              HorSiz,VertSiz:  size in characters; default is automatic size.
-///                              'e' = expand widget; default is fixed size.
-///                               negative values: size in pixels.
-///              Examples: "" or "10" or "10e,e"
-///                "10e,e" horiz. size 10 chars, hor. and vert. expandable.
-/// \endcode
+// GUI_box_v              vertical container for widgets
+//   opts       options; (HorSiz VertSiz)
+//              HorSiz,VertSiz:  size in characters; default is automatic size.
+//                              'e' = expand widget; default is fixed size.
+//                               negative values: size in pixels.
+//              Examples: "" or "10" or "10e,e"
+//                "a,6a"  expand horiz; vert. size 6 chars high
+//                "10e,e" horiz. size 10 chars, hor. and vert. expandable.
 
   return GUI_box__  (o_par, 1, opts);
 

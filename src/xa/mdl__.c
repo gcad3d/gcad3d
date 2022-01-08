@@ -105,6 +105,7 @@ MDL_ren__               rename model
 MDL_ren_1               rename model
 MDL_ren_fmdl            modify modelfiles - rename or delete submodel
 MDL_ren_flst            modify listfiles - rename or delete submodel
+MDL_ren_sav             update modelname in browser after save-as
 
 MDL_rem__               remove submodel and its childs
 MDL_rem_ck_used         check if model is used
@@ -159,7 +160,8 @@ MDL_imn_mNam__sNam      get symbolic-name and name-index from safe-name
 MDL_fnModLst_iNam       get filename Mod_<modelname>.lst from mdl_tab-index
 MDL_fnModLst_mNam       get filename Mod_<safe_modelname>.lst                INLINE
 MDL_fnModTess_mNam      get filename Mod_<safe_modelname>.tess (mockup)      INLINE
-MDL_fnModel_mNam        get filename Model_<safe_modelname>
+MDL_fnModel_mNam        get filename Model_<primaryModel>
+MDL_fnModel_main        get filename Model_<mainModel>
 
 MDL_MTYP_IS_MOCK        check if model is mockup (tess obj, stl, wrl)        INLINE
 MDL_MTYP_INAM           get modelType from name-index                        INLINE
@@ -244,8 +246,8 @@ Testmodels:
   Data_U/test_mod_5.gcad      // images   
   Data_U/test_mod_6.gcad      // alle
 
-./do comp ELE1/board1.gcad
 ./do comp ELE1/box1.gcad
+./do comp ELE1/board1.gcad
 ./do comp Data_U/t1.gcad
 ./do Data_U/t5.gcad                      // testfile save
 ./do Data_U/test1.gcaz
@@ -519,6 +521,29 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
 
 
 //================================================================
+  int MDL_fnModel_main (char *fn) {
+//================================================================
+// MDL_fnModel_main        get filename Model_<mainModel>
+
+  char      *mm;
+
+  mm = UtxTab__(0, &mdl_names);
+
+  // get new name "Model_<AP_mod_sym>_<AP_mod_fnam>_<AP_mod_ftyp>"
+// AP_mod_fnam AP_mod_ftyp AP_modact_nam AP_modact_inm
+//   // make mnam safe
+  // strcpy (safNam, mmNam);
+  // UTX_safeName (safNam, 1);
+  sprintf(fn, "%sModel_%s_%s_%s", OS_get_tmp_dir(),AP_mod_sym,AP_mod_fnam,AP_mod_ftyp);
+
+    printf("ex-MDL_fnModel_main |%s|\n",fn);
+
+  return 0;
+
+}
+
+
+//================================================================
   int MDL_fnModel_mNam (char *fn, int  imn) {
 //================================================================
 // MDL_fnModel_mNam        get filename Model_<safe_modelname>
@@ -569,8 +594,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
 // MDL_iNam_sNam           get index-modelName from safe-modelName
 
 
-  int     i1, imn;
-  long    *itxa;
+  int     i1, imn, *itxa;
   char    safNam[SIZMFTot];
 
 
@@ -1276,7 +1300,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
 // was Mod_m2s__
 
   int     irc, imn;
-  char    mNam[SIZMFNam], fn1[SIZMFTot], fn2[SIZMFTot],
+  char    mNam[SIZMFNam], fn1[SIZFNam], fn2[SIZFNam],
           *mnAct, safMnAct[SIZMFTot], s1[320];
 
 
@@ -2077,7 +2101,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
  
 
   int     irc;
-  char    s1[320], sfn[320];
+  char    s1[SIZFNam], sfn[320];
 
   // printf("MDL_load_new__ \n");
 
@@ -2305,7 +2329,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   int    irc, i1, ii, inm, mtyp, mstat;
   long   l1;
-  char   cbuf[320], fnam0[320], fnam1[320], s1[320], symNam[SIZMFTot],
+  char   cbuf[320], fnam0[SIZFNam], fnam1[SIZFNam], s1[320], symNam[SIZMFTot],
          safPrim[SIZMFTot], *p1;
   FILE   *fp1, *fpo;
   // Memspc mSpc1;
@@ -3014,6 +3038,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     ++ieof; goto L_nxtM2; }
   llM1 = strlen(lnM1);
   if(llM1 <= 1) goto L_nxtM1;
+  UTX_endDel_crlf (lnM1, &llM1);   // remove closing cr,lf 
+  if(llM1 <= 1) goto L_nxtM1;
     // printf(" M1 %ld |%s|",llM1,lnM1);
   // test if line can be ignored
   if(MDL_sav_cmp_i(lnM1)) goto L_nxtM1;
@@ -3026,10 +3052,11 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     ++ieof; goto L_nxtCmp; }
   llM2 = strlen(lnM2);
   if(llM2 <= 1) goto L_nxtM2;
+  UTX_endDel_crlf (lnM2, &llM2);   // remove closing cr,lf 
+  if(llM2 <= 1) goto L_nxtM2;
     // printf(" M2 %ld |%s|",llM2,lnM2);
   // test if line can be ignored
   if(MDL_sav_cmp_i (lnM2)) goto L_nxtM2;
-
 
   //----------------------------------------------------------------
   // 2 lines to compare ?
@@ -3039,9 +3066,6 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     goto L_exit;                            // ieof=2: finished, OK.
   }
 
-  // remove closing cr,lf of both lines
-  UTX_endDel_crlf (lnM1, &llM1);
-  UTX_endDel_crlf (lnM2, &llM2);
 
   // compare
   if(llM1 != llM2) goto L_errEx;
@@ -4832,8 +4856,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 // was ..
 
 
-  int       irc, i1, inm;
-  long      l1, *itxa;
+  int       irc, i1, inm, *itxa;
+  long      l1;
   stru_tab  rTab = _TAB_NUL;
 
 
@@ -4884,8 +4908,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 //================================================================
 // MDL_mdl_del             set mdl_tab-record deleted
 
-  int      irc, i1;
-  long     *itxa;
+  int      irc, i1, *itxa;
 
 
   // printf("MDL_mdl_del %s\n",symNam);
@@ -6716,7 +6739,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 // ersetzen durch 
 // MODSIZ <d1> <d2> <d3>
 
-  char  cbuf1[256], fNam[256], newLn[256];
+  char  cbuf1[256], fNam[SIZFNam], newLn[256];
   FILE  *fp1;
 
 
@@ -6858,6 +6881,79 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 }
 */
+
+//================================================================
+  int MDL_ren_sav () {
+//================================================================
+// MDL_ren_sav             update modelname in browser after save-as
+
+  char   fn1[SIZFNam], fn2[SIZFNam], actNam[SIZMFTot], newNam[SIZMFTot];
+
+
+  printf("MDL_ren_sav |%s|%s|%s|\n",AP_mod_sym,AP_mod_fnam,AP_mod_ftyp);
+
+  sprintf(newNam, "%s/%s.%s",AP_mod_sym,AP_mod_fnam,AP_mod_ftyp);
+  AP_Mod_load_fn (newNam, 0);
+
+
+/*
+  PROBLEM: UtxTab_change invalidates all Modelnames of basicModels
+   (pointers into mdlnames) - should be updated; also if mdlnames reallocs !)
+
+  MDL_dump__ ("MDL_ren_sav");
+  printf(" MDL_MNAM_MAIN-1 = |%s|\n",MDL_MNAM_MAIN());
+
+
+  // get actNam = active mainModelfilename; MDL_MNAM_MAIN is old mainModelName
+  strcpy(actNam, UtxTab__(0, &mdl_names));
+  UTX_safeName (actNam, 1);
+
+
+  //----------------------------------------------------------------
+  // update modelname in nameTable
+  // new name is AP_mod_fnam; change mdl_names[0]                        <<<<<
+  sprintf(newNam, "%s/%s.%s",AP_mod_sym,AP_mod_fnam,AP_mod_ftyp);
+  UtxTab_change (&mdl_names, 0, newNam);
+    printf(" MDL_MNAM_MAIN-2 = |%s|\n",MDL_MNAM_MAIN());
+  
+
+
+  //----------------------------------------------------------------
+  UTX_safeName (newNam, 1);
+// SEE ALSO MDL_ren_1
+
+  // rename <tmp>/Model_<actNam>    -> <tmp>/Model_<newNam>>
+  sprintf(fn1,"%sModel_%s", OS_get_tmp_dir(), actNam);
+  sprintf(fn2,"%sModel_%s", OS_get_tmp_dir(), newNam);
+  OS_file_rename (fn1, fn2);
+
+  // rename <tmp>/Mod_<actNam>.lst  -> <tmp>/Mod_<newNam>.lst
+  sprintf(fn1,"%sMod_%s.lst", OS_get_tmp_dir(), actNam);
+  if(OS_checkFilExist (fn1, 1)) {
+    sprintf(fn2,"%sMod_%s.lst", OS_get_tmp_dir(), newNam);
+    OS_file_rename (fn1, fn2);
+  }
+
+  // rename <tmp>/DB__<actNam>.dat  -> <tmp>/DB__<newNam>.dat
+  sprintf(fn1,"%sDB__%s.dat", OS_get_tmp_dir(), actNam);
+  sprintf(fn2,"%sDB__%s.dat", OS_get_tmp_dir(), newNam);
+  OS_file_rename (fn1, fn2);
+
+
+  //----------------------------------------------------------------
+  // exit if browser not active
+  if(BRW_STAT) {
+    // update browser
+    Brw_row_main_set (AP_mod_fnam);
+  }
+*/
+
+    MDL_dump__ ("ex-MDL_ren_sav");
+
+  return 0;
+
+} 
+
 
 //================================================================
   int MDL_ren__ (char *actNam) {

@@ -2190,8 +2190,6 @@ static int   patNr;     // nr of Patches
 
   // printf("====================================================== \n");
   // printf("TSU_DrawSurTRV %d %d\n",oxi->typ,oxi->form);
-  // printf(" v0=%lf\n",((SurRev*)oxi->data)->v0);
-  // printf(" v1=%lf\n",((SurRev*)oxi->data)->v1);
   // DEB_dump_obj__ (Typ_SURRV, oxi->data, " _DrawSurTRV:");   
 
 
@@ -2261,12 +2259,12 @@ static int   patNr;     // nr of Patches
   // Startwinkel, Endwinkel
   aSta = ((SurRev*)oxi->data)->ang1;
   a2 = ((SurRev*)oxi->data)->ang2;
-    // printf(" aSta=ang1=%lf a2=ang2=%lf\n",aSta,a2);
 
 
   // invert direction if dir=revers
   if(((SurRev*)oxi->data)->dir) {
     MEM_swap_2db (&aSta, &a2);
+      // printf(" swapped-aSta=ang1=%lf a2=ang2=%lf\n",aSta,a2);
   }
 
 
@@ -4461,7 +4459,7 @@ uOff abhaengig von Aussenkonturtyp:
       d1 = TSU_dat[6] + fabs(((Circ*)TSU_ox2.data)->rad);
       uOff = UT2D_angr_ciSec (UT_DISP_cv, d1) / 2.;
       // uOff = UT2D_angr_ciSec (UT_DISP_cv, d1);
-      // printf(" uOff=%f\n",uOff);
+        // printf(" uOff=%f\n",uOff);
 
 
 
@@ -4504,7 +4502,7 @@ uOff abhaengig von Aussenkonturtyp:
       }
 
       // TSU_dat[6] = 1.;
-      // printf(" SRV: uOff=%f vOff=%f\n",uOff,vOff);
+        // printf(" SRV: uOff=%f vOff=%f\n",uOff,vOff);
 
 
         
@@ -5116,8 +5114,7 @@ uOff abhaengig von Aussenkonturtyp:
   }
 
     // TESTBLOCK
-    // printf("TSU_typ_=%d \n",TSU_typ_);
-    // printf("ex-TSU_tr_init_ %d\n",irc);
+    // printf("ex-TSU_tr_init_TSU typ_=%d irc=%d\n",TSU_typ_,irc);
     // END TESTBLOCK
 
   return irc;
@@ -9727,7 +9724,7 @@ static Point pta;
 */
 
 
-  // DEB_dump_obj__ (Typ_CI, cio, "ex TSU_sph_1");
+    // DEB_dump_obj__ (Typ_CI, cio, "ex-TSU_sph_1");
 
   return irc;
 

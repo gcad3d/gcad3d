@@ -374,7 +374,8 @@ fi
 
 # find text in Info-files
 if test "$1" = "fnd_inf"; then
-  grep $2 ../inf/*
+#  grep $2 ../inf/*
+  grep $2 inf/*
   exit $?
 fi
 
@@ -431,7 +432,8 @@ if test "$1" = "edm"; then
 fi
 
 if test "$1" = "inf"; then
-  make "SCR1=`ls ../inf/*.c`" -f inf_gcad3d.mak
+#  make "SCR1=`ls ../inf/*.c`" -f inf_gcad3d.mak
+  make "SCR1=`ls inf/*.c`" -f inf_gcad3d.mak
   exit 0
 fi
 

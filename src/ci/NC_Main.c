@@ -1312,7 +1312,7 @@ enum Typ_TPCT {
   //----------------------------------------------------------------
  
   // display Label name_of_the_Constr.Plane out eg "ConstrPln   R20"
-   if(RefInd < 0L) {
+   if((RefInd < 0L)&&(RefInd >= DB_PLIZ_IND)) {
     if(RefInd == DB_PLX_IND)  strcpy(WC_sur_txt, "RX");
     if(RefInd == DB_PLY_IND)  strcpy(WC_sur_txt, "RY");
     if(RefInd == DB_PLZ_IND)  strcpy(WC_sur_txt, "RZ");
@@ -2897,7 +2897,7 @@ APT_stat_act:
   char  cbuf[16];
 
 
-  printf("APT_do_auxCmd %d %f\n",i_typ[0],i_tab[0]);
+  // printf("APT_do_auxCmd %d %f\n",i_typ[0],i_tab[0]);
 
 
     //---------- Change Graf. Attribut  eg. "G20" Typ_G_Att=105
@@ -6562,9 +6562,9 @@ Ablauf Makro:
   ObjAto    ato1;
 
 
-  printf("APT_work_ATTS %d |%s|\n",aus_anz,APT_defTxt);
-  for(ii=0; ii<aus_anz; ++ii)
-    printf(" %d typ=%d tab=%lf\n",ii,aus_typ[ii],aus_tab[ii]);
+  // printf("APT_work_ATTS %d |%s|\n",aus_anz,APT_defTxt);
+  // for(ii=0; ii<aus_anz; ++ii)
+    // printf(" %d typ=%d tab=%lf\n",ii,aus_typ[ii],aus_tab[ii]);
 
 
   iAtt = -1;
@@ -6577,7 +6577,7 @@ Ablauf Makro:
     if(aus_typ[ii] == Typ_String) {
       // get string
       APT_get_String (s1, APT_defTxt, aus_tab[ii]);
-        printf(" s1=|%s|\n",s1);
+        // printf(" s1=|%s|\n",s1);
 
       //---symbolic--------------------------------------------------
       if(s1[0] == 'S') {
@@ -6597,7 +6597,7 @@ Ablauf Makro:
         if(strlen(s1) == 7) {
           iCol = 0;
           sscanf(&s1[1],"%02x%02x%02x",&i1,&i2,&i3);   // get col out of string
-            printf(" col1 = %d %d %d\n",i1,i2,i3);
+            // printf(" col1 = %d %d %d\n",i1,i2,i3);
           UTcol__3i (&col1, i1,i2,i3);
 
         } else {

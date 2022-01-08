@@ -47,6 +47,7 @@ UtxTab_init_Memspc init / clear all words; fixed space in Memspc; no reallocate
 UtxTab_init_spc    init / clear all words; fixed space (void*); no reallocate
 UtxTab_add         add a new string
 UtxTab_add_uniq__  add string, check if it already exists
+UtxTab_change      change record
 UtxTab_add_file    make table of strings from file
 UtxTab_del         delete string
 UtxTab_rem         remove last string
@@ -167,6 +168,8 @@ c
 void TX_Print (char* txt, ...);
 void TX_Error (char* txt, ...);
 
+TxtTab txTab1 = _UTXTAB_NUL;
+
 
 //============================
   int main (int paranz, char *params[]) {
@@ -175,7 +178,7 @@ void TX_Error (char* txt, ...);
   int        i1, i2, irc;
   char       *p1, cBuf[64], myMem[500];
   Memspc     mySpc;
-  UtxTab_NEW (txTab1);         // init textTable
+  // UtxTab_NEW (txTab1);         // init textTable
 
 
 /*
@@ -186,6 +189,7 @@ void TX_Error (char* txt, ...);
 */
 
    UtxTab_init_spc (&txTab1, myMem, sizeof(myMem));
+   UtxTab_dump (&txTab1, "init ..");
 
 
   //==== test automatic reallocate =================================
@@ -194,30 +198,50 @@ void TX_Error (char* txt, ...);
 
   // add a new word
   UtxTab_add (&txTab1, "Word1");
+  UtxTab_dump (&txTab1);
 
   // ask nr of defined words
   i1 = UtxTab_query (&p1, &txTab1);
 
   // add a new word
-  for(i1=123; i1<333; ++i1) {
+  for(i1=123; i1<134; ++i1) {
     sprintf(cBuf, "das ist String Nr %d",i1);
     irc = UtxTab_add (&txTab1, cBuf);
     if(irc < 0) break;
   }
+    UtxTab_dump (&txTab1, "L1");
 
 
   UtxTab_add (&txTab1, "letzte Zeile");
+    UtxTab_dump (&txTab1, "L2");
+
   i2 = UtxTab_add (&txTab1, "Word4");
     printf(" i2=%d\n",i2);
+    UtxTab_dump (&txTab1, "L3");
+
+
   UtxTab_add (&txTab1, "Word5");
+    UtxTab_dump (&txTab1, "L4");
 
-  printf(" w4 %d |%s|\n",i2,UtxTab__(i2, &txTab1));
+  // printf(" w4 %d |%s|\n",i2,UtxTab__(i2, &txTab1));
 
-  // UtxTab_dump (&txTab1);
+
+  //----------------------------------------------------------------
+  UtxTab_change (&txTab1, 0, "changed text");
+
+  UtxTab_change (&txTab1, 10, "this is changed text-record 10");
+
+  UtxTab_change (&txTab1, txTab1.iNr - 1, "letzter changed text-record");
+
+
+  //----------------------------------------------------------------
   i1 = UtxTab_query (&p1, &txTab1);        // get last word
+    printf(" last=%d |%s|\n",i1,p1);
+
   UtxTab_rem (&txTab1);                    // remove last word
   i1 = UtxTab_query (&p1, &txTab1);        // get last word
-    printf(" %d |%s|\n",i1,p1);
+    printf(" last=%d |%s|\n",i1,p1);
+
   UtxTab_init__ (&txTab1);
 
   i1 = UtxTab_query (&p1, &txTab1);        // get last word
@@ -228,6 +252,7 @@ void TX_Error (char* txt, ...);
   return 0;
 }
 
+//----------------------------------------------------------------
  int UTI_round_i2b (int ii) { 
   int   ib = -1;
   if(ii < 2) return 0;
@@ -275,6 +300,12 @@ void TX_Error (char* txt, ...);
 //============================
   void TX_Error (char* txt, ...) { TX_Print (txt); }
 //============================
+
+
+int DEB_dump_obj__ (int typ, void *data, char *txt, ...) { return 0; }
+int DEB_dump_nobj__ (int form, int oNr, void *obj, char *txt) { return 0; }
+int DEB_dump_ox_s_ (void *oxi, char *txt) { return 0; }
+
 
 #endif
 //========================================================
@@ -327,14 +358,14 @@ void TX_Error (char* txt, ...);
 
 
 //================================================================
-  int UtxTab_reall_I (long **ind, int newSiz) {
+  int UtxTab_reall_I (int **ind, int newSiz) {
 //================================================================
 
 
   // printf("::::::::::::: UtxTab_reall_I %d\n",newSiz);
 
 
-  *ind = realloc(*ind, newSiz * sizeof(long));
+  *ind = realloc(*ind, newSiz * sizeof(int));
 
   if(*ind == NULL) {
     TX_Error ("******** out of memory - UtxTab_reall_I *********");
@@ -421,6 +452,7 @@ void TX_Error (char* txt, ...);
 /// \endcode
 
   int  i1, iAct, iNr, iLen, iPos, iEnd;
+  char *p1;
 
 
   // printf("UtxTab_add  |%s|\n",newtxt);
@@ -441,7 +473,10 @@ void TX_Error (char* txt, ...);
   iEnd = iPos + iLen;
     // printf("   iLen=%d iPos=%d iEnd=%d iNr=%d\n",iLen,iPos,iEnd,iNr);
   if((iEnd + 1) >= tab->tabSiz) {
-    if(tab->stat == 0) return -1;
+    if(tab->stat == 0) {
+      TX_Error("***** ERROR UtxTab_add E1 |%s|",newtxt);
+      return -1;
+    }
     i1 = tab->tabSiz + TAB_C_SIZ;
     if(UtxTab_reall_C (&(tab->tab), i1) < 0) goto L_err_tab;
     tab->tabSiz = i1;
@@ -449,8 +484,8 @@ void TX_Error (char* txt, ...);
 
 
   // add newtxt to textbuffer
-  strncpy(&(tab->tab[iPos]), newtxt, iLen);
-  // iPos += iLen;
+  p1 = &(tab->tab[iPos]);
+  strncpy(p1, newtxt, iLen);
   tab->tab[iEnd] = '\0';
 
 
@@ -490,6 +525,84 @@ void TX_Error (char* txt, ...);
   L_err_inp:
     TX_Error ("******** UtxTab_add - E003-inp ***");
     return -2;
+
+}
+
+
+//================================================================
+  int UtxTab_change (TxtTab *tab, int iRec, char *newtxt) {
+//================================================================
+// UtxTab_change             change record
+
+  int   i1, sl, ii, tbTxtSiz, tbIntSiz, *tbIntNew;
+  char  *tbTxtNew, *tbTxtPos;
+
+  printf("UtxTab_change %d |%s|\n",iRec,newtxt);
+
+
+  // last record to change: delete last record, add record
+  if(iRec == tab->iNr - 1) {
+    UtxTab_rem (tab);                    // remove last record
+    UtxTab_add (tab, newtxt);
+    goto L_exit;
+  }
+
+  //----------------------------------------------------------------
+  // save all records following the unmodified records into new memspc
+  ii = tab->iNr - iRec;     // nr of records to save
+  tbTxtSiz = tab->ind[tab->iNr] - tab->ind[iRec + 1];
+    printf(" UtxTab_change ii=%d tbTxtSiz = %d\n",ii,tbTxtSiz);
+  tbTxtPos = &tab->tab[tab->ind[iRec + 1]];
+    printf(" UtxTab_change sav |%s| %d\n",tbTxtPos,tbTxtSiz);
+  tbTxtNew = malloc (tbTxtSiz);
+  memcpy (tbTxtNew, tbTxtPos, tbTxtSiz);
+
+
+  // check for overflow
+  if((tab->ind[iRec] + strlen(newtxt) + tbTxtSiz) > tab->tabSiz) {
+    if(tab->stat == 0) {
+      TX_Error("***** ERROR UtxTab_change E1 |%s|",newtxt);
+      return -1;
+    }
+    i1 = tab->tabSiz + TAB_C_SIZ;
+    if(UtxTab_reall_C (&(tab->tab), i1) < 0) {
+            TX_Error("***** ERROR UtxTab_change E2 |%s|",newtxt);
+      return -1;
+    }
+    tab->tabSiz = i1;
+  }
+
+
+
+  // delete record to change and all following records
+  tab->iNr = iRec;
+
+
+  // add new record
+  UtxTab_add (tab, newtxt);
+
+
+  // add all stored records
+  tbTxtPos = tbTxtNew;
+  --ii;
+  for(i1 = 0; i1 < ii; ++i1) {
+    sl = strlen(tbTxtPos);
+      printf(" change-add |%s| %d\n",tbTxtPos,sl);
+    UtxTab_add (tab, tbTxtPos);
+    tbTxtPos += sl + 1;
+  }
+
+  free(tbTxtNew);
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    // TESTBLOCK
+    UtxTab_dump (tab, "ex-UtxTab_change");
+    // END TESTBLOCK
+
+  return 0;
 
 }
 
@@ -565,13 +678,11 @@ void TX_Error (char* txt, ...);
 //================================================================
   int UtxTab_init_spc (TxtTab *tab, void *spc, int isize) {
 //================================================================
-/// \code
-/// init / clear all words; fixed space (void*); no reallocate.
-/// Input:
-///   isize    nr of chars
-/// Output:
-///   RetCod   -
-/// \endcode
+// init / clear all words; fixed space (void*); no reallocate.
+// Input:
+//   isize    nr of chars
+// Output:
+//   RetCod   -
 
 
   int  i1, chrNr, indNr;
@@ -589,11 +700,11 @@ void TX_Error (char* txt, ...);
     chrNr = i1 * 8;
     tab->tabSiz = chrNr;
 
-    indNr = (isize - chrNr) / sizeof(long); 
+    indNr = (isize - chrNr) / sizeof(int); 
     tab->indSiz = indNr;
 
     tab->tab = spc;
-    tab->ind = (void*)(((char*)spc) + (indNr * sizeof(long)));
+    tab->ind = (void*)(((char*)spc) + chrNr);
   }
 
 
@@ -601,7 +712,7 @@ void TX_Error (char* txt, ...);
   tab->ind[0] = 0;
   tab->tab[0] = '\0';  // erstes Wort terminieren
 
-    // UtxTab_dump (tab, "ex-UtxTab_init_spc");
+    UtxTab_dump (tab, "ex-UtxTab_init_spc");
 
   return 0;
 
@@ -786,7 +897,7 @@ void TX_Error (char* txt, ...);
   int  i1, i2;
 
   printf("%s ----------------- UtxTab_dump\n",inf);
-  printf("  indSiz=%ld tabSiz=%ld iNr=%d stat=%d\n",
+  printf("  indSiz=%d tabSiz=%d iNr=%d stat=%d\n",
          tab->indSiz, tab->tabSiz, tab->iNr, tab->stat);
 
 
@@ -794,6 +905,11 @@ void TX_Error (char* txt, ...);
     i2 = tab->ind[i1];
     printf (" tab[%d] Pos=%d |%s|\n",i1,i2,&tab->tab[i2]);
   }
+
+  printf("  free-pos: %d; free-space: %d \n",
+            tab->ind[tab->iNr], UtxTab_TABSPC(tab));
+            // tab->tabSiz - tab->ind[tab->iNr]);
+
 
   return 0;
 

@@ -1733,6 +1733,7 @@ GLuint GL_fix_DL_ind  (long*);
 }
 
 
+/* UU
 //=====================================================================
   void GL_Reframe2 () {
 //=====================================================================
@@ -1758,6 +1759,7 @@ GLuint GL_fix_DL_ind  (long*);
 
 
 }
+*/
 
 //=====================================================================
   void GL_Reframe1 () {
@@ -1776,13 +1778,19 @@ GLuint GL_fix_DL_ind  (long*);
                    GL_box_Z1,GL_box_Z2);
 */
 
+  // printf("GL_Reframe1 GL_ModSiz=%f GL_SclNorm=%f\n",GL_ModSiz,GL_SclNorm);
 
 
-    fx1 = GL_Scr_Siz_X * GL_SclNorm;     // / 2;
-    fy1 = GL_Scr_Siz_Y * GL_SclNorm;     // / 2;
-    fz1 = GL_ModSiz * 10000.0;
 
-    glOrtho (-fx1, fx1, -fy1, fy1, -fz1, fz1);
+  fx1 = GL_Scr_Siz_X * GL_SclNorm;     // / 2;
+  fy1 = GL_Scr_Siz_Y * GL_SclNorm;     // / 2;
+  fz1 = GL_ModSiz * 1000.0;           // 10000.0
+    // printf(" Reframe1 fx1=%f fy1=%f fz1=%f\n",fx1,fy1,fz1);
+
+
+  glOrtho (-fx1, fx1, -fy1, fy1, -fz1, fz1);
+  // glOrtho (-fx1, fx1, -fy1, fy1, -1000., 1000.);
+  // glDepthRange (1.f, 0.f);
 
 
 
@@ -6283,7 +6291,7 @@ static double old_view_Z = 0.;
 
 }
 
-
+/* UNUSED
 //=====================================================================
   void GL_Do_CenRot (double zval) {
 //=====================================================================
@@ -6309,14 +6317,14 @@ static double old_view_Z = 0.;
 //   GL_SetViewPln ();      // nun die ViewPlane korrigieren
 
 
-/*
-  // der Screenmittelpunkt in creen koords
-  mx = GL_Scr_Siz_X / 2.;
-  my = GL_Scr_Siz_Y / 2.;
-  mz = 0.0;
-  // der Screenmittelpunkt in neuen UserKoords
-  GL_Sk2Uk (&pt1.x, &pt1.y, &pt1.z, mx, my, mz);
-*/
+/
+//   // der Screenmittelpunkt in creen koords
+//   mx = GL_Scr_Siz_X / 2.;
+//   my = GL_Scr_Siz_Y / 2.;
+//   mz = 0.0;
+//   // der Screenmittelpunkt in neuen UserKoords
+//   GL_Sk2Uk (&pt1.x, &pt1.y, &pt1.z, mx, my, mz);
+/
 
   pt1.x = GL_cen.x;
   pt1.y = GL_cen.y;
@@ -6343,9 +6351,8 @@ static double old_view_Z = 0.;
   // Redraw plus Darstellung des RotAchsenSys
   // GL_Do_Rot1 ();
 
-  
-
 }
+*/
 
 
 //================================================================
@@ -8134,7 +8141,7 @@ wird im GL_set_bMsh gemacht - vom Color-Record bei den tesselated Records ..
 /// GL_Draw_cvp_dir          display polygon and direction-arrow
 /// Input:
 ///   ind        nr of dispListRecord; see DL_StoreObj or DL_SetObj
-///   iAtt       see GR_tDyn_ln2_2pt  (see ~/gCAD3D/cfg/ltyp.rc)
+///   iAtt       see GR_tDyn_ln2_2pt  (see ~/gCAD3D/cfg_Linux/ltyp.rc)
 ///
 /// see also GL_Draw_cvp_dir
 /// \endcode
@@ -11633,7 +11640,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
                     double scale){
 //================================================================
 // GL_DrawSymVX          display plane / axisSystem [with x,y,z-characters]
-//   att   see GR_tDyn_ln2_2pt  (see ~/gCAD3D/cfg/ltyp.rc)
+//   att   see GR_tDyn_ln2_2pt  (see ~/gCAD3D/cfg_Linux/ltyp.rc)
 //   typ   1=Plane; 2=Axis; 4=Axis+Chars; 5=Plane+Axis+Chars;
 //   scale unused.
  
@@ -15580,7 +15587,7 @@ static GLfloat  hiliThick = 9.f, stdThick = 5.f, iniThick = 5.f;
   // glClear (GL_DEPTH_BUFFER_BIT);      // gesamten Depth-Buffer löschen
 
 
-  // glClearDepth (1.);               // 0. od 1.; Suerbible S.481; 
+  // glClearDepth (1.f);                 // 0. od 1.; Suerbible S.481; 
   glEnable (GL_DEPTH_TEST);           // fuer hidden Lines ..
 
 
@@ -15589,6 +15596,7 @@ static GLfloat  hiliThick = 9.f, stdThick = 5.f, iniThick = 5.f;
 
   // bis 4.10.2003: GL_LEQUAL. Damit werden gehilitete Objekte sichtbar !
   glDepthFunc (GL_LEQUAL);              // eine Spur besser als LESS
+  glDepthMask (GL_TRUE);
 
 
   // glDepthFunc (GL_LESS);      // default; alte Linien sind stärker als neue!
@@ -16737,7 +16745,7 @@ static float  xpos, ypos;
 // display vector vc1 at position pt1 with ist correct length;
 // Input:
 //   pt1    position of vector; if NULL screenCenter
-//   att   see INF_COL_CV  ~/gCAD3D/cfg/ltyp.rc
+//   att   see INF_COL_CV  ~/gCAD3D/cfg_Linux/ltyp.rc
 //
 // for unified length use GL_DrawSymV3 (.. SYM_ARROW)
 
@@ -16878,7 +16886,7 @@ static float  xpos, ypos;
 //     SYM_TRIANG    draw triangle normal to vc1
 //     SYM_ARROH     draw 2D-arrowhead-only in the x-y-plane
 //     SYM_ARRO3H    draw 3D-arrowhead-only along vc1
-//   att   see INF_COL_CV  ~/gCAD3D/cfg/ltyp.rc
+//   att   see INF_COL_CV  ~/gCAD3D/cfg_Linux/ltyp.rc
 //
 //
 // TODO:
@@ -16939,7 +16947,7 @@ static float  xpos, ypos;
 // GL_set_symVX          display plane / axisSystem [with x,y,z-characters
 // display plane / axisSystem [with x,y,z-characters]
 // Input:
-//   att   see INF_COL_CV  ~/gCAD3D/cfg/ltyp.rc
+//   att   see INF_COL_CV  ~/gCAD3D/cfg_Linux/ltyp.rc
 //   typ   1=Plane; 2=Axis; 4=Axis+Chars; 5=Plane+Axis+Chars;
 //   scale unused.
 // see GL_DrawSymVX
@@ -16988,7 +16996,7 @@ static float  xpos, ypos;
 // GL_DrawAngA           draw angle with arrowhead
 // display angle between x-vec and y-vec, with direction.
 // Input:
-//   att   see INF_COL_CV  ~/gCAD3D/cfg/ltyp.rc
+//   att   see INF_COL_CV  ~/gCAD3D/cfg_Linux/ltyp.rc
 //   ptc   basepoint
 //   vx    directs from basepoint to startpoint
 //   vz    Z-Axis (rotation-axis)

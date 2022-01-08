@@ -89,52 +89,76 @@ static  int         UI_GR_STAT = 0;
   Colormap    xcolormap;
   int         attributes[] = {
                 GLX_RGBA,
-                // GLX_RED_SIZE, 0,
-                // GLX_GREEN_SIZE, 0,
-                // GLX_BLUE_SIZE, 0,
+                GLX_DOUBLEBUFFER,
+                GLX_RED_SIZE, 0,
+                GLX_GREEN_SIZE, 0,
+                GLX_BLUE_SIZE, 0,
+                GLX_ALPHA_SIZE, 0,
+                GLX_DEPTH_SIZE, 8,
+                GLX_STENCIL_SIZE, 0,
+                GLX_ACCUM_RED_SIZE, 0,
+                GLX_ACCUM_GREEN_SIZE, 0,
+                GLX_ACCUM_BLUE_SIZE, 0,
+                GLX_ACCUM_ALPHA_SIZE, 0,
+                None };
+
+GLint           att[] = {
+                  GLX_RGBA,
+                  GLX_DEPTH_SIZE, 16,
+                  GLX_DOUBLEBUFFER,
+                // GLX_STENCIL_SIZE, 0,
                 // GLX_ACCUM_RED_SIZE, 0,
                 // GLX_ACCUM_GREEN_SIZE, 0,
                 // GLX_ACCUM_BLUE_SIZE, 0,
-                GLX_DEPTH_SIZE, 16,
-                GLX_DOUBLEBUFFER, True,
-                None };
+                // GLX_ACCUM_ALPHA_SIZE, 0,
+                  None };
 
+  Window window;
 
   printf("GGGGGGGGGGGGG GLB_Create\n");
 
 
-  // GLB_x_id = 0;   // reset
-
   area = gtk_drawing_area_new ();
-  // gtk_widget_set_double_buffered (area, FALSE);   deprecated
+  // gtk_widget_set_double_buffered (area, FALSE);   // deprecated
 
   // GLB_DrawInit (area);  // 2020-01-16
 
+  // window = gtk_widget_get_window (area);
+  // GLB_x_id = GDK_WINDOW_XID(window);                // causes expose!
+    // printf("  GLB_x_id=%d\n",GLB_x_id);
+
   GLB_display = gdk_x11_get_default_xdisplay ();
-  xscreen = DefaultScreen (GLB_display);
-  screen = gdk_screen_get_default ();
-    // printf(" screenNr = %d\n",gdk_screen_get_number(screen));
 
-  xvisual = glXChooseVisual (GLB_display, xscreen, attributes);
-    // printf(" xvisualid=%d\n",xvisual->visualid);
+//   xscreen = DefaultScreen (GLB_display);
+//   xvisual = glXChooseVisual (GLB_display, xscreen, attributes);
+  xvisual = glXChooseVisual (GLB_display, 0, att);
 
-  visual = gdk_x11_screen_lookup_visual (screen, xvisual->visualid);
+  if(!xvisual) {
+    printf("****** GLB_Create ERROR glXChooseVisual \n");
+    exit(-1);
+  }
 
-  root = RootWindow (GLB_display, xscreen);
+
+//   root = RootWindow (GLB_display, xscreen);
+  root = DefaultRootWindow (GLB_display);
+
   xcolormap = XCreateColormap (GLB_display, root, xvisual->visual, AllocNone);
 
-  // glXGetConfig (GLB_display, xvisual, GLX_RED_SIZE, &i1);
-    // printf(" GLX_RED_SIZE=%d\n",i1);
-  // glXGetConfig (GLB_display, xvisual, GLX_DEPTH_SIZE, &i1);
-    // printf(" GLX_DEPTH_SIZE=%d\n",i1);
+    // TESTBLOCK
+    printf("GLB_Create visual %p selected\n", (void*)xvisual->visualid);
+    glXGetConfig (GLB_display, xvisual, GLX_RED_SIZE, &i1);
+    printf(" GLX_RED_SIZE=%d\n",i1);
+    glXGetConfig (GLB_display, xvisual, GLX_DEPTH_SIZE, &i1);
+    printf(" GLX_DEPTH_SIZE=%d\n",i1);
+    // END TESTBLOCK
 
-// Gtk2 only:
+  // screen = gdk_screen_get_default ();
+  //visual = gdk_x11_screen_lookup_visual (screen, xvisual->visualid);
   //colormap = gdk_x11_colormap_foreign_new (visual, xcolormap);
   //gtk_widget_set_colormap (area, colormap);
 
-  GLB_x_context = glXCreateContext (GLB_display, xvisual, NULL, TRUE);
-  // free (xvisual);
-
+  GLB_x_context = glXCreateContext (GLB_display, xvisual, NULL, GL_TRUE);
+  free (xvisual);
 
   glXWaitX();
   glXWaitGL();

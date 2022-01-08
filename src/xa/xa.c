@@ -295,6 +295,11 @@ DL_GetTrInd
 
 
 
+#define SIZFNam    400         // max size full filename 
+// also in ../xa/mdl__.h
+
+
+
 
 //============ Extern Var: =====================
 // ex ../xa/xa_ui.c:
@@ -430,6 +435,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //================================================================
 //================================================================
 
+
 //================================================================
   int AP_GUI__ (char *guiOut, int outSiz, char *exenam, ...) {
 //================================================================
@@ -443,32 +449,38 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 // GUI_dlg1 - dlgbe     infoText, 1-10 buttons, optional entryField
 //                      see also GUI_dlg_2b GUI_dlg_e2b
 //
-//   ATT: if string-parameter contains blank: enclose with double-apostroph
+//   ATT: if a string-parameter contains blank: enclose with double-apostroph
 //
 // Input:
+//   guiOut    for exenam = GUI_file - open or save: directory
 //   outSiz    size of output-string guiOut
 //   exenam    filename of exe, without gtk-version; eg "GUI_file" or "GUI_dlg1"
 //   ...       parameters, must end with a NULL; 
 //             Parameters with blanks must be limited with \"
-//   parameters for exenam = GUI_file:
-//             open or save
-//             outDir/outfilename
-//             filename of symbolic-directories
-//             filterText  (eg "*" or "*.jpg" - only one filetyp)
-//             window-title
-//             window-size x and y; eg \"x40,y30\""
+//
+//   parameters for exenam = GUI_file - open or save
+//           1 open | save
+//           2 outDir/outfilename
+//           3 filename of symbolic-directories
+//           4 filterText  (eg "*" or "*.jpg" - only one filetyp)
+//           5 window-title
+//           6 window-size x and y; eg "\"x40,y30\""
+//
 //   parameters for exenam = GUI_dlg1 - info:
 //             infoText  (\n does NOT work with MS-Win)
+//
 //   parameters for exenam = GUI_dlg1 - list1:
 //             list1
 //             filename of file with all childs of list
 //             window-title            
+//
 //   parameters for exenam = GUI_dlg1 - dlgbe:
 //             dlgbe
 //             infotext  (\n does NOT work with MS-Win)
 //             1-10 buttons (text on button)
 //               optional: entryfield
 //             --ent \"entPreset\" 16    // text in entry, size of entry in chars
+//
 // Output:
 //   retCode   -1   exe with name <exenam> not found
 //             -2   error in GUI_<exe>; see /tmp/debug.dat
@@ -481,18 +493,19 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //             first char is index of selected button; 0=first ..
 //             string of a given entryFieled starts at second character
 //
-// Examples: see ../APP/GUI_file.sh ../APP/GUI_dlg1.sh
+// Examples: see AP_GUI_test1() ../APP/GUI_file.sh ../APP/GUI_dlg1.sh
 //
 // see INF_GUI_exe
 // see also GUI_MsgBox
 
+#define siz_sPar 1600
 
-  int      irc;
-  char     sPar[512], sEnam[256], sCmd[800], *sx;
+  int      irc, ii;
+  char     sPar[siz_sPar], sEnam[SIZFNam], sCmd[siz_sPar+siz_sPar], s1[256], *sx;
   va_list  va;
 
 
-  // printf("AP_GUI__ |%s|\n",exenam);
+  // printf("AP_GUI__ |%s|%s| %d\n",guiOut,exenam,outSiz);
 
   // get full filename for GUI_executable
   irc = AP_GUI_get (sEnam, exenam);
@@ -504,23 +517,30 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   }
 
   sPar[0] = '\0';
+  // strcpy (sPar, "\"");
 
   va_start (va, exenam);
 
   // add all parameters -> sPar
+  ii = 0;
   L_s_nxt:
     sx = va_arg(va, char *);
     if(sx) {
-        // printf(" |%s|\n",sx);
-      strcat(sPar, sx);
-      strcat(sPar, " ");
+        // printf(" AP_GUI__-nxt |%s|\n",sx);
+      // enclose between quotes if containes a blank and add a blank
+      UTX_cp_str_quotes (s1, sx, " ");
+      ii += strlen(s1);
+      if(ii > siz_sPar) {TX_Print("**** AP_GUI__ E-parSiz"); return -2;}
+      strcat(sPar, s1);
+      // strcat(sPar, " ");     // delimit with a blank
       goto L_s_nxt;
     }
+    // strcat(sPar, "\"");
 
   // vsprintf (s1, txt, va);
   va_end (va);
 
-    // printf(" GUI-exe-sPar |%s|\n",sPar);
+    // printf(" AP_GUI__-sPar |%s|\n",sPar);
 
 
   // set s1 = command (exefilnam parameters)
@@ -530,7 +550,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 #else
   sprintf(sCmd,"%s %s", sEnam, sPar);
 #endif
-    // printf(" GUI-exe-sCmd |%s|\n",sCmd);
+    printf(" AP_GUI__ do |%s|\n",sCmd);
 
 
   // execute
@@ -552,7 +572,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 // Input:
 //   Nami           eg GUI_dlg1 or GUI_open
 // Output:
-//   sEnam          get full filename; size must be 256
+//   sEnam          get full filename; size must be SIZFNam
 //                  eg /home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk2
 
   int      irc, vGtk;
@@ -646,18 +666,42 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   int AP_GUI_test1 () {
 //================================================================
 
-  char   s1[400];
+
+  int    irc;
+  char   filNam[SIZFNam], s1[SIZFNam];
 
 
-  printf(" tst_gui\n");
+  printf(" AP_GUI_test1\n");
 
-  // call GUI_file-save
-  AP_GUI__ (s1, sizeof(s1), "GUI_file", "save",
-             "/mnt/serv2/devel/cadfiles/gcad/unknown.gcad",
-             "/mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst",
-             "*",
-             "Speichern",
-             NULL);
+
+//----------------------------------------------------------------
+// test open
+  strcpy(filNam, "/mnt/serv2/devel/cadfiles/gcad/");
+
+  // call GUI_file/save
+  irc = AP_GUI__ (filNam,                // directory/filename in and out
+                  SIZFNam,                  // size if filNam
+                  "GUI_file",            // exenam without directory;GUI_file|GUI_dlg1
+                  "open",                // for GUI_file: open | save
+                  filNam,                // outDir/outfilename
+                  "/mnt/serv2/devel/gcad3d/gCAD3D/cfg_Linux/dir.lst",  // filnam symDir
+                  "\"*\"",               // filterText
+                  "sTit",                // window-title
+                  "\"x40,y30\"",         // window-size
+                  NULL);
+
+
+
+
+//----------------------------------------------------------------
+// test save
+//   // call GUI_file-save
+//   AP_GUI__ (s1, sizeof(s1), "GUI_file", "save",
+//              "/mnt/serv2/devel/cadfiles/gcad/unknown.gcad",
+//              "/mnt/serv2/devel/gcad3d/gCAD3D/cfg_Linux/dir.lst",
+//              "*",
+//              "Speichern",
+//              NULL);
 
   return 0;
 
@@ -1305,7 +1349,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
  
 
   int    irc;
-  char   s2[256], s3[256], s4[256];
+  char   s2[256], s3[512], s4[256];
 
 
   sprintf(s2, "%s%s",dNam,fNam);
@@ -1431,6 +1475,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
   AP_stat.mdl_stat = MDLSTAT_save_as;
   AP_save__ (0, 0, 2, "gcad");
+  MDL_ren_sav ();  // update new modelname in browser
   AP_stat.mdl_stat = MDLSTAT_loaded;
 
 
@@ -1515,7 +1560,7 @@ static char     pmLast[SIZMFTot] = "";
 static stru_FN  fnLast;
 
   int      irc=0, iExp, mTyp;
-  char     fno[320], s1[80], s2[320], sTit[64], *pmNam;
+  char     fno[SIZMFTot], s1[80], s2[SIZMFTot], sTit[64], *pmNam;
   char     *buttons[3], sbt[2][80];
   stru_FN  ofm;
 
@@ -1759,6 +1804,10 @@ static stru_FN  fnLast;
   } else if(mode == 1) {
     // save|export group only;
     Grp_exp (ofm.fNam, ofm.fDir);
+
+    // add filename to list "last-used"
+    // TODO: fix fn = name symbolic filename of model - AP_mod_fnam is active model !!
+    // AP_Mod_lst_fn (fn);
 
 
   //----------------------------------------------------------------
@@ -3289,7 +3338,13 @@ remote control nur in VWR, nicht MAN, CAD;
 
   // strcpy(txbuf, OS_get_bas_dir ());
   // strcat(txbuf, "tmp/xa.rc");
+
+// #ifdef _MSC_VER
+//   sprintf(txbuf,"\"%sxa.rc\"",OS_get_cfg_dir());
+// #else
   sprintf(txbuf,"%sxa.rc",OS_get_cfg_dir());
+// #endif
+    printf(" defaults_write |%s|\n",txbuf);
 
 
   if((fp1=fopen(txbuf,"w")) == NULL) {
@@ -3544,7 +3599,7 @@ remote control nur in VWR, nicht MAN, CAD;
 //====================================================================
   int AP_defaults_read () {
 //====================================================================
-// read defaults from <base>/cfg/xa.rc
+// read defaults from <base>/cfg_Linux/xa.rc
 //  1   AP_mod_dir
 //  2   AP_lang
 //  3   OS_browser
@@ -4251,7 +4306,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // printf("\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA \n");
-  // printf("AP_Mod_load_fn |%s| %d\n",fn,mode);
+  printf("AP_Mod_load_fn |%s| %d\n",fn,mode);
 
   UI_block__ (1, 1, 1);  // block all
 
@@ -4634,7 +4689,7 @@ remote control nur in VWR, nicht MAN, CAD;
 // AP_delActMdl        delete active modelfile
 // - move active modelfile -> tempDir/tmp.model
 
-  char   fnOld[256], fnNew[256];
+  char   fnOld[512], fnNew[256];
 
   // printf("AP_delActMdl \n");
   // printf(" |%s|%s|%s|\n",AP_mod_dir,AP_mod_fnam,AP_mod_ftyp);
@@ -4683,12 +4738,12 @@ remote control nur in VWR, nicht MAN, CAD;
 
 #define MAX_LNR 24
 
-  char  lfn[320];
+  char  lfn[SIZMFTot];
 
 
   // set lfn = filename of list
   sprintf(lfn, "%sMdlLst.txt", OS_get_tmp_dir());
-    // printf(" _lstAdd-lfn |%s|\n",lfn);
+    // printf("AP_Mod_lst_fn - lfn |%s|\n",lfn);
 
   // add 
   UTX_f_lifo_add (lfn, MAX_LNR, mfn);
@@ -5408,14 +5463,21 @@ remote control nur in VWR, nicht MAN, CAD;
 // starten mit "Ctl shift T"
 // oder dem Startparameter AP_test__
 
-
   int          irc;
-  char         s1[256];
+  char         s1[256], filNam[SIZFNam];
   Point        p1;
   UtxTab_NEW   (ttb);
 
-  printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA \n");
+  printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA AP_test__\n");
   TX_Print("AP_test__");
+
+  MDL_dump__ ("AP_test__");
+  // AP_GUI_test1 ();
+
+return -1;
+
+
+
 
   // MDL_test__ ();
   // MDL_load_mNam__ ("ELE1/board1.gcad");

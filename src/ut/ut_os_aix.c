@@ -75,6 +75,7 @@ OS_CkPrcIsActive         check if process with name prcNam is active
 OS_ck_SW_is_installed    Test if software <ssw> is installed
 
 OS_prc__                 get full filename of active process
+OS_get_scrRes            get total screensize
 OS_get_curDir            get current directory
 OS_get_lang              getenv("LANG")
 OS_get_edi               liefert bei Linux "gedit"
@@ -863,6 +864,31 @@ extern int errno;
 
 }
 */
+
+
+//================================================================
+  void OS_get_scrRes (int *xRes, int *yRes) {
+//================================================================
+// OS_get_scrRes                    get total screensize
+
+  int  irc;
+  char s1[80];
+
+
+  irc = OS_sys1 (s1, 80, "xdpyinfo | awk '/dimensions/ {print $2}'");
+
+  if(irc < 0) {
+    TX_Write("***** ERROR OS_get_scrRes - reset to 1920 X 1080");
+    *xRes = 1920;
+    *yRes = 1080;
+
+  } else {
+    sscanf(s1, "%dx%d", xRes, yRes);
+  }
+
+    printf("OS_get_scrRes %d %d\n",*xRes,*yRes);
+
+}
 
 
 //================================================================

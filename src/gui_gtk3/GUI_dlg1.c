@@ -673,12 +673,14 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 
 //================================================================
-  int GUI_dlg1_info1__ () {
+  int GUI_dlg1_info1__ (int argc, char *argv[]) {
 //================================================================
  
-  // int          iRes;     // response
   GtkWidget    *wdlg;
   char         *sTxt;  // *wTit;
+  char         *p1, *p2, *p3, *p4, pNull[]="";
+  char         s1[128];
+
 
   printd("## GUI_dlg1_info1__\n");
 
@@ -687,7 +689,10 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   sTxt = paArg[2];
   // wTit = paArg[3];
 
+  // p1 = argv[0];
+  // strcpy(s1,"%s");
 
+ 
   //----------------------------------------------------------------
   // open window
   wdlg = gtk_message_dialog_new (
@@ -695,7 +700,20 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
            GTK_DIALOG_DESTROY_WITH_PARENT,
            GTK_MESSAGE_OTHER, // .._INFO .._WARNING .._ERROR
            GTK_BUTTONS_CLOSE,
-           "%s",sTxt);           // format, formatParameters
+           "%s", argv[0]);     // format, formatParameters
+
+  if(argc == 2) {
+    gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG(wdlg),
+    "%s", argv[1]);
+  }
+  if(argc == 3) {
+    gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG(wdlg),
+    "%s\n%s", argv[1],argv[2]);
+  }
+  if(argc == 4) {
+    gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG(wdlg),
+    "%s\n%s\n%s", argv[1],argv[2],argv[3]);
+  }
 
   // which icon:
   //   GTK_MESSAGE_INFO,GTK_MESSAGE_QUESTION
@@ -786,7 +804,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   i1 = 0;
   gtk_init (&i1, NULL);
 
-  if(!strcmp(argv[1],"info"))  return GUI_dlg1_info1__ ();
+  if(!strcmp(argv[1],"info"))  return GUI_dlg1_info1__ (argc-2, &argv[2]);
   if(!strcmp(argv[1],"list1")) return GUI_dlg1_list1__ ();
   if(!strcmp(argv[1],"dlgbe")) return GUI_dlg_dlgbe1__ ();
 

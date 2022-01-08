@@ -836,7 +836,7 @@ static char sproc[128];
 /// TODO: check if already active ..
 
   int   irc;
-  char  fn[256];
+  char  fn[SIZFNam];
 
   if(APP_act_typ != 4) {
     TX_Error("RPC_restart - active prog must be remote-control-prog ..");

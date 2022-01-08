@@ -98,8 +98,7 @@ default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 #endif
 
 #	if test $(gcad_dir_bin) != $(DIRBIN); then mv -f $(gcad_dir_bin)/$(EXENAM) $(DIRBIN)/.; fi
-	ctags -f ../tags/src_h.tag $(SRC3)
-
+#	ctags -f ../tags/src_h.tag $(SRC3)
 #	ctags --excmd=number -f ut.tag $(SRCG)
 #	etags -f ut.tag $(SRCG) $(SRC3)
 #	etags -f src_h.tag $(SRC3)
@@ -164,7 +163,8 @@ allDemos:
 tag:
 	for i in $(nam1); do \
 		echo etags -f ../xa/$$i.tag $$i.c; \
-		etags -f ../tags/$$i.tag $$i.c; \
+#		etags -f ../tags/$$i.tag $$i.c; \
+		etags -f tags/$$i.tag $$i.c; \
 	done
 
 
@@ -205,9 +205,10 @@ srclst:
 	@echo $(SRCOS) >> srcFiles
 	@echo $(SRC_MS_OS) >> srcFiles
 	@echo ../xa/*.h ../db/*h ../ci/*h ../ut/*h ../gr/*h ../exp/*.h >> srcFiles
-	@echo ../APP/*.c ../APP/*.h ../inf/*.c >> srcFiles
+	@echo ../APP/*.c ../APP/*.h >> srcFiles
 	@echo ../myAPPS/*.c ../myAPPS/*.h >> srcFiles
 	@echo ../prc/*.c ../prc/*.h >> srcFiles
+	@echo ../inf/*.c >> srcFiles
 	find . -maxdepth 1 -name "xa_*.mak" -exec make -f {} "add_srclst" \;
 
 

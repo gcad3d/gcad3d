@@ -83,7 +83,6 @@ GR_set_pcv            display polygon - temp/tDyn/perm
 GR_set_txt__          disp notes with 2D-text
 GR_set_txtA           disp 2D-text at position
 GR_set_txtG           grafic text (rotated, scaled)
-GR_set_vc             vector, temp/tDyn, length true or normalized
 GR_set_dimen          hor/vert/parall. dimension
 GR_set_dim3           3D-dimension
 GR_set_symV3          vector-symbol, oriented (3D, rotate + tilt)
@@ -7334,7 +7333,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 // see also IE_cad_inp_vcPos_i UI_prev_vc
 
 
-  printf("GR_temp_vc %d\n",mode);
+  // printf("GR_temp_vc %d\n",mode);
 // TX_Print("**** GR_temp_vc temp OFF .."); return 0;
 
   if(mode) {

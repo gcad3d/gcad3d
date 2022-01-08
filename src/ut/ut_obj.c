@@ -7761,7 +7761,7 @@ static int traAct;
 
 
   // printf("================================================= \n");
-  printf("UTO_CUT__ typ=%d dbi=%ld imod=%d\n",oi->typ,oi->dbInd,imod);
+  // printf("UTO_CUT__ typ=%d dbi=%ld imod=%d\n",oi->typ,oi->dbInd,imod);
   // DEB_dump_obj__ (Typ_ObjDB, oi, "_CUT__-in oi");
   // printf(" _CUT__-1  %d %d\n",oc1->typ,oc1->form);
   // printf(" _CUT__-2  %d %d\n",oc2->typ,oc2->form);

@@ -180,7 +180,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
   L_exit:
-    printf("ex-SRC_get_typ %d |%s|\n",typ,src);
+      // printf("ex-SRC_get_typ %d |%s|\n",typ,src);
     return typ;
 
   L_err:
@@ -210,7 +210,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   char   *p1, *p2;
 
 
-  printf("SRC_ck_oid |%s|\n",*src);
+  // printf("SRC_get_oid |%s|\n",*src);
 
   p1 = *src;
 
@@ -234,7 +234,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
 
   L_exit:
-    printf("ex-SRC_ck_oid typ=%d dbi=%ld |%s|\n",typ,*dbi,*src);
+    // printf("ex-SRC_get_oid typ=%d dbi=%ld |%s|\n",typ,*dbi,*src);
   return typ;
 
 }
@@ -617,7 +617,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
  
   //----------------------------------------------------------------
   L_exit:
-    printf("ex _src_ato |%s|.............................\n",os);
+    // printf("ex _src_ato |%s|.............................\n",os);
   return 0;
 
 }

@@ -1312,6 +1312,10 @@ GLuint GL_fix_DL_ind  (long*);
   int GL_att_sym (int iatt) {
 //================================================================
 // GL_att_sym            set symbol-attribute 
+// Input:
+//   iatt      see INF_COL_PT / ATT_PT_BLACK ATT_PT_HILI ATT_PT_DIMMED
+
+
 //   icol         color of symbols            see INF_COL_SYMB
 
   int    icol;
@@ -1323,7 +1327,7 @@ GLuint GL_fix_DL_ind  (long*);
   glDisable (GL_LIGHTING);
   glColor3fv (GL_col_tab[icol]);
 
-  if(iatt > 15) glLineWidth (4.0);
+  if(iatt > 15) glLineWidth (LN_WIDTH_FAT);
 
   return 0;
 
@@ -2336,7 +2340,7 @@ static int errOld = 123;
 
     glDepthFunc (GL_LEQUAL);      // reset = Standard
     glDisable (GL_LIGHTING);
-    glLineWidth   (1.0);                       // 1 ist am duennsten !
+    glLineWidth   (LN_WIDTH_DEF);                       // 1 ist am duennsten !
 
     // display grid; not in Viewer
     if(imode != UI_MODE_VWR) {
@@ -2394,7 +2398,7 @@ static int errOld = 123;
 
   attAct = -1;
   // glColor3fv   (GL_col_tab[0]);     
-  glLineWidth (1.0);        // for dimesions, Notes typ=4
+  glLineWidth (LN_WIDTH_DEF);        // for dimesions, Notes typ=4
 
   
   // set default-color
@@ -2527,6 +2531,8 @@ static int errOld = 123;
       // must set for normal surfaces
 // TODO: make a GL-listRecord for iitsurfce; change content normal|hilited|dimmed
       glDisable (GL_BLEND);
+        // glEnable (GL_BLEND);
+        // glEnable (GL_LINE_SMOOTH); 
       glEnable (GL_LIGHTING);
       goto L_main_9;
     }
@@ -2647,7 +2653,7 @@ static int errOld = 123;
   // set dimmed
   GL_DefineDisp (FUNC_DispDimm__, 0);
 
-  glLineWidth (4.0); // for dimesions, Notes typ=4
+  glLineWidth (LN_WIDTH_FAT);
 
   // dim symbolic-surfaces (should have Typ_Att_dash_long (GR_sSym_*))
   GL_InitNewAtt (2, Typ_Att_hili);
@@ -2807,7 +2813,7 @@ static int errOld = 123;
   glEnable (GL_BLEND);  // surfs                            // 2011-04-12
   GL_InitPtAtt (-2);    // dim points
 
-  glLineWidth (4.0);        // for dimesions, Notes typ=4
+  glLineWidth (LN_WIDTH_FAT);
   glDisable (GL_LIGHTING);  // for GL_Disp_2D_box1
 
   // hilite symbolic-surfaces (should have Typ_Att_dash_long (GR_sSym_*))
@@ -2999,7 +3005,7 @@ static int errOld = 123;
   glDepthFunc (GL_LEQUAL);
   glEnable (GL_LIGHTING);
   GL_InitPtAtt (-1);        // reset point-attributes
-  glLineWidth (1.0);        // for dimesions, Notes typ=4
+  glLineWidth (LN_WIDTH_DEF);        // for dimesions, Notes typ=4
   // GL_DefineDisp (FUNC_DispHili_ex, 0);  // reset defCol Lightfv TexEnvi
 
   // reset the modfied curve-attributes
@@ -14301,7 +14307,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     // newCol.cg = 0;
     // newCol.cb = 0;
 
-    glLineWidth   (1.0f);                       // 1 ist am duennsten !
+    glLineWidth   (LN_WIDTH_DEF);
     glLineStipple (1, (GLushort)0xFFFF);       // solid
 
 /*
@@ -14720,7 +14726,8 @@ static GLfloat  hiliThick = 9.f, stdThick = 5.f, iniThick = 5.f;
       fCol[3] = 1.f;
       glColor3fv (fCol);
       // activate line-thickness
-      thick = GR_AttLnTab[Ind].thick;
+      thick = (float)GR_AttLnTab[Ind].thick;
+      thick *= LN_WIDTH_ADJUST;
       glLineWidth (thick);        // 1 ist am duennsten !
         // printf(" glLineWidth %lf\n",thick);
 
@@ -14730,7 +14737,7 @@ static GLfloat  hiliThick = 9.f, stdThick = 5.f, iniThick = 5.f;
   //           1 = change this attribute to hilited
     } else if (mode == 1) {
       glColor3fv   (GL_col_tab[Typ_Att_hili1]);  // hili-Farbe
-      glLineWidth   (4.0);                         // 1 ist am duennsten !
+      glLineWidth   (LN_WIDTH_FAT);                         // 1 ist am duennsten !
 
 
 
@@ -14740,7 +14747,7 @@ static GLfloat  hiliThick = 9.f, stdThick = 5.f, iniThick = 5.f;
       glColor3fv   (GL_col_tab[Typ_Att_dim]);  // dim-Farbe
       thick = GR_AttLnTab[Ind].thick;
       // glLineWidth   (thick);        // 1 ist am duennsten !
-      glLineWidth   (1.0);                         // 1 ist am duennsten !
+      glLineWidth   (LN_WIDTH_DEF);                         // 1 ist am duennsten !
 
 
 /*   UNUSED

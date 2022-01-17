@@ -17,7 +17,8 @@ Last update: 2013-02-25
 <A HREF='#ADD'>ADD</A>(code)            // process and store source-objects
 <A HREF='#ADF'>ADDFILE</A>(filNam)      // process and store cad-objects in file 
 <A HREF='#MOD'>MOD</A>(code)            // modify cad-code, update
-NEW                  // clear whole model
+NEW                  // save active model if modified, then clear whole model
+CLEAR                // clear whole model - do not save model if modified
 MODSIZ(newsize)      // change modelsize; use 'END' to update.
 END                  // reprocess whole model
 
@@ -48,6 +49,7 @@ GETMODSIZ            // get current modelsize
 <A HREF='#DUM'>DUMP</A>(list)           // dump list to console-window
 <A HREF='#MOD'>MODE</A>(widget,off|on)  // hide or show subwindows: browser, menu, toolbars ..
 WAIT_ESC             // stop until ESC - key becomes pressed
+SYSTEM               // do operating-system command, wait; eg "SYSTEM(pluma /tmp/t1)"
 EXIT                 // shut down gcad3d
 
 
@@ -302,8 +304,8 @@ echo 'view(P(38 49 7))' > ~/gCAD3D/tmp/CTRLpin
 
 __________________________________________________________________________
 <p><a name="SHO"></a></p>
-SHOW(obj,off)        // hide object
-SHOW(obj)            // show hidden object
+SHOW(obj,off)        # hide object
+SHOW(obj)            # show hidden object
 
 
 # hide line L21
@@ -315,15 +317,16 @@ echo 'show(L21)' > ~/gCAD3D/tmp/CTRLpin
 
 __________________________________________________________________________
 <p><a name="DUM"></a></p>
-DUMP(list)           // Dump list to console-window
+DUMP(<DB-obj-ID>)    # Dump geometric structure of database-object
 
-DUMP("GA")           // dump Grafic_Attributes_list
-DUMP("DL")           // dump display-list
-DUMP("AT")           // dump linetypetable
-DUMP("TX")           // dump textures
-DUMP("SD")           // dump all symbolic directories
+DUMP("GA")           # dump Grafic_Attributes_list
+DUMP("DL")           # dump display-list
+DUMP("AT")           # dump linetypetable
+DUMP("TX")           # dump textures
+DUMP("SD")           # dump all symbolic directories
 
-# dump Grafic_Attributes_list
+Examples:
+echo 'DUMP(C20)' > ~/gCAD3D/tmp/CTRLpin
 echo 'DUMP("GA")' > ~/gCAD3D/tmp/CTRLpin
 
 

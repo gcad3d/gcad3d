@@ -1,6 +1,8 @@
 #! /bin/sh
 
+# find infos in infofiles ../inf/*
 # script for cscope
+# use with "Find this text string:"
 
 # get DIR_DEV DIR_BIN gcad_dir_bin
 . ../options.sh
@@ -15,14 +17,10 @@ export EDITOR
 #OS=Linux${bitNr}
 #echo ${OS}
 
-# create list of gcad-sourcefiles in file srcFiles
-make -f gcad3d.mak srclst > /dev/null
+# create list of info-files in file infFiles
+ls ../inf/* > infFiles
 
-# add gui-sources
-make -f gcad_gui__.mak add_srclst
-#cat srcFiles
-
-cscope -i srcFiles
+cscope -i infFiles
 # start; -p2 = 2 directory-levels
 #cscope -p2 -i srcFiles
 

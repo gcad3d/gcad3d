@@ -1466,7 +1466,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
       TX_Print("- stop in progLn. %d; continue with Escape",plNr);
       // Definition-Line: dump obj ?
       DL_Redraw ();
-      UI_wait_Esc ();
+      UI_wait_Esc__ ();
     }
 
     // handle IF-lines
@@ -2537,13 +2537,6 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
       } else if(atyp[i1] == Typ_VC) {
           // printf(" pri typ_VC\n");
         vp1 = DB_get_VC ((long)atab[i1]);
-        // auxBuf[0] = '\0';
-        // UTX_add_fl_f (auxBuf, ((Vector*)vp1)->dx, 2);
-        // strcat (auxBuf, ",");
-        // UTX_add_fl_f (auxBuf, ((Vector*)vp1)->dy, 2);
-        // strcat (auxBuf, ",");
-        // UTX_add_fl_f (auxBuf, ((Vector*)vp1)->dz, 2);
-        // strcat (cbuf, auxBuf);
         UTX_add_fl_u3 (cbuf,((Vector*)vp1)->dx,
                             ((Vector*)vp1)->dy,
                             ((Vector*)vp1)->dz, ',');
@@ -2551,13 +2544,6 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
       } else if(atyp[i1] == Typ_PT) {
         vp1 = DB_get_PT ((long)atab[i1]);
-        // auxBuf[0] = '\0';
-        // UTX_add_fl_f (auxBuf,((Point*)vp1)->x, 2);
-        // strcat (auxBuf, ",");
-        // UTX_add_fl_f (auxBuf,((Point*)vp1)->y, 2);
-        // strcat (auxBuf, ",");
-        // UTX_add_fl_f (auxBuf,((Point*)vp1)->z, 2);
-        // strcat (cbuf, auxBuf);
         UTX_add_fl_u3 (cbuf,((Point*)vp1)->x,
                             ((Point*)vp1)->y,
                             ((Point*)vp1)->z, ',');

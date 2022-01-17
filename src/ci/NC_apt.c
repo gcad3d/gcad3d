@@ -22241,9 +22241,9 @@ static Line lno;
 
 
 
-  printf("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii \n");
-  printf("APT_INT__ %d\n",aus_anz);
-  for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+  // printf("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii \n");
+  // printf("APT_INT__ %d\n",aus_anz);
+  // for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
 
 
 
@@ -22289,7 +22289,7 @@ static Line lno;
   } else {
     iUnl = 0;     // iUnl 0=limited, else unlimited
   }
-    printf(" _INT__-outTyp=%d imod=%d iUnl=%d\n",outTyp,imod,iUnl);
+    // printf(" _INT__-outTyp=%d imod=%d iUnl=%d\n",outTyp,imod,iUnl);
 
 
 

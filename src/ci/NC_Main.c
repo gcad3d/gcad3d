@@ -4267,15 +4267,17 @@ APT_stat_act:
 
 
   int       i1, otyp, icod;
-  long      ind;
+  long      dbi;
   double    d1;
   char      auxBuf[256], *p1, *p2;
+  void      *obj;
   Point     pt1;
   ObjAto    ato1;
 
 
   // printf("APT_work_AppCodTab cmd=|%s|\n",cmd);
   // if(data)printf("  data=|%s|\n",*data);
+   
 
 
   // test if its a command (HIDE VIEW MODSIZ DEFTX EXECM .. (AppCodTab))
@@ -4498,8 +4500,8 @@ APT_stat_act:
       if(ato1.nr == 2) i1 = ato1.val[1];
       else             i1 = 0;
       // get typ and dbi from *data
-      APED_dbo_oid (&otyp, &ind, *data);              // get typ,dbi from ID
-      SRCU_win_var (otyp, ind, i1);
+      APED_dbo_oid (&otyp, &dbi, *data);              // get typ,dbi from ID
+      SRCU_win_var (otyp, dbi, i1);
       break;
 
     //----------------------------------------------------------------
@@ -4526,26 +4528,39 @@ APT_stat_act:
 
     //----------------------------------------------------------------
     case TAC_DUMP:
+        // ATO_dump__ (&ato1, "APT_work_AppCodTab-dump-ato1");
       if(ato1.typ[0] == Typ_String) {    // APT_get_String
         APT_get_String (auxBuf, *data, ato1.val[0]);
+          // printf(" f-APT_get_String-auxBuf = |%s|\n",auxBuf);
 
-        if(!strcmp (auxBuf, "GA")) {
+        if(!strcmp (auxBuf, "GA")) {         // PermanentAttributeList
           GA_dump__ (NULL);
 
-        } else if(!strcmp (auxBuf, "DL")) {
+        } else if(!strcmp (auxBuf, "DL")) {  // displayList
           DL_DumpObjTab ("");
 
-        } else if(!strcmp (auxBuf, "AT")) {
+        } else if(!strcmp (auxBuf, "AT")) {  // attribute-table
           GL_AttTab_dump__ ();
 
-        } else if(!strcmp (auxBuf, "TX")) {
+        } else if(!strcmp (auxBuf, "TX")) {  // textures
           Tex_dump__ (NULL);
 
-        } else if(!strcmp (auxBuf, "SD")) {
+        } else if(!strcmp (auxBuf, "SD")) {  // symbolic directories
           MDLFN_syFn_f_dump ();
 
         } else goto Fehler1;
-      } else goto Fehler1;
+
+      //..................................
+      } else {
+        // DUMP <obj>
+        dbi = (long)ato1.val[0];
+        otyp = UTO__dbo (&obj, &i1, ato1.typ[0], dbi);
+        if(otyp <= 0) goto Fehler1;
+        APED_oid_dbo__ (auxBuf, otyp, dbi);      // get objID into auxBuf
+        DEB_dump_obj__ (otyp, obj, auxBuf);
+      }
+
+      //..................................
       break;
 
 

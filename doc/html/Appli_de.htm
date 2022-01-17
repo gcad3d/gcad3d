@@ -44,10 +44,31 @@ Das Zeichen # als erstes Zeichen einer Zeile definiert eine Kommentarzeile.
 
 
 <b>PRI - Testausgaben von Texten / Variableninhalten:</b>
-# (nur zu Testzwecken im Meldungsfenster)
+# nur zu Testzwecken im Meldungsfenster
+# Ausgabe der geometr. Struktur von Variablen (V), Punkten (P), Vektoren (D)
+#   Ausgabe anderer Objecttypen mit DUMP
+
 PRI "Text"
 PRI "Punkt1 =" P1
 PRI "Var 1 =" V1
+
+
+
+<b>DUMP - Testausgaben:</b>
+# nur zu Testzwecken im Meldungsfenster
+# Ausgabe von Listen, der geometr. Struktur von Objekten, ..
+# Siehe auch "PRI"
+
+DUMP <DB-obj-ID>     # Ausgabe der geom. Struktur eines Datenbank-objekts
+DUMP "GA"            # Ausgabe der Liste der graf. Attribute
+DUMP "DL"            # Ausgabe Display-Liste
+DUMP "AT"            # Ausgabe Linietypentabelle
+DUMP "TX"            # Ausgabe Texturen
+DUMP "SD"            # Ausgabe aller symbolischen Verzeichnisse
+
+
+# Beispiele:
+DUMP C22             # Ausgabe der geom. Struktur von Kreis C22
 
 
 

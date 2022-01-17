@@ -1860,7 +1860,7 @@ REPLACED by UTO_obj__ccv_segnr
 
   L_exit:
 
-    DEB_dump_obj__ (Typ_CVTRM, cvtrm, " ex-CVTRM__dbo");
+    // DEB_dump_obj__ (Typ_CVTRM, cvtrm, " ex-CVTRM__dbo");
 
   return 0;
 

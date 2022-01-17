@@ -45,9 +45,10 @@ UI_block_get          query if functions, input, cursor is blocked
 UI_block_input        activate / disactivate keystrokes & grafic_selections
 UI_func_stat_set__    activate / disactivate Functions.
 UI_func_stat_set_tab  activate / disactivate Functions.
-UI_wait_Esc           Wait for pressing the Esc-Key ...
+UI_wait_Esc__           Wait for pressing the Esc-Key ...
 UI_wait_time          wait <msTim> millisecs or stop with Esc
 UI_askEscape          get state of Esc-key (work all pending events before)
+UI_Escape_set         set active mode of Esc-key
 
 AP_view_upd             enable/disable active view-button
 AP_view_set             enable/disable active view-button
@@ -129,6 +130,8 @@ UI_WinLtypMod          Linetypes
 UI_WinToler            Toleranzen ...
 
 UI_brw__               switch browser/editor-window ON|OFF.
+UI_brw_ON
+UI_brw_OFF
 
 UI_Ed_del              LEER
 UI_Ed_hili             Hintergrund Editfenster hilite ON / OFF
@@ -141,7 +144,7 @@ UI_AP                  Hauptinterface zur App (APP ruft UI);
 
 UI_dump_oid            dump DB-object  into file & display with browser
 UI_dump_dbo            dump DB-object  into file & display with browser
-UI_dump__
+UI_dump__              dump all objects of type<typ> into file and display
 UI_menCB               Mainentry Menufunktions.
 
 List_functions_end:
@@ -1165,7 +1168,7 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 /// \code
 /// UI_wait_time                     wait <msTim> millisecs or stop with Esc
 ///  hold Esc pressed until "stopped with key Esc"
-/// see also UI_wait_Esc
+/// see also UI_wait_Esc__
 /// \endcode
 
   int     i1;
@@ -1190,9 +1193,9 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 
 
 //================================================================
-  int UI_wait_Esc () {
+  int UI_wait_Esc__ () {
 //================================================================
-// UI_wait_Esc                     wait for pressing the Esc-Key ...
+// UI_wait_Esc__                     wait for pressing the Esc-Key ...
 // Problem: man muesste den Key resetten, damit er nicht nochmal durchgeht,
 // oder fuer ca 0.5 sec als nicht gedrueckt setzen ...
  // (auf off setzen und von einem Timer wieder einschalten lassen ...
@@ -1201,17 +1204,61 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
   int     i1;
 
 
-  printf("key Esc to continue .......\n");
+  TX_Print ("*****  press key Esc to continue .......");
 
   i1 = 1;
-
   while (i1 == 1) {
     OS_Wait (100);
-    i1 = UI_askEscape();
+    i1 = UI_askEscape ();
   }
+
+//   i1 = 0;
+//   while (i1 == 0) {
+//     GUI_update__ ();
+//     OS_Wait (100);
+//     i1 = GUI_get_keys_mod ();
+//   }
 
   return 0;
 
+}
+
+
+//================================================================
+  int UI_wait_Esc_msg (char *msg) {
+//================================================================
+// UI_wait_Esc__                     wait for pressing the Esc-Key ...
+// Problem: man muesste den Key resetten, damit er nicht nochmal durchgeht,
+// oder fuer ca 0.5 sec als nicht gedrueckt setzen ...
+ // (auf off setzen und von einem Timer wieder einschalten lassen ...
+ // Oder einfach ausschalten ?
+
+  int     i1;
+
+
+  printf("- %s - key Esc to continue ..\n",msg);
+
+  DL_Redraw ();    // display now
+
+  UI_wait_Esc__ ();
+
+  return 0;
+
+}
+
+
+//=====================================================================
+  int UI_Escape_set (int mode) {
+//=====================================================================
+// UI_Escape_set                 set active mode of Esc-key
+
+  // printf("UI_Escape_set %d\n",mode);
+
+  KeyStatEscape = mode;
+
+  GUI_update__ ();
+
+  return 0;
 }
 
 
@@ -1227,6 +1274,9 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 
 
   // printf("UI_askEscape\n");
+
+  // for WAIT_ESC in MAN necessary
+  if(AP_src == AP_SRC_EDI) EDI_focus ();
 
   GUI_update__ ();
 
@@ -4480,6 +4530,8 @@ static char LstBuf[LstSiz][32];
 
         UI_ed_OFF ();
         UI_brw_ON ();
+        Brw_init__ ();
+        MDL_brw_upd ();
 
         GR_dli_hili = -1L;       // reset hilite of last-created-obj
 
@@ -4600,6 +4652,8 @@ static char LstBuf[LstSiz][32];
 
           UI_ed_OFF ();
           UI_brw_ON ();
+          Brw_init__ ();  // clear browser - create primary model & all subModels
+          MDL_brw_upd ();
 
           GR_dli_hili = -1L;                     // reset hilite of last-created-obj
 
@@ -5620,7 +5674,7 @@ See UI_but__ (txt);
 //================================================================
   int UI_dump__ (int typ) {
 //================================================================
-// dump textures
+// UI_dump__    dump all objects of type<typ> into file and display
 
   int  i1;
   char cbuf1[256];
@@ -5702,10 +5756,17 @@ See UI_but__ (txt);
   // imode = UI_ask_mode();
   imode = UI_InpMode;    // UI_MODE_VWR UI_MODE_MAN ..
 
+  //================================================================
+  if(!strcmp(cp1, "clear")) {       // new model, but do NOT save active model
+
+    // save Model+Submodels into tempDir as "Model" native
+    AP_stat.mdl_stat = MDLSTAT_save_as;
+
+    goto L_file_new;
+
 
   //================================================================
-  if(!strcmp(cp1, "new")) {
-
+  } else if(!strcmp(cp1, "new")) {
 
     // save Model+Submodels into tempDir as "Model" native
     AP_stat.mdl_stat = MDLSTAT_save_as;
@@ -5716,12 +5777,13 @@ See UI_but__ (txt);
 
 
     //----------------------------------------------------------------
-    // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane.
-    AP_mdl_init (0);
+    L_file_new:
+      // clear src-Memory, reset Undo, Hide, View-Plane, ConstrPlane.
+      AP_mdl_init (0);
 
-    // create new empty model "unknown"
-    // AP_mdl_new ();
-    AP_Mod_load_fn ("", 2);
+      // create new empty model "unknown"
+      // AP_mdl_new ();
+      AP_Mod_load_fn ("", 2);
 
 
 

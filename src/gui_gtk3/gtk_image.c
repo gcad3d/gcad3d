@@ -38,6 +38,8 @@ GUI_img__               backgroundimage
 GUI_Ico_init            init and load all icons (used with GUI_TreeIT__)
 GUI_TUT_m__             ScreenCast-mousebuttons
 GUI_TUT_t__             ScreenCast-Text
+GUI_TUT_CB_tmr          timer-callback: destroy.
+GUI_TUT_m_CB            draw transp. window-backgnd
 
 List_functions_end:
 =====================================================
@@ -89,7 +91,7 @@ extern GtkWidget *UI_act_wi;
 //================================================================
   int GUI_TUT_m_CB (GtkWidget *widget, GdkEventExpose *event, gpointer userdata) {
 //================================================================
-/// draw transp. window-backgnd
+// GUI_TUT_m_CB            draw transp. window-backgnd
 
   cairo_t *cr;
 
@@ -110,7 +112,7 @@ extern GtkWidget *UI_act_wi;
 //================================================================
   int GUI_TUT_CB_tmr (void *data) {
 //================================================================
-/// timer-callback: destroy.
+// GUI_TUT_CB_tmr              timer-callback: destroy.
 
   // printf("GUI_TUT_CB \n");
 

@@ -1,3 +1,17 @@
+Version 2.46.24 / 2022-01-17
+
+- adjust linewidth for UHD-screens
+- new remote-control-code clear  (start new model - do not save active model)
+- new remote-control-code system (do operating-system command, wait)
+- new code DUMP (MAN and remote-control, dump objects, listt ..)
+- new dev-tool TSTF (Demo_tstf_1 - do commands from file and rebuild plugin dynamic)
+- minor bugfixes
+
+Programlines (C)  531959
+Functions           5001
+
+
+===========================================================================
 Version 2.46.22 / 2022-01-06
 
 - Bugfix dxf-export-crash-bspl-surf

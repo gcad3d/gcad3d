@@ -450,6 +450,10 @@ kopieren geht nicht mehr -
   // Init und display Windows
   // L_1:
 
+  GR_Init0 ();   // set only primary parameters
+
+
+
   // delete pipe CTRLpin (after crash commands can remain ..)
   sprintf(txbuf1, "%sCTRLpin",OS_get_tmp_dir());
   OS_file_delete (txbuf1);

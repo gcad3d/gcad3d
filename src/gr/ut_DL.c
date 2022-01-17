@@ -2243,18 +2243,16 @@ static long   DL_hidden = -1L;
 //============================================================
   int DL_InitAttRec (int ind, int col, int typ, int thick) {
 //============================================================
-/// \code
-/// DL_InitAttRec              define a new lineattributeRecord
-/// Input:
-///   ind    Recordnr; first=0; use as attInd in GL_DrawLine
-///   col    color   900=red, 090=green, 119=blue, 990=yellow
-///   ltyp   linetyp LTYP_.. (../ut/func_types.h)
-///            0=full, 1=dash-dot, 2=shortDash, 3=longDash
-///   lthick 1-6, thickness in pixels
-///
-/// 
-/// defaultvalues from <tempDir>/cfg_Linux/ltyp.rc (../../gCAD3D/cfg_Linux/ltyp.rc)   
-/// \endcode
+// DL_InitAttRec              define a new lineattributeRecord
+// Input:
+//   ind    Recordnr; first=0; use as attInd in GL_DrawLine
+//   col    color   900=red, 090=green, 119=blue, 990=yellow
+//   typ    linetyp LTYP_.. (../ut/func_types.h)
+//            0=full, 1=dash-dot, 2=shortDash, 3=longDash
+//   thick  1-6, thickness in pixels
+//
+// 
+// defaultvalues from <tempDir>/cfg_Linux/ltyp.rc (../../gCAD3D/cfg_Linux/ltyp.rc)   
 
 //  wird schon vor DL_Init gebraucht !!!
 

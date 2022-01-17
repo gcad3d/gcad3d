@@ -60,8 +60,14 @@ extern int errno;
   // char s1[80];
 
 
-  TX_Error ("OS_get_scrRes - MS-win - TODO");
-  exit (-1);
+  // TX_Error ("OS_get_scrRes - MS-win - TODO");
+  // exit (-1);
+
+
+  *xRes = GetSystemMetrics (0);
+  *yRes = GetSystemMetrics (1);
+
+    printf(" ex-OS_get_scrRes %d %d\n",*xRes,*yRes);
 
 }
 

@@ -93,7 +93,7 @@ SRC1 =\
   ../ut/ut_math.c    ../ut/ut_umem.c    ../ut/ut_mem.c     ../ut/ut_box.c\
   ../ut/ut_txTab.c   ../ut/ut_int.c     ../ut/ut_uti.c     ../ut/byteorder.c\
   ../ut/ut_memTab.c  ../ut/ut_memTab1.c ../ut/ut_os__.c    ../ut/ut_BitTab.c\
-  ../ut/deb_prt.c
+  ../ut/deb_prt.c    ../ut/tstf__.c
 
 # ../xa/xa_mod_gui.c
 # ../xa/xa_mod.c      replaced by ../xa/mdl__.c

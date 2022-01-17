@@ -3929,6 +3929,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
   int       irc, i1;
   long      l1;
+  char      s1[80];
   stru_FN   mfn;
 
 
@@ -3937,7 +3938,7 @@ remote control nur in VWR, nicht MAN, CAD;
 /*
     // TESTBLOCK
     if(!strcmp(cmd, "test")) {
-      // UI_wait_Esc ();
+      // UI_wait_Esc__ ();
       return 0;
     }
     // END TESTBLOCK
@@ -4040,7 +4041,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
   //================================================================
   // test if has filetype; if not: start plugin.
-  if(UTX_ftyp_s (NULL, cmd, 0) < 0) return AP_exec_dll (cmd);
+  if(UTX_ftyp_s (s1, cmd, 0) < 0) return AP_exec_dll (cmd);
 
 
   //================================================================
@@ -4100,7 +4101,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
   int       i1, iComp;
   long      l1;
-  char      txbuf[256], s2[256];
+  char      txbuf[SIZFNam], s2[SIZFNam];
 
 
   printf("AP_exec_dll |%s|\n",cbuf);

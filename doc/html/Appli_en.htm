@@ -70,10 +70,31 @@ select checkbox "Search/Name"
 
 
 <b>PRI - Testoutput of text / variables:</b>
-# (output into message-window only for tests)
+# output into message-window only for tests
+# output of the geometric structure of variables (V), points (P), vectors (D)
+#   output of other objecttypes with DUMP
+
 PRI "Text"
 PRI "Point1 =" P1
 PRI "Var 1 =" V1
+
+
+
+<b>DUMP - Testoutput:</b>
+# output into message-window only for tests
+# output of lists, the geometric structure of Cobjects, ..
+# see also "PRI"
+
+DUMP <DB-obj-ID>     # output geometric structure of database-object
+DUMP "GA"            # output Grafic_Attributes_list
+DUMP "DL"            # output display-list
+DUMP "AT"            # output linetypetable
+DUMP "TX"            # output textures
+DUMP "SD"            # output all symbolic directories
+
+
+# Beispiele:
+DUMP C22             # output geometric structure of circle C22
 
 
 

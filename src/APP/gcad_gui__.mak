@@ -25,14 +25,11 @@ delete:
 	cd $(gcad_dir_bin) && rm -f $(OBJGUI)
 
 
-srclst:
-	@echo "srclst:" $(VGUI)
+#srclst:
+add_srclst:
+	@echo "add_srclst:" $(VGUI)
 	@echo $(SRCGUI) >> srcFiles
 	@echo ../gui_$(VGUI)/GUI_*.c >> srcFiles
-
-
-#add_srclst:
-#	@echo "add_srclst:"
 
 
 # link all GUI_* executables

@@ -870,6 +870,9 @@ extern int errno;
   void OS_get_scrRes (int *xRes, int *yRes) {
 //================================================================
 // OS_get_scrRes                    get total screensize
+// HD  = 2K = 1920x1080 = 1080p
+// UHD = 4K = 3840x2160 = 2160p
+//       8K = 7680x4320 = 4320p
 
   int  irc;
   char s1[80];

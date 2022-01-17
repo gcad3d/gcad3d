@@ -240,6 +240,8 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
   int CTRL_CB_do__ (char *parCmd) {
 //================================================================
 // executes commands.
+// Input:
+//   parCmd    command; eg "system (pluma /tmp/t1)"
 
  
   int      irc, i1;
@@ -298,8 +300,7 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
     return -1;
   }
   UTX_cp_word_2_upper (cmd, parCmd);
-
-
+  UTX_CleanCR (cmd);                     // remove following blanks from cmd
 
 
     // TESTBLOCK
@@ -345,9 +346,14 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
 
 
   //----------------------------------------------------------------
+  // new       see also UI_menCB "clear"  // new model, but do NOT save active model
+  if(!strcmp(cmd, "CLEAR")) {
+    UI_men__ ("clear");
+
+
+  //----------------------------------------------------------------
   // new           see also UI_menCB "new"
-  if(!strcmp(cmd, "NEW")) {
-    // AP_mdl_init(1);
+  } else if(!strcmp(cmd, "NEW")) {
     UI_men__ ("new");
 
 
@@ -544,21 +550,26 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
 
 
   //----------------------------------------------------------------
+  // SYSTEM           // do opsys-command; wait for return
+  } else if(!strcmp(cmd, "SYSTEM")) {
+      printf(" CTRL-system |%s|\n",wPos1);
+    irc = OS_system (wPos1);
+    if(irc) {
+      TX_Print ("remote-command: %s",wPos1);
+      TX_Print ("**** remote-command returns code %d",irc);
+    }
+    goto L_done;
+
+
+  //----------------------------------------------------------------
   // WAIT_ESC
   } else if(!strcmp(cmd, "WAIT_ESC")) {
     // iUserCB = 1;                           // block RemCmd-input
     TX_Print("***** waiting for ESC - key ... ");
     ctrlStat = 2;             // waiting-for-input
-    // DL_Redraw ();
-    UI_block__ (0, 0, 0);                 // reset input & cursor
-    // UI_wait_Esc ();
+    UI_wait_Esc_msg ("test") ;
     // UI_block__ (1, 1, 1);                 // reset input & cursor
       return 1;      // wait for next timerCB
-
-//     UI_wait_Esc ();
-//     // UI_block__ (-1, 0, 0);                 // reset input & cursor
-//     goto L_done;
-
 
 
   //----------------------------------------------------------------
@@ -568,8 +579,6 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
     UI_block__ (-1, 0, 0);                 // reset input & cursor
     AP_UserSelection_get (CTRL_sel_CB);
     return 1;
-
-
 
 
 

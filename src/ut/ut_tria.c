@@ -2548,7 +2548,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   // dabei speichern, wieviel Kanten verbunden wurden, (max 3 = komplett)
   L_nxt:
   UT3D_tria_ori_comm (ta, tStat, triNr, it);
-    // UI_wait_Esc ();
+    // UI_wait_Esc__ ();
 
 
 
@@ -2560,7 +2560,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   // schmalen 3Eck) 2 Kanten benachbart sein; es muss die naehere Kante
   // benutzt werden !!!!
   it = UT3D_tria_ori_parl (ta, tStat, triNr);
-    // UI_wait_Esc ();
+    // UI_wait_Esc__ ();
 
 
 

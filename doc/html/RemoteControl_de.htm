@@ -17,6 +17,8 @@ Letzte Änderung: 2013-02-25
 <A HREF='#ADD'>ADD</A>(code)            // CAD-Objekte speichern und anzeigen
 <A HREF='#ADF'>ADDFILE</A>(filNam)      // CAD-Objekte aus Datei speichern und anzeigen
 <A HREF='#MODI'>MOD</A>(code)            // CAD-Objekte modifizieren, anzeigen
+NEW                  // das aktive Modell speichern (wenn modifiziert), dann löschen
+CLEAR                // das aktive Modell löschen ohne speichern
 NEW                  // das gesamte Modell löschen
 MODSIZ(newsize)      // Modellgrößen ändern
 END                  // gesamtes Modell neu anzeigen
@@ -48,6 +50,7 @@ GETMODSIZ            // aktuelle Modellgröße abfragen
 <A HREF='#DUM'>DUMP</A>(list)           // Ausgabe einer List in das Konsolfenster
 <A HREF='#MODE'>MODE</A>(widget,off|on)  // Ein/Ausblenden von CAD-Fenstern; Browser, Menü, Toolbars ..
 WAIT_ESC             // stop bis ESC - Taste gedrückt wird
+SYSTEM               // System-Kommando ausführen; warten; zB: "SYSTEM(pluma /tmp/t1)"
 EXIT                 // shut down gcad3d
 
 __________________________________________________________________________
@@ -306,8 +309,8 @@ echo 'view(P(38 49 7))' > ~/gCAD3D/tmp/CTRLpin
 
 __________________________________________________________________________
 <p><a name="SHO"></a></p>
-SHOW(obj,off)        // Object unsichtbar machen
-SHOW(obj)            // Object sichtbar machen
+SHOW(obj,off)        # Object unsichtbar machen
+SHOW(obj)            # Object sichtbar machen
 
 
 # Linie L21 unsichtbar machen
@@ -319,15 +322,16 @@ echo 'show(L21)' > ~/gCAD3D/tmp/CTRLpin
 
 __________________________________________________________________________
 <p><a name="DUM"></a></p>
-DUMP(list)           // Ausgabe einer List in das Konsolfenster
+DUMP(<DB-obj-ID>)    # Ausgabe der geom. Struktur eines Datenbank-objekts
 
-DUMP("GA")           // Ausgabe der Liste der graf. Attribute
-DUMP("DL")           // Ausgabe Display-Liste
-DUMP("AT")           // Ausgabe Linietypentabelle
-DUMP("TX")           // Ausgabe Texturen
-DUMP("SD")           // Ausgabe aller symbolischen Verzeichnisse
+DUMP("GA")           # Ausgabe der Liste der graf. Attribute
+DUMP("DL")           # Ausgabe Display-Liste
+DUMP("AT")           # Ausgabe Linietypentabelle
+DUMP("TX")           # Ausgabe Texturen
+DUMP("SD")           # Ausgabe aller symbolischen Verzeichnisse
 
-# Ausgabe der Liste der graf. Attribute
+Beispiele:
+echo 'DUMP(C20)' > ~/gCAD3D/tmp/CTRLpin
 echo 'DUMP("GA")' > ~/gCAD3D/tmp/CTRLpin
 
 

@@ -65,6 +65,15 @@ GR_temp_*       display temporary;
 #define GR_TMP_DIM       4        // dimmed;  use with DL_att_temp
 
 
+
+//----------------------------------------------------------------
+extern float LN_WIDTH_ADJUST;     // adjust linewidth to total screensize (multiply)
+extern float LN_WIDTH_DEF;        // default linewidth (1.)
+extern float LN_WIDTH_FAT;        // linewidth (4.)
+
+
+//----------------------------------------------------------------
+// prototypes
 int GR_set_obj (int opers, long dbi, int form, void *obj, int att, int mode);
 int GR_set_ocv (int opers, long dbi, int form, void *obj, int att);
 int GR_set_ccv (int opers, CurvCCV *cva, int cvNr, long dbi, int att);

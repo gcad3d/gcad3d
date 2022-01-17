@@ -1539,7 +1539,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 
   int    iis;
 
-  printf("PRCV_add_pt vx=%f dbi=%ld \n",vx,dbi);
+  // printf("PRCV_add_pt vx=%f dbi=%ld \n",vx,dbi);
   // DEB_dump_obj__ (Typ_PT, ptx, " PRCV_add_pt-in-ptx");
 
   // Point *npt; double *npar; long *nipt;

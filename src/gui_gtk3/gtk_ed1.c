@@ -406,7 +406,7 @@ static char  *GUI_ed1_lcSet;
   ikey = ((GdkEventKey*)event)->keyval;
   mods = gtk_accelerator_get_default_mod_mask ();
   imod = ((GdkEventKey*)event)->state & mods;
-    // printf(" ed1_cb1-ikey=%ld imod=%d\n",ikey,imod);
+    // printf(" ed1_cb1-ikey=%d imod=%d\n",ikey,imod);
 
 
   // block Delete-key (unDelete not possible)
@@ -465,10 +465,12 @@ static char  *GUI_ed1_lcSet;
   //----------------------------------------------------------------
   if(ev_in == GDK_KEY_PRESS) {        // ev = 8
     // iEv  = TYP_EventPress;
+      // printf(" TYP_EventPress %d %d\n",ikey,imod);
 
-    // report Alt-x to user
-    // if(GUI_ed1_alt_state) {
-      // if(ikey == 'x') goto L_call_user;
+    // report Esc-key to user
+    if(ikey == GUI_KeyEsc) {
+      UI_Escape_set (0);  // ON
+    }
 
     return FALSE;  // do normal default-operations
   }
@@ -476,6 +478,7 @@ static char  *GUI_ed1_lcSet;
   //----------------------------------------------------------------
   if(ev_in == GDK_KEY_RELEASE) {     // ev = 9
     iEv  = TYP_EventRelease;
+    // if(ikey == GUI_KeyEsc) UI_Escape_set (OFF);
 
     GUI_ed1_shift_state = imod&1;
     GUI_ed1_cntrl_state = imod&4;
@@ -693,6 +696,7 @@ static char  *GUI_ed1_lcSet;
     // attach "enter-window" (for eg click into window).
     // geht nicht: wsw|web|wev"enter-notify-event";
 
+    gtk_widget_set_can_focus (wsw, TRUE); 
 
   }
 

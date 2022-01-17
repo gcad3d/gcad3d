@@ -1,0 +1,31 @@
+# as first char defines commentlines ..
+# make startlabel - eg ":L1:"; next label = End !
+# :: starts remote-command
+# set label in test_mshi2__
+# see ../APP/app_ctrlf.c
+
+
+:L1:
+#:: LOAD(Data/test_sur_pln4.gcad)
+#:: WAIT_ESC
+:: clear
+:: WAIT_ESC
+#:: MODE(BAR2,off)
+:: PRI("Test L1")
+::: test_disp__(A20)
+::: test_hide_last ()
+#:: ADD(P20=100 100 0)
+#:: ADD(C20=P20 100)
+P20=100 100 0
+C20=P20 60
+DUMP C20               # direct command or remote-control-command:
+:: DUMP (C20)
+#:: system (pluma /tmp/t1)
+
+
+:L2:
+:: PRI("Test L2")             
+:: DUMP("AT")
+:: DUMP(/tmp/t1)
+
+:EOF:

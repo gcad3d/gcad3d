@@ -1431,6 +1431,7 @@ GR_gxt_subst1
 GRIDBOX_NUL
 GR_img_get_dbi
 GR_img_get_obj
+GR_Init0
 GR_Init1
 GR_InitGFPar
 GR_mdMock_imp
@@ -2092,6 +2093,7 @@ IndAttLn_get_ltyp
 IndAttLn_Set1
 IN_Dreh
 INDTAB_NUL
+INF_tstf__
 INF_TxtTab
 IN_Mod2In
 IN_ModIn
@@ -2121,6 +2123,9 @@ KeyStatAlt
 KeyStatCtrl
 KeyStatEscape
 KeyStatShift
+LN_WIDTH_ADJUST
+LN_WIDTH_DEF
+LN_WIDTH_FAT
 LOG_A__
 LOG_A_disp
 LOG_A_exit
@@ -2809,6 +2814,7 @@ Tex_TexRef_UpdU
 TODO
 TRI_edg_2i
 TRI_edg_3i
+TSTF_load
 tst_UT2D_pt_ck_inplg
 TSU_box_Draw1
 TSU_box_Draw2
@@ -3113,6 +3119,7 @@ UI_Ed_scroll
 UI_Ed_sel
 UI_Ed_sel1
 UI_Ed_sel_ln
+UI_Escape_set
 UI_file_open__
 UI_fnamFilt
 UI_Focus
@@ -3253,7 +3260,8 @@ UI_vwz__
 UI_vwz_CB
 UI_vwz_is_on
 UI_vwz_set
-UI_wait_Esc
+UI_wait_Esc__
+UI_wait_Esc_msg
 UI_wait_time
 UIw_Box_TB
 UI_WinAppr

@@ -1,0 +1,12 @@
+# nmake -f Demo_tstf_1.nmak
+
+DLLNAM = Demo_tstf_1
+
+# die hier befindlichen  Sourcen - recompile!
+SRC1 =\
+ ../APP/Demo_tstf_1.c\
+
+
+!include "..\APP\gcad__.nmak"
+
+########################### EOF #######################

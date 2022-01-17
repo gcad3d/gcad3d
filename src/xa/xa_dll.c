@@ -77,7 +77,6 @@ OS_debug_dll_
 
 
 
-
 //===============================================================
 // Externe Variablen:
 
@@ -119,7 +118,7 @@ OS_debug_dll_
 
 
   int    irc, mtyp;
-  char   ftyp[32], cBuf[256];
+  char   ftyp[32], cBuf[SIZFNam];
 
   static void  *dll1 = NULL; // pointer to loaded dll
 
@@ -201,34 +200,39 @@ OS_debug_dll_
 ///   soNam     plugin; max 62 chars; including ".so" or ".dll"
 ///   ccFlg = 1 load plugin, do not recompile
 ///           0 recompile and load plugin
+///           2 get adress of Function and call function
+///             soNam = "<functionName> <parameters>"
 ///          -1 unload plugin   (DLL_run2("",-1);
 
 
 
 #ifdef _MSC_VER
-  typedef int (__stdcall *dllFuncTyp01)();
   static HINSTANCE hdl1=NULL;
+  typedef int (__stdcall *dllFuncTyp01)();
+  typedef int (__stdcall *dllFuncTyp02)(char*);
   dllFuncTyp01 dll_up1;
+  dllFuncTyp02 dll_up2;
 
 
 #else
   static void  *dl1 = NULL;
   void  (*up1)();
+  int  (*up2)(char*);
 #endif
 
-  char cbuf[256], *p1;
+  char cbuf[1024], *p1;
 
 
 
-  // printf("DLL_run2 |%s| %d\n",soNam,ccFlg);
+  printf("DLL_run2 |%s| %d\n",soNam,ccFlg);
 
 
 
 
   //----------------------------------------------------------------
   // save name of active application -> APP_act_nam
-  if(ccFlg >= 0) {
-    if(strlen(soNam) > 64) {TX_Error("DLL_run2 E001"); return -1;}
+  if((ccFlg == 0)||(ccFlg == 1)) {
+    if(strlen(soNam) > 64) {TX_Error("***** DLL_run2 E001"); return -1;}
     strcpy(cbuf, soNam);
     p1 = strchr(cbuf, '.');  // remove filetype
     if(p1) *p1 = '\0';
@@ -241,18 +245,39 @@ OS_debug_dll_
     if(OS_checkFilExist (cbuf, 1) == 0) {
       // does not exist:
       if(ccFlg > 0) {
-        TX_Error("AP_exec_dll E001 |%s|",cbuf);
+        TX_Error("***** DLL_run2 E003 |%s|",soNam);
         return -1;
       }
     }
 
 
+  } else {
+    // ccFlg = 2:  delimit functionname - parameters at first blank
+    if(strlen(soNam) > 1024) {TX_Error("***** DLL_run2 input too long"); return -1;}
+    strcpy (cbuf, soNam);
+    p1 = strchr (cbuf, ' ');
+    if(p1) {*p1 = '\0'; ++p1; }
+    // else cbuf[0] = '\0';
   }
 
 
 
 //======= VERSION WINDOWS ========================================
 #ifdef _MSC_VER
+
+  // get adress of Function and call function
+  if(ccFlg == 2) {
+    // get adress of Function
+    dll_up2 = (dllFuncTyp02) GetProcAddress (hdl1, cbuf);
+
+    // call function
+    if(dll_up2 != NULL) {
+      return (dll_up2(p1));
+    } else {
+      TX_Error ("***** DLL_run2 E005");
+      return -1;
+    }
+  }
 
 
   // zuerst close DLL already in use ..
@@ -325,6 +350,19 @@ OS_debug_dll_
 //======= VERSION UNIX ========================================
 #else
 
+  // get adress of Function and call function
+  if(ccFlg == 2) {
+    // get adress of Function
+    up2 = dlsym (dl1, cbuf);
+    // call function
+    if(up2 != NULL) {
+      return (*up2)(p1);
+    } else {
+      TX_Error ("***** DLL_run2 E005");
+      return -1;
+    }
+  }
+
 
   // zuerst close DLL already in use ..
   if(dl1 != NULL) {
@@ -360,11 +398,10 @@ OS_debug_dll_
     MSG_const_init (AP_lang);
     MSG_Init (AP_lang);
     if(OS_dll_build (soNam) != 0) {
-       TX_Print("***** Error compile/link %s",soNam);
+       TX_Print("***** DLL_run2 Error compile/link %s",soNam);
        return -1;
     }
   }
-
 
   // load DLL
   dl1=dlopen(cbuf,RTLD_LAZY);
@@ -376,7 +413,7 @@ OS_debug_dll_
   // Adresse von Func."gCad_main" holen
   up1=dlsym(dl1,"gCad_main");
   if(up1 == NULL) {
-    TX_Error("cannot open gCad_main");
+    TX_Error("***** DLL_run2 cannot open gCad_main");
     return -1;
   }
 

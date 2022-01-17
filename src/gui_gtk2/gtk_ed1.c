@@ -403,6 +403,12 @@ static char  *GUI_ed1_lcSet;
   if(ev_in == GDK_KEY_PRESS) {
     // iEv  = TYP_EventPress;
       // printf(" TYP_EventPress %d %d\n",ikey,imod);
+
+    // report Esc-key to user
+    if(ikey == GUI_KeyEsc) {
+      UI_Escape_set (0);  // ON
+    }
+
     return FALSE;  // do normal default-operations
   }
 
@@ -411,6 +417,7 @@ static char  *GUI_ed1_lcSet;
   if(ev_in == GDK_KEY_RELEASE) {
     iEv  = TYP_EventRelease;
       // printf(" TYP_EventRelease %d %d\n",ikey,imod);
+
     goto L_default;
   }
 

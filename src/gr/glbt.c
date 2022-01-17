@@ -124,6 +124,7 @@ I2D_stat
 
 #include "../db/ut_DB.h"                 // DB_GetVector
 #include "../gr/ut_GL.h"                 // GR_MODE_SELECT
+#include "../gr/ut_gr.h"               // LN_WIDTH_..
 
 #include "../xa/xa_sele.h"             // Typ_FncVAR1
 #include "../xa/xa_mem.h"               // memspc..
@@ -541,7 +542,7 @@ static char  I2D_stat[I2D_TABSITZ];
   // glDepthFunc (GL_ALWAYS);
   glDisable (GL_DEPTH_TEST);   // 2D only
   glDisable (GL_LINE_STIPPLE);
-  glLineWidth (1.0);
+  glLineWidth (LN_WIDTH_DEF);
 
   // save active PROJECTION-matrix, then init
   glMatrixMode (GL_PROJECTION);

@@ -261,6 +261,7 @@ GR_mdMock_imp            import VRML|OBJ|STL-file - save as tmp/Data_<moldel>.te
 GR_pt_par_sel_npt        get selectionpoint and parameter on polygon
 GR_pt3_pt2               get 3D-point from 2D-point (with GL2D_Z);
 
+GR_Init0                 primary init
 GR_Init1
 
 List_functions_end:
@@ -327,7 +328,10 @@ cc -c -g3 -Wall ut_gr.c
 #include "../gr/ut_GL.h"                  // GL_pickSiz
 #include "../gr/ut_DL.h"
 
+#define extern          // damit wird "extern" im Includefile geloescht !
 #include "../gr/ut_gr.h"
+#undef extern           // reset extern ..
+
 #include "../ut/func_types.h"                  // SYM_SQUARE
 
 #include "../xa/xa.h"                     // mem_cbuf1_SIZ
@@ -861,6 +865,27 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
   // L_E003:
       // TX_Error("GR_Draw_ox E003"); // wrkSpc fehlt ..
       // return -1;
+
+}
+
+
+//====================================================================
+  void GR_Init0 () {
+//====================================================================
+// GR_Init0                 primary init
+
+  int     ix, iy;
+
+  LN_WIDTH_ADJUST = 1.f;
+
+  // adjust linewidth for UHD-screens
+  OS_get_scrRes (&ix, &iy);  // get total screensize
+  if(ix > 3000) LN_WIDTH_ADJUST = 2.f;
+
+  LN_WIDTH_DEF = LN_WIDTH_ADJUST;
+  LN_WIDTH_FAT = LN_WIDTH_ADJUST * 4.f;
+
+  return;
 
 }
 

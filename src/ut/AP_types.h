@@ -265,7 +265,7 @@ void INF_OTYP (){}
 
 /// text
 #define Typ_Txt          190   /// $  ohne ", normal mit , begrenzt f. $20=
-#define Typ_String       191   /// durch " begrenzt
+#define Typ_String       191   /// String = text enclosed between two " - eg "abc"
 #define Typ_StrDel       192   /// StringDelimiter "\" Fortsetzungszeile 
 #define Typ_StrDel1      193   /// StringDelimiter 1 "|"
 #define Typ_FncNam       194   /// geom-function; see ObjCodTab Typ_Cmd1

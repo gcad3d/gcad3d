@@ -92,6 +92,7 @@ INF_DBF             File-based DB; Save and retrieve key-value-Records
 INF_GUI_exe         GUI-executables (messageBox, select-file, entry-with-buttons)
 INF_catalog         catalog-parts, CTLG
 INF_GIS1__
+INF_tstf__          Testttool to execute commands in file
 
 INF_TODO__          TODO_* BUG_*
 
@@ -2345,7 +2346,7 @@ void INF_debug (){        /*! \code
 see below:
 DEB_dump_obj__            DEB_dump_ox_0 ..
 MSG_ERR__
-AP_debug__                stop in debugger; UI_wait_time UI_wait_Esc ERR_raise
+AP_debug__                stop in debugger; UI_wait_time UI_wait_Esc__ ERR_raise
 printd                    DEB_prt_init ..
 LOG_A__                   LOG_A_init LOG_A_exit ..
 
@@ -2373,7 +2374,7 @@ AP_debug__ ("func xy");        stop in debugger and display message
 
 UI_wait_time                   wait <msTim> millisecs or stop with Esc
 
-UI_wait_Esc                    wait for pressing the Esc-Key
+UI_wait_Esc__                  wait for pressing the Esc-Key
 
 ERR_raise                      exit plugin immediate
 

@@ -59,7 +59,7 @@ CPFLG = $(CPDEB) -D$(VGUI) $(GLBCP) -Wno-implicit
 #CPFLG = $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP)
 
 
-LKFLG = $(LKDEF) $(LKDEB) -rdynamic
+LKFLG = $(LKDEF) $(LKDEB) -rdynamic -Wl,--unresolved-symbols=ignore-all
 
 # OS=MSGCC32: gcc on Windows:
 # LKFLG = -Wl,--export-all-symbols,--out-implib,gCAD3D.lib
@@ -127,21 +127,40 @@ allDemos:
 	@echo "link plugins .."
 # test if plugins/ exist - else create
 	mkdir -p "$(gcad_dir_bin)/plugins"
-	mkdir -p "$(gcad_dir_bin)plugins/cut1"
 # create makeFiles.lst = list of makefiles
 	rm -f makeFiles.lst
 	find . -maxdepth 1 -name "Demo*.mak" -exec echo {} >> makeFiles.lst \;
-	find . -maxdepth 1 -name "PRC_*.mak" -exec echo {} >> makeFiles.lst \;
 # read list, build ..
 	while read line; do \
 	echo $$line; \
 	make -f $$line; \
 	if [ $$? -ne 0 ]; then exit 1; fi \
 	done < makeFiles.lst
-	# link PP's for PRC_cut1
+
+
+
+#=============================================================
+# Alle processes xa_XX.so linken
+processes:
+	@echo "link processes .."
+# test if plugins/ exist - else create
+	mkdir -p "$(gcad_dir_bin)/plugins"
+	mkdir -p "$(gcad_dir_bin)plugins/cut1"
+# create makeFiles.lst = list of makefiles
+	rm -f makeFiles.lst
+	find . -maxdepth 1 -name "PRC_*.mak" -exec echo {} > makeFiles.lst \;
+# read list, build ..
+	while read line; do \
+	echo $$line; \
+	make -f $$line; \
+	if [ $$? -ne 0 ]; then exit 1; fi \
+	done < makeFiles.lst
+# link PP's for PRC_cut1
 	touch ../prc/cut1/G-Code.c
 	make -f ../prc/cut1/G-Code.mak
-	if [ $$? -ne 0 ]; then exit 1; fi \
+	if [ $$? -ne 0 ]; then exit 1; fi
+	@echo "link processes done OK"
+
 
 
 ##	if [ ! -f "$(gcad_dir_bin)/plugins" ]; then\
@@ -219,24 +238,24 @@ add_srclst:
 
 
 
-#=============================================================
-# zum generieren einer SourceListe fuer doxygen.
-# make srcDoxy
-srcDoxy:
-	@echo $(SRC1) $(SRCG)\
- xa_batch.c \
- ../xa/*.h ../exp/*h ../db/*h ../gtk/*h ../ci/*h ../ut/*h ../gr/*h
-
-
-
-#=============================================================
-# zum generieren einer DocuFileList fuer dsearch & dmodify.
-# make doclst
-doclst:
-	@echo ../dox/ProgramFlow.dox ../dox/gCAD3D_prog_de.dox\
-  ../doc/*.htm
-
-
+##=============================================================
+## zum generieren einer SourceListe fuer doxygen.
+## make srcDoxy
+#srcDoxy:
+#	@echo $(SRC1) $(SRCG)\
+# xa_batch.c \
+# ../xa/*.h ../exp/*h ../db/*h ../gtk/*h ../ci/*h ../ut/*h ../gr/*h
+#
+#
+#
+##=============================================================
+## zum generieren einer DocuFileList fuer dsearch & dmodify.
+## make doclst
+#doclst:
+#	@echo ../dox/ProgramFlow.dox ../dox/gCAD3D_prog_de.dox\
+#  ../doc/*.htm
+#
+#
 #=============================================================
 include compile.mak
 

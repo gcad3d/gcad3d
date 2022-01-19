@@ -1,3 +1,14 @@
+Version 2.46.25 / 2022-01-19
+
+- bugfix Modify_Linetype_display
+- missing file ../ut/tstf__.c added
+- build-scripts do, ../options.sh, ../init_examples.sh updated
+
+Programlines (C)  515092
+Functions           5003
+
+
+===========================================================================
 Version 2.46.24 / 2022-01-17
 
 - adjust linewidth for UHD-screens

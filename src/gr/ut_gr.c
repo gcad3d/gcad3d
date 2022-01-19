@@ -677,6 +677,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
   // printf("GR_set_obj opers=%d dbi=%ld form=%d att=%d mode=%d\n",
          // opers,dbi,form,att,mode);
+  // printf("GR_set_obj DL_perm_ind=%ld\n",DL_perm_ind);
   // DEB_dump_obj__ (form, obj, "  obj");
 
 

@@ -1843,7 +1843,9 @@ GUI_tree1_row_add
 GUI_tree1_row_set
 GUI_tree1_set_selMode
 GUI_tree1_unselect_all
+GUI_TUT_CB_tmr
 GUI_TUT_m__
+GUI_TUT_m_CB
 GUI_TUT_t__
 GUI_update__
 GUI_Win__
@@ -2987,6 +2989,7 @@ UCV_TrfMatCltCrv
 UFA_1fac_fac_pt
 UFA_2esn_comm2fac
 UFA_2fac_fac_pt
+UFA_2fac_facpt
 UFA_2fac_flip
 UFA_2if_find_2ip
 UFA_2ip_ck_ptfac
@@ -2996,6 +2999,7 @@ UFA_2pt2_fac_esn
 UFA_3esn_ipe
 UFA_3esn_ips
 UFA_3fac_fac_pt
+UFA_3fac_facpt
 UFA_4fac_2fac_pt
 UFA_5fac_3fac_pt
 UFA_add_fac__

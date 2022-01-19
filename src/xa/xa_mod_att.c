@@ -124,7 +124,7 @@ extern ColRGB     AP_defcol;
   char   snam[64];
 
 
-  printf("SurMod_sel_CB src=%d ind=%ld ACTMOD=%d\n",src,dli,ACTMOD);
+  // printf("SurMod_sel_CB src=%d ind=%ld ACTMOD=%d\n",src,dli,ACTMOD);
 
 
   // save &exit m. rechter maustaste (see also PED_key_CB)
@@ -148,7 +148,7 @@ extern ColRGB     AP_defcol;
 
 
   UI_GR_get_selNam (&styp, &dbi, &snam);
-    printf(" f-GR_get_selNam typ=%d dbi=%ld\n",styp,dbi);
+    // printf(" f-GR_get_selNam typ=%d dbi=%ld\n",styp,dbi);
 
 
 
@@ -270,7 +270,7 @@ extern ColRGB     AP_defcol;
 // mode 0=init, 1=exit
 // used by: UI_WinSurfTra  UI_WinSurfCol UI_WinSurfStyl
 
-  printf("SurMod_Ini %d %d\n",mode,ACTMOD);
+  // printf("SurMod_Ini %d %d\n",mode,ACTMOD);
 
 
   if(mode == 0) {
@@ -770,7 +770,7 @@ extern ColRGB     AP_defcol;
 
   i1 = GUI_DATA_I1;
 
-  printf("UI_WinLtypMod %d\n",i1);
+  // printf("UI_WinLtypMod %d\n",i1);
 
 
   switch (i1) {

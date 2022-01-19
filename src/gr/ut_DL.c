@@ -1775,7 +1775,7 @@ static long   DL_hidden = -1L;
   unsigned short modnr;
 
 
-  printf("DL_grp1__ dli=%ld mode=%d iUpd=%d\n",ind,mode,iUpd);
+  // printf("DL_grp1__ dli=%ld mode=%d iUpd=%d\n",ind,mode,iUpd);
 
   if(ind < 0) return -1;
 
@@ -2147,7 +2147,7 @@ static long   DL_hidden = -1L;
 // see also GL_Redraw - hili
 
 
-  printf("IndAttLn_Set1  %d %d\n",ltyp,lim);
+  // printf("IndAttLn_Set1  %d %d\n",ltyp,lim);
 
 
   if(ltyp >= 0) att1->indAtt = ltyp;
@@ -2372,18 +2372,22 @@ static long   DL_hidden = -1L;
 // see DL_tDyn_init DL_temp_init
 
 
-  long   dli, gli;
+  long   dli, gli, iOver;
 
   // printf("DL_perm_init typ=%d dbi=%ld, att=%d\n",typ,dbi,att);
+  // printf("DL_perm_init DL_perm_ind=%ld\n",DL_perm_ind);
 
 
   //----------------------------------------------------------------
+  // keep if overWrite DL is on; (if >= 0); is resetted by DL_dli_get
+  iOver = DL_perm_ind;
+
   // get next free index  (DL_perm_ind must be -1)
   dli = -1L;
-  gli = DL_dli_get (&dli);
+  gli = DL_dli_get (&dli);  
 
   // create DL-record
-  AP_dli_act = DL_set__ (typ, dbi, dli, att);
+  if(iOver < 0L) AP_dli_act = DL_set__ (typ, dbi, dli, att);
 
   // start GL-list
   GL_list_open (gli);

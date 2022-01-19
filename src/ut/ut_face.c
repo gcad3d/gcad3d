@@ -2153,7 +2153,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 }
 
 
-/*
+
 //==============================================================================
   int UFA_2fac_facpt (MemTab(Fac3) *fTab, Fac3 *fnb, int ipt, int ifc, int ie) {
 //==============================================================================
@@ -2361,7 +2361,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   return 0;
 
 }
-*/
+
 
 //================================================================
   int UFA_facpt_chg_psn (Fac3 *fac1, int ival, int esn) {

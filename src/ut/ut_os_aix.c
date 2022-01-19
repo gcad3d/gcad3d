@@ -1422,7 +1422,7 @@ extern int errno;
 
 
 //================================================================
-  OS_date_cmp (time_t *tim1, time_t *tim2) {
+  int OS_date_cmp (time_t *tim1, time_t *tim2) {
 //================================================================
 // OS_date_cmp           compare 2 dates
 // RetCod: 1   tim2 is younger than tim1
@@ -1857,7 +1857,7 @@ extern int errno;
 
 
 //================================================================
-  OS_file_date_m (time_t *tim_m, char *filnam) {
+  int OS_file_date_m (time_t *tim_m, char *filnam) {
 //================================================================
 // return unix-timestamp of last modification-date of file <filnam>.
 // needs:

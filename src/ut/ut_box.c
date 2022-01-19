@@ -308,7 +308,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 
 
 //================================================================
-    UT2D_box_inpt (Point2 *pmin, Point2 *pmax,
+  int UT2D_box_inpt (Point2 *pmin, Point2 *pmax,
                    int ptNr, int *ipa, Point2 *pta) {
 //================================================================
 // UT2D_box_inpt3            2D-bounding-box for indexed-points

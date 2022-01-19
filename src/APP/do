@@ -11,6 +11,7 @@
 . ../options.sh
 
 
+
 cmdVi="${DIR_DEV}gcad3d/src/vi.sh"
 #cmdVi='vim -N -u /mnt/serv1/Linux/bin/.vimrc'
 #echo $cmdVi
@@ -496,6 +497,9 @@ if [ "$OSTYPE" = "Linux" ] ; then
   #export gcad_dir_local=${DirBasSer}/
   export gcad_dir_local=${gcad_dir_dev}
 
+# config-files; def. is ${HOME}/gCAD3D/cfg_Linux/
+  export gcad_dir_cfg=${gcad_dir_local}gCAD3D/cfg/
+
 # icons (def.: /usr/share/gcad3d/icons/)
   export gcad_dir_ico=${gcad_dir_dev}icons/
 
@@ -504,28 +508,27 @@ if [ "$OSTYPE" = "Linux" ] ; then
   export gcad_dir_doc=${gcad_dir_dev}doc/
 
 
-
   exeNam=${gcad_dir_bin}gCAD3D
 
 
-## change configfiles to unix if last start was with MS-Windows
-## if no file X.lock exists, no switching is done
-#if [ -f MS.lock ]; then
-#  echo "set dir.lst & xa.rc -> Unix"
-#  cfgDir=${gcad_dir_dev}gCAD3D/cfg/
-#  echo "cfgDir=${cfgDir}"
-#  /bin/cp -f ${cfgDir}dir.lst ${cfgDir}dirMS.lst
-#  /bin/cp -f ${cfgDir}xa.rc ${cfgDir}xaMS.rc
-#  /bin/cp -f ${cfgDir}dirUX.lst ${cfgDir}dir.lst
-#  /bin/cp -f ${cfgDir}xaUX.rc ${cfgDir}xa.rc
-#  /bin/rm -f MS.lock
-#  touch UX.lock
-#fi
+echo "LD_LIBRARY_PATH |"${LD_LIBRARY_PATH}"|"
+echo "gcad_dir_bas    |"${gcad_dir_bas}"|"
+echo "gcad_dir_local  |"${gcad_dir_local}"|"
+echo "gcad_dir_ico    |"${gcad_dir_ico}"|"
+echo "gcad_dir_doc    |"${gcad_dir_doc}"|"
+echo "exeNam          |"${exeNam}"|"
+
+
+# check if exe exists
+if [ ! -f ${exeNam} ]; then
+  echo "****** executable ${exeNam} does not exist .."
+  exit 1
+fi
 
 
 # if gCAD3D/cfg/gCAD3D.rc does not exist unpack examples.gz
-if [ ! -f ${gcad_dir_local}gCAD3D/cfg/gCAD3D.rc ]; then
-  echo "****** gCAD3D/cfg/gCAD3D.rc does not exist - unpack examples.gz .."
+if [ ! -f ${gcad_dir_cfg}gCAD3D.rc ]; then
+  echo "****** file ${gcad_dir_cfg}gCAD3D.rc does not exist - unpack examples.gz .."
   ../init_examples.sh
   if [ $? -ne 0 ]; then
     echo "****** ERROR unpacking examples.gz *******"
@@ -535,7 +538,7 @@ fi
 
 
 
-#-----------------------------------------------------
+#----------------------------------------------------
 # analyze times in file gmon.out - AFTER run gcad
 if [ "$1" = "gmon" ] ; then
   gprof -z ${exeNam} > t1 && vi t1

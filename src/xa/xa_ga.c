@@ -2028,7 +2028,7 @@ static ObjAtt ObjAtt_NUL = {0L, 0, 0};
   Ind_Att_ln iAtt;
 
 
-  printf("GA_lTyp__ lTyp=%d Atyp=%d Aind=%ld dli=%ld\n",lTyp,typ,ind,dli);
+  // printf("GA_lTyp__ lTyp=%d Atyp=%d Aind=%ld dli=%ld\n",lTyp,typ,ind,dli);
 
   btyp = AP_typDB_typ (typ);
 
@@ -2045,7 +2045,7 @@ static ObjAtt ObjAtt_NUL = {0L, 0, 0};
   L_1:
   gaNr = GA_creRec (btyp, ind);
   if(gaNr < 0) return -1;
-    printf(" gaNr=%ld\n",gaNr);
+    // printf(" gaNr=%ld\n",gaNr);
 
   // write new ltyp > PermanentAttributeTable GA_ObjTab
   GA_ObjTab[gaNr].iatt = lTyp;

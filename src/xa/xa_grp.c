@@ -539,8 +539,8 @@ static TimeStamp GrpTS;
   int    i1;
 
 
-  printf("Grp_add__ typ=%d dbi=%ld dli=%ld iUpd=%d GrpNr=%d GrpMax=%d\n",
-                       typ,dbi,dli,iUpd,GrpNr,GrpMax);
+  // printf("Grp_add__ typ=%d dbi=%ld dli=%ld iUpd=%d GrpNr=%d GrpMax=%d\n",
+                       // typ,dbi,dli,iUpd,GrpNr,GrpMax);
   // if(dli >= 0) printf(" _add__-grpBit = %d\n",DL_GetGrp(dli));
   // Grp_dump ();
   // printf("  GR_Sel_Filter=%d\n",UI_GR_Sel_Filt_set(-1));

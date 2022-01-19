@@ -19,21 +19,29 @@
 #
 # see also ../../doc/html/SW_layout_en.htm
 
+# test if active directory is xx/gcad3d/src/APP
 
 
-# TODO:
-# set gcad_dir_dev and gcad_dir_bin
-# test if active directory is `ID_NAS_UX.dat`; yes=NAS, else Local
+
+# test if active directory is xx/gcad3d/src/APP
+S2=`expr length ${PWD} - 14`
+if [ `echo ${PWD} | cut -c$S2-` != "/gcad3d/src/APP" ] ; then
+  echo "****** ERROR - not in directory .../gcad3d/src/APP *****"
+  exit 1;
+fi
+
 
 
 if [ ! -n "$DIR_DEV" ]; then
-# not set to server: set to local
-export DIR_DEV=${HOME}/devel/
+# not set:
+# remove "/gcad3d/src/APP" (14 chars) from pwd
+export DIR_DEV=`echo ${PWD} | cut -c1-$S2`
 fi
 
 if [ ! -n "$DIR_BIN" ]; then
-# vi.sh
-export DIR_BIN=${HOME}/devel/bin/
+# not set: 
+# remove "/gcad3d/src/APP" (14 chars) from pwd and add "bin/"
+export DIR_BIN=`echo ${PWD} | cut -c1-$S2`bin/
 fi
 
 
@@ -56,8 +64,11 @@ mkdir -p ${gcad_dir_bin}plugins/
 mkdir -p ${gcad_dir_bin}plugins/cut1/
 
 
+echo "DIR_DEV=|"${DIR_DEV}"|"
+echo "DIR_BIN=|"${DIR_BIN}"|"
 #echo "gcad_dir_dev=|"${gcad_dir_dev}"|"
 #echo "gcad_dir_bin=|"${gcad_dir_bin}"|"
 
 # use it with ". ./options.sh"
+
 #

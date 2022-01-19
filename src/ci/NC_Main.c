@@ -6569,7 +6569,7 @@ Ablauf Makro:
 /// \endcode
 
 
-  int       i1, i2, i3, ii, iAtt, iCol, iTra, iTex;
+  int       i1, i2, i3, ii, oTyp, iAtt, iCol, iTra, iTex;
   long      dbi, dli;
   char      s1[80], *p1;
   ColRGB    col1;
@@ -6589,10 +6589,12 @@ Ablauf Makro:
 
   for(ii=0; ii<aus_anz; ++ii) {
 
-    if(aus_typ[ii] == Typ_String) {
+    oTyp = aus_typ[ii];
+
+    if(oTyp == Typ_String) {
       // get string
       APT_get_String (s1, APT_defTxt, aus_tab[ii]);
-        // printf(" s1=|%s|\n",s1);
+        // printf(" APT_work_ATTS-s1=|%s|\n",s1);
 
       //---symbolic--------------------------------------------------
       if(s1[0] == 'S') {
@@ -6642,10 +6644,14 @@ Ablauf Makro:
       goto L_errp;
     }
 
-    if((aus_typ[ii] == Typ_SUR)  ||
-       (aus_typ[ii] == Typ_SOL))     {
-      dbi = aus_tab[ii];
-      dli = DL_find_smObj (aus_typ[ii], dbi, -1L, AP_modact_ibm);
+
+    dbi = aus_tab[ii];
+    dli = DL_find_smObj (oTyp, dbi, -1L, AP_modact_ibm);
+
+
+    //================================================================
+    if((oTyp == Typ_SUR)  ||
+       (oTyp == Typ_SOL))     {
 
       if(iTex >= 0) {
         // apply active texture
@@ -6662,7 +6668,7 @@ Ablauf Makro:
         if(iTex > 4) tr->uar  = ato1.val[4];
 
         // update modified texture
-        DL_Draw_obj (dli, aus_typ[ii], dbi);
+        DL_Draw_obj (dli, oTyp, dbi);
         // update display
         DL_Redraw ();
       }
@@ -6670,26 +6676,34 @@ Ablauf Makro:
 
       if(iAtt >= 0) {
         // 1=shaded, 2=symbolic, 3=transparent
-        GA_sStyl__ (dli, iAtt, aus_typ[ii], dbi);
+        GA_sStyl__ (dli, iAtt, oTyp, dbi);
       }
 
       if(iCol >= 0) {
         APcol_actCol__ (&col1);
         // apply active colour AP_actcol. 0=setColor; 1=resetColor
-        GA_Col__ (dli, iCol, aus_typ[ii], dbi);
+        GA_Col__ (dli, iCol, oTyp, dbi);
       }
 
       if(iTra >= 0) {
         // appy transparency; 0=reset; 1=halfTransp.; 2=fullTransp;
-        GA_Tra__ (dli, iTra, aus_typ[ii], dbi);
+        GA_Tra__ (dli, iTra, oTyp, dbi);
       }
 
 
+//     //================================================================
+//     } else if((oTyp == Typ_LN)  ||
+//               (oTyp == Typ_CI)  ||
+//               (oTyp == Typ_CV))     {
+// 
+//        // change lineTyp -> iTra
+//        GA_lTyp__ (dli, iTra, oTyp, dbi, 0);
+
+
+    //================================================================
     } else goto L_erro;
 
   }
-
-
 
 
 
@@ -6700,7 +6714,7 @@ Ablauf Makro:
     return -1;
 
   L_erro:
-    TX_Error(" APT_work_ATTS wrong objecttyp ..\n");
+    TX_Error(" APT_work_ATTS wrong objecttyp; use ATTL for curves ..\n");
     return -1;
 
 }
@@ -6736,7 +6750,7 @@ Ablauf Makro:
 
   }
 
-  DL_Redraw ();
+  // DL_Redraw ();
 
   return 0;
 

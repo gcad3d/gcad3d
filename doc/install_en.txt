@@ -91,34 +91,24 @@ Linux Prerequisites for installation and build from source:
 
 
 __________________________________________________________________
-Linux Install from git-repository:
+Linux-Install-from-git-repository:
 
 # If possible: prefer installation from git-repository.
 # start commandline (eg gnome-terminal)
+# activate home-directory
 cd
+# create basedirectory for installation (arbitrary name)
 mkdir devel
 cd devel
 # get all files into ~/devel/gcad3d/*
-git clone https://github.com/gcad3d/gcad3d
+git clone https://github.com/gcad3d/gcad3d.git
+# goto dev-dir
+d ${HOME}/devel/gcad3d/src/APP
+# build complete
+./do complete
+# start gcad3d
+./do
 
-
-
-
-__________________________________________________________________
-Linux Install sources from zipfile:
-
-# start commandline (eg gnome-terminal)
-cd
-mkdir devel
-cd devel
-
-# get all files into ~/devel/gcad3d/*
-cp xxx/gCAD3D_x.xx-src.zip .
-unzip gCAD3D_x.xx-src.zip
-
-cd gcad3d
-mkdir -p binLinux32/plugins
-mkdir -p binLinux64/plugins
 
 
 

@@ -92,6 +92,7 @@ INF_DBF             File-based DB; Save and retrieve key-value-Records
 INF_GUI_exe         GUI-executables (messageBox, select-file, entry-with-buttons)
 INF_catalog         catalog-parts, CTLG
 INF_GIS1__
+INF_GSRC            Geometric-Source-Relocatable-Code (add object-source from extern)
 INF_tstf__          Testttool to execute commands in file
 
 INF_TODO__          TODO_* BUG_*
@@ -663,8 +664,8 @@ sr                                          sense-of-rotation;       INF_sr
 mtb    MemTab_      MemTab                  fixed-length-records     INF_MemTab
 msp    UME_         Memspc                  Variable-Length-Records  INF_Memspc
 otb    OXMT_        OgxTab                  ObjGX + var-len-record   INF_OgxTab
-       BitTab_      UtxTab                  Textstrings              INF_UtxTab
-       UtxTab_      BitTab                  Bit-arrays               INF_BitTab
+       UtxTab_      UtxTab                  Textstrings              INF_UtxTab
+       BitTab_      BitTab                  Bit-arrays               INF_BitTab
 ....................................................................................
 mdb                 ModelBas  Typ_SubModel  basicModel               INF_basicModel
 mdr                 ModelRef  Typ_Model     modelReference           INF_modelRef
@@ -1209,7 +1210,7 @@ ind col typ thk
 #
 #   colour     3 digits; red, green, blue.
 #              900 = red,   090 = green, 009 = blue;
-#              000 = black; 999 = white, 990 = yellow ..
+#              000 = black; 999 = white, 990 = yellow,  909 = cyan,  099 = magenta;
 #   lineTyp:   0 = full-line (VollLinie);    1 = dash-dot (Strich-Punkt),
 #              2 = dashed (kurz strichliert) 3 = dashed-long (lang strichliert),
 #   lineThick: 1-6, thickness in pixels
@@ -2346,7 +2347,9 @@ void INF_debug (){        /*! \code
 see below:
 DEB_dump_obj__            DEB_dump_ox_0 ..
 MSG_ERR__
-AP_debug__                stop in debugger; UI_wait_time UI_wait_Esc__ ERR_raise
+DEB_stop                  (conditional) stop in gdb;
+                          see also  UI_wait_time UI_wait_Esc__ ERR_raise
+DEB_exit                  exit prog; disp func and lineNr
 printd                    DEB_prt_init ..
 LOG_A__                   LOG_A_init LOG_A_exit ..
 

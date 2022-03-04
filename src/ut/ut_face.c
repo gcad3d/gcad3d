@@ -37,7 +37,8 @@ UFA_nifac_strip    get nifac from 2 pointArrays (strip)
 
 UFA_add_fac__      add face to MemTab(Fac3)
 UFA_add_fac_st     add face,stat to MemTab(Fac3)
-UFA_facpt_chg__    set face
+UFA_facpt_chg__    set face - points i1,i2,i3; stat=0
+UFA_facpt_chg_st   set face - points i1,i2,i3 and stat
 UFA_facpt_chg_psn  set 1 pointer in face (seqnr) from esn
 UFA_2fac_fac_pt    create 2 new Faces from 1 face (point on edge)
 UFA_3fac_fac_pt    create 3 new Faces from 1 face (point in face)
@@ -104,19 +105,26 @@ UFA_2fac_flip      flip 2 faces with common edge
 UFA_pFac3_esn      get pointers into Face
 
 UFA_fnb_init__     create neighbourfaces for mesh
+UFA_fnb_init_new   init new face with 0 0 0 16
+UFA_fnb_init_upd   init new face, respect negative values.    
+UFA_fnb_init_2p    update fnb for oriented edge, not its neigbour
 UFA_fnb_init_1     update fnb[ifac]
 UFA_fnb_init_el    set NeighbourFacNr -2, if Edge is a BreakLine
-UFA_fnb_upd__      update fnb (faces to be updated are marked .st=16)
+UFA_fnb_set_eTyp   set all edges of a BL|IB|OB from eTab to its eTyp (-2|-1|-1)
+UFA_fnb_upd__      update fnb (faces to be updated are marked .fst0=16)
+UFA_fnb_upd_ip     replace in all fnb's ipOld by ipNew
 UFA_fnb_upd_1      update single fnb
 UFA_fnb_move       update fnb for moved face
 UFA_fnb_BL_reset   reset all reset all fnb-values -2 (BreakLines)
 UFA_fnb_set_if_es  set 1 fnb-link from iFac and esn
 UFA_fnb_get_2ip    find neighbourface for edge from 2 points
+UFA_fnb_get_fac_esn  get neighbourface from face, edgeSeqNr
 UFA_fnb_set_esn    set face-neighbour from startpoint
 UFA_fnb_set_val    set face-neighbour
 UFA_fnb_mod_val    modify face-neighbour
 UFA_nfb_ck__       check all nfb-structs
 UFA_nfb_ck_f       check single nfb-struct
+UFA_nfb_ck_e       check opposite edge
 UFA_nfb_ck_1       check single edge of nfb-struct
 
 UFA_disp__         display indexed faces
@@ -130,6 +138,7 @@ UFA_fac_dump1      dump 1 face
 UFA_fnb_dump_1     dump face and its neighbours
 UFA_fnb_dump__     dump faces and neighbours
 UFA_fnb_dump_f     dump faces and neighbours into file
+UFA_fac_find_2ip   test only: find edge and neighbour from 2 points
 
 List_functions_end:
 =====================================================
@@ -160,10 +169,19 @@ UT2D_ck_pt_in_tria__
 
 // PointSeqNr psn   1,2,3;   Face CCW
 //
-
-
-
+//----------------------------------------------------------------
+// PROBLEM:
+// - nfb-Index has -1 for boundary; OK; but -2 for breakline; BAD !
+// - must find nfb by finding points !!!!
+// 
+// - better: char typ1 typ2 typ3 for edges; 0=normal, 1=BL, 2=IB, 3=OB
+// 
+// 
+// 
+//================================================================
 */
+
+
 #ifdef globTag
  void UFA(){}
  void TIN(){}
@@ -189,6 +207,7 @@ UT2D_ck_pt_in_tria__
 #include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../ut/ut_TX.h"               // TX_Print
 #include "../ut/ut_os.h"               // OS_ ..
+#include "../ut/ut_deb.h"              // DEB_..
 #include "../gr/ut_gr.h"               // GR_tDyn_*
 
 
@@ -206,9 +225,17 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 
 
 //================================================================
+// LOCAL:
+
+const Fac3 FAC3_NUL = { 0, 0, 0, 16, 0, 0, 0 };
+
+
+
+//================================================================
 // PROTOTYPES:
 
   int UFA_fac_dump_f (Fac3 *fa, int fNr, char *fnExt, char *txt, ...);
+  int UFA_fac_dump1 (Fac3 *fa, char *txt, ...);
 
 
 
@@ -705,52 +732,99 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 
 //=============================================================================
   int UFA_ife_getNf_ife (int *nfc, int *nec, int iFac, int iEdg,
-                           Fac3 *fac, Fac3 *fnb) {
+                         int fNr, Fac3 *fac, Fac3 *fnb) {
 //=============================================================================
 // get nfc = neighbour-face of ifc and nec = edgeNr on face nfc
 // Input:
-//   iFac,iEdg     an egde; find its neighbouredge
+//   fNr           nr of faces in fac, fnb
+//   iFac,iEdg     face and its egde; find its neighbourface and edge
 // Output:
-//   nfc,nec       the neighbouredge
+//   nfc           neighbourface of iFac,iEdg;
+//            -1   edge is outer-boundary; no neighbour; nec invalid
+//   nec           edgeSeq.Nr
 //   retCod    0   OK
-//             1   nfc is breakline (or outer boundary)
-//           -99   internal Error
+//             1   nfc is outer-boundary (nfc, nec invalid)
+//             2   nfc is breakline
+//            -1   internal Error
 
-  int   ipi;
+  int   irc, ips, ipe;
   Fac3  *fac1;
   
 
+  // printf("UFA_ife_getNf_ife iFac=%d iEdg=%d\n",iFac,iEdg);
+
+
+  // get nfc = index neighbourFace
   if     (iEdg == 1) *nfc = fnb[iFac].i1;
   else if(iEdg == 2) *nfc = fnb[iFac].i2;
   else if(iEdg == 3) *nfc = fnb[iFac].i3;
   else goto L_E1;
   
-  // test for boundary
-  if(*nfc < 0) {*nec = *nfc; return 1;}
-
-
-  // get endPt of iFac-iEdg (= startPt of nec)     see UFA_ipe_fac_esn
   fac1 = &fac[iFac];
-  if(iEdg == 1)      ipi = fac1->i2;
-  else if(iEdg == 2) ipi = fac1->i3;
-  else if(iEdg == 3) ipi = fac1->i1;
+
+  // test for boundary
+  if(*nfc < 0) goto L_bl__;
+
+
+  // get ipe = endPt of iFac-iEdg (= startPt of nec)     see UFA_ipe_fac_esn
+  if(iEdg == 1)      ipe = fac1->i2;
+  else if(iEdg == 2) ipe = fac1->i3;
+  else if(iEdg == 3) ipe = fac1->i1;
 
 
   // get esn of face nfc                       see UFA_esn_ips
   fac1 = &fac[*nfc];
-  if     (fac1->i1 == ipi) *nec = 1;
-  else if(fac1->i2 == ipi) *nec = 2;
-  else if(fac1->i3 == ipi) *nec = 3;
-  else {
-    L_E1:
-    printf("**** UFA_ife_getNf_ife E001 f=%d e=%d\n", iFac, iEdg);
-    return -99;
-  }
+  if     (fac1->i1 == ipe) *nec = 1;
+  else if(fac1->i2 == ipe) *nec = 2;
+  else if(fac1->i3 == ipe) *nec = 3;
+  else goto L_E1;
+
+  irc = 0;
 
 
-    // printf("ex UFA_if_getNf_ife nbFac=%d %d %d\n",nbFac,iFac,iEdg);
+  //----------------------------------------------------------------
+  L_exit:
 
-  return 0;
+      // printf("ex-UFA_if_getNf_ife irc=%d nfc=%d nec=%d iFac=%d iEdg=%d\n",
+             // irc, *nfc, *nec, iFac, iEdg);
+
+    return irc;
+
+
+  //----------------------------------------------------------------
+  L_bl__:
+    if(*nfc == -2) {
+      // edge is breakline
+      // get ips = startPt
+      if(iEdg == 1)      {ips = fac1->i1; ipe = fac1->i2;}
+      else if(iEdg == 2) {ips = fac1->i2; ipe = fac1->i3;}
+      else if(iEdg == 3) {ips = fac1->i3; ipe = fac1->i1;}
+      // find opposite-edge by finding the points
+      UFA_ifac_ck_edgo (nfc, nec, ipe, ips, fac, fNr); 
+      if(*nfc < 0)  irc = -1;  // else -1 = error
+      else          irc = 2;   // 
+      goto L_exit;
+
+    } else {        // if(*nfc == -1) {
+      // egde is -1 (outside= or -3 (IB) or -4 (OB)
+      // no neighbour; OK
+      *nfc = -1;
+      *nec = -1;
+      irc = 1;
+      goto L_exit;
+
+//     } else if(*nfc == -16) {
+//       // invalid - marked for delete
+//       irc = -1;
+//       goto L_exit;
+    }
+
+
+  //----------------------------------------------------------------
+  L_E1:
+    TX_Error("UFA_ife_getNf_ife E001 f=%d e=%d\n", iFac, iEdg);
+    irc = -1;
+    goto L_exit;
 
 }
 
@@ -847,7 +921,7 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
     fnb[i1].i3 = ifn;
 
 
-    fnb[i1].st = 0;
+    fnb[i1].fst0 = 0;
 
   }
 
@@ -885,10 +959,11 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 }
 */
 
+
 //================================================================
   int UFA_fnb_set_if_es (Fac3 *fnb, int iFac, int esn, int ival) {
 //================================================================
-/// UFA_fnb_set_if_es  set 1 fnb-link from iFac and esn
+// UFA_fnb_set_if_es  set 1 fnb-link from iFac and esn
 
 // see also UFA_facpt_chg_psn
 
@@ -917,15 +992,14 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 //================================================================
   int UFA_fnb_upd__ (Fac3 *fnb, Fac3 *fa, int fNr) {
 //================================================================
-/// UFA_fnb_upd__            update fnb (faces to be updated are marked .st=16)
+// UFA_fnb_upd__            update fnb (faces to be updated are marked .fst0=16)
 
   int    i1;
 
-  // update all fnb-records marked .st=16
+  // update all fnb-records marked .fst0=16
   for(i1=0; i1<fNr; ++i1) {
-    if(fnb[i1].st == 16) {
+    if(fnb[i1].fst0 == 16) {
       UFA_fnb_init_1 (i1, fnb, fa, fNr);
-      fnb[i1].st = 0;
     }
   }
 
@@ -933,12 +1007,177 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 
 }
 
+
+//================================================================
+  int UFA_fnb_upd_ip (int ipOld, int ipNew, Fac3 *fnb, int fNr) {
+//================================================================
+// UFA_fnb_upd_ip     replace in all fnb's ipOld by ipNew
+
+  int    i1;
+
+  printf("UFA_fnb_upd_ip ip-%d -> ip-%d rNr=%d\n",ipOld,ipNew,fNr);
+
+
+  for(i1=0; i1<fNr; ++i1) {
+    if(fnb[i1].i1 == ipOld) fnb[i1].i1 = ipNew;
+    if(fnb[i1].i2 == ipOld) fnb[i1].i2 = ipNew;
+    if(fnb[i1].i3 == ipOld) fnb[i1].i3 = ipNew;
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UFA_fnb_init_new (int ifc, Fac3 *fnb) {
+//================================================================
+// UFA_fnb_init_new        init new face with 0 0 0 16
+// used for new faces inside existing mesh;
+// see also UFA_fnb_init__
+
+  fnb[ifc] = FAC3_NUL;
+
+  return 0;
+
+}
+
+
+//=======================================================================
+  int UFA_fnb_init_upd (int ifc, int esn, Fac3 *fnb, Fac3 *fa, int fNr) {
+//=======================================================================
+// UFA_fnb_init_upd        init new face, respect negative values.    
+// used for update of new faces inside existing mesh;
+// New faces have nfb = (0 0 0 16)
+// existing old faces can have -1 (OB or IB) or -2 (BL);
+//   same value must be used also for the edge inside.
+//
+// get nf-index and esn from point-indexes of active-edge;
+// if nf-index cannot be found or negative:
+//   this is a OB-edge; set value = -1; done.
+// get nf-value from nf-index;
+// if nf-value < 0:
+//    set value of active-edge = nf-value
+//    else set value of active-edge = nf-index
+
+
+  int    ip1, ip2, ifn, efn, vfn;
+
+
+  printf("UFA_fnb_init_upd ifc=%d esn=%d \n",ifc,esn);
+
+
+  // get nf-index and esn from point-indexes of active-edge;
+  if(esn == 1) {
+    ip1 = fa[ifc].i1;
+    ip2 = fa[ifc].i2;
+
+  } else if(esn == 2) {
+    ip1 = fa[ifc].i2;
+    ip2 = fa[ifc].i3;
+
+  } else if(esn == 3) {
+    ip1 = fa[ifc].i3;
+    ip2 = fa[ifc].i1;
+  }
+
+  // find neighbourface for edge ie1-ie2
+  UFA_ifac_ck_edgo (&ifn, &efn, ip2, ip1, fa, fNr);
+
+
+  // if nf-index cannot be found or negative:
+  if(ifn < 0) {
+    // this is a OB-edge; set value = -1; done.
+    vfn = -1;
+    goto L_exit;
+  }
+
+
+//   // get nf-value from nf-index;
+//   if(efn == 1)       vfn = fnb[ifn].i1;
+//   else if(efn == 2)  vfn = fnb[ifn].i2;
+//   else if(efn == 3)  vfn = fnb[ifn].i3;
+
+
+  // if nf-value < 0:
+  //    set value of active-edge = nf-value
+  //    else set value of active-edge = nf-index
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+  if(esn == 1)      fnb[ifc].i1 = ifn;
+  else if(esn == 2) fnb[ifc].i2 = ifn;
+  else if(esn == 3) fnb[ifc].i3 = ifn;
+
+  fnb[ifc].fst0 = 0;
+
+    // TESTBLOCK
+    // UFA_fac_dump1 (&fnb[ifc], "ex-UFA_fnb_init_upd");
+    // END TESTBLOCK
  
+  return 0;
+
+}
+
+
+//================================================================================
+  int UFA_fnb_init_2p (int ip1, int ip2, int eTyp, Fac3 *fnb, Fac3 *fa, int fNr) {
+//================================================================================
+// UFA_fnb_init_2p            update fnb for oriented edge, not its neigbour
+//
+// find ifc,efc  for face ip1,ip2;
+// find ifn,efn  for face ip1,ip2;
+// set 
+
+  int    ifc, efc, ifn, efn, hfc;
+
+
+  printf("UFA_fnb_init_2p ip1=%d ip2=%d eTyp=%d\n",ip1,ip2,eTyp);
+
+  // get left-side ifc,efc from ip1,ip2  (if ip1-ip2 goes up)
+  UFA_ifac_ck_edgo (&ifc, &efc, ip1, ip2, fa, fNr);
+
+  // get right-side ifn,efn = neigbourface
+  UFA_ifac_ck_edgo (&ifn, &efn, ip2, ip1, fa, fNr);
+    printf(" fnb_init_2p ifn=%d efn=%d\n",ifn, efn);
+
+
+  // set neighbour
+  if(eTyp == MSH_EDGLN_BL) {
+    // get hfc = hint-neigbourface of left-side ifc,efc; can be negative
+    hfc = UFA_fnb_get_fac_esn (ifc, efc, fnb);
+      printf(" fnb_init_2p ifc=%d efc=%d hfc=%d\n",ifc, efc, hfc);
+    // set right-side ifn,efn
+    if(hfc >= 0) UFA_fnb_set_val (&fnb[ifn], efn, ifc);
+
+  } else {
+    // IB or OB
+    // get hfc = hint-neigbourface of right-side ifn,efn; can be negative
+    hfc = UFA_fnb_get_fac_esn (ifn, efn, fnb);
+      printf(" fnb_init_2p ifc=%d efc=%d hfc=%d\n",ifc, efc, hfc);
+    // set left-side ifc,efc
+    if(hfc < 0) UFA_fnb_set_val (&fnb[ifc], efc, hfc);
+    else        UFA_fnb_set_val (&fnb[ifn], efn, ifc);
+  }
+
+  return 0;
+
+}
+
+
 //================================================================
   int UFA_fnb_init_1 (int ifac, Fac3 *fnb, Fac3 *fa, int fNr) {
 //================================================================
 // UFA_fnb_init_1           update fnb[ifac]
 // see UFA_fnb_init__
+
+// do for all 3 edges:
+// get ifn = neighbour-face of face ifac;
+// set this face as neighbour-face in iface
+// if neighbour-face is OK - not to be updated (fnb[ifn].fst0 != 16) - then
+//   set ifac = neighbour-face on face ifn
 
 
   int    ie1, ie2, ifn;
@@ -958,8 +1197,8 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
     ifn = UFA_fnb_get_2ip (fa, fNr, ie1,ie2);
     // set link on face ifac
     fnb[ifac].i1 = ifn;
-    // set link on neighbourface ifn
-    if(fnb[ifn].st != 16)
+    // set link on neighbourface ifn, if face not to be modified
+    if(fnb[ifn].fst0 != 16)
       UFA_fnb_set_esn (ifn, ie2, ifac, fa, fnb);
       // UFA_fnb_init_t (ifac, 1, ie1, ie2, ifn, fnb, fa, fNr);
 
@@ -971,8 +1210,8 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
     // find neighbourface for edge ie1-ie2
     ifn = UFA_fnb_get_2ip (fa, fNr, ie1,ie2);
     fnb[ifac].i2 = ifn;
-    // set link on neighbourface ifn
-    if(fnb[ifn].st != 16)
+    // set link on neighbourface ifn, if face not to be modified
+    if(fnb[ifn].fst0 != 16)
       UFA_fnb_set_esn (ifn, ie2, ifac, fa, fnb);
       // UFA_fnb_init_t (ifac, 2, ie1, ie2, ifn, fnb, fa, fNr);
 
@@ -984,14 +1223,14 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
     // find neighbourface for edge ie1-ie2
     ifn = UFA_fnb_get_2ip (fa, fNr, ie1,ie2);
     fnb[ifac].i3 = ifn;
-    // set link on neighbourface ifn
-    if(fnb[ifn].st != 16)
+    // set link on neighbourface ifn, if face not to be modified
+    if(fnb[ifn].fst0 != 16)
       UFA_fnb_set_esn (ifn, ie2, ifac, fa, fnb);
       // UFA_fnb_init_t (ifac, 3, ie1, ie2, ifn, fnb, fa, fNr);
 
 
   //----------------------------------------------------------------
-  fnb[ifac].st = 0;
+  fnb[ifac].fst0 = 0;
 
     // TESTBLOCK
     // UFA_fnb_dump_1 (&fa[ifac], &fnb[ifac], "fnb_init_1-2 f[%d] ",ifac);
@@ -1001,6 +1240,105 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 
 }
 
+
+/*
+//================================================================
+  int UFA_fnb_init_1 (int ifac, Fac3 *fnb, Fac3 *fa, int fNr) {
+//================================================================
+// UFA_fnb_init_1           update fnb[ifac]
+// see UFA_fnb_init__
+
+
+  int    ip1, ip2, ifn, esn, nfn;
+
+
+  printf(".... UFA_fnb_init_1 %d\n",ifac);
+  UFA_fnb_dump_1 (&fa[ifac], &fnb[ifac], "fnb_init_1-- f[%d] ",ifac);
+  // if(ifac==6) UFA_fac_dump_f (fa, fNr, "5", "UFA_fnb_init_1-6");
+  // if(ifac==6) AP_debug__ ("UFA_fnb_init_1-6");
+
+
+  //----------------------------------------------------------------
+  // fix i1 (esn1; 
+    if(fnb[ifac].i1 < 0) goto L_i2;
+    ip1 = fa[ifac].i1;
+    ip2 = fa[ifac].i2;
+    // find neighbourface for edge ip1-ip2
+    UFA_ifac_ck_edgo (&ifn, &esn, ip2, ip1, fa, fNr);
+    if(fnb[ifn].fst0 == 16) goto L_i2;  // do not use if modified
+      UFA_fnb_dump_1 (&fa[ifn], &fnb[ifn], "fnb_init_1-1 f[%d] ",ifn);
+    nfn = UFA_fnb_get_fac_esn (ifn, esn, fnb);
+    if(nfn >= 0) nfn = ifn;
+    // set link on face ifac
+    fnb[ifac].i1 = nfn;
+    // set link on face ifn
+    UFA_fnb_set_val (&fnb[ifn], esn, ifac);
+//     if(UFA_fnb_get_fac_esn (ifn, esn, fnb) >= 0) {
+//       // set link on neighbourface ifn
+//       if(fnb[ifn].fst0 != 16)
+//       // UFA_fnb_set_esn (ifn, ip2, ifac, fa, fnb);
+//     }
+
+
+  //----------------------------------------------------------------
+  // fix i2 (esn2
+  L_i2:
+    if(fnb[ifac].i2 < 0) goto L_i3;
+    ip1 = fa[ifac].i2;
+    ip2 = fa[ifac].i3;
+    // find neighbourface for edge ip1-ip2
+    UFA_ifac_ck_edgo (&ifn, &esn, ip2, ip1, fa, fNr);
+    if(fnb[ifn].fst0 == 16) goto L_i3;  // do not use if modified
+      UFA_fnb_dump_1 (&fa[ifn], &fnb[ifn], "fnb_init_1-2 f[%d] ",ifn);
+    nfn = UFA_fnb_get_fac_esn (ifn, esn, fnb);
+    if(nfn >= 0) nfn = ifn;
+    // set link on face ifac
+    fnb[ifac].i2 = nfn;
+    // set link on face ifn
+    UFA_fnb_set_val (&fnb[ifn], esn, ifac);
+//     if(UFA_fnb_get_fac_esn (ifn, esn, fnb) >= 0) {
+//       // set link on neighbourface ifn
+//       if(fnb[ifn].fst0 != 16)
+//       // UFA_fnb_set_esn (ifn, ip2, ifac, fa, fnb);
+//     }
+
+
+  //----------------------------------------------------------------
+  // fix i3 (esn3
+  L_i3:
+    if(fnb[ifac].i3 < 0) goto L_exit;
+    ip1 = fa[ifac].i3;
+    ip2 = fa[ifac].i1;
+    // find neighbourface for edge ip1-ip2
+    UFA_ifac_ck_edgo (&ifn, &esn, ip2, ip1, fa, fNr);
+    if(fnb[ifn].fst0 == 16) goto L_exit;  // do not use if modified
+      UFA_fnb_dump_1 (&fa[ifn], &fnb[ifn], "fnb_init_1-3 f[%d] ",ifn);
+    nfn = UFA_fnb_get_fac_esn (ifn, esn, fnb);
+    if(nfn >= 0) nfn = ifn;
+    // set link on face ifac
+    fnb[ifac].i3 = nfn;
+    // set link on face ifn
+    UFA_fnb_set_val (&fnb[ifn], esn, ifac);
+//     fnb[ifac].i3 = nfn;
+//     // set link on neighbourface ifn
+//     if(fnb[ifn].fst0 != 16) {
+//         // UFA_fnb_set_esn (ifn, ip2, ifac, fa, fnb);
+//     }
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    fnb[ifac].fst0 = 0;
+
+      // TESTBLOCK
+      // UFA_fnb_dump_1 (&fa[ifac], &fnb[ifac], "fnb_init_1-2 f[%d] ",ifac);
+      // DEB_stop();
+      // TESTBLOCK
+
+    return 0;
+
+}
+*/
 
 //====================================================================
   int UFA_opt__ (Fac3 *fa, Fac3 *fnb, int fNr, Point2 *p2a) {
@@ -1014,7 +1352,7 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 // Output:
 //   fa[fNr]  modified; 
 //   retCod   nr of modified triangle-paires
-//           -99 errorExit (debug)
+//           -1 errorExit (debug)
 
 
 // wenn Querkante kuerzer als gemeinsame Kante: Kante vertauschen.
@@ -1137,12 +1475,11 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
     L_ck_ee:
       // there is no point <ie2> in face <if2>
       // did not find ie3 = opp.point of edge ie2 in face if2
-      printf("*** UFA_opt E001 if2=%d ie2=%d if1=%d esn1=%d\n",if2,ie2,if1,esn1);
-      // TESTBLOCK
-      UFA_fnb_dump__ (fa, fnb, fNr, "UFA_opt E001");
-      return -99;
-      // TESTBLOCK
-
+      TX_Error("*** UFA_opt E001 if2=%d ie2=%d if1=%d esn1=%d\n",if2,ie2,if1,esn1);
+        // TESTBLOCK
+        UFA_fnb_dump__ (fa, fnb, fNr, "UFA_opt E001");
+        // TESTBLOCK
+      return -1;
   }
 
   // printf("ex UFA_opt %d\n",iNr);
@@ -1806,6 +2143,27 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
 }
 
 
+//=======================================================================
+  int UFA_fac_find_2ip (int ip1, int ip2, Fac3 *fa, int fNr, char *txt) {
+//=======================================================================
+// UFA_fac_find_2ip   test only: find edge and neighbour from 2 points
+
+
+  int    ifc, esn;
+
+  printf(" UFA_fac_find_2ip P%d - P%d   %s\n",ip1,ip2,txt);
+
+  UFA_ifac_ck_edgo (&ifc, &esn, ip1, ip2, fa, fNr);
+  printf("   -  f%d e%d\n",ifc,esn);
+
+  UFA_ifac_ck_edgo (&ifc, &esn, ip2, ip1, fa, fNr);
+  printf("   -  f%d e%d\n",ifc,esn);
+
+  return 0;
+
+}
+
+
 //===========================================================================
   int UFA_fnb_dump_f (Fac3 *fac, Fac3 *fnb, int fNr, char *fnExt, char *inf) {
 //===========================================================================
@@ -1835,8 +2193,8 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
     n = &fnb[i1];
 
     fprintf(fpo, " %d (%d %d %d  s%2d) fnb = (%d %d %d  s%2d)\n",i1,
-             f->i1,f->i2,f->i3, f->st,
-             n->i1,n->i2,n->i3, n->st);
+             f->i1,f->i2,f->i3, f->fst0,
+             n->i1,n->i2,n->i3, n->fst0);
   }
 
   fclose (fpo);
@@ -1879,8 +2237,8 @@ extern double GL2D_Z;          // Z-value for 2D-drawing-functions
   va_end(va);
 
   printf("(%d %d %d  s%2d) fnb = (%d %d %d  s%2d)\n",
-          fac->i1,fac->i2,fac->i3, fac->st,
-          fnb->i1,fnb->i2,fnb->i3, fnb->st);
+          fac->i1,fac->i2,fac->i3, fac->fst0,
+          fnb->i1,fnb->i2,fnb->i3, fnb->fst0);
 
   // printf("ex UFA_fnb_dump_1\n");
 
@@ -2153,6 +2511,31 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 }
 
 
+//================================================================
+  int UFA_fnb_get_fac_esn (int ifc, int esn, Fac3 *fnb) {
+//================================================================
+// UFA_fnb_get_fac_esn  get neighbourface from face, edgeSeqNr
+
+  int     ifn;
+
+
+  if(esn == 1) {
+    ifn = fnb[ifc].i1;
+
+  } else if(esn == 2) {
+    ifn = fnb[ifc].i2;
+
+  } else if(esn == 3) {
+    ifn = fnb[ifc].i3;
+
+  } else {
+    TX_Error("**** UFA_fnb_get_fac_esn E001 f=%d e=%d\n",ifc,esn);
+  }
+
+  return ifn;
+
+}
+
 
 //==============================================================================
   int UFA_2fac_facpt (MemTab(Fac3) *fTab, Fac3 *fnb, int ipt, int ifc, int ie) {
@@ -2228,11 +2611,11 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     UFA_add_fac__ (fTab, ipt, i2, i3);
 
     // update fnb[fNr]; keep i1,i2.
-    fnb[fNr].st = 16;  // mark invalid
+    fnb[fNr].fst0 = 16;  // mark invalid
     // fnb[fNr].i3 = ifc;
 
     // update fnb[ifc]; keep i1,i2.
-    fnb[ifc].st = 16;  // mark invalid
+    fnb[ifc].fst0 = 16;  // mark invalid
     // fnb[ifc].i2 = fNr;
 
 
@@ -2240,22 +2623,22 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     // make i1, i2, ipt
       // printf(" 2fac_facpt-2 f%d %d %d %d\n",ifc, i1, i2, ipt);
     UFA_facpt_chg__ (fTab->data, ifc, i1, i2, ipt);
-    fnb[ifc].st = 16;  // mark invalid
+    fnb[ifc].fst0 = 16;  // mark invalid
     // make i1, ipt, i3
       // printf(" 2fac_facpt-2 f%d %d %d %d\n",fTab->rNr, i1, ipt, i3);
     UFA_add_fac__ (fTab, i1, ipt, i3);
-    fnb[fTab->rNr - 1].st = 16;  // mark invalid
+    fnb[fTab->rNr - 1].fst0 = 16;  // mark invalid
 
 
   } else if(ie == 3) {
     // make i1, i2, ipt
       // printf(" 2fac_facpt-3 f%d %d %d %d\n",ifc, i1, ipt, i3);
     UFA_facpt_chg__ (fTab->data, ifc, i1, i2, ipt);
-    fnb[ifc].st = 16;  // mark invalid
+    fnb[ifc].fst0 = 16;  // mark invalid
     // make i2, i3, ipt
       // printf(" 2fac_facpt-3 f%d %d %d %d\n",fTab->rNr, i2, i3, ipt);
     UFA_add_fac__ (fTab, i2, i3, ipt);
-    fnb[fTab->rNr - 1].st = 16;  // mark invalid
+    fnb[fTab->rNr - 1].fst0 = 16;  // mark invalid
   }
 
     // TESTBLOCK
@@ -2333,19 +2716,19 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     fnb[fNr].i1 = if1;    // fnb[ifc].i2;
     fnb[fNr].i2 = fNr+1;
     fnb[fNr].i3 = ifc;
-    fnb[fNr].st = 0;
+    fnb[fNr].fst0 = 0;
     // update fnb[fNr+1]
     fnb[fNr+1].i1 = if2;  // fnb[ifc].i3;
     fnb[fNr+1].i2 = ifc;
     fnb[fNr+1].i3 = fNr;
-    fnb[fNr+1].st = 0;
+    fnb[fNr+1].fst0 = 0;
     // update fnb[ifc]
     fnb[ifc].i2 = fNr;
     fnb[ifc].i3 = fNr+1;
 
-    // fnb[ifc].st = 16;  // mark invalid
-    // fnb[fTab->rNr - 2].st = 16;  // mark invalid
-    // fnb[fTab->rNr - 1].st = 16;  // mark invalid
+    // fnb[ifc].fst0 = 16;  // mark invalid
+    // fnb[fTab->rNr - 2].fst0 = 16;  // mark invalid
+    // fnb[fTab->rNr - 1].fst0 = 16;  // mark invalid
   }
 
 
@@ -2395,7 +2778,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   fa[fNr].i2 = i2;
   fa[fNr].i3 = i3;
 
-  fa[fNr].st = 0;
+  fa[fNr].fst0 = 0;
 
   return 0;
 
@@ -2405,12 +2788,13 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 //===========================================================================
   int UFA_facpt_chg_st (Fac3 *fa, int fNr, int i1, int i2, int i3, int igb) {
 //===========================================================================
+// UFA_facpt_chg_st   set face - points i1,i2,i3 and stat
 
   fa[fNr].i1 = i1;
   fa[fNr].i2 = i2;
   fa[fNr].i3 = i3;
 
-  fa[fNr].st = igb;
+  fa[fNr].fst0 = igb;
 
   return 0;
 
@@ -2436,7 +2820,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   iWng = 0;
     
   for(i1=0; i1<fNr; ++i1) {
-    if(faa[i1].st < 0) continue; // skip deleted faces
+    if(faa[i1].fst0 < 0) continue; // skip deleted faces
     fac = &faa[i1];
 
     //----------------------------------------------------------------
@@ -2486,7 +2870,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
   for(i1=0; i1<fNr; ++i1) 
     printf("fa[%d] i1=%d i2=%d i3=%d st=%d\n",i1,
-           fa[i1].i1, fa[i1].i2, fa[i1].i3, fa[i1].st);
+           fa[i1].i1, fa[i1].i2, fa[i1].i3, fa[i1].fst0);
 
   return 0;
 
@@ -2505,7 +2889,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   vprintf(txt, va);  // print -> stdout
   va_end(va);
 
-  printf("] i1=%d i2=%d i3=%d st=%d\n",fa->i1,fa->i2,fa->i3,fa->st);
+  printf("] i1=%d i2=%d i3=%d st=%d\n",fa->i1,fa->i2,fa->i3,fa->fst0);
 
   return 0;
 
@@ -2628,7 +3012,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   f1.i2 = i2;
   f1.i3 = i3;
 
-  f1.st = 0;
+  f1.fst0 = 0;
 
   return MemTab_sav ((MemTab*)fTab, &l1, &f1, 1);
 
@@ -2777,7 +3161,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   int UFA_ifac_ck_edgo (int *if1, int *ie1,
                         int ip1, int ip2, Fac3 *fa, int fNr) {
 //================================================================
-// find the face with the oriented Edge ip1-ip2
+// UFA_ifac_ck_edgo           find the face with the oriented Edge ip1-ip2
 // Input:
 //   ip1,ip2     find face (if1) and edge (ie1) for this points
 // Output:
@@ -2789,7 +3173,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   int   i1, ie;
 
 
-  // printf("UFA_ifac_ck_edgo %d %d %d\n",ip1,ip2,fNr);
+  // printf("UFA_ifac_ck_edgo ip1=%d ip2=%d fNr=%d\n",ip1,ip2,fNr);
 
   *if1 = -1;
 
@@ -2822,7 +3206,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     break;
   }
 
-    // printf("ex UFA_ifac_ck_edgo: f=%d %d e=%d %d\n",*if1,*ie1,ip1,ip2);
+    // printf("ex UFA_ifac_ck_edgo: f=%d e=%d p%d p%d\n",*if1,*ie1,ip1,ip2);
 
   return 0;
 
@@ -2904,7 +3288,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   ii = 0;
 
   for(i1=0; i1<fNr; ++i1) {
-    if(fa[i1].st < 0) continue;
+    if(fa[i1].fst0 < 0) continue;
     if(fa[i1].i1 == ipt) {psna[ii] = 1; goto L_add;}
     if(fa[i1].i2 == ipt) {psna[ii] = 2; goto L_add;}
     if(fa[i1].i3 == ipt) {psna[ii] = 3; goto L_add;}
@@ -3371,6 +3755,79 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 */
 
 
+//================================================================
+  int UFA_fnb_set_eTyp (int eTyp, MemTab(EdgeLine) *eTab,
+                        Fac3 *fnb, Fac3 *fa, int fNr) {
+//================================================================
+// UFA_fnb_set_eTyp   set all edges of a BL|IB|OB from eTab to its eTyp (-2|-1|-1)
+// - loop tru eTab - filter <eTyp>-types;
+//   - get face,esn of edge and neighbour-edge
+//   - set both edges to negative -2|-1|-1
+// replacing UFA_fnb_init_el
+
+//       -2 = this edge is a breakline (-MSH_EDGLN_BL)
+
+
+  int      i1, i2, *ia, iNr, ip1, ip2, iFac, esn1, inbFac, esn2, oTyp;
+
+
+  // printf("UFA_fnb_init_el \n");
+  if(fNr < 2) {
+    TX_Error("UFA_fnb_set_eTyp E001\n");
+    return -1;
+  }
+
+  
+  if(eTyp == MSH_EDGLN_BL) oTyp = -2;
+  else                     oTyp = -1;
+
+  // loop tru eTab
+  for(i1=0; i1<eTab->rNr; ++i1) {
+    if(eTab->data[i1].typ != eTyp) continue;
+
+    ia  = eTab->data[i1].ia;
+    iNr = eTab->data[i1].iNr;
+
+    // loop tru segments of active BL
+    for(i2=1; i2<iNr; ++i2) {
+      ip1 = ia[i2 - 1];
+      ip2 = ia[i2];
+        // printf(" EL[%d] %d %d\n",i1,ip1,ip2);
+
+      // find ifac und esn of oriented edge ip1-ip2
+      UFA_ifac_ck_edgo (&iFac, &esn1, ip1, ip2, fa, fNr);
+      if(iFac < 0) {
+        // no neighbour exists: must be eg inner boundary or outside OB
+        // occurs if BL goes outside OB
+        // printf("**** UFA_fnb_init_el I001 BL %d %d\n",ip1,ip2);
+        // TX_Print("UFA_fnb_init_el E001 BL %d %d",ip1,ip2);
+        continue;
+      }
+
+      // mark edge 
+      UFA_facpt_chg_psn (&fnb[iFac], oTyp, esn1);
+
+      // get neigbourfaceNr
+      inbFac = UFA_if_getNf_ife (iFac, esn1, fnb);
+      if(inbFac < 0) continue;  // // no neighbour ..
+      // get esn of edge starting with ip2 in face fa[inbFac]
+      // esn2 = UFA_esn_2ip (ip2, fa, inbFac);
+      esn2 = UFA_esn_ips (&fa[inbFac], ip2);
+        // printf(" iFac=%d esn=%d inbFac=%d esn=%d\n",iFac,esn1,inbFac,esn2);
+
+      // mark edge 
+      UFA_facpt_chg_psn (&fnb[inbFac], oTyp, esn2);
+    }
+  }
+
+  // UFA_fnb_dump__ (fa, fnb, fNr);
+
+  return 0;
+
+}
+
+
+// replaced by UFA_fnb_set_eTyp
 //============================================================================
   int UFA_fnb_init_el (MemTab(EdgeLine) *eTab, Fac3 *fnb, Fac3 *fa, int fNr) {
 //============================================================================
@@ -3438,51 +3895,51 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
 
 //============================================================================
-  int UFA_nfb_ck_1 (int ifc, int ec, Fac3 *fa, Fac3 *fnb) {
+  int UFA_nfb_ck_1 (int ifc, int ied, int fNr, Fac3 *fa, Fac3 *fnb) {
 //============================================================================
-// check neigbours of face ifc, edge ie
+// check neigbours of edge ifc,ied
 // RetCod: 0 = OK else error
 
 //              /| i3
 //            /  |
 //          /    |      
-//       /   ifc |     ifn
+//       /   ifc |   
 //    /          |
 //   -------------
 // i1             i2
     
 
-  int     irc, ifn, en, i1, i2, i3, i4;
+  int     irc, ifn, ien, i1, i2, i3, i4;
     
 
-  // get neighb.face and esn on this face for ifc-ec
-  irc = UFA_ife_getNf_ife (&ifn, &en, ifc, ec, fa, fnb);
+  // get neighb.edge ifn,ien of face ifc-ied
+  irc = UFA_ife_getNf_ife (&ifn, &ien, ifc, ied, fNr, fa, fnb);
   if(irc < 0) return irc;
   if(ifn < 0) return 0;       // neighbour is outer boundary
 
 
-  // get points of ifc,ec
-  UFA_2ip_fac_esn (&i1, &i2, ec, &fa[ifc]);
+  // get points of ifc,ied
+  UFA_2ip_fac_esn (&i1, &i2, ied, &fa[ifc]);
 
-  // get points of ifn,en
-  UFA_2ip_fac_esn (&i3, &i4, en, &fa[ifn]);
+  // get points of ifn,ien
+  UFA_2ip_fac_esn (&i3, &i4, ien, &fa[ifn]);
 
   irc = 0;
 
   if(i1 != i4) {
-    printf("**** UFA_nfb_ck_1 E014 f=%d e=%d fn=%d en=%d\n",ifc,ec,ifn,en);
+    printf("**** UFA_nfb_ck_1 E014 f=%d e=%d ifn=%d ien=%d\n",ifc,ied,ifn,ien);
     ++irc;
   }
 
   if(i2 != i3) {
-    printf("**** UFA_nfb_ck_1 E023 f=%d e=%d fn=%d en=%d\n",ifc,ec,ifn,en);
+    printf("**** UFA_nfb_ck_1 E023 f=%d e=%d ifn=%d ien=%d\n",ifc,ied,ifn,ien);
     ++irc;
   }
 
 
   if(irc) {
-    UFA_fnb_dump_1 (&fa[ifc], &fnb[ifc], " %d ",ifc);
-    UFA_fnb_dump_1 (&fa[ifn], &fnb[ifn], " %d ",ifn);
+    UFA_fnb_dump_1 (&fa[ifc], &fnb[ifc], " f%d ",ifc);
+    UFA_fnb_dump_1 (&fa[ifn], &fnb[ifn], " f%d ",ifn);
   }
 
   return irc;
@@ -3491,16 +3948,16 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
 
 //================================================================
-  int UFA_nfb_ck_f (int ifc, Fac3 *fa, Fac3 *fnb) {
+  int UFA_nfb_ck_f (int ifc, int fNr, Fac3 *fa, Fac3 *fnb) {
 //================================================================
 // check single nfb-struct
 
   int  irc;
   
 
-  irc  = UFA_nfb_ck_1 (ifc, 1, fa, fnb);
-  irc += UFA_nfb_ck_1 (ifc, 2, fa, fnb);
-  irc += UFA_nfb_ck_1 (ifc, 3, fa, fnb);
+  irc  = UFA_nfb_ck_1 (ifc, 1, fNr, fa, fnb);
+  irc += UFA_nfb_ck_1 (ifc, 2, fNr, fa, fnb);
+  irc += UFA_nfb_ck_1 (ifc, 3, fNr, fa, fnb);
 
   return irc;
 
@@ -3512,8 +3969,11 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 //============================================================================
 // check all nfb-structs
 
-  int          i1, irc;
+  int          i1, i2, irc, ip1, ip2, ii, ifc, ied;
   va_list      va;
+  
+
+  if(!DEB_STAT) return 0;
   
   printf("----------- UFA_nfb_ck__ %d ", fNr);
 
@@ -3525,18 +3985,155 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
   irc = 0;
 
+  //----------------------------------------------------------------
+  // test1: ?
   for(i1=0; i1<fNr; ++i1) {
-    if(fa[i1].st < 0) continue; // skip deleted faces
-    irc += UFA_nfb_ck_f (i1, fa, fnb);
+    if(fa[i1].fst0 < 0) continue; // skip deleted faces
+    irc += UFA_nfb_ck_f (i1, fNr, fa, fnb);
   }
 
 
+  //----------------------------------------------------------------
+  // test2: check opposite edges
+  for(i1=0; i1<fNr; ++i1) fa[i1].fst3 = 0;
+
+
+  for(i1=0; i1<fNr; ++i1) {
+    if(fa[i1].fst0 < 0) continue; // skip deleted faces
+    
+    // test i1-i2
+    if(fnb[i1].i1 == -1) goto L_ck_2; // dont check OB-edge
+      // printf("  Face %d P%d - P%d e1 fst3=%d\n",i1,fa[i1].i1,fa[i1].i2,fa[i1].fst3);
+    if(fa[i1].fst3 &= 1) goto L_ck_2; // already checked
+    ii = UFA_nfb_ck_e (&ifc, &ied, fa[i1].i1, fa[i1].i2, fa, fnb, fNr);
+    if(ii != 1) {
+      TX_Error("UFA_nfb_ck_e Face %d P%d - P%d",i1,fa[i1].i1,fa[i1].i2);
+      printf(" ******* err UFA_nfb_ck_e-1 f=%d ip1=%d ip2=%d irc=%d\n",
+             i1,fa[i1].i1,fa[i1].i2,irc);
+      irc += ii;
+        // TESTBLOCK
+        goto L_err_nfb;
+        // END TESTBLOCK
+ 
+    } else {
+      fa[i1].fst3 |= 1;
+      fa[ifc].fst3 |= ied;
+        // printf(" _nfb_ck__ [%d] = %d\n",i1,fa[i1].fst3);
+        // printf(" _nfb_ck__ [%d] = %d\n",ifc,fa[ifc].fst3);
+    }
+
+    // test i2-i3
+    L_ck_2:
+    if(fnb[i1].i2 == -1) goto L_ck_3; // dont check OB-edge
+      // printf("  Face %d P%d - P%d e2 fst3=%d\n",i1,fa[i1].i2,fa[i1].i3,fa[i1].fst3);
+    if(fa[i1].fst3 &= 2) goto L_ck_3; // already checked
+    ii = UFA_nfb_ck_e (&ifc, &ied, fa[i1].i2, fa[i1].i3, fa, fnb, fNr);
+    if(ii != 1) {
+      TX_Error("UFA_nfb_ck_e Face %d P%d - P%d",i1,fa[i1].i2,fa[i1].i3);
+      printf(" ******* err UFA_nfb_ck_e-2 f=%d ip1=%d ip2=%d irc=%d\n",
+             i1,fa[i1].i2,fa[i1].i3,irc);
+      irc += ii;
+        // TESTBLOCK
+        goto L_err_nfb;
+        // END TESTBLOCK
+ 
+    } else {
+      fa[i1].fst3 |= 2;
+      fa[ifc].fst3 |= ied;
+        // printf(" _nfb_ck__ [%d] = %d\n",i1,fa[i1].fst3);
+        // printf(" _nfb_ck__ [%d] = %d\n",ifc,fa[ifc].fst3);
+    }
+
+    // test i3-i1
+    L_ck_3:
+    if(fnb[i1].i3 == -1) continue; // dont check OB-edge
+      // printf("  Face %d P%d - P%d e3 fst3=%d\n",i1,fa[i1].i3,fa[i1].i1,fa[i1].fst3);
+    if(fa[i1].fst3 &= 4) continue; // already checked
+    ii = UFA_nfb_ck_e (&ifc, &ied, fa[i1].i3, fa[i1].i1, fa, fnb, fNr);
+    if(ii != 1) {
+      TX_Error("UFA_nfb_ck_e Face %d P%d - P%d",i1,fa[i1].i3,fa[i1].i1);
+      printf(" ******* err UFA_nfb_ck_e-3 f=%d ip1=%d ip2=%d irc=%d\n",
+             i1,fa[i1].i3,fa[i1].i1,irc);
+      irc += ii;
+        // TESTBLOCK
+        goto L_err_nfb;
+        // END TESTBLOCK
+ 
+    } else {
+      fa[i1].fst3 |= 4;
+      fa[ifc].fst3 |= ied;
+        // printf(" _nfb_ck__ [%d] = %d\n",i1,fa[i1].fst3);
+        // printf(" _nfb_ck__ [%d] = %d\n",ifc,fa[ifc].fst3);
+    }
+  }
+
+
+
+  //----------------------------------------------------------------
   if(irc) {
     UFA_fnb_dump__ (fa, fnb, fNr, "nfb_ck"); 
+    // DEB_exit();
     return -99;
   }
   
   printf("ex UFA_nfb_ck__ OK\n");
+  return irc;
+
+
+
+  //----------------------------------------------------------------
+  L_err_nfb:
+    UFA_fnb_dump__ (fa, fnb, fNr, "err-nfb_ck");
+    OS_stdout__ (2, NULL);        // close console-output into file
+    DEB_stop();
+    return -99;
+}
+
+
+//====================================================================
+  int UFA_nfb_ck_e (int *ifc, int *ied,
+                    int ip1, int ip2, Fac3 *fa, Fac3 *fnb, int fNr) {
+//====================================================================
+// find the opposite edge for edge ip1, ip2; 
+// OutPut:
+//   ifc, ied    face, edge of found edge opposite ip1,ip2
+//   irc         nr of found edges with points ip1,ip2
+
+  int   irc, i1;
+
+  irc = 0;
+
+
+  // printf(" UFA_nfb_ck_e %d %d\n",ip1,ip2);
+
+  for(i1=0; i1<fNr; ++i1) {
+    if(fa[i1].fst0 < 0) continue; // skip deleted faces
+
+    // test ip2-ip1
+    if((fa[i1].i2 == ip1)&&(fa[i1].i1 == ip2)) {
+      ++irc;
+      *ifc = i1;
+      *ied = 1;
+    }
+
+    // test ip3-ip2
+    if((fa[i1].i3 == ip1)&&(fa[i1].i2 == ip2)) {
+      ++irc;
+      *ifc = i1;
+      *ied = 2;
+    }
+
+    // test ip1-ip3
+    if((fa[i1].i1 == ip1)&&(fa[i1].i3 == ip2)) {
+      ++irc;
+      *ifc = i1;
+      *ied = 4;
+    }
+  }
+
+    // printf(" ex-UFA_nfb_ck_e irc=%d ip1=%d, ip2=%d\n",irc,ip1,ip2);
+
+
   return irc;
 
 }
@@ -3662,7 +4259,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     UFA_fnb_set_val (&fnb[ifac], 1, -1); // fnb[ivn].<ien> = ifac;
 
 /*
-  if(fnb[ifn].st) {
+  if(fnb[ifn].fst0) {
     // neighbour-face ist NOT valid
     fnb[ifac].i1 = ifn; 
     UFA_fnb_set_val (&fnb[ivn], ien, ifac); // fnb[ivn].<ien> = ifac;
@@ -3691,7 +4288,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     UFA_fnb_set_val (&fnb[ifac], 2, -1); // fnb[ivn].<ien> = ifac;
 
 /*
-  if(fnb[ifn].st) {
+  if(fnb[ifn].fst0) {
     // neighbour-face ist NOT valid
     fnb[ifac].i2 = ifn;  
 */
@@ -3721,7 +4318,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     UFA_fnb_set_val (&fnb[ifac], 3, -1); // fnb[ivn].<ien> = ifac;
 
 /*
-  if(fnb[ifn].st) {
+  if(fnb[ifn].fst0) {
     // neighbour-face ist NOT valid
     fnb[ifac].i3 = ifn;  
 */
@@ -3740,7 +4337,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
 
   //----------------------------------------------------------------
-  fnb[ifac].st = 0;
+  fnb[ifac].fst0 = 0;
 
     // TESTBLOCK
     // UFA_fnb_dump_1 (&fa[ifac], &fnb[ifac], "fnb_init_1-2 f[%d] ",ifac);
@@ -3840,7 +4437,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   f1.i2 = i2;
   f1.i3 = i3;
 
-  f1.st = st;
+  f1.fst0 = st;
 
   return MemTab_sav ((MemTab*)fTab, &l1, &f1, 1);
 
@@ -3921,7 +4518,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   if(iBnd) {
       GL_att_cv (Typ_Att_Symb);
     for(ii=ifs; ii<ife; ++ii) {
-      if(fa[ii].st < 0) continue;   // skip deleted faces
+      if(fa[ii].fst0 < 0) continue;   // skip deleted faces
       // set display-attributes for curves
       ptt[0] = pa[fa[ii].i1];
       ptt[1] = pa[fa[ii].i2];
@@ -3944,7 +4541,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   // set all gravity-centerPoints
   i1 = 0;
   for(ii=ifs; ii<ife; ++ii) {
-    if(fa[ii].st < 0) continue;   // skip deleted faces
+    if(fa[ii].fst0 < 0) continue;   // skip deleted faces
     UT3D_pt_gcp_3pt (&pgca[i1], &pa[fa[ii].i1], &pa[fa[ii].i2], &pa[fa[ii].i3]);
     ++i1;
   }
@@ -3955,7 +4552,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     GL_att_cv (5); //Typ_Att_blue);   GL_att_sym ??
     i1 = 0;
     for(ii=ifs; ii<ife; ++ii) {
-      if(fa[ii].st < 0) continue;   // skip deleted faces
+      if(fa[ii].fst0 < 0) continue;   // skip deleted faces
       // sprintf(s1,"%d",iOff + ii);
       sprintf(s1,"%d",ii);
       GL_set_txtA (&pgca[i1], s1);
@@ -4048,7 +4645,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     GL_att_su1 (ATT_COL_GREEN);
 
     for(i1=0; i1 < eNr; ++i1) {
-      // if(fa[ii].st < 0) continue;   // skip deleted faces
+      // if(fa[ii].fst0 < 0) continue;   // skip deleted faces
       UFA_Disp_fac2 (&fTab[fa[i1]], p2a, zVal);
     }
 
@@ -4180,10 +4777,11 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   int UFA_2fac_fac_pt (MemTab(Fac3) *fTab, Fac3 *fnb, int ipt, int ifc, int ie) {
 //===============================================================================
 // UFA_2fac_fac_pt      create 2 new Faces tru point ipt instead of face ifc
+// - update face ifc, create new face if2.
 // ipt lies on Edge ie of face ifc
 // all faces CCW.
 // After return the neighbours of the new-face at e1 and e2 must be corrected.
-// f.st of new-face == f.st of ifc
+// f.fst0 of new-face == f.fst0 of ifc
 // Input:
 //   ifc      index of inputface
 //   ie       esn of edge with ipt 
@@ -4191,48 +4789,44 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 //
 //              /| i3
 //            / /|
-//          /  / |               ie = 1                OUT: ifc-e1, fNr-e1
+//          /  / |               ie = 1
 //       /ifc /  |
-//    /   e  /   |
-//   -------x-----
-// i1       ipt   i2
-//  i1-ipt-i3   <<< statt i1-i2-i3    <<<  ie = 1
-//  ipt-i2-i3
+//    /   e  /if2|               change ifc -> ipt, i3, i1;
+//   -------x-----               create        i2, i3, ipt
+// i1      ipt    i2
+// 
 //
-//
-//              /| i3
-//            /  |
-//          / __ x ipt              ie = 2             OUT: ifc-e2, fNr-e2
-//       /_ _/  e|
-//    / _/   ifc |
-//   -------------
+//a               i3
+//              / | 
+//            /if2|
+//          /  __ x ipt          ie = 2
+//       / _ _/  e|
+//    /  _/   ifc |              change ifc -> i1, i2, ipt
+//   -------------               create        i3, i1, ipt
 // i1             i2
-//  i1-i2-ipt   <<< statt i1-i2-i3    <<<  ie = 2
-//  ipt-i3-i1
 //
-//
-//              /| i3
-//            /e |
-//       ipt/ ifc|               ie = 3                OUT: ifc-e3, fNr-e3
+//               / i3
+//             / | 
+//       ipt /e  |
+//          x ifc|               ie = 3
 //       /   \ _ |
-//    /         \|
-//   -------------
+//    /   if2   \|               change ifc -> i1, ipt, i3;
+//   -------------               create        i1, i2, ipt
 // i1             i2
-//  ipt-i2-i3   <<< statt i1-i2-i3    <<<  ie = 3
-//  ipt-i1-i2
 //
 
 
-  int   i1, i2, i3, fNr, oldNb, igb;
+  int   i1, i2, i3, if2, ifx, ex, nfx;
   Fac3  *f1;
 
 
   // TESTBLOCK
-  // if(ipt == 21) {
-  // printf("UFA_2fac_fac_pt ipt=%d ifc=%d ie=%d\n",ipt,ifc,ie);
-  // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "2fac");
+  printf("UFA_2fac_fac_pt ipt=%d ifc=%d ie=%d\n",ipt,ifc,ie);
+  // if(ipt == 11) {
+  // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "UFA_2fac_fac_pt");
+  // // UFA_nfb_ck__ (fTab->data, fnb, fTab->rNr, "UFA_2fac_fac_pt");
+  // // UFA_fnb_dump_1 (&fTab->data[ifc], &fnb[ifc], " 2fac %d ",ifc);
   // }
-  // UFA_fnb_dump_1 (&fTab->data[ifc], &fnb[ifc], " 2fac %d ",ifc);
   // TESTBLOCK
 
 
@@ -4240,100 +4834,135 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   i1 = f1->i1;
   i2 = f1->i2;
   i3 = f1->i3;
-  igb = f1->st;      // copy .st
-  fNr = fTab->rNr;   // this is the faceIndex of the new face
-    // printf(" 2fac ifc=%d newFac=%d\n",ifc,fNr);
+  if2 = fTab->rNr;   // this is the faceIndex of the new face
+    // printf(" 2fac ifc=%d newFac=%d\n",ifc,if2);
 
 
+  //----------------------------------------------------------------
   if(ie == 1) {
-    // make i1, ipt, i3
-      // printf(" 2fac_facpt-1 f%d %d %d %d\n",ifc, ipt, i2, i3);
-    // change f[ifc]
-    UFA_facpt_chg_st (fTab->data, ifc, i1, ipt, i3, igb);
 
-    // create face  ipt,i2,i3
-      // printf(" 2fac_facpt-1 f%d %d %d %d\n",fTab->rNr, ipt, i2, i3);
-    UFA_add_fac_st (fTab, ipt, i2, i3, igb);
+    // next esn of ie
+    ex = UFA_esn_nxt (ie);
 
-    // update neighbour of new face fnb[fNr];
-    fnb[fNr].i1 = fnb[ifc].i1;
-    fnb[fNr].i2 = fnb[ifc].i2;
-    fnb[fNr].i3 = ifc;
+    // get fnb of face i2-i3
+    ifx = UFA_fnb_get_fac_esn (ifc, ex, fnb);
+    
+    // get ie = esn of face ifx starting at pt i3
+    ie = UFA_esn_ips (&fTab->data[ifx], i3);
 
-    // update fnb[ifc]; keep i1,i3.
-    oldNb = fnb[ifc].i2;  // printf(" oldNb2=%d\n",oldNb2);
-    fnb[ifc].i2 = fNr;
+    // change ifc -> i1, ipt, i3; keep neighbours for e2, e3
+    f1->i2 = ipt;
 
-    // update neighbour of old e2 (change ifc -> fNr)
-    UFA_fnb_mod_val (&fnb[oldNb], fNr, ifc);
+    // create i2, i3, ipt
+    UFA_add_fac_st (fTab, i2, i3, ipt, 0);
+
+    // update neighbour of new face fnb[if2];
+    fnb[if2].i1 = fnb[ifc].i2;
+    fnb[if2].i2 = ifc;
+    fnb[if2].i3 = fnb[ifc].i1;
+
+    // update fnb[ifc]; keep i2, i3.
+    fnb[ifc].i2 = if2;
+
+    // update fn of edge ifx,ex
+    UFA_fnb_set_val (&fnb[ifx], ie, if2);
 
 
 
-
+  //----------------------------------------------------------------
   } else if(ie == 2) {
-    // make i1, i2, ipt
-      // printf(" 2fac_facpt-2 f%d %d %d %d\n",ifc, i1, i2, ipt);
-    UFA_facpt_chg_st (fTab->data, ifc, i1, i2, ipt, igb);
 
-    // make ipt, i3, i1
-      // printf(" 2fac_facpt-2 f%d %d %d %d\n",fTab->rNr, i1, ipt, i3);
-    UFA_add_fac_st (fTab, ipt, i3, i1, igb);
+    // next esn of ie
+    ex = UFA_esn_nxt (ie);
 
-    // update neighbour of new face fnb[fNr];
-    fnb[fNr].i1 = fnb[ifc].i2;
-    fnb[fNr].i2 = fnb[ifc].i3;    // 2016-02-21  
-    fnb[fNr].i3 = ifc;
+    // get fnb of face i3-i1
+    ifx = UFA_fnb_get_fac_esn (ifc, ex, fnb);
 
-    // update fnb[ifc]; keep i1,i2.
-    oldNb = fnb[ifc].i3;  // printf(" oldNb2=%d\n",oldNb2);
-    fnb[ifc].i3 = fNr;
+    // get ie = esn of face ifx starting at pt i1
+    ie = UFA_esn_ips (&fTab->data[ifx], i1);
 
-    // update neighbour of old e3 (change ifc -> fNr)
-    UFA_fnb_mod_val (&fnb[oldNb], fNr, ifc);
+    // change ifc -> i1, i2, ipt; keep neighbours for e1, e2
+    f1->i3 = ipt;
+
+    // create i3, i1, ipt
+    UFA_add_fac_st (fTab, i3, i1, ipt, 0);
+
+    // update neighbour of new face fnb[if2];
+    fnb[if2].i1 = fnb[ifc].i3;    // i3 - i1
+    fnb[if2].i2 = ifc;            // i1 - ipt
+    fnb[if2].i3 = fnb[ifc].i2;    // ipt - i3
+
+    // update fnb[ifc]; keep i1, i2.
+    fnb[ifc].i3 = if2;
+
+    // update fn of edge ifx,ex
+    UFA_fnb_set_val (&fnb[ifx], ie, if2);
 
 
 
+  //----------------------------------------------------------------
   } else if(ie == 3) {
-    // make i1, i2, ipt
-      // printf(" 2fac_facpt-3 f%d %d %d %d\n",ifc, i1, ipt, i3);
-    UFA_facpt_chg_st (fTab->data, ifc, ipt, i2, i3, igb);
 
-    // make ipt, i1, i2
-      // printf(" 2fac_facpt-3 f%d %d %d %d\n",fTab->rNr, i2, i3, ipt);
-    UFA_add_fac_st (fTab, ipt, i1, i2, igb);
+    // next esn of ie
+    ex = UFA_esn_nxt (ie);
 
-    // update neighbour of new face fnb[fNr];
-    fnb[fNr].i1 = fnb[ifc].i3;
-    fnb[fNr].i2 = fnb[ifc].i1;
-    fnb[fNr].i3 = ifc;
+    // get fnb of face i1-i2
+    ifx = UFA_fnb_get_fac_esn (ifc, ex, fnb);
 
-    // update fnb[ifc]; keep i1,i3.
-    oldNb = fnb[ifc].i1;  // printf(" oldNb2=%d\n",oldNb2);
-    fnb[ifc].i1 = fNr;
+    // get ie = esn of face ifx starting at pt i2
+    ie = UFA_esn_ips (&fTab->data[ifx], i2);
 
-    // update neighbour of old e1 (change ifc -> fNr)
-    UFA_fnb_mod_val (&fnb[oldNb], fNr, ifc);
+    // change ifc-i1 -> ipt;   makes ipt, i2, i3; keep neighbours for e2, e3
+    f1->i1 = ipt;
+
+    // create i1, i2, ipt
+    UFA_add_fac_st (fTab, i1, i2, ipt, 0);
+
+    // update neighbour of new face fnb[if2];
+    fnb[if2].i1 = fnb[ifc].i1;
+    fnb[if2].i2 = ifc;
+    fnb[if2].i3 = fnb[ifc].i3;
+
+    // update fnb[ifc]; keep i2, i3.
+    fnb[ifc].i1 = if2;
+
+    // update fn of edge ifx,ex
+    UFA_fnb_set_val (&fnb[ifx], ie, if2);
   }
 
-  fnb[fNr].st = 0;
+
+
+  //----------------------------------------------------------------
+  fnb[if2].fst0 = 0;
 
 
     // TESTBLOCK
 #ifdef DEB
-    // printf("========= UFA_2fac_fac_pt MOD F%d CREATE F%d ======\n",ifc,fNr);
+    printf(" ex-UFA_2fac_fac_pt ipt=%d ifc=%d if2=%d\n",ipt,ifc,if2);
 #endif
+    // if(ipt == 11) {
+    // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "ex-UFA_2fac_fac_pt");
+    // UFA_nfb_ck__ (fTab->data, fnb, fTab->rNr, "ex-UFA_2fac_fac_pt");
     // UFA_fac_ck_sr_1 (ifc, &fTab->data[ifc], msh_pa);
-    // UFA_fac_ck_sr_1 (fNr, &fTab->data[fNr], msh_pa);
+    // UFA_fac_ck_sr_1 (if2, &fTab->data[if2], msh_pa);
     // if(ifc == 80) {
     // UFA_fnb_dump_1 (&fTab->data[ifc], &fnb[ifc], " %d ",ifc);
-    // UFA_fnb_dump_1 (&fTab->data[fNr], &fnb[fNr], " %d ",fNr);
+    // UFA_fnb_dump_1 (&fTab->data[if2], &fnb[if2], " %d ",fNr);
     // }
-    // if(ipt == 21)
+    // if((ipt==14)&&(ifc==13)) {
     // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "ex 2fac");
-    // if(ipt == 21) exit(0);
+    // return -99; }
+    // DEB_exit();
+    // }
     // TESTBLOCK
 
   return 0;
+
+
+  L_err1:
+    // try to modify breakline (fnb = -2)
+    TX_Error("UFA_2fac_fac_pt E1 f=%d e=%d",ifc,ie);
+    return -99;
 
 }
 
@@ -4344,97 +4973,109 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 // UFA_3fac_fac_pt       create 3 new Faces tru point ipt instead of face ifc
 // all faces CW
 //
-// Input-face:
-//  ifc:    i1-i2-i3
+// INPUT:
+//   ipt     index point
+//   ifc     index face - P<ipt> is inside face <ifc>
+// OUTPUT:
+//
+// Output-faces:
+//  ifc:    i1-i2-ipt
+//  if2:    i2-i3-ipt            if2=fNr
+//  if3:    i3-i1-ipt            if3=fNr+1
 //
 //            i3
 //          /   \
 //  ne3-en3/   |  \  ne2-en2
 //        /   ipt   \
-//     fNr+1 /   \ fNr\
+//       /if3/   \ if2\
 //      / /   ifc    \  \
 //    i1 --------------- i2
-//
-// Output-faces:
-//  ifc:    i1-i2-ipt
-//  fNr:    i2-i3-ipt
-//  fNr+1:  i3-i1-ipt
+//           ne1-en1
 
 
-  int   irc, i1, i2, i3, fNr, ne2, ne3, en2, en3, igb;
-  Fac3  *f1;
+  int   irc, i1, i2, i3, fNr, if2, if3, ne2, ne3, en2, en3, infe2, infe3;
+  Fac3  *fca, *f1;
 
 
+  // TESTBLOCK
   // printf("UFA_3fac_fac_pt ifc=%d ipt=%d\n",ifc,ipt);
   // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "3fac");
+  // UFA_nfb_ck__ (fTab->data, fnb, fTab->rNr, "UFA_3fac_fac_pt");
+  // if(ipt = 4) return -99;
+  // END TESTBLOCK
 
-  f1 = &fTab->data[ifc];
+
+  fca = fTab->data;
   fNr = fTab->rNr;
+
+  f1 = &fca[ifc];
   i1 = f1->i1;
   i2 = f1->i2;
   i3 = f1->i3;
-  igb = f1->st;
     // printf(" f%d = %d %d %d; new f%d and f%d\n",ifc,i1,i2,i3,
            // fTab->rNr,fTab->rNr + 1);
 
+  // keep nbf of e2 of ifc
+  infe2 = fnb[ifc].i2;
+  infe3 = fnb[ifc].i3;
 
-  irc = UFA_ife_getNf_ife (&ne2, &en2, ifc, 2, fTab->data, fnb);
-  if(irc < 0) {TX_Error("UFA_3fac_fac_pt E1"); return -99;}
-  // if(irc < 0) return MSH_ERR__ (2, ifc, ne2);
-    // printf(" ne2=%d en2=%d\n",ne2,en2);
+  // // get nf of edge 1 of ifc
+  // irc = UFA_ife_getNf_ife (&ne1, &en1, ifc, 1, fTab->rNr, fTab->data, fnb);
+  // if(irc < 0) {TX_Error("UFA_3fac_fac_pt E1"); return -99;}
 
-  irc = UFA_ife_getNf_ife (&ne3, &en3, ifc, 3, fTab->data, fnb);
+  // get nf of edge 2 of ifc
+  irc = UFA_ife_getNf_ife (&ne2, &en2, ifc, 2, fTab->rNr, fTab->data, fnb);
   if(irc < 0) {TX_Error("UFA_3fac_fac_pt E2"); return -99;}
+
+  // get nf of edge 3 of ifc
+  irc = UFA_ife_getNf_ife (&ne3, &en3, ifc, 3, fTab->rNr, fTab->data, fnb);
+  if(irc < 0) {TX_Error("UFA_3fac_fac_pt E3"); return -99;}
   // if(irc < 0) return MSH_ERR__ (2, ifc, ne3);
     // printf(" ne3=%d en3=%d\n",ne3,en3);
 
+  // change existing face ifc
+  UFA_facpt_chg_st (fTab->data, ifc, i1, i2, ipt, 0);
 
-  UFA_facpt_chg_st (fTab->data, ifc, i1, i2, ipt, igb);
+  // add new face <fNr> 
+  if2 = fTab->rNr;
+  UFA_add_fac_st (fTab, i2, i3, ipt, 0);
 
-  UFA_add_fac_st (fTab, i2, i3, ipt, igb);
-
-  UFA_add_fac_st (fTab, i3, i1, ipt, igb);
-
-  fnb[fNr].i1     = fnb[ifc].i2;
-  fnb[fNr].i2     = fNr + 1;
-  fnb[fNr].i3     = ifc;
-  fnb[fNr].st     = 0;
-
-  fnb[fNr + 1].i1 = fnb[ifc].i3;
-  fnb[fNr + 1].i2 = ifc;
-  fnb[fNr + 1].i3 = fNr;
-  fnb[fNr + 1].st = 0;
+  // add new face <fNr + 1>
+  if3 = fTab->rNr;
+  UFA_add_fac_st (fTab, i3, i1, ipt, 0);
 
   // ifc: keep i1
-  fnb[ifc].i2     = fNr;
-  fnb[ifc].i3     = fNr + 1;
+  fnb[ifc].i2   = if2;
+  fnb[ifc].i3   = if3;
+  fnb[ifc].fst0 = 0; //16;
+
+  // set nfb for new face if2
+  fnb[if2].i1   = infe2;
+  fnb[if2].i2   = if3;                     
+  fnb[if2].i3   = ifc;
+  fnb[if2].fst0 = 0; //16;
+
+  // set nfb for new face if3
+  fnb[if3].i1   = infe3;
+  fnb[if3].i2   = ifc;
+  fnb[if3].i3   = if2;
+  fnb[if3].fst0 = 0; //16;
 
   // set fnb-links in faces ne2 and ne3
-  if(ne2 >= 0) UFA_fnb_set_if_es (fnb, ne2, en2, fNr);
-  if(ne3 >= 0) UFA_fnb_set_if_es (fnb, ne3, en3, fNr + 1);
-
-
-  // set fac.st=0 (modified)
-  fTab->data[ifc].st = 0;
-  fTab->data[fNr].st = 0;
-  fTab->data[fNr + 1].st = 0;
+  if(infe2 >= 0) UFA_fnb_set_if_es (fnb, ne2, en2, if2);
+  if(infe3 >= 0) UFA_fnb_set_if_es (fnb, ne3, en3, if3);
 
 
     // TESTBLOCK
 #ifdef DEB
     // printf("========= UFA_3fac_fac_pt Pt %d MOD F%d CREATE F%d F%d ======\n",
-           // ipt,ifc,fNr,fNr+1);
+           // ipt,ifc,if2,if3);
 #endif
+    // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "ex-UFA_3fac_fac_pt");
+    // UFA_nfb_ck__ (fTab->data, fnb, fTab->rNr, "ex-UFA_3fac_fac_pt");
     // UFA_nfb_ck_f (ifc, fTab->data, fnb);
-    // UFA_nfb_ck_f (fNr, fTab->data, fnb);
-    // UFA_nfb_ck_f (fNr+1, fTab->data, fnb);
-    // UFA_fac_ck_sr_1 (ifc, &fTab->data[ifc], msh_pa);
-    // UFA_fac_ck_sr_1 (fNr, &fTab->data[fNr], msh_pa);
-    // UFA_fac_ck_sr_1 (fNr+1, &fTab->data[fNr+1], msh_p2a);
-    // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "ex 3fac");
-    // UFA_fnb_dump_1 (&fTab->data[ifc], &fnb[ifc], " %d ",ifc);
-    // UFA_fnb_dump_1 (&fTab->data[fNr], &fnb[fNr], " %d ",fNr);
     // UFA_fnb_dump_1 (&fTab->data[fNr+1], &fnb[fNr+1], " %d ",fNr+1);
+    // if(ipt = 4) return -99;
     // TESTBLOCK
 
 
@@ -4447,22 +5088,10 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   int UFA_4fac_2fac_pt (MemTab(Fac3) *fTab, Fac3 *fnb, int ipt,
                        int f00, int e00) {
 //=======================================================================
-// UFA_4fac_2fac_pt       create 4 Faces tru point ipt from face with point ipt on edge e00
+// UFA_4fac_2fac_pt    create 4 Faces tru point ipt from face with point ipt on edge e00
 // keep edge e00 of face f00; change its opposite point to ipx.
 // update both neighbours (create 2 new faces)
 //
-//            X                    X
-//          / | \                / | \
-//         /  |  \              /  |  \
-//    fn0 /   |   \        fn0 /   |   \
-//       /    |    \       en0/ f01|f10 \
-//      / f00 | f10 \        /     |     \
-//      x  e00| e10  x       x ---ipt-----x
-//       \   ^|     /         \ f00| f11 /
-//         \  |   /             \  |   /
-//           \| /   fn1           \| /   fn1 
-//            X                    X     en1
-//              
 // Input:
 //   ipt     point not yet meshed; the new center of 4 faces
 //   f00     face with (common) edge e00
@@ -4472,49 +5101,86 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 //   retCod  0-fNr  neighbour-face of f00 (f10)
 //          -1  internal Error
 //
-// TODO: makes problems with edge=-2 (BL)
+//
+//
+//            X                          X
+//          / | \                      / | \
+//        e02 |  \            n01,e01 /  |  \
+//        /   |   \                  /   |   \
+//       /    |    \                / f01|f10 \
+//      / f00 | f10 \              /     |     \
+//      x  e00|  e10 x             x ---ipt-----x
+//       \   /|/    /               \ f00| f11 /
+//       ie3  |   e12                 \  |   / n11,e11
+//           \| /                       \| /      
+//            X                          X     
+//              
+//
+// Input: f00,e00 = edge with point ipt (left-face)
+// get f10,e10 = edge with point ipt, (right-face)
+// get fn0,en0 = neighbour-edge of f00
+// create face f01 - ???
 
-  int    irc, f01, f10, e10, f11;
-  int    fn0, en0, fn1, en1, iex;
+
+// Output-faces:
+//  ifc:    i1-i2-ipt
+//  if2:    i2-i3-ipt            if2=fNr
+//  if3:    i3-i1-ipt            if3=fNr+1
+//
+
+  int    irc, f01, f10, e10, f11, ie2, ie3, e02, e12;
+  int    fn0, en0, fn1, en1, esx;
+  int    nf02;
 
 
-  // if(ipt == 27) {
+  // TESTBLOCK
+  printf("UFA_4fac_2fac_pt ipt=%d f00=%d e00=%d\n",ipt,f00,e00);
+  // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "UFA_4fac_2fac_pt");
+  // UFA_nfb_ck__ (fTab->data, fnb, fTab->rNr, "UFA_4fac_2fac_pt");
   // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "4fac"); }
-  // printf("UFA_4fac_2fac_pt ipt=%d f00=%d e00=%d\n",ipt,f00,e00);
   // UFA_fnb_dump_1 (&fTab->data[f00], &fnb[f00], "  f00=%d ",f00);
+  // if(ipt == 11) DEB_stop();
+  // if(ipt == 11) return -99;
+  // END TESTBLOCK
 
+
+//   // get e02 = edge following e00 in f00
+//   e02 = UFA_esn_nxt (e00);
 
   // get f10,e10 = neighbour-face/edge of f00,e00
-  // f10 = UFA_if_getNf_ife (f00, e00, fTab->data);
-  irc = UFA_ife_getNf_ife (&f10, &e10, f00, e00, fTab->data, fnb);
+  irc = UFA_ife_getNf_ife (&f10, &e10, f00, e00, fTab->rNr, fTab->data, fnb);
   if(irc < 0) {TX_Error("UFA_4fac_2fac_pt E1"); return -99;}
-  // if(irc < 0) return MSH_ERR__ (2, f00, f10);
-    // printf(" f10=%d e10=%d\n",f10,e10);
+    printf(" 4fac_2fac_pt f10=%d e10=%d\n",f10,e10);
+
+//   // get e12 = edge following e10 in f10
+//   e12 = UFA_esn_nxt (e10);
 
 
-  // new face from f00-e00
+  //----------------------------------------------------------------
+  // make side f00,f01; modify f00, create f01.
+
+//   // new face from f00-e00
+//   f01 = fTab->rNr;
+// 
+//   // get fn0,en0 = neigbour of f00-next_edge_of_e00
+//   ie2 = UFA_esn_nxt (e00);
+//   irc = UFA_ife_getNf_ife (&fn0, &en0, f00, ie2, fTab->rNr, fTab->data, fnb);
+//   if(irc < 0) {TX_Error("UFA_4fac_2fac_pt E2"); return -99;}
+//     // printf(" fn0=%d en0=%d f01=%d\n",fn0, en0, f01);
+// 
+//   // get nf02 = neighbourFace of next edge of f00
+//   nf02 = UFA_fnb_get_fac_esn (f00, ie2, fnb);
+
   f01 = fTab->rNr;
 
-  // get fn0,en0 = neigbour of f00-next_edge_of_e00
-  iex = UFA_esn_nxt (e00);
-  irc = UFA_ife_getNf_ife (&fn0, &en0, f00, iex, fTab->data, fnb);
-  if(irc < 0) {TX_Error("UFA_4fac_2fac_pt E2"); return -99;}
-  // if(irc < 0) return MSH_ERR__ (2, f00, fn0);
-    // printf(" fn0=%d en0=%d f01=%d\n",fn0, en0, f01);
-
-
-  // mod f00, create f01
+  // update face f00; create face f01
   UFA_2fac_fac_pt (fTab, fnb, ipt, f00, e00);
-  // undefined neighbours at edges f00-e00 and f1-e00
 
-  // upd. fnb[f1] prev.e00
-  if(fn0 >= 0) {
-    UFA_fnb_set_if_es (fnb, fn0, en0, f01);
-    UFA_fnb_set_if_es (fnb, f01, 2, fn0);
-  }
-
-
-  if(f10 < 0) goto L_exit;
+//   // upd. fnb[f1] prev.e00
+//   if(fn0 >= 0) {
+//     if(nf02 >= 0) UFA_fnb_set_if_es (fnb, fn0, en0, f01);
+//     UFA_fnb_set_if_es (fnb, f01, 2, fn0);
+//   }
 
     // TESTBLOCK
     // if(ipt == 28)
@@ -4524,41 +5190,55 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     // TESTBLOCK
 
 
-  // new face from f10-e10
-  f11 = fTab->rNr;
+  //----------------------------------------------------------------
+  // make side f10,f11
+  L_f1__:
 
-  // get fn1,en1 = neigbour of f10-next_edge_of_e10
-  iex = UFA_esn_nxt (e10);
-  irc = UFA_ife_getNf_ife (&fn1, &en1, f10, iex, fTab->data, fnb);
-  if(irc < 0) {TX_Error("UFA_4fac_2fac_pt E3"); return -99;}
-  // if(irc < 0) MSH_ERR__ (2, f10, fn1);
-    // printf(" fn1=%d en1=%d f11=%d\n",fn1, en1, f11);
+    // nothing to if no neigbour (IB|OB)
+    if(f10 < 0) goto L_exit;
+
+//   // new face from f10-e10
+//   f11 = fTab->rNr;
+// 
+//   // get fn1,en1 = neigbour of f10-next_edge_of_e10
+//   ie2 = UFA_esn_nxt (e10);
+//   irc = UFA_ife_getNf_ife (&fn1, &en1, f10, ie2, fTab->rNr, fTab->data, fnb);
+//   if(irc < 0) {TX_Error("UFA_4fac_2fac_pt E3"); return -99;}
+//   // if(irc < 0) MSH_ERR__ (2, f10, fn1);
+//     // printf(" fn1=%d en1=%d f11=%d\n",fn1, en1, f11);
+
+    f11 = fTab->rNr;
+
+    // update face f10, create face f11
+    UFA_2fac_fac_pt (fTab, fnb, ipt, f10, e10);
+
+//     // upd. fnb[f2] prev.e10
+//     if(fn1 >= 0) {
+//       UFA_fnb_set_if_es (fnb, fn1, en1, f11);
+//       UFA_fnb_set_if_es (fnb, f11, 2, fn1);
+//     }
+// 
+// 
+//     UFA_fnb_set_if_es (fnb, f10, e10, f01);   // << ??
+//     UFA_fnb_set_if_es (fnb, f11, 1, f00);
+//     UFA_fnb_set_if_es (fnb, f01, 1, f10);
+//     UFA_fnb_set_if_es (fnb, f00, e00, f11);
+
+    // update nfb of f00,e00 and of f10,e10
+    esx = UFA_fnb_get_fac_esn (f00, e00, fnb);
+    if(esx >= 0) UFA_fnb_set_if_es (fnb, f00, e00, f11);
+
+    esx = UFA_fnb_get_fac_esn (f10, e10, fnb);
+    if(esx >= 0) UFA_fnb_set_if_es (fnb, f10, e10, f01);
 
 
-  // mod f10, create f11
-  UFA_2fac_fac_pt (fTab, fnb, ipt, f10, e10);
-  // undefined neighbours at edges f10-e10 and f2-e10
 
-  // upd. fnb[f2] prev.e10
-  if(fn1 >= 0) {
-    UFA_fnb_set_if_es (fnb, fn1, en1, f11);
-    UFA_fnb_set_if_es (fnb, f11, 2, fn1);
-  }
-
-
-  UFA_fnb_set_if_es (fnb, f10, e10, f01);   // << ??
-  UFA_fnb_set_if_es (fnb, f11, 1, f00);
-  UFA_fnb_set_if_es (fnb, f01, 1, f10);
-  UFA_fnb_set_if_es (fnb, f00, e00, f11);
-
-
+  //----------------------------------------------------------------
   L_exit:
 
     // TESTBLOCK
-    // if(ipt == 27) {
-    // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "ex 4fac");
-    // exit(0);
-    // }
+    // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "ex-UFA_4fac_2fac_pt");
+    // UFA_nfb_ck__ (fTab->data, fnb, fTab->rNr, "UFA_4fac_2fac_pt");
     // printf(" f00=%d f01=%d e00=%d\n",f00,f01,e00);
     // printf(" f10=%d f11=%d e10=%d\n",f10,f11,e10);
     // UFA_nfb_ck_f (f00, fTab->data, fnb);
@@ -4573,6 +5253,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
     // return -99;
     // printf(" f1=%d f2=%d\n",f1,f2);
     // if(f00 == 4) return -99;
+    // if((f00==13)&&(ipt==14)) return -99;
     // END TESTBLOCK
 
 
@@ -4581,6 +5262,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 }
 
 
+// UU
 //=======================================================================
   int UFA_5fac_3fac_pt (MemTab(Fac3) *fTab, Fac3 *fnb, int ipt,
                        int f00, int e00) {
@@ -4619,12 +5301,12 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
   // get neighbours of f00 opposit e00 (f10,ef10 & f20,ef20)
   e01 = UFA_esn_nxt (e00);
-  irc = UFA_ife_getNf_ife (&f10, &ef10, f00, e01, fTab->data, fnb);
+  irc = UFA_ife_getNf_ife (&f10, &ef10, f00, e01, fTab->rNr, fTab->data, fnb);
   if(irc < 0) {TX_Error("UFA_5fac_3fac_pt E1"); return -99;}
   // if(irc < 0) MSH_ERR__ (2, f00, f10);
 
   e02 = UFA_esn_prv (e00);
-  irc = UFA_ife_getNf_ife (&f20, &ef20, f00, e02, fTab->data, fnb);
+  irc = UFA_ife_getNf_ife (&f20, &ef20, f00, e02, fTab->rNr, fTab->data, fnb);
   if(irc < 0) {TX_Error("UFA_5fac_3fac_pt E2"); return -99;}
   // if(irc < 0) MSH_ERR__ (2, f00, f20);
 
@@ -4642,12 +5324,12 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
   // get neighbours of f10, f20
   ex = UFA_esn_nxt (ef10);
-  irc = UFA_ife_getNf_ife (&n11, &en11, f10, ex, fTab->data, fnb);
+  irc = UFA_ife_getNf_ife (&n11, &en11, f10, ex, fTab->rNr, fTab->data, fnb);
   if(irc < 0) {TX_Error("UFA_5fac_3fac_pt E3"); return -99;}
   // if(irc < 0) MSH_ERR__ (2, f10, n11);
 
   ex = UFA_esn_nxt (ef20);
-  irc = UFA_ife_getNf_ife (&n21, &en21, f20, ex, fTab->data, fnb);
+  irc = UFA_ife_getNf_ife (&n21, &en21, f20, ex, fTab->rNr, fTab->data, fnb);
   if(irc < 0) {TX_Error("UFA_5fac_3fac_pt E4"); return -99;}
   // if(irc < 0) MSH_ERR__ (2, f20, n21);
 

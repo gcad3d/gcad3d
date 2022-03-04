@@ -5,6 +5,7 @@
 #break OS_debug_dll_
 
 ######### define Functions to stop
+break DEB_stop
 break AP_debug__
 break TX_Error
 #break UTO_dump__
@@ -70,7 +71,7 @@ break TX_Error
 #break MSH2D_view_i2ptb2
 #cond 3 Ind == 0
 #break UI_butCB
-#break DB_mdlNam_iBas
+break UI_upd_ptDisp
 
 #watch GR_TAB_IND
 #watch ((Circ*)TSU_ox2.data)->vz.dy

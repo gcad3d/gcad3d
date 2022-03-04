@@ -56,6 +56,7 @@ MSH_pta_prjptmsh1       prj points -> active mesh
 MSH_npt_prjcvmsh_       project curve > Mesh
 
 MSH_eTab_fix            recover EdgeLine-pointers ia
+MSH_eTab_bl_ck          check if breakline(s) exist
 
 List_functions_end:
 =====================================================
@@ -1206,20 +1207,20 @@ List_functions_end:
                          Fac3 *fa, int fNr,
                          Point *pa, Point2 *p2a, int pNr, double tol) {
 //================================================================
-/// \code
-/// MSH_pta_prjptmsh1       prj points (Z=0) -> active mesh
-/// if point.z == 0.  then set Z to Z-value on mesh; else keep Z-value.
-/// Deletes points outside mesh !
-/// Input 
-///   ptNr     nr of points
-///   pta      new points (compute Z if Z=0; else keep Z-value)
-///   ia1      index of point if identical with existing point in pa
-///   pa[pNr]  existing points
-/// Output
-///   pNr      modified 
-///   pta      all points outside mesh are removed !
-///   retCod   nr of errors
-/// \endcode
+// MSH_pta_prjptmsh1       prj points (Z=0) -> active mesh
+// if point.z == 0.  then set Z to Z-value on mesh; else keep Z-value.
+// Deletes points outside mesh !
+// Input 
+//   ptNr     nr of points in pa1
+//   pa1      array points
+//   pta      new points (compute Z if Z=0; else keep Z-value)   ????
+//   pa[pNr]  existing points
+//   p2a      parallel pa - 2D
+// Output
+//   ptNr     nr of points in pa1
+//   pa1      all points outside mesh are removed !
+//   ia1      index of point if identical with existing point in pa
+//   retCod   nr of errors (eNr)
 
 
   int       i1, i2, ii, ie, eNr, irc;
@@ -1242,8 +1243,8 @@ List_functions_end:
       // ignore point if (Z != 0)
       if(!UTP_comp_0(pa1[i1].z)) goto L_nxt_ck_nxt;
       // project p1a[iAct] onto the mesh (get the correct Z-value)
+      // replace p1a[iAct] with new point, is using memspc501 !
       px = pa1[i1];
-      // is using memspc501 !
       irc = MSH_pt_prjptmsh1 (&ia1[i1], &ie, &pa1[i1], &px, fa, fNr,
                               pa, pNr, tol);
 
@@ -1261,7 +1262,6 @@ List_functions_end:
         MEM_del_nrec (ptNr, pa1, i1, 1, sizeof(Point));
         --i1;
         ++eNr;
-
       }
       
 
@@ -1285,22 +1285,27 @@ List_functions_end:
                         Fac3 *fa, int fNr,
                         Point *pa, int pNr, double tol) {
 //================================================================
-/// \code
-/// project point > Mesh
-/// using memspc501
-/// 
-/// Output:
-///   io      rc=0: faceNr; rc=1: pointIndex
-///   pto     rc=0: pti on face (Z fixed); rc=1: NULL
-///   retCod  0 OK; inside_face, on_face_edge:  io=faceNr, pto=point
-///           1 OK; pti is on_edge; io=faceNr, ie=edgeNr, pto=point
-///           2 OK; pti is identical_with_point: io=pointIndex;
-///          -1 point is not inside mesh
-/// 
-/// - transform points > 2D;
-/// - check if point is in Triang or on its boundary
-/// - get Z-coord of point on 2D-Triang
-/// \endcode
+// project point > Mesh
+// using memspc501
+// 
+// Input:
+//   pti     point to project onto mesh fa[fNr]
+//   fa      faces of mesh
+//   fNr     nr of faces of fa
+//   pa      points of mesh
+//   pNr     nr of points of mesh
+// Output:
+//   io      rc=0: faceNr; rc=1: faceNr, rc=2: pointIndex
+//   ie      if(rc=1) edgNr 1|2|3
+//   pto     rc=0: pti on face (Z fixed); rc=1: NULL
+//   retCod  0 OK; inside_face, on_face_edge:  io=faceNr, pto=point
+//           1 OK; pti is on_edge; io=faceNr, ie=edgeNr, pto=point
+//           2 OK; pti is identical_with_point: io=pointIndex;
+//          -1 point is not inside mesh
+// 
+// - transform points > 2D;
+// - check if point is in Triang or on its boundary
+// - get Z-coord of point on 2D-Triang
 
 
   int     irc, i1, ii1, ii2, ii3, ix;
@@ -1802,6 +1807,22 @@ List_functions_end:
     eTab->data[i1].ia = &eDat->data[ii];
       // printf(" _fix eTab[%d] = %d\n",i1,ii);
     ii += eTab->data[i1].iNr;
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+   int MSH_eTab_bl_ck (MemTab(EdgeLine) *eTab) {
+//================================================================
+// MSH_eTab_bl_ck          check if breakline(s) exist; 1=yes, 0=no
+
+  int    i1, ii;
+
+  for(i1=0; i1<eTab->rNr; ++i1) {
+    if(eTab->data[i1].typ == MSH_EDGLN_BL) return 1;
   }
 
   return 0;

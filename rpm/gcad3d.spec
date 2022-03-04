@@ -83,11 +83,11 @@ mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}
 mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins
 mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1
 
-install -m 755 %{gcad_dir_bin}/gCAD3D %{outDir}/usr/lib/gcad3d/%{hTyp}/.
-install -m 755 %{gcad_dir_bin}/GUI_* %{outDir}/usr/lib/gcad3d/%{hTyp}/.
-install -m 755 %{gcad_dir_bin}/*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/.
-install -m 755 %{gcad_dir_bin}/plugins/*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/.
-install -m 755 %{gcad_dir_bin}/plugins/cut1/* %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1/.
+install -m 755 %{gcad_dir_bin}gCAD3D %{outDir}/usr/lib/gcad3d/%{hTyp}/.
+install -m 755 %{gcad_dir_bin}GUI_* %{outDir}/usr/lib/gcad3d/%{hTyp}/.
+install -m 755 %{gcad_dir_bin}*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/.
+install -m 755 %{gcad_dir_bin}plugins/*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/.
+install -m 755 %{gcad_dir_bin}plugins/cut1/* %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1/.
 
 
 

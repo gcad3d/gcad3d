@@ -1,3 +1,17 @@
+Version 2.46.26 / 2022-03-04
+
+- new code ATTL - definition of new linetypes (doc. see Codes and Formats/Attributes)
+- new plugin Demo_gsrc (Geometric-Source-Relocatable-Code,
+  - eg add object-source from extern)
+- Bugfix Application-edit-symDir fixed
+- minor bugfixes
+- Russian removed
+
+Programlines (C)  516820
+Functions           5022
+
+
+===========================================================================
 Version 2.46.25 / 2022-01-19
 
 - bugfix Modify_Linetype_display

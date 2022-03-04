@@ -10,6 +10,15 @@ INF_GL_surfaces
 INF_GL2D__
 INF_GL_attrib
 INF_GL_coords
+INF_GL_V1             info ../gr/ut_GL.c
+
+INF_GL_disp_point
+INF_GL_disp_curve
+INF_GL_disp_symbols   N = LDRS ..
+INF_GL_disp_ObjNames  disp objID
+INF_GL_Shade_OFF      function surfaces - display wireframe not shaded
+INF_GL_ObjNames_ON    display objIS's (names) for all existing objects
+
 
 
 //   GL_mode_draw_select =
@@ -252,6 +261,144 @@ TODO: make GL-list-record eg for surface-attribute;  change it in GL_Redraw
   according to normal|hilite|dim.
   Same for points, curves ..
   
+
+
+================================================================== \endcode */}
+void INF_GL_disp_point (){        /*! \code
+
+see INF_COL_PT  // color and thickness of point; five records, 0-4
+- do not use pointAttributes; use symbols ... see ?
+
+#define DL_base_PtAtt 195    - 5 GL-records (195-199) - ../gr/ut_GL.h
+  0 = black, stdThick
+  2 = dimmed (ATT_COL_DIMMED), stdThick
+  4 = hilite (ATT_COL_YELLOW), size hiliThick
+
+Display/PointDisplay ON
+UI_men__ |ckb_ptDisp|     sets APT_dispPT;  ON or OFF
+  DL_hide_unvisTypes (0);
+    GL_InitPtAtt
+
+GL_InitPtAtt   // load GL-records DL_base_PtAtt (195-199)
+  - glPointSize stdThick or hiliThick
+  - set GL-record (DL_base_PtAtt + pTyp) - color and size of point
+
+GR_perm_pt
+  GR_set_obj ( form=Typ_PT )
+    GL_att_pt
+      glCallList (DL_base_PtAtt + ptTyp);    // set col & size
+
+
+
+================================================================== \endcode */}
+void INF_GL_disp_curve (){        /*! \code
+
+- set color, stipple, thickness
+
+- MAN command ATTL
+- interactive function Modify/Linetyp
+see INF_COL_CV   list of linetypes (color, stipple, thickness)
+  - list is file ../../gCAD3D/cfg_Linux/ltyp.rc
+  - Change / add attribute with DL_InitAttRec ();
+    - or interactive function Standards/Linetypes
+  - Reload default-attibutes with DL_InitAttTab ().
+
+LN_WIDTH_FAT
+
+
+Modify/Linetyp  - set new lintype for selected lines
+UI_men__ |LtypMod|
+  UI_WinLtypMod
+UI_GR_Select_work1 - GR_Sel_Filter == 6
+  GA_lTyp__               // modify lineType
+
+
+GR_set_ocv                // create curve 
+  GL_set_ocv GR_set_pcv
+    GL_att_cv
+      glCallList (DL_base_LnAtt + cvTyp);  // call GL-linetype-record
+        // cvTyp = linetype from ltyp.rc)
+
+
+GL_InitNewAtt          // change a GL-linetype-record;
+
+
+
+================================================================== \endcode */}
+void INF_GL_disp_symbols (){        /*! \code
+CAD-Text/N symbol         ../../doc/html/CAD_TxtG_en.htm#F10
+N = LDRS SymbolPosition [SymbolType] [Color] [EndpointVector]
+SymbolType   SYM_TRI_S-SYM_SQU_B  ../ut/gr_types.h
+
+APT_decode_ldrs             // create obj AText T_LDRP
+
+GR_perm_txt__
+  GR_set_txt__
+    GL_att_sym            // color width
+    GL_set_TxtSym
+      GL_set_symB           // 0-3 bitmap-symbols, not oriented
+        glCallList (symTyp)   // symTyp SYM_TRI_S - SYM_SQU_B
+      GR_set_symV3          // 4,5 vectors
+      GL_set_arrh2D         // 6   arrowhead 2D
+
+
+
+
+================================================================== \endcode */}
+void INF_GL_disp_ObjNames (){        /*! \code
+display / hide objID's of all objs
+Interctive function Display/ObjNames-ON
+
+UI_men__ |ckb_nam|
+  set int APT_disp_att - bit-0 = 1=disp-ObjNames; 0=not
+
+GR_temp_att__
+  GR_temp_att_1 (0);          // set ObjNames ON
+    - open GL-record GR_TMP_I0; pack all ObjNames into this temp. record.
+
+GL_temp_del_1 (GR_TMP_I0);  // set ObjNames OFF
+
+
+
+================================================================== \endcode */}
+void INF_GL_disp_ObjDirection (){        /*! \code
+display / hide direction-arrow for all curves
+Interactive function Display/ObjDirection ON
+
+UI_men__ |ckb_dir1|
+  set int APT_disp_att - bit-1 = 2=disp-ObjNames; 0=not
+
+GR_temp_att__
+  GR_temp_att_1 (1);             // set ObjDirection ON
+    - open GL-record GR_TMP_IDIR; pack all ObjDirections into this temp. record.
+
+GL_temp_del_1 (GR_TMP_IDIR);   // set ObjDirection OFF
+
+
+
+================================================================== \endcode */}
+void INF_GL_Shade_OFF (){        /*! \code
+surfaces - display surfaces shaded or wireframe (triangle-boundaries)
+
+GL_Redraw - calls the GL-record without preconditions 
+
+GL_ColSet - called when creating surface or triangle
+  setup GL-record - activate Color,transparency
+  then call GL-record DL_shade_wire
+
+GL_DefineDisp - called by user, call GL_atts_set_shade or GL_atts_set_wire
+  GL_atts_set_shade set GL-record DL_shade_wire empty (GL_ColSet sets color, transp..)
+  GL_atts_set_wire  set GL-record DL_shade_wire to dislay surface as black boundarylines
+
+
+
+
+================================================================== \endcode */}
+void INF_GL_ObjNames_ON (){        /*! \code
+display objIS's (names) for all existing objects
+
+
+
 
 
 ================================================================== \endcode */}

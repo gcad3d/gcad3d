@@ -278,42 +278,43 @@ static int   (*up1)();
 
 
 //================================================================
-  int OS_stdout__ (int mode, char *fn) {
+  int OS_stdout__ (int mode, void *data) {
 //================================================================
-/// OS_stdout__              direct console-output into file
-/// mode     0 open file for console-output
-///          1 reconnect stdout
-/// DOES NOT WORK !
+// OS_stdout__              direct console-output into file
+// mode     0   set filename for console-output
+// mode     1   (re-)open file for console-output
+//          2   close console-output into file; continue with output to console ..
 
-  static FILE    *fp;//, *oldfp;
-  // static int fd;
-  // fpos_t  pos;
+  static char    fn[80];
+  static FILE    *fp = NULL;
 
 
   // printf("OS_stdout__ %d |%s|\n",mode,fn);
 
 
   if(mode == 0) {
+    if(strlen((char*)data) >= 80) {printf("***** OS_stdout__ E1 \n"); return -1;}
+    strcpy(fn, (char*)data);
+
+
+  } else if(mode == 1) {
     // oldfp = stdout;
     // stdout = fopen (fn, "w");
     // fgetpos (stdout, &pos);
     // fd = _dup(fileno(stdout));
+    if(fp) fflush (fp);
     fp = freopen (fn, "w", stdout);
-    if(!fp) return -1;
+    if(!fp) {printf("***** OS_stdout__ E2 \n"); return -1;}
 
 
   } else {
-    // fflush (fp);
-    // fclose (stdout);//(fp);
+    if(fp) fflush (fp);
+    // fclose (fp);  // (stdout);
     freopen ("CON", "w", stdout);
     // stdout = fopen ("CON", "wb");
     // stdout = oldfp;
     // dup2(fd, fileo(stdout));
     // fsetpos (stdout, &pos);
-
-      printf("ex OS_stdout__-1\n");
-
-
   }
 
   return 0;

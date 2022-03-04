@@ -2250,8 +2250,8 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 //================================================================
 // Edit active program.
 
-
-  char   cbuf[SIZFNam];
+  int    irc;
+  char   cbuf[SIZFNam], s1[SIZMFSym];
 
 
   // printf("PRG_Ed %d\n",APP_act_typ);
@@ -2264,7 +2264,10 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   }
 
 
-  sprintf(cbuf, "%s%s.gcap",AP_dir_prg,APP_act_nam);
+  // sprintf(s1, "%sgcap",AP_dir_prg,fnam_del,APP_act_nam);
+  irc = MDLFN_fDir_syDir (s1, AP_dir_prg);
+  if(irc < 0) return -1;
+  sprintf(cbuf, "%s%c%s.gcap",s1,fnam_del,APP_act_nam);
   return APP_edit (cbuf, 1);  // do not wait
 
 

@@ -72,7 +72,7 @@ Korr:
   int    OS_file_sig_cre   (int mode, void *data);
   int    OS_file_sig_wait  (int mode, void *data);
 
-  int    OS_stdout__ (int mode, char *fn);
+  int    OS_stdout__ (int mode, void *data);
 
 
 

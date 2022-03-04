@@ -46,7 +46,7 @@ Modifications:
 \file  ../gr/ut_GL.c
 \brief the OpenGL functions 
 \code
-See INF_workflow_display
+See INF_workflow_display INF_GL__ INF_GL_V1
 
 
 Function-groups:
@@ -287,6 +287,9 @@ GL_Translate          update GL(DL_Ind_Scl2D) GL(DL_Ind_Cen2D)
 DL_Set_Cen2D          store screencenter in OpenGL in DispListRecord <DL_Ind_Cen2D>
 DL_Set_Scl2D          rotate into 2D-horizontal position (set DL_Ind_Scl2D)
 GL_ScalBack           store backtransf. in DL_Ind_ScBack (glScaled)
+GL_atts_set_shade     display surface shaded
+GL_atts_set_wire      display surface as wirefroame
+
 
 GL_GetActInd          return dispList-index of last created obj
 GL_Get_DLind          return nr of used dispList obj's (index of next free)
@@ -345,7 +348,7 @@ Obsolete - Unused:
 
 \endcode */
 #ifdef globTag
- void INF_GL__(){}
+ void INF_GL_V1(){}
 #endif
 /*
 //================================================================
@@ -1993,8 +1996,52 @@ GLuint GL_fix_DL_ind  (long*);
   return 0;
 
 }
-		
- 
+
+
+//================================================================
+  int GL_atts_set_shade () {
+//================================================================
+// GL_atts_set_shade              display surface shaded
+// see GL_DefineDisp
+// do NOT override color for shaded surface set from GL_ColSet(); 
+// GL-list called at end of GL_ColSet();
+
+  // printf("GL_atts_set_shade \n");
+
+
+  glNewList (DL_shade_wire, GL_COMPILE);
+  glEndList ();
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GL_atts_set_wire () {
+//================================================================
+// GL_atts_set_wire                display surface as wirefroame
+// see GL_DefineDisp
+// color for shaded surface has been set from GL_ColSet(); 
+// but change surface to wireframe;
+// GL-list called at end of GL_ColSet();
+
+  // printf("GL_atts_set_wire \n");
+
+  glNewList (DL_shade_wire, GL_COMPILE);
+      glPolygonMode (GL_FRONT_AND_BACK, GL_LINE); // Flächen nur outlines!
+      glDisable (GL_COLOR_MATERIAL);
+      glDisable (GL_LIGHTING);
+      glDisable (GL_LINE_STIPPLE);
+      glLineWidth (LN_WIDTH_DEF);
+      glColor3f (0.f, 0.f, 0.f);
+  glEndList ();
+
+  return 0;
+
+}
+
+
 //=====================================================================
   int GL_Feedback (GLint *size, GLfloat *feedBuffer, GLint idim) {
 //=====================================================================
@@ -3697,7 +3744,7 @@ Screenkoords > Userkoords.
 
 
 
-  // printf("GL_DefineDisp mode=%d mode1=%d\n",mode,mode1);
+  printf("GL_DefineDisp mode=%d mode1=%d\n",mode,mode1);
 
 
   switch (mode) {
@@ -3722,6 +3769,7 @@ Screenkoords > Userkoords.
       //glShadeModel(GL_FLAT);
       // gluQuadricDrawStyle (quadObj, GLU_LINE);
 
+GL_atts_set_wire ();
       GL_mode_wire_shade = GR_STATE_WIRE;
       break;
 
@@ -3732,7 +3780,6 @@ Screenkoords > Userkoords.
     //====================================================================
     case FUNC_DispRend:
       // TX_Print("disp shaded");
-      glEnable(GL_DEPTH_TEST);
 
       // geht nur mit korrektem Normalvektor!
       // normalize normalVectors; sehr wichtig; sonst alles ziemlich dunkel !!!!
@@ -3830,6 +3877,7 @@ Screenkoords > Userkoords.
         DISP_REND_STD      // set colored surfaces  normal
       }
 
+GL_atts_set_shade ();
       GL_mode_wire_shade = GR_STATE_SHADE;
       break;
 
@@ -10083,6 +10131,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // DEB_dump_obj__ (Typ_Color, col, "GL_ColSet ");
   // printf("GL_ColSet vtra=%d AP_modact_ibm=%d\n",pCol->vtra,AP_modact_ibm);
 
+
   memcpy(glCol, col, 3); 
 
   iSym = col->vsym;
@@ -10103,6 +10152,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     // glColor3fv   (GL_col_tab[0]);  // black
     // glColor3ubv  (glCol); 
     glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);   // draw lines, not faces
+// TODO: glCallList (DL_shade_wire);
     return 0;
   }
 
@@ -10126,6 +10176,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       // colored-surfaces
       glColor3ubv (glCol);
     }
+
+// override color - reset to wireframe
+glCallList (DL_shade_wire);
 
     return 0;
   }
@@ -10158,6 +10211,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     glCol[3] = GL_transpTab[col->vtra];   // 0=glass; 255=rigid;
     glColor4ubv (glCol);
     GL_stat_blend = 1;
+
+// override color - reset to wireframe
+glCallList (DL_shade_wire);
 
 
   return 0;
@@ -15540,9 +15596,6 @@ static GLfloat  hiliThick = 9.f, stdThick = 5.f, iniThick = 5.f;
 
 
   printf("GL_Init__ mode=%d %d %d\n",mode,width,height);
-
-  GL_pickSiz = 8;    // 8; 1 is not faster ..
-
 
   // GLB_DrawInit ();  is done outside ..  is done outside ..
 

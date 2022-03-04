@@ -113,6 +113,7 @@ UTP_min                   find index of minimum double out of dbTab
 UTP_dbRec_min             find minimum double out of dbRecords
 UTP_max_3                 find maximum double of 3
 UTP_max_d3                find maximum double of 3; returns double.
+UTP_max_4                 find maximum double of 4
 UTP_max                   find minimum double out of dbTab
 UTP_dbRec_max             find maximum double out of dbRecords
 UTP_db_cknear_2db         find nearest double out of 2 doubles
@@ -1768,6 +1769,56 @@ UTA_  functions for pointers (addresses)
   }
 
     printf("UTP_max_3 ERR -1\n");
+
+  return -1;
+
+}
+
+
+//================================================================
+  int UTP_max_4 (double *d1, double *d2, double *d3, double *d4) {
+//================================================================
+// UTP_max_4                 find maximum double of 4
+// returns 0|1|2|3
+
+
+  if(*d1 > *d2) {
+    if(*d3 > *d4) {
+      // d3>d4
+      if(*d1 > *d3) {
+        return 0;
+      } else {
+        return 2;
+      }
+    } else {
+      // d4>d3
+      if(*d1 > *d4) {
+        return 0;
+      } else {
+        return 3;
+      }
+    }
+
+  } else {
+    // d2>d1
+    if(*d3 > *d4) {
+      // d3>d4
+      if(*d2 > *d3) {
+        return 1;
+      } else {
+        return 2;
+      }
+    } else {
+      // d4>d3
+      if(*d2 > *d4) {
+        return 1;
+      } else {
+        return 3;
+      }
+    }                   
+  }
+
+    printf("UTP_max_4 ERR -1\n");
 
   return -1;
 

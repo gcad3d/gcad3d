@@ -1,1 +1,1 @@
-#define INIT_TXT " gCAD3D Version 2.46.25"
+#define INIT_TXT " gCAD3D Version 2.46.26"

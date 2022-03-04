@@ -81,7 +81,7 @@ SRC1 =\
   ../ut/ut_surstd.c  ../ut/ut_sbsp.c    ../ut/ut_srbsp.c   ../ut/ut_objtab.c\
   ../ut/ut_bez.c     ../ut/ut_rbez.c    ../ut/ut_tria.c    ../ut/ut_quat.c\
   ../ut/ut_plg.c     ../ut/ut_cvtrm.c   ../ut/ut_elli.c    ../ut/ut_cvApp.c\
-  ../ut/ut_sdc.c     ../ut/ut_project.c\
+  ../ut/ut_sdc.c     ../ut/ut_project.c  ../ut/ut_gsrc.c\
   ../ut/ut_tess.c    ../ut/ut_hatch.c   ../ut/ut_log.c\
   ../ut/ubs.c        ../ut/ubscrv.c     ../ut/ubssur.c     ../ut/sbsu1.c\
   ../ut/u3d.c        ../ut/ut_cvoff.c   ../ut/ut_msh.c     ../ut/ut_face.c\

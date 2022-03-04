@@ -29,7 +29,7 @@ void DEB(){}
 #endif
 
 /*!
-\file  ../ut/ut_dump.c
+\file  ../ut/ut_dump.c  ../ut/ut_deb.h
 \brief dump structs, objects 
 \code
 =====================================================
@@ -37,8 +37,7 @@ List_functions_start:
 
 DEB_dump_pt             simple-dump Point
 DEB_dump_pt2            simple-dump Point2
-
-DEB_std_file            redirect stdout -> file or back
+DEB_dump_pTab           dump MemTab(Point) + MemTab(char) (point + status)
 
 DEB_dump_obj__          dump object
 DEB_dump_obj_1          dump bin-obj and its pointers, do not resolve.
@@ -61,6 +60,12 @@ DEB_dump_txt
 DEB_dump__              dump object
 
 DEB_dump_file           dump file
+
+DEB_std_file            redirect stdout -> file or back
+DEB_stop                (conditional)stop in gdb                             INLINE
+DEB_exit                exit program - display exit-functionName             INLINE
+
+DEB_halt                internal -used by DEB_stop
 
 List_functions_end:
 =====================================================
@@ -101,10 +106,15 @@ DEB_dump_txt
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_err.h"              // ERR_SET1
 
-#include "../ut/func_types.h"               // Typ_Att_hili
+#include "../ut/func_types.h"          // Typ_Att_hili
 #include "../db/ut_DB.h"               // DB_
 
 #include "../xa/xa_ico.h"              // ICO_PT,
+
+#define extern          // invalidates extern (sets "extern" = "")
+#include "../ut/ut_deb.h"              // DEB_*
+#undef extern           // reset extern ..
+
 
 
 // prototypes:
@@ -118,6 +128,16 @@ DEB_dump_txt
 // #define tmpSiz 50000       // size in chars for strings
                            // for BSP-Sur's 50000 ! 2011-08-23 
 
+
+//================================================================
+  int DEB_halt () {
+//================================================================
+// used by INLINE DEB_stop
+// needs in gdb-initfile "break DEB_halt"
+ 
+  return 0;
+
+}
 
 
 /*
@@ -140,18 +160,23 @@ DEB_dump_txt
 //================================================================
   int DEB_std_file (char *fNam) {
 //================================================================
-// DEB_std_file                    redirect stdout -> file or back
+// DEB_std_file                    redirect stdout -> file or back to console
+// Input:
+//   fNam      filename for consoleoutput or NULL for console
 
 
   if(strlen(fNam) > 2) {
     // redirect stdout -> file
-    fflush (stdout);
-    freopen (fNam, "w", stdout);
+    // fflush (stdout);
+    // freopen (fNam, "w", stdout);
+    OS_stdout__ (0, fNam);
+    OS_stdout__ (1, NULL);
 
   } else {
-    // restore stdout
-    fflush (stdout);
-    freopen ("/dev/tty", "w", stdout);
+    // redirect stdout -> console
+    // fflush (stdout);
+    // freopen ("/dev/tty", "w", stdout);
+    OS_stdout__ (2, NULL);
   }
 
   return 0;
@@ -1300,7 +1325,7 @@ static FILE     *uo = NULL;
             ((Fac3*)data)->i1,
             ((Fac3*)data)->i2,
             ((Fac3*)data)->i3,
-            ((Fac3*)data)->st);
+            ((Fac3*)data)->fst0);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -2896,6 +2921,34 @@ static char cOff[64];
 } 
   
   
+//======================================================================
+  int DEB_dump_pTab (MemTab(Point) *mpt, MemTab(char) *mps, char *txt) {
+//======================================================================
+// DEB_dump_pTab           dump MemTab(Point) + MemTab(char) (point + status)
+
+  int   i1;
+  char  *sap;
+  Point *pta;
+
+
+  if(!DEB_STAT) return 0;
+  
+  printf("========== DEB_dump_pTab %d ========= %s\n",mpt->rNr,txt);
+  
+
+  pta = mpt->data;
+  sap = mps->data;
+    
+  for(i1=0; i1<mpt->rNr;  ++i1) {
+    printf(" P[%4d] %9.3f %9.3f %9.3f   %3d\n",i1,
+            pta[i1].x, pta[i1].y, pta[i1].z, sap[i1]);
+  }
+
+  return 0;
+  
+} 
+
+
 //================================================================
   int DEB_dump_file (char *fn, char *inf) {
 //================================================================

@@ -542,8 +542,6 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
     }
         // printf(" _set_sur typ=%d dbi=%ld GL_actTex=%d\n",oxi->typ,dbi,GL_actTex);
 
-    // GL_att_sur ();
-
 
   //----------------------------------------------------------------
   // tdyn
@@ -568,8 +566,10 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
   }
 
 
+  //----------------------------------------------------------------
   // tesselate
   irc = TSU_SUR__ (oxi, att, dbi);
+
 
   goto L_exit;  // no message degenerate ?
 
@@ -879,12 +879,19 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
   LN_WIDTH_ADJUST = 1.f;
 
-  // adjust linewidth for UHD-screens
   OS_get_scrRes (&ix, &iy);  // get total screensize
+
+  // adjust linewidth for UHD-screens
   if(ix > 3000) LN_WIDTH_ADJUST = 2.f;
 
   LN_WIDTH_DEF = LN_WIDTH_ADJUST;
   LN_WIDTH_FAT = LN_WIDTH_ADJUST * 4.f;
+
+
+  // adjust GL_pickSiz
+  GL_pickSiz = 8;
+  if(ix > 3000) GL_pickSiz = 16;
+  
 
   return;
 
@@ -7937,46 +7944,52 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 //================================================================
 // GR_temp_att__    disp direction/objID for all objs in group
 // Input:
-//   iAtt     bit-0   disp-objID         (GR_TMP_I0)
+//   iAtt     bit-0   disp-objID         (GR_TMP_IDO)
 //            bit-1   disp-direction     (GR_TMP_IDIR)
 //
 // was APT_disp_dir
 
   static TimeStamp ts1;
-  static int       at1;
+  static int       at1 = -1;
   void             *p1;
 
 
   // printf("GR_temp_att__ %d\n",iAtt);
 
 
+  // check if iAtt is modified
   if(iAtt != at1) {
     at1 = iAtt;
     goto L_mod;
   }
 
   // iAtt unmodified - exit if nothing to display
-  if(!iAtt) return 0;
+  if(!iAtt) goto L_exit;
 
 
   // check if Group changed 
-  Grp_get_ts((TimeStamp*)&p1);
+  Grp_get_ts ((TimeStamp*)&p1);
   if(ts1 == *((TimeStamp*)p1)) {
       // printf(" _dispDir-ts-unmod.\n");
-    return 0;
+    goto L_exit;
   }
   ts1 = *((TimeStamp*)p1);
 
 
   L_mod:
+    // get bit-0 = objID
+    if(iAtt & 1) {
+      GR_temp_att_1 (0);
+    } else {
+      GL_temp_del_1 (GR_TMP_IDO);
+    }
 
-  // get bit-0 = objID
-  if(iAtt & 1) GR_temp_att_1 (0);
-  else         GL_temp_del_1 (GR_TMP_I0);
-
-  // get bit-1 = direction
-  if(iAtt & 2) GR_temp_att_1 (1);
-  else         GL_temp_del_1 (GR_TMP_IDIR);
+    // get bit-1 = direction
+    if(iAtt & 2) {
+      GR_temp_att_1 (1);
+    } else {
+      GL_temp_del_1 (GR_TMP_IDIR);
+    }
 
 
   L_exit:
@@ -7993,8 +8006,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 // Input:
 //   iAtt     0   disp-objID         (GR_TMP_I0)
 //            1   disp-direction     (GR_TMP_IDIR)
-#define dspNam 0
-#define dspDir 1
+#define dspNam 0  // use GL-recordNr GR_TMP_I0 for Display/ObjNames-ON
+#define dspDir 1  // use GL-recordNr GR_TMP_IDIR for Display/ObjDirection-ON
 
 
   int           irc, typ, bTyp, ptNr, grpNr;
@@ -8022,12 +8035,13 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   // get DL
   dlSiz = DL_get__ (&dla);
 
-  if(iAtt == dspNam) DL_temp_ind = GR_TMP_I0;    // 0=objID
-  else               DL_temp_ind = GR_TMP_IDIR;  // 1=direction
+  // preset GL-record-index
+  if(iAtt == dspNam) DL_temp_ind = GR_TMP_IDO;    // 0=objID
+  else               DL_temp_ind = GR_TMP_IDIR;   // 1=direction
 
 
-  DL_temp_init ();          // open temp. GL-list
-  GL_att_sym (ATT_COL_YELLOW);
+  DL_temp_init ();               // open temp. GL-list DL_temp_ind
+  GL_att_sym (ATT_COL_YELLOW);   // set color and LineWidth
 
 
   for(dli=0; dli<dlSiz; ++dli) {

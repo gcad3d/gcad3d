@@ -517,8 +517,8 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   int   iRec;
 
 
-  printf("UNDO_grp_undo\n");
-  UNDO_dump ("UNDO_grp_undo");
+  // printf("UNDO_grp_undo\n");
+  // UNDO_dump ("UNDO_grp_undo");
 
 
   // undo only in CAD and with empty fields
@@ -572,8 +572,8 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   int   iRec;
 
 
-  printf("UNDO_grp_redo\n");
-  UNDO_dump ("UNDO_grp_redo");
+  // printf("UNDO_grp_redo\n");
+  // UNDO_dump ("UNDO_grp_redo");
 
 
   // do CAD-undo;
@@ -652,8 +652,8 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   char     *lPos;
 
 
-  printf("======================= UNDO_grp_del %d\n",ii);
-  UNDO_dump ("UNDO_grp_del");
+  // printf("======================= UNDO_grp_del %d\n",ii);
+  // UNDO_dump ("UNDO_grp_del");
 
   if(ii < 0) return -1;
 
@@ -724,8 +724,8 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   char     *lPos;
 
 
-  printf("==================== UNDO_grp_res %d\n",ii);
-  UNDO_dump ("UNDO_grp_res");
+  // printf("==================== UNDO_grp_res %d\n",ii);
+  // UNDO_dump ("UNDO_grp_res");
 
 
   // skip this in Applications
@@ -847,7 +847,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   char     *lPos;
 
 
-  printf("UNDO_ln_del %ld\n",lNr);
+  // printf("UNDO_ln_del %ld\n",lNr);
   // UTF_dump__ ();
 
 
@@ -1091,8 +1091,8 @@ static long   dli, dbl;
   //================================================================
   L_app_ex:
 
-    printf("ex-UNDO_app__ %d\n",irc);
-    UNDO_dump ("ex-UNDO_app__");
+    // printf("ex-UNDO_app__ %d\n",irc);
+    // UNDO_dump ("ex-UNDO_app__");
 
   return irc;
 

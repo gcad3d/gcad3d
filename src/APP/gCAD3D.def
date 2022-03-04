@@ -605,6 +605,9 @@ CNTF_out_cvtrm
 CNTF_out_old
 CNTF_rev__
 CNTF_selPt
+colB1
+colB2
+colR
 ColRGB_NUL
 CopTxtTab
 CSV_read__
@@ -856,10 +859,13 @@ DEB_dump_ox_s1
 DEB_dump_ox_sWri
 DEB_dump_pt
 DEB_dump_pt2
+DEB_dump_pTab
 DEB_dump_txt
+DEB_halt
 DEB_prt_init
 DEB_prt_print
 DEB_prt_stat
+DEB_STAT
 DEB_std_file
 Del_dump
 Del_grp__
@@ -1048,6 +1054,7 @@ ERR_cb1
 ERR_init
 ERR_raise
 ERR_RESET
+FAC3_NUL
 GA_addRec
 GA_ckEmpty
 GA_clean1
@@ -1093,6 +1100,8 @@ GL_att_OnTop__
 GL_att_OnTopOff
 GL_att_OnTop_set
 GL_att_pt
+GL_atts_set_shade
+GL_atts_set_wire
 GL_att_su1
 GL_att_sur
 GL_att_sym
@@ -1102,6 +1111,7 @@ GLB_Create
 GLB_DrawExit
 GLB_DrawInit
 GLB_Init
+GLB_pending
 GLB_Query
 GLBT_but_add
 GLBT_but_disp
@@ -1561,6 +1571,10 @@ GRU_tex_pos2
 GRU_tex_pos3
 GRU_tex_pos9
 GRU_tex_rec
+GSRC_eval__
+GSRC_eval_i
+GSRC_gsc_gsrc_ln
+GSRC_gsc_init
 GTX_ardxy
 GTX_chh_
 GTX_chhl_
@@ -1587,8 +1601,12 @@ GUI_ckbutt_set_noCB
 GUI_ck_version
 GUI_Color_select
 GUI_cursor__
+GUI_Dialog_2b
+GUI_Dialog_e2b
+GUI_DialogEntry
 GUI_DialogEntryCB
 GUI_Dialog_run
+GUI_DialogYN
 GUI_DialogYN_CB
 GUI_dlg_2b
 GUI_dlg_2b
@@ -1691,10 +1709,13 @@ GUI_gl_button
 GUI_gl_draw
 GUI_gl_ev_butt__
 GUI_gl_ev_button
+GUI_gl_ev_butt_upd
 GUI_gl_ev_key
 GUI_gl_ev_move
+GUI_gl_idle1
 GUI_gl_key
 GUI_gl_move
+GUI_gl_set_active
 GUI_Ico_init
 GUI_idle__
 GUI_img__
@@ -1738,6 +1759,7 @@ GUI_menu_radiobutt_get
 GUI_menu_radiobutt_set
 GUI_MsgBox
 GUI_MsgBox
+GUI_MsgBox1
 GUI_msgwin__
 GUI_msgwin_prf
 GUI_msgwin_prt
@@ -1843,9 +1865,7 @@ GUI_tree1_row_add
 GUI_tree1_row_set
 GUI_tree1_set_selMode
 GUI_tree1_unselect_all
-GUI_TUT_CB_tmr
 GUI_TUT_m__
-GUI_TUT_m_CB
 GUI_TUT_t__
 GUI_update__
 GUI_Win__
@@ -2095,6 +2115,7 @@ IndAttLn_get_ltyp
 IndAttLn_Set1
 IN_Dreh
 INDTAB_NUL
+INF_GSRC
 INF_tstf__
 INF_TxtTab
 IN_Mod2In
@@ -2129,6 +2150,7 @@ LN_WIDTH_ADJUST
 LN_WIDTH_DEF
 LN_WIDTH_FAT
 LOG_A__
+LOG_A_ck
 LOG_A_disp
 LOG_A_exit
 LOG_A_init
@@ -2394,6 +2416,7 @@ MSH_bsav_fTab
 MSH_bsav_fTabf
 MSH_bsav_pTab
 MSH_bsav_pTabf
+MSH_eTab_bl_ck
 MSH_eTab_fix
 MSH_ibnd_pt2n
 MSH_ibnd_ptn
@@ -3019,6 +3042,7 @@ UFA_fac_ck_zero_2D
 UFA_fac_dump_
 UFA_fac_dump1
 UFA_fac_dump_f
+UFA_fac_find_2ip
 UFA_facpt_chg__
 UFA_facpt_chg_psn
 UFA_facpt_chg_st
@@ -3028,16 +3052,22 @@ UFA_fnb_dump__
 UFA_fnb_dump_1
 UFA_fnb_dump_f
 UFA_fnb_get_2ip
+UFA_fnb_get_fac_esn
 UFA_fnb_init__
 UFA_fnb_init_1
+UFA_fnb_init_2p
 UFA_fnb_init_el
+UFA_fnb_init_new
+UFA_fnb_init_upd
 UFA_fnb_mod_val
 UFA_fnb_move
 UFA_fnb_set_esn
+UFA_fnb_set_eTyp
 UFA_fnb_set_if_es
 UFA_fnb_set_val
 UFA_fnb_upd__
 UFA_fnb_upd_1
+UFA_fnb_upd_ip
 UFA_ifac_ck_edgo
 UFA_ife_getNf_ife
 UFA_ifev_find_2ip
@@ -3060,6 +3090,7 @@ UFA_mod_delPt
 UFA_nfac_ipatch
 UFA_nfb_ck__
 UFA_nfb_ck_1
+UFA_nfb_ck_e
 UFA_nfb_ck_f
 UFA_nifac_ck_pt
 UFA_nifac_strip
@@ -3095,6 +3126,7 @@ UI_cb_search
 UI_CB_view
 UI_ChangeCursor
 UI_ckb_meas
+UI_ckb_nam__
 UI_colSel
 UI_ConstP
 UI_curPos
@@ -3410,6 +3442,7 @@ UT2D_2pt_tngLnCiY
 UT2D_2slen_2pt_vc__
 UT2D_2slen_vc_vc__
 UT2D_3len_ptln
+UT2D_4pt_coll_ck
 UT2D_angd_angr
 UT2D_angd_invert
 UT2D_angd_set
@@ -4619,6 +4652,7 @@ UTP_db_rnd5
 UTP_dbsiz
 UTP_max
 UTP_max_3
+UTP_max_4
 UTP_max_d3
 UTP_min
 UTP_min_3

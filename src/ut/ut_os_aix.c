@@ -238,30 +238,37 @@ extern int errno;
 
 
 //================================================================
-  int OS_stdout__ (int mode, char *fn) {
+  int OS_stdout__ (int mode, void *data) {
 //================================================================
-/// OS_stdout__              direct console-output into file
-/// mode     0 open file for console-output
-///          1 reconnect stdout
+// OS_stdout__              direct console-output into file
+// mode     0   set filename for console-output
+// mode     1   (re-)open file for console-output
+//          2   close console-output into file; continue with output to console ..
 
-  static FILE    *fp;
+  static char    fn[80];
+  static FILE    *fp = NULL;
 
 
   // printf("OS_stdout__ %d |%s|\n",mode,fn);
 
 
   if(mode == 0) {
+    if(strlen((char*)data) >= 80) {printf("***** OS_stdout__ E1 \n"); return -1;}
+    strcpy(fn, (char*)data);
+
+
+  } else if(mode == 1) {
+    if(fp) fflush (fp);
     fp = freopen (fn, "w", stdout);
-    if(!fp) return -1;
+    if(!fp) {printf("***** OS_stdout__ E2 \n"); return -1;}
 
 
   } else {
-    fflush (fp);
-    stdout = fdopen (2, "w");
-
-      printf("ex OS_stdout__-1\n");
-
-
+    if(fp) fflush (fp);
+    // stdout = fdopen (2, "w");
+    // fclose (fp);
+    freopen ("/dev/tty", "w", stdout);
+    fp = NULL;
   }
 
   return 0;
@@ -2250,12 +2257,12 @@ extern int errno;
 //==========================================================================
   int OS_file_copy (char *oldNam, char *newNam) {
 //==========================================================================
-// OS_file_copy             copy file
+// OS_file_copy             copy file - force overwrite
 //   retCode      0=OK; else Error
 
   char cbuf[512];
 
-  // printf("OS_file_copy |%s|%s|\n",oldNam,newNam);
+  printf("OS_file_copy |%s|%s|\n",oldNam,newNam);
 
   sprintf(cbuf,"/bin/cp -f \"%s\" \"%s\"",oldNam,newNam);
     // printf(cBuf, "copy /y %s %s",fnOld, fnNew);  // MS

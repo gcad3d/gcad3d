@@ -55,10 +55,10 @@ GR_temp_*       display temporary;
 // GL-dispList-index of the CAD-inputObjects are -1 to -7; see IE_GET_INP_DLI
 // Last temp. GL-dispList-index is (DL_base_font1 - 1)
 #define GR_TMP_I0        8        // primary temporary obj
-// #define GR_TMP_ID0       9        // primary temporary obj with direction-arrow
-#define GR_TMP_IDIR      9        // direction with arrow
-#define GR_TMP_IPOS     10        // vertexposition - small circle
-#define GR_TMP_IMEN     11        // preview activ option-menu-entry
+#define GR_TMP_IDO       9        // GL-recordNr for obj-names
+#define GR_TMP_IDIR     10        // direction with arrow
+#define GR_TMP_IPOS     11        // vertexposition - small circle
+#define GR_TMP_IMEN     12        // preview activ option-menu-entry
 
 #define GR_TMP_DEF       1        // default; normal; use with DL_att_temp
 #define GR_TMP_HILI      2        // hilite;  use with DL_att_temp
@@ -300,6 +300,8 @@ int GR_temp_tx2A (Point *pt1, char *txtA, int att);
 int GR_temp_txiA (Point *pt1, int ii, int att);
 int GR_temp_txi2 (Point2 *pt1, int ii, int att);
 
+int GR_temp_att__ (int iAtt);
+int GR_temp_att_1 (int iAtt);
 
 //----------------------------------------------------------------
 int GR_tDyn_dbo (int typ, long dbi, int att, int mode);

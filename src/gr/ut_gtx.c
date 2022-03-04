@@ -496,7 +496,7 @@ double GR_fontSiz = 0.055;     // bringt den aktuellen Font auf Site 1 mm.
   ObjGX     *ox1;
 
 
-  printf(" GR_img_get_dbi %ld\n",dbi);
+  // printf(" GR_img_get_dbi %ld\n",dbi);
 
 
   // get data

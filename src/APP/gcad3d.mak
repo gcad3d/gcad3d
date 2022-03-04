@@ -55,7 +55,7 @@ endif
 # fmod dlclose
 LKDEF = -lm -ldl
 
-CPFLG = $(CPDEB) -D$(VGUI) $(GLBCP) -Wno-implicit
+CPFLG = $(CPDEB) -D$(VGUI) $(GLBCP) -O0 -Wno-implicit
 #CPFLG = $(CPDEB) -D$(VGUI) $(GUICP) $(GLBCP)
 
 

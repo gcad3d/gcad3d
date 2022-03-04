@@ -198,6 +198,7 @@ typedef struct {double x, y;}                                       Point2;
 // size = 16
 
 typedef struct {float x, y, z;}                                     Pointf;
+// size = 12
 
 /// 3D-point, Typ_PT
 typedef struct {double x, y, z;}                                    Point;
@@ -1656,7 +1657,7 @@ void   UT3D_pt_add_3vc_3par (Point*,Vector*,Vector*,Vector*,double,double,double
 void   UT3D_pt_add_pt2 (Point *, Point2 *);
 void   UT3D_pt_add2pt (Point *, Point *, Point *);
 void   UT3D_pt_sub_pt2 (Point *, Point *, Point2 *);
-void   UT3D_pt_sub_pt3 (Point *, Point2 *);
+void   UT3D_pt_sub_pt3 (Point *, Point *);
 void   UT3D_pt_tra_pt_dx (Point*, Point*, double);
 void   UT3D_pt_tra_pt_dy (Point*, Point*, double);
 void   UT3D_pt_traptvc (Point *, Point *, Vector *);

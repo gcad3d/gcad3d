@@ -50,6 +50,8 @@ UI_wait_time          wait <msTim> millisecs or stop with Esc
 UI_askEscape          get state of Esc-key (work all pending events before)
 UI_Escape_set         set active mode of Esc-key
 
+UI_ckb_nam__          set checkbox ckb_nam
+
 AP_view_upd             enable/disable active view-button
 AP_view_set             enable/disable active view-button
 AP_view_ck_std        check if active plane is Top, Front or Side
@@ -471,6 +473,19 @@ static int   UI_PREV_ACT = 0, UI_PREV_FNC = 0;
 
 }
 
+//================================================================
+  int UI_ckb_nam__ (int mode) {
+//================================================================
+// UI_ckb_nam__          set checkbox ckb_nam
+
+  GUI_menu_checkbox_set (&ckb_nam, mode);
+  APT_disp_att = BIT_UPD (APT_disp_att, 0, mode);
+  DL_Redraw ();
+
+  return 0;
+
+}
+
 
 //================================================================
   int UI_winTX_rmLast () {
@@ -745,11 +760,11 @@ static int   UI_PREV_ACT = 0, UI_PREV_FNC = 0;
 
   if(APT_dispPT == OFF) {
     // hide pts
-    GUI_menu_checkbox_set (&ckb_ptDisp, TRUE);
+    GUI_menu_checkbox_set (&ckb_ptDisp, FALSE);
 
   } else {
     // view pts (std)
-    GUI_menu_checkbox_set (&ckb_ptDisp, FALSE);
+    GUI_menu_checkbox_set (&ckb_ptDisp, TRUE);
   }
 
   return 0;
@@ -1331,7 +1346,7 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 //=====================================================================
   int UI_wireCB (MemObj *mo, void **data) {
 //=====================================================================
-// set GL-shaden
+// set GL-shaden or wireframe
 
   int  i2;
 
@@ -6342,12 +6357,7 @@ See UI_but__ (txt);
     // bitPos 0 = objID
     APT_disp_att = BIT_UPD (APT_disp_att, 0, i1);
     DL_Redraw ();
-    TX_Print(MSG_const__(MSG_GrpSel));
-
-    // imply END-Button (Redraw)
-    // UI_AP (UI_FuncSet, UID_but_END, NULL);  // Stuerzt ab !! ??
-    // ED_Reset ();
-    // ED_work_END (0);
+    // TX_Print(MSG_const__(MSG_GrpSel));
 
 
   //-------------------------------------------------
@@ -6665,7 +6675,6 @@ See UI_but__ (txt);
 
   //======================================================
   } else if(!strcmp(cp1, "LayMod")) {   // modify Layer
-    // printf(" LtypMod\n");
     // UI_WinLayMod (NULL, (void*)UI_FuncInit);
 
 

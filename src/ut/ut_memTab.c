@@ -286,8 +286,8 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 //=========================================================================
 /// \code
 /// MemTab_ini__           init memory-table; if already in use: clear.
-///   - get permanent memoryspace (malloc) ; must be freed with MemTab_free
-///   - does expand automatically;
+///   - prepare for permanent memoryspace (malloc) ; must be freed with MemTab_free
+///   - get space (malloc) with MemTab_add; does expand automatically;
 /// use MemTab for a list of records;
 /// use Memspc for a different types of records in the same memoryblock.
 /// 

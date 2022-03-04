@@ -95,8 +95,10 @@ Example usage:
 static FILE      *LOG_A_fp=NULL;        // file Logfile
 static char      LOG_A_fnam[128];  // filename Logfile
 
-static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
+static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 
+
+  int LOG_A__ (int msgTyp, char* txt, ...);
 
 //================================================================
 // Externals
@@ -119,7 +121,15 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
     LOG_A_fp = NULL;
   }
 
+  if(strlen(fnam) >= 128) {
+    TX_Error ("LOG_A_set_fnam - filename too long ..");
+    return -1;
+  }
   strcpy(LOG_A_fnam, fnam);
+
+  // if not yet open then open Logfile
+  // open log-file
+  LOG_A__ (MSG_ERR_typ_INF, "=========== logfile %s ",fnam);
 
   return 0;
 
@@ -153,15 +163,14 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 //================================================================
   int LOG_A__ (int msgTyp, char* txt, ...) {
 //================================================================
-/// \code
 /// LOG                    write message into logfile
 /// Input:
 ///   msgTyp     MSG_ERR_typ_INF = 0
 ///              MSG_ERR_typ_WNG = 1
 ///              MSG_ERR_typ_ERR = 2
+///              MSG_ERR_typ_CON     4        // continuation line
 ///
 /// see also gis_msg__
-/// \endcode
 
  
   va_list va;
@@ -188,9 +197,10 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
   char   s1[80];
 
 
-  sprintf(s1, "PT2 %lf %lf",pte->x, pte->y);
+  sprintf(s1, "pos =  %lf %lf",pte->x, pte->y);
 
-  return LOG_A_write (s1);
+  // return LOG_A_write (s1);
+  return LOG_A__ (MSG_ERR_typ_CON, s1);
 
 }   
   
@@ -268,7 +278,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
 
   // close logfile
   if(LOG_A_fp) {
-    fprintf (LOG_A_fp, "INF Logend %s\n",OS_date1());
+    fprintf (LOG_A_fp, "INF =========== Logend %s\n",OS_date1());
     fclose (LOG_A_fp);
     LOG_A_fp = NULL;
     TX_Print ("  Logfile %s written",LOG_A_fnam);
@@ -280,6 +290,23 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR "};
   return 0;
 
 }
+
+
+//================================================================
+  int LOG_A_ck () {
+//================================================================
+// LOG_A_ck             check if logfile (yet) open; 1=yes, 0=no
+
+  // close logfile
+  if(LOG_A_fp) return 1;
+
+  return 0;
+
+}
+
+
+
+
 
 
 // EOF

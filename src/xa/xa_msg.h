@@ -96,6 +96,7 @@ Example:
 #define MSG_ERR_typ_WNG     1
 #define MSG_ERR_typ_ERR     2
 #define MSG_ERR_typ_BRK     3
+#define MSG_ERR_typ_CON     4        // continuation line
 
 int MSG_ERR_out (int msgTyp, const char *fnc, int ikey, char *txt, ...);
 

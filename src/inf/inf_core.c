@@ -265,6 +265,7 @@ void INF_symDir (){        /*! \code
 
 A symbolic file name consists of "{symbolic-directory}/{filename}" 
 Example of symbolic file name: "Data/Niet1.dat" 
+Symbolic-directory can have size up to <SIZMFSym> chars.
 
 All symbolic-directories are defined in file <cfgdir>/dir.lst
   Format:
@@ -278,7 +279,7 @@ Files:
 
 
 Functions:
-MDLFN_get_mnam           get resolved symbolic filename
+MDLFN_fDir_syDir           get resolved symbolic filename
 
 see:
 stru_FN    {char symDir[128], fDir[128], fNam[128], fTyp[40], iTyp;}

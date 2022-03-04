@@ -40,12 +40,12 @@ void INF_BITMAP_SYMBOLS (){}
 #endif
 // bitmapsymbols for GL_Disp_symB color: GL_att_sym
 // GL_set_symB GR_tDyn_symB__ GR_temp_symB
-#define SYM_TRI_S        130   // Bitmap tringle small
-#define SYM_STAR_S       131   // star, small
-#define SYM_CIR_S        132   // Bitmap circle small
-#define SYM_SQU_S        133   // Bitmap square small
-#define SYM_TRI_B        134   // Bitmap tringle big
-#define SYM_SQU_B        135   // Bitmap square big
+#define SYM_TRI_S        130   // Bitmap tringle small   0
+#define SYM_STAR_S       131   // star, small            1
+#define SYM_CIR_S        132   // Bitmap circle small    2
+#define SYM_SQU_S        133   // Bitmap square small    3
+#define SYM_TRI_B        134   // Bitmap tringle big     4
+#define SYM_SQU_B        135   // Bitmap square big      5
 
 // vector-symbols
 #define SYM_VEC          139   // das Vektorsymb (nicht skaliert)

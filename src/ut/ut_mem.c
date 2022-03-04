@@ -651,18 +651,22 @@ MEM_alloc_tmp
 
   // printf("MEM_del_nrec %d %d %d\n",*recNr,ipos,delRecNr);
 
-  if((delRecNr < 1)||(ipos < 0)||((ipos+delRecNr) > *recNr)) {
+  if((delRecNr < 1)||(ipos < 0)) {
     TX_Error("MEM_del_nrec E001 %d %d %d\n",*recNr,ipos,delRecNr);
     return -1;
   }
 
-  movSiz = (*recNr  - ipos) * sizRec;
+  if((ipos + delRecNr) >= *recNr) { *recNr = ipos; return 0; }
+
+  movSiz = (*recNr - ipos) * sizRec;
 
   newPos = (char*)recTab + (ipos * sizRec);
 
   oldPos = newPos + (delRecNr * sizRec);
 
   *recNr -= delRecNr;
+
+    // printf(" del_nrec siz=%d oldPos=%d newPos=%d\n",movSiz,oldPos,newPos);
 
   // memcpy (newPos, oldPos, movSiz);
   memmove (newPos, oldPos, movSiz);    // 2014-12-15

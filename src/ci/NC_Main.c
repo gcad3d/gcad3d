@@ -567,7 +567,7 @@ static int     APT_view_stat;      // 0=VIEW nicht gesetzt; 1=VIEW gesetzt.
 
        int     APT_subTyp;         // subTyp of created obj; 
        
-       int     APT_disp_att;       // 1=disp-ObjNames; 2=disp-direction; 
+       int     APT_disp_att = 0;   // bit-0: 1=disp-ObjNames; bit-1: 2=disp-direction;
 
        int     APT_dispPT  = ON;   // display Points
        int     APT_dispPL  = ON;   // display Planes
@@ -4849,6 +4849,22 @@ APT_stat_act:
 
 
   //----------------------------------------------------------------
+  } else if(!strcmp (pa[0], "DISP_OID")) {
+    if(MDL_IS_SUB) goto Fertig; // skip command in Submodels
+      // printf(" change Disp_PT |%s|\n",auxBuf);
+
+    if(!strcmp (pa[1], "ON")) {           // view 
+      UI_ckb_nam__ (1);
+
+    } else if(!strcmp (pa[1], "OFF")) {   // hide
+      UI_ckb_nam__ (0);
+
+    } else {
+      goto Fehler1;
+    }
+
+
+  //----------------------------------------------------------------
   } else {
     goto Fehler1;
   }
@@ -6733,25 +6749,40 @@ Ablauf Makro:
   // for(i1=0; i1<aus_anz; ++i1)
     // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
 
-  ii = 0;
 
-  for(i1=0; i1<aus_anz; ++i1) {
 
-    if(aus_typ[i1] == Typ_Val) {
-      ii = aus_tab[i1];
-      continue;
+  //----------------------------------------------------------------
+  // test modify-objs or create-new-attribute
+  if(aus_typ[1] != Typ_Val) goto L_mod;
+
+    // create-new-attribute
+    DL_InitAttRec ((int)aus_tab[0],      // index linetyp
+                   (int)aus_tab[1],      // col
+                   (int)aus_tab[2],      // stipple
+                   (int)aus_tab[3]);     // lineWidth
+    goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_mod:      // modify-objs
+    ii = 0;   // default-linetyp
+    for(i1=0; i1<aus_anz; ++i1) {
+
+      if(aus_typ[i1] == Typ_Val) {
+        ii = aus_tab[i1];
+        continue;
+      }
+
+      // find dli from typ,dbi
+      dbi = aus_tab[i1];
+      dli = DL_find_smObj (aus_typ[i1], dbi, -1L, AP_modact_ibm);
+
+      GA_lTyp__ (dli, ii, aus_typ[i1], dbi, 1);
     }
 
-    // find dli from typ,dbi
-    dbi = aus_tab[i1];
-    dli = DL_find_smObj (aus_typ[i1], dbi, -1L, AP_modact_ibm);
 
-    GA_lTyp__ (dli, ii, aus_typ[i1], dbi, 1);
-
-  }
-
-  // DL_Redraw ();
-
+  //----------------------------------------------------------------
+  L_exit:
   return 0;
 
 }

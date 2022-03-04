@@ -224,7 +224,8 @@ UT2D_pt_int_2lnl          intersection of 2 limited lines
 UT2D_2pt_par_int_ln_ci    intersection of  limited-line  limited-circle
 UT2D_2pt_int_ci_ci        intersection of 2 limited circles
 UT2D_pt_int_4pt           intersection of 2 limited 2D-lines with tol
-UT2D_pt_int4pt  REPLACED with UT2D_pt_int_4pt intersection 2 lines
+UT2D_pt_int4pt            intersection of 2 limited 2D-lines with tol
+UT2D_4pt_coll_ck          parall. lines: get pointNr of leftMost- and rightMostPoint;
 UT2D_pt_intptvcy          intersection line (pt-vc) - horizontal line
 UT2D_pt_intlny            intersection linesegment - horizontal (unlim.) line
 UT2D_pt_intlnx            intersection linesegment - vertical (unlim.) line
@@ -393,6 +394,7 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
 #include "../ut/ut_plg.h"                 // UT3D_par_par1plg
 #include "../ut/ut_elli.h"                // UT3D_angr_par1_ell
 #include "../ut/ut_TX.h"                  // TX_Error
+#include "../ut/ut_deb.h"                 // DEB_stop
 
 
 #include "../xa/xa_msg.h"                 // MSG_* ERR_*
@@ -4059,7 +4061,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
   dab = (vcd.dx*vac.dy - vcd.dy*vac.dx) / qq;
   dcd = (vab.dx*vac.dy - vab.dy*vac.dx) / qq;
-    // printf(" dab=%f dcd=%f\n",dab,dcd);
+    printf(" dab=%f dcd=%f\n",dab,dcd);
 
 
 
@@ -4179,40 +4181,43 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 }
 
+
 //=======================================================================
   int UT2D_pt_int4pt (Point2 *ps, double *dp1, double *dp2, double *tol,
                       Point2 *p1,Point2 *p2,Point2 *p3,Point2 *p4) {
 //=======================================================================
-/// \code
-/// DO NOT USE - REPLACED WITH UT2D_pt_int_4pt
-/// intersection of 2 limited lines, tolerance.
-/// Info, ob Schnittpunkt ident mit p1 oder p2 (p3,p4 werden nicht getestet)
-/// Info, ob p1-p2 und p3-p4 uebereinanderliegen (ueberlappen)
-/// Output:
-///   dp1       parameter along p1-p2
-///   dp2       parameter along p3-p4
-///   RC = -1   NO intersection.
-///   RC =  0   Yes; intersect; ps=p1; dp1=0;
-///   RC =  1   Yes; intersect; ps between p1-p2;
-///             dp1 ist der Abstandswert (0-1) des Schnittpunktes entlang p1-p2
-///   RC =  2   Yes; intersect; ps=p2; dp1=1;
-///   RC =  3   Lines parallel - Endpoints touch (not overlap). ps, dp1 unused.
-///   RC =  4   Lines parallel and overlap; ps, dp1 unused.
-/// \endcode
+// intersection of 2 limited lines, tolerance.
+// Info, ob Schnittpunkt ident mit p1 oder p2 (p3,p4 werden nicht getestet)
+// Info, ob p1-p2 und p3-p4 uebereinanderliegen (ueberlappen)
+// Output:
+//   dp1       parameter along p1-p2
+//   dp2       parameter along p3-p4
+//   RC = -1   NO intersection.
+//   RC =  0   Yes; intersect; ps=p1; dp1=0;
+//   RC =  1   Yes; intersect; ps between p1-p2;
+//             dp1 ist der Abstandswert (0-1) des Schnittpunktes entlang p1-p2
+//   RC =  2   Yes; intersect; ps=p2; dp1=1;
+//   RC =  3   Lines parallel - Endpoints touch (not overlap). ps, dp1, dp2 not set
+//   RC =  4   Lines parallel and overlap; ps, dp1, dp2 not set
 
 //  (war:    Yes; overlap; all 4 point are on the same line; ps not used.
 //           dp1 ist 0 oder 1 (wenn Linien ident = komplett ueberlappen)
 
-// siehe auch UT2D_pt_ck_onLine UT2D_pt_ck_int4pt
+// siehe auch UT2D_pt_ck_onLine UT2D_pt_ck_int4pt UT2D_pt_int_4pt
 // see also UT2D_pt_intlnln
+// for RC = 4 (collinear-overlapping) see UT2D_4pt_coll_ck
 
 
   int     irc;
   double  q1, q2, qq, d1, d2, hx1,lx1,hy1,ly1, hx2,lx2,hy2,ly2;
   Vector2 vc1, vc2, vcs;
 
+
+  // printf("UT2D_pt_int4pt tol=%f\n",*tol);
+
   //printf("    l1=%f,%f  - %f,%f\n",p1->x,p1->y,p2->x,p2->y);
   //printf("    l2=%f,%f  - %f,%f\n",p3->x,p3->y,p4->x,p4->y);
+
 
 
   // DEB_dump_obj__(Typ_PT2, p1," p1 ");
@@ -4283,16 +4288,30 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   L_collin:
 
   // die Linien ueberlappen teilweise ..
-  irc = 3;
 
-  // *dp1 = 0.;
+  // test if lines touch or overlap
+  // find direction with longer distances
+  if(vc1.dx > vc1.dy) {
+    // flat - dx longer
+    // find lowest x and highest x - get dist; compare with vc1.dx + vc2.dx
+    d1 = DMAX (hx1, hx2) - DMIN (lx1,lx2);
+    d2 = fabs(vc1.dx) + fabs(vc2.dx);
+      // printf(" flat-d1=%f d2=%f\n",d1,d2);
 
-  // Tests ob Linien beruehren ..
-  if(fabs(hx1-lx2) < *tol) goto L_fertig;
-  if(fabs(hy1-ly2) < *tol) goto L_fertig;
+  } else {
+    // steep - dy longer
+    // find lowest y and highest y - get dist; compare with vc1.dy + vc2.dy
+    d1 = DMAX (hy1, hy2) - DMIN (ly1,ly2);
+    d2 = fabs(vc1.dy) + fabs(vc2.dy);
+      // printf(" steep-d1=%f d2=%f\n",d1,d2);
+  }
 
-  irc  = 4;   // Teilueberdeckung, nicht nur Beruehrung
-  *dp1 = 1.;
+  // if extent != sum-of-length: overlap.
+  if(fabs(d1 - d2) < *tol) {irc = 3; goto L_fertig;} // 3 = connected lines, no overlap
+
+
+  irc  = 4;   // 4 = overlap; Teilueberdeckung, nicht nur Beruehrung
+  // *dp1 = 1.;
 
   goto L_fertig;
 
@@ -4348,12 +4367,12 @@ UT2D_pt_mid2pt                  midpoint between 2 points
     if(d2 < 0.5) {     // test p2=p3
       if(fabs(p2->x - p3->x) > *tol) goto L_test_sp;
       if(fabs(p2->y - p3->y) > *tol) goto L_test_sp;
-      goto L_3;   // RC =  2   Yes; p2=p3;
+      goto L_2; //L_3;   // RC =  2   Yes; p2=p3;
 
     } else {           // test p2=p4
       if(fabs(p2->x - p4->x) > *tol) goto L_test_sp;
       if(fabs(p2->y - p4->y) > *tol) goto L_test_sp;
-      goto L_4;   // RC =  2   Yes; p2=p4;
+      goto L_2; //L_4;   // RC =  2   Yes; p2=p4;
     }
   }
 
@@ -4504,7 +4523,57 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
   //=====================================================
   L_fertig:
-  //printf("ex UT2D_pt_int4pt %d %f,%f\n",irc,ps->x,ps->y);
+    // TESTBLOCK
+      // printf("ex UT2D_pt_int4pt %d %f,%f\n",irc,ps->x,ps->y);
+      // if(irc > 2) DEB_stop();
+    // END TESTBLOCK
+ 
+  return irc;
+
+}
+
+
+//=======================================================================
+  int UT2D_4pt_coll_ck (int *lmp, int *rmp,
+                        Point2 *p1, Point2 *p2, Point2 *p3, Point2 *p4) {
+//=======================================================================
+// UT2D_4pt_coll_ck    get pointNr of leftMostPoint and rightMostPoint;
+// only for collinear overlapping lines (irc=4 from UT2D_pt_int4pt)
+// 
+// Input:
+//   p1,p2  line 1
+//   p3,p4  line 2
+// Output:
+//   lmp    leftMostPoint, 1-4
+//   rmp    rightMostPoint, 1-4
+//          1 = p1; 2 = p2;
+//          3 = p3; 4 = p4 
+
+
+  int       irc;
+  double    d1, d2;
+
+
+  // find direction with longer distances
+  d1 = fabs(p1->x - p2->x);
+  d2 = fabs(p1->y - p2->y);
+
+
+  if(d1 > d2) {
+    // flat - dx longer
+    *lmp = UTP_min_4 (&p1->x, &p2->x, &p3->x, &p4->x) + 1;
+    *rmp = UTP_max_4 (&p1->x, &p2->x, &p3->x, &p4->x) + 1;
+
+  } else {
+    // steep - dy longer
+    *lmp = UTP_min_4 (&p1->y, &p2->y, &p3->y, &p4->y) + 1;
+    *rmp = UTP_max_4 (&p1->y, &p2->y, &p3->y, &p4->y) + 1;
+  }
+
+  if((*lmp < 0)||(*rmp < 0)) irc = -1;
+  else                       irc = 0;
+    printf(" ex-UT2D_coll_4pt_ck irc=%d lmp=%d rmp=%d\n",irc,*lmp,*rmp);
+
   return irc;
 
 }

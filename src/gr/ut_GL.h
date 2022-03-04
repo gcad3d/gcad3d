@@ -29,8 +29,8 @@ Korr:
                               // 130-138 Bitmap-Symbols
                               // 139     Vector
                               // 140-149 Vector-Symbols (scaled)
-#define DL_base_LnAtt   150   // LineAttributes until DL_base_PtAtt
-#define DL_base_PtAtt   195   // PointAttributes until DL_base_font2
+#define DL_base_LnAtt   150   // LineAttributes until DL_base_PtAtt (max 45 types)
+#define DL_base_PtAtt   195   // PointAttributes until DL_base_font2 (4 types used)
 #define DL_base_font2   200   // fontObjs until DL_Ind_Scl2D (200=Blank=Ascii 32)
 #define DL_Ind_Scl2D    297   // DL_Set_Scl2D 
 #define DL_Ind_Cen2D    298   // set to 2D-screenCenter  DL_Set_Cen2D
@@ -39,6 +39,7 @@ Korr:
 #define DL_OnTopOff     301   // reset "overwrite-all"
 #define DL_base_defCol  302   // default-color             UNUSED
 #define DL_base_grid    303   // grid  (GL_grid__())       UNUSED
+#define DL_shade_wire   304   // activate shaded or wireframe for surface
 // free 303-309
 #define DL_base_mod     310   // first index of BasModelnames (DL_base_mod)
                               // next is DL_base__ - first index of normal objects

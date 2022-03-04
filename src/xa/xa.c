@@ -4772,14 +4772,14 @@ remote control nur in VWR, nicht MAN, CAD;
 //====================================================================
   int AP_debug__ (char *module_info) {
 //====================================================================
-/// \code
-/// stop here in debug-mode; in core; with Alt-X
-/// in .gdbinit (gCAD3D.gdb); must start with: "gdb gCAD3D.exe -x gCAD3D.gdb"
-/// break AP_debug__
-/// Input:
-///   module_info    text in which plugin/dll the stop occurs
-/// Purpose: eg set "watch <varnam>" after startup is done (saves time)
-/// \endcode
+// DO NOT USE: use DEB_stop
+//
+// stop here in debug-mode; in core; with Alt-X
+// in .gdbinit (gCAD3D.gdb); must start with: "gdb gCAD3D.exe -x gCAD3D.gdb"
+// break AP_debug__
+// Input:
+//   module_info    text in which plugin/dll the stop occurs
+// Purpose: eg set "watch <varnam>" after startup is done (saves time)
 
 
   // printf("*** debugStop in module %s\n",module_info);

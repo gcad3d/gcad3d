@@ -1406,6 +1406,28 @@ SHOW B20
 
 
 
+<B>Neuen Linientyp definieren</B>
+ATTL <indexNr> <colour> <lineTyp> <lineThick>
+Beispiel:
+ATTL 20 9 2 4
+
+# Definition lineAttribute 20 with color 009 = blue, 2=dashed, 4=linewidth
+
+ Format: indexNr colour lineTyp lineThick // comment
+
+   colour     3 digits; red, green, blue.
+              900 = red,   090 = green, 009 = blue;
+              000 = black; 999 = white, 990 = yellow ..
+   lineTyp:   0 = full-line (VollLinie);    1 = dash-dot (Strich-Punkt),
+              2 = dashed (kurz strichliert) 3 = dashed-long (lang strichliert),
+   lineThick: 1-6, thickness in pixels
+
+Max. nr of attribute-records is 44 (indexes 0 - 44)
+Defaults are in file <cadbase>/gCAD3D/<config>/ltyp.rc
+  config is eg cfg_Linux.
+
+
+
 <B>Linientype ändern</B>
 # Linientyp 8 für Objekte L21 und L22 
 ATTL 8 L21 L22
@@ -1449,8 +1471,14 @@ MODE BAR2 ON
 # Anzeige Ebenen aus
 MODE DISP_PL OFF
 
+# Anzeige Punkte ein (im Modus VWR steht die Anzeige von Punkten OFF)
+MODE DISP_PT ON
+
 # Anzeige Punkte aus
 MODE DISP_PT OFF
+
+# Anzeige aller Object-Names
+MODE DISP_OID ON
 
 
 <HR><!-- ============================================================ -->

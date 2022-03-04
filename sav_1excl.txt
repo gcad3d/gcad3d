@@ -14,6 +14,8 @@ core
 .git/
 doc/gcad/
 doc/gui/
+myGIS1/tmp/
+myGIS1/bin/
 binLinux32/
 binLinux64/
 binMS32/

@@ -40,11 +40,15 @@ typedef struct {Point *pTab; int pNr; char *pTyp;}                  Verts;
 typedef struct {int *ipt; int *inf;}                                Face;
 
 
-/// \code
-/// i1,i2,i3   index points
-/// st         status face
-/// \endcode
-typedef struct {int i1, i2, i3, st;}                                Fac3;
+// i1,i2,i3   index points
+// fst0       status face; 16=marked-for-delete
+//                i3
+//        e3   /  |
+//          /     | e2
+//       /        |
+//   i1 ----------i2
+//          e1
+typedef struct {int i1, i2, i3; char fst0, fst1, fst2, fst3;}       Fac3;
 
 
 /// \code
@@ -56,18 +60,12 @@ typedef struct {int i1, i2, i3, st;}                                Fac3;
 typedef struct {void *fTab; int fNr; int fTyp;}                     Faces;
 
 
-/// \brief Face with NeigbourFaces
-/// \code
-/// ip1, ip2, ip3   index to points
-/// if1, if2, if3   index to NeigbourFaces. -1=outerBound; -2=unresolved; -3=new
-///                ip3
-///         if3   /  |
-///            /     | if2
-///         /        |
-///   ip1 ----------ip2
-///          if1
-/// \endcode
-typedef struct {int ip1, ip2, ip3, if1, if2, if3;}                  FacNf;
+// /// \brief Face with NeigbourFaces
+// /// \code
+// /// ip1, ip2, ip3   index to points
+// /// if1, if2, if3   index to NeigbourFaces. -1=outerBound; -2=unresolved; -3=new
+// /// \endcode
+// typedef struct {int ip1, ip2, ip3, if1, if2, if3;}                  FacNf;
 
 
 /// ipt:  index points;

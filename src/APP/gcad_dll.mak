@@ -13,15 +13,15 @@ hTyp := $(shell echo "`uname -s`_`uname -m`")
 
 
 # debug-settings DEB CPDEB LKDEB
-include deb.mak
+include ../APP/deb.mak
 
 
 # OpenGL: get OGLLIB
-include ogl.mak
+include ../APP/ogl.mak
 
 
 # get SRCOS
-include srcOS.mak
+include ../APP/srcOS.mak
 
 
 ifndef gcad_dir_bin
@@ -125,5 +125,5 @@ srclst:
 
 #=====================================================================
 # ACHTUNG: case of filename muss genau stimmen, else xx.o Datei nicht gefunden
-include compile.mak
+include ../APP/compile.mak
 # EOF

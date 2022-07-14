@@ -279,13 +279,13 @@ int UTRA_app_vc (Vector*, Vector*);
 
 
   // printf("UTRA_app_ox \n");
-  UTRA_dump__ ("UTRA_app_ox");  // disp translObj
+  // UTRA_dump__ ("UTRA_app_ox");  // disp translObj
   // DEB_dump_ox_0 (ox1, "ox1");
 
 
   // is output a single data-record or a ox
   fTyp = UTO_ck_dbsTyp (ox1->form);  // 0=struct(D,P,L,C); 1=oGX(S,N,A,B);
-     printf(" fTyp=%d\n",fTyp);
+     // printf(" fTyp=%d\n",fTyp);
 
   if(!fTyp) {
     // std-struct; VPDLCRMI not SABNT

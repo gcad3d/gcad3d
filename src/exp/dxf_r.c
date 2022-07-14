@@ -96,6 +96,14 @@ dxf-Write:
 
 
 ==============================================================================
+ProgramFlow:
+DXF_r__            mainEntry
+  dxfr_rec__         get next record as objx
+  dxf_r_src_out      write out objx
+
+
+
+==============================================================================
 DXF-Out:
  Alle Punkte und Linien gehen als 3D-Koord. raus;
  Kreise liegen (ausser X-Y-planar) auf einer Ebene, von der der Abstand zum absol.
@@ -151,7 +159,8 @@ Die folgenden Entities haben alle Recordtyp (= erste Zeile) 0. Es folgt dann als
   LINE     aus Anfpt. (10/20/30) und Endpkt (11/21/31)
   ARC      aus Mittelpunkt (10/20/30),Radius(40), Anf.Winkel(50), Endwinkel(51).
            Immer CCW!
-  CIRCLE   aus Mittelpunkt (10/20/30) und ?? (34) und Radius (40)
+  CIRCLE   aus Mittelpunkt (10/20/30); Radius (40);
+           Thickness (39); 210,220,230=extrusionDirection (vector)
   TEXT     aus Position (10/20/30), Höhe (40), Text (1) und Winkel (50)
   POLYLINE besteht aus  Punkt ?? (10/20/30), dann
            mehreren 0 / VERTEX bis 0 / SEQEND.
@@ -664,13 +673,14 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   fmod = (char*)pa[1];
 
   
-  printf("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII \n");
-  printf("DXF_r__ |%s|%s|\n",fnam,fmod);
+  // printf("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII \n");
+  // printf("DXF_r__ |%s|%s|\n",fnam,fmod);
 
 
   //-----------------------------------------------------
   for(i1=0; i1<3; ++i1) iaErr[i1] = 0;
   for(i1=0; i1<8; ++i1) iaImp[i1] = 0;
+  spc_tra = NULL;
 
 
   // get net free modelIndex of AP_stru_2_txt
@@ -855,7 +865,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   // write code -> file <tmpDir>Model_
   if(irc > -2) {
     // Textbuffer 1 in die Hauptdatei einfuegen
-    // sprintf(cbuf, "%sModel_%s",OS_get_tmp_dir(),fmod);
+    // sprintf(cbuf, "%sModel_%s",AP_get_tmp_dir(),fmod);
 
     // write file
     UTF_file_Buf1__ (fmod);
@@ -943,7 +953,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
     // Textbuffer 1 in die Hauptdatei einfuegen
     // UTF_insert1(-1);
 
-    sprintf(cbuf, "%s%cModel_%s",OS_get_tmp_dir(),fnam_del,pf);
+    sprintf(cbuf, "%s%cModel_%s",AP_get_tmp_dir(),fnam_del,pf);
     UTF_file_Buf1__ (cbuf);
 
   }
@@ -968,7 +978,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   // report unsupported objects
   dxf_log();
 
-  free (spc_tra);
+  if(spc_tra) free (spc_tra);
 
 
   // // TEST-DEBUG-OFF
@@ -1410,6 +1420,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   int  i1;
 
   // die next2 Lines
+  L_next:
   if (fgets (dxf_numbuf, 60, fp_in) == NULL) goto L99601;
   if (fgets (dxf_linbuf, dxf_siz_linbuf, fp_in) == NULL) goto L99601;
 
@@ -1419,12 +1430,19 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
   dxf_rectyp = atoi(dxf_numbuf);
 
+  if(dxf_rectyp == 999) goto L_next; // skip comments
+
   UTX_CleanCR (dxf_linbuf);
 
   dxf_LineNr += 2;
 
 
-    // printf(" ex dxfr_rec_read %d |%s| LineNr=%d\n",
+    // TESTBLOCK
+    // if(dxf_rectyp ==    0) printf("   0 %s\n",dxf_linbuf);
+    // if(dxf_rectyp ==  999) printf(" 999 %s\n",dxf_linbuf);
+    // END TESTBLOCK
+ 
+    // printf(" ex dxfr_rec_read %d |%s| LineNr=%ld\n",
            // dxf_rectyp,dxf_linbuf,dxf_LineNr);
 
   return 0;
@@ -1491,7 +1509,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
 
 //=======================================================================
-  int dxfr_rec__ (ObjGX **el, FILE *fp_in, FILE *fp1, Memspc *wrkSpc)
+  int dxfr_rec__ (ObjGX **el, FILE *fp_in, FILE *fp1, Memspc *wrkSpc) {
 //=======================================================================
 // return next object as ObjGX**; read from file fp_in.
 // Naechsten Datenrecord aus DXF-Datei einlesen
@@ -1524,7 +1542,6 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
 
 
-{
   static int    ii, ix, iy, iz, act_typ, mode3d;
   static int    i1, i2, tab70[10];
   // static double recx[10], recy[10], recz[10], recwin[10], a1, a2, a3;
@@ -1729,8 +1746,13 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   // Read u analyze next Record (2 Lines)
   // liefert dxf_rectyp (Zahl) und dxf_linbuf (String) und dxf_LineNr
   if ((dxfr_rec_read (fp_in, fp1)) != 0) goto Err1;
-    // printf(" n. dxfr_rec_read typ=%d |%s| LineNr=%ld\n",
-           // dxf_rectyp,dxf_linbuf,dxf_LineNr);
+
+    // TESTBLOCK
+    // if(dxf_LineNr==8822){
+      // printf(" n. dxfr_rec_read typ=%d |%s| LineNr=%ld act_typ=%d\n",
+             // dxf_rectyp,dxf_linbuf,dxf_LineNr,act_typ);
+    // }
+    // END TESTBLOCK
 
 
 
@@ -2353,10 +2375,16 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
 
     case Typ_CI:   /*======================================*/
-        // printf(" ARC  %f %f %f\n",recx[0],recy[0],recz[0]);
-        // printf("  vz  %f,%f,%f\n",vz.dx,vz.dy,vz.dz);
-        // printf("   r  %f\n",dxfr_d_40);
-        // printf("   50=%f 51=%f\n",recwin[0],recwin[1]);
+        // TESTBLOCK
+        // if(dxf_LineNr==8822) {
+          // printf(" ARC  %f %f %f\n",
+                    // dxfr_pta_10[0].x,dxfr_pta_10[0].y,dxfr_pta_10[0].z);
+          // printf("  vz  %f,%f,%f\n",vz.dx,vz.dy,vz.dz);
+          // printf("   r  %f\n",dxfr_d_40);
+          // printf("   50=%f 51=%f\n",recwin[0],recwin[1]);
+          // printf("   mode3d=%d\n",mode3d);
+        // }
+        // END TESTBLOCK
 
       ci1 = UME_reserve (wrkSpc, sizeof(Circ));
 
@@ -2407,37 +2435,43 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
       ci1->ango = UT_RADIANS (recwin[1] - recwin[0]);
 
+        // TESTBLOCK
+        // DEB_dump__ (Typ_CI, ci1, "dxfr_rec__-ARC");
+        if(dxf_LineNr==8822) exit(-1);
+        // END TESTBLOCK
+
 
       OGX_SET_OBJ (*el, Typ_CI, Typ_CI, 1, ci1);
-
       goto FERTIG;
 
 
 
 
     //================================================================
-    case 1000:
-      // printf(" CIRCLE  %f %f %f\n",recx[0],recy[0],recz[0]);
-      // printf("  vz  %f,%f,%f\n",vz.dx,vz.dy,vz.dz);
-      // printf("   r  %f\n",dxfr_d_40);
-
+    case 1000:         // CIRCLE
+        // TESTBLOCK
+        // if(dxf_LineNr==8822) { // this is the lineNr BEFORE the active obj
+          // printf(" CIRCLE  %f %f %f\n",
+                 // dxfr_pta_10[0].x,dxfr_pta_10[0].y,dxfr_pta_10[0].z);
+          // printf("  vz  %f,%f,%f\n",vz.dx,vz.dy,vz.dz);
+          // printf("   r  %f\n",dxfr_d_40);
+          // printf("   mode3d=%d OFF=%d\n",mode3d,OFF);
+        // }
+        // END TESTBLOCK
+  
       ci1 = UME_reserve (wrkSpc, sizeof(Circ));
 
       if(mode3d == OFF) {
-        // ci1->pc.x = recx[0];
-        // ci1->pc.y = recy[0];
-        // ci1->pc.z = recz[0];
         ci1->pc = dxfr_pta_10[0];
 
-        // ci1->p1.x = recx[0] + dxfr_d_40;
-        // ci1->p1.y = recy[0];
-        // ci1->p1.z = recz[0];
         ci1->p1 = dxfr_pta_10[0];
         ci1->p1.x += dxfr_d_40;
 
         ci1->vz   = UT3D_VECTOR_Z;
-        ci1->p2 = ci1->p1;
+        ci1->p2   = ci1->p1;
         ci1->rad  = dxfr_d_40;
+
+          // DEB_dump_obj__ (Typ_CI, ci1, "dxfr_rec-CIRC-L10");
 
 
       } else {
@@ -2445,9 +2479,6 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
         dxfr_load_mat (m1, &vz);
 
         // Arc umrechnen
-        // pt1.x = recx[0];
-        // pt1.y = recy[0];
-        // pt1.z = recz[0];
         dxfr_tra_arc (ci1, m1, &dxfr_pta_10[0], 0.0, 0.0, dxfr_d_40);
         act_typ = Typ_CI;  // Typ_CI waere falsch!
       }
@@ -2885,8 +2916,11 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   FERTIG:
   act_typ = 0;
 
-    // TESTAUSG:
-    // DEB_dump_ox_0 (*el, "DXF-out");
+    // TESTBLOCK
+    // if(dxf_LineNr==8822) {
+      // DEB_dump_ox_0 (*el, "ex-dxfr_rec__");
+    // }
+    // END TESTBLOCK
 
   return 0;
 
@@ -2907,8 +2941,8 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
 
 //===========================================================================
-  void dxfr_tra_arc (Circ* ci1,Mat_4x3 m1,Point* ptc,
-                     double wa,double we,double crd) {
+  void dxfr_tra_arc (Circ* ci1, Mat_4x3 m1, Point* ptc,
+                     double wa, double we, double crd) {
 //===========================================================================
 // IN:
 // ptc ist im ECS (EntityCoord.System).
@@ -2920,7 +2954,14 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   Point     pt1, pt2;
 
 
-  //TX_Print("dxfr_tra_arc %f %f %f",wa,we,crd);
+  // TESTBLOCK
+  // if(dxf_LineNr==8822){
+    // printf("dxfr_tra_arc wa=%f we=%f crd=%f\n",wa,we,crd);
+    // DEB_dump_obj__ (Typ_PT, ptc, "tra_arc-ptc");
+    // DEB_dump_obj__ (Typ_M4x3, m1, "tra_arc-m1");
+  // }
+  // END TESTBLOCK
+
 
   // ci1-> typ = Typ_CI;
 
@@ -2955,7 +2996,12 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   ci1->vz.dy = m1[1][2];
   ci1->vz.dz = m1[2][2];
 
-  //TX_Print("ex dxf_tra_arc vz=%f,%f,%f rad=%f",ci1->vz.dx,ci1->vz.dy,ci1->vz.dz,ci1->rad);
+
+    // TESTBLOCK
+    // if(dxf_LineNr==8822){
+      // DEB_dump_obj__ (Typ_CI, ci1, "ex-tra_arc");
+    // }
+    // END TESTBLOCK
 
 }
 
@@ -3274,15 +3320,16 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   ObjGX    ox2;
 
 
-  // DEB_dump_obj__ (Typ_ObjGX, ox1, "dxf_r_src_out-in");
-  // printf("\n\ndxf_r_src_out typ=%d form=%d siz=%d\n",
-          // ox1->typ,ox1->form,ox1->siz);
-  // gdb_halt ();
-  // if((ox1->typ==Typ_CVPOL)&&(ox1->form==Typ_PT)) DEB_dump_ox_0 (ox1, "ox1-1");
-  // if((ox1->typ >= 120)&&(ox1->typ <= Typ_Process)) {
-  // DEB_dump_ox_0 (ox1, "ox1-1");  // TODO crash m Typ_CVPOL/CarveDiem
-  // printf(" dxf_iTra=%d\n",dxf_iTra);
-  // UTRA_dump__ ();  // disp translObj
+  // if(dxf_LineNr==8822) {
+   // DEB_dump_obj__ (Typ_ObjGX, ox1, "dxf_r_src_out-in");
+   // printf("\n\ndxf_r_src_out typ=%d form=%d siz=%d\n",
+           // ox1->typ,ox1->form,ox1->siz);
+   // gdb_halt ();
+   // if((ox1->typ==Typ_CVPOL)&&(ox1->form==Typ_PT)) DEB_dump_ox_0 (ox1, "ox1-1");
+   // if((ox1->typ >= 120)&&(ox1->typ <= Typ_Process)) {
+   // DEB_dump_ox_0 (ox1, "ox1-1");  // TODO crash m Typ_CVPOL/CarveDiem
+   // printf(" dxf_iTra=%d\n",dxf_iTra);
+   // UTRA_dump__ ();  // disp translObj
   // }
 
 
@@ -3307,14 +3354,17 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
     // TESTBLOCK
     // { int typ; long dbi; char oid[64];
-    // AP_obj_2_txt_query (&typ, &dbi); // get last gcad-typ/ind
-    // APED_oid_dbo__  (oid, typ, dbi);
-      // printf(" lNr=%d created %s\n",dxf_LineNr, oid);
+      // AP_obj_2_txt_query (&typ, &dbi); // get last gcad-typ/ind
+      // APED_oid_dbo__  (oid, typ, dbi);
+      // // printf(" lNr=%d created %s\n",dxf_LineNr, oid);
+      // if(!strcmp(oid,"C64")) {
+       // printf("ex-dxf_r_src_out typ=%d form=%d |%s|\n",
+         // ox1->typ,ox1->form,mem_cbuf1);
+        // DEB_halt();
+        // exit(0);
     // if((typ == Typ_CVPOL)&&(dbi == 1L)) gdb_halt ();
     // if(irc < 0) {
-       // printf(" errObj dxf_r_src_out typ=%d form=%d |%s|\n",
-         // ox1->typ,ox1->form,mem_cbuf1);
-    // }
+      // }
     // }
     // END TESTBLOCK
 

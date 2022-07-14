@@ -392,7 +392,7 @@ __declspec(dllexport) int VR2_exp__ (char*);
 #include "../ut/ut_cast.h"                // INT_PTR
 #include "../ut/ut_geo.h"                 // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../ut/ut_os.h"                  // OS_get_bas_dir ..
+#include "../ut/ut_os.h"                  // AP_get_bas_dir ..
 #include "../ut/ut_memTab.h"              // MemTab_..
 #include "../ut/ut_iTab.h"                // I4Tab
 #include "../ut/ut_col.h"                 // COL_DL_ATT
@@ -501,7 +501,7 @@ static ColRGB *exp_sCol;
 
 
   // remove all old files
-  sprintf (s1, "%sexp*.exp",OS_get_tmp_dir());
+  sprintf (s1, "%sexp*.exp",AP_get_tmp_dir());
   OS_file_delGrp (s1);
 
 
@@ -687,7 +687,7 @@ static ColRGB *exp_sCol;
 
 
   // set s1 = filename for temp.outfile
-  sprintf(s1, "%sexp_%s.exp",OS_get_tmp_dir(),exp_sMdlNam);
+  sprintf(s1, "%sexp_%s.exp",AP_get_tmp_dir(),exp_sMdlNam);
   if((exp_fpo = fopen (s1, "w")) == NULL) {
     TX_Error ("VR2_exp_mdl__ open file %s",s1);
     return -1;
@@ -962,7 +962,7 @@ static ColRGB *exp_sCol;
 
   // make outfilname <tmpDir>/exp_<modelName>.exp
   VR2_exp_ext_mnam (s2, mnam);
-  sprintf(s1, "%sexp_%s.exp",OS_get_tmp_dir(),s2);
+  sprintf(s1, "%sexp_%s.exp",AP_get_tmp_dir(),s2);
     // printf(" ox_sm_ext-L1 |%s|\n",s1);
 
 
@@ -1092,7 +1092,7 @@ static ColRGB *exp_sCol;
   float       f1, f2, f3;
   char        s1[256];
  
-  sprintf(s1, "%sexport_init.exp",OS_get_tmp_dir());
+  sprintf(s1, "%sexport_init.exp",AP_get_tmp_dir());
   if((exp_fpo = fopen (s1, "w")) == NULL) {
     TX_Error ("VR2_exp_init open file %s",s1);
     return -1;
@@ -1740,7 +1740,7 @@ static I4Tab_NEW  (iTab1);         // init integer-table
 
   printf("VR2_exp_join --------------------------------\n");
 
-  sprintf(fn1, "%sexport.exp",OS_get_tmp_dir());
+  sprintf(fn1, "%sexport.exp",AP_get_tmp_dir());
 
   // try to open outfile
   if((fpo=fopen(fn1, "w")) == NULL) {
@@ -1751,7 +1751,7 @@ static I4Tab_NEW  (iTab1);         // init integer-table
 
   //----------------------------------------------------------------
   // add initfile "export_init.exp"
-  sprintf(fn1, "%sexport_init.exp",OS_get_tmp_dir());
+  sprintf(fn1, "%sexport_init.exp",AP_get_tmp_dir());
     printf(" VR2_exp_join-init-add |%s|\n",fn1);
   VR2_cat_file (fpo, fn1);
 
@@ -1759,8 +1759,8 @@ static I4Tab_NEW  (iTab1);         // init integer-table
   //----------------------------------------------------------------
   // add all subModels
   // get list of subModels
-  sprintf(fn2, "%sexport_smLst.exp",OS_get_tmp_dir());
-  irc = UTX_dir_listf (fn2, OS_get_tmp_dir(), "exp_", ".exp");
+  sprintf(fn2, "%sexport_smLst.exp",AP_get_tmp_dir());
+  irc = UTX_dir_listf (fn2, AP_get_tmp_dir(), "exp_", ".exp");
   if(irc < 0) {TX_Error("VR2_exp_join E001"); irc = -1; goto L_exit; }
 
 
@@ -1773,7 +1773,7 @@ static I4Tab_NEW  (iTab1);         // init integer-table
     if (fgets (fn1, 250, fpi) == NULL) break;
     UTX_CleanCR (fn1);
     if(!strcmp (fn1, "exp_.exp")) continue;  // skip main
-    sprintf(fn2, "%s%s",OS_get_tmp_dir(),fn1);
+    sprintf(fn2, "%s%s",AP_get_tmp_dir(),fn1);
       printf(" VR2_exp_join-add |%s|\n",fn2);
     VR2_cat_file (fpo, fn2);
   }
@@ -1783,7 +1783,7 @@ static I4Tab_NEW  (iTab1);         // init integer-table
 
   //----------------------------------------------------------------
   // add primary file
-  sprintf(fn1, "%sexp_.exp",OS_get_tmp_dir());
+  sprintf(fn1, "%sexp_.exp",AP_get_tmp_dir());
     printf(" VR2_exp_join-cat |%s|\n",fn1);
   VR2_cat_file (fpo, fn1);
 

@@ -55,7 +55,7 @@ List_functions_end:
 #include <fcntl.h>
 #include <unistd.h>                      // write read
 
-#include "../ut/ut_os.h"                 // OS_get_bas_dir
+#include "../ut/ut_os.h"                 // AP_get_bas_dir
 #include "../ut/ctrl_os.h"               // OS_CTL_read__
 #include "../ut/ut_txTab.h"              // TxtTab
 #include "../ut/ut_memTab.h"           // MemTab
@@ -173,7 +173,7 @@ static FILE  *finLun = NULL;             // swapfile for large input
 
 
   // fix tempfilename
-  sprintf(fnin, "%sCTRLfin",OS_get_tmp_dir());
+  sprintf(fnin, "%sCTRLfin",AP_get_tmp_dir());
     // printf(" CTRL_CB__ fnin=|%s|\n",fnin);
 
   // open input-file (keep it open permanently)

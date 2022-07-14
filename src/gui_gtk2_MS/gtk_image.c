@@ -84,6 +84,16 @@ extern GtkWidget *UI_act_wi;
 
 
 
+
+// dummy-functions (only for MS-win)
+#ifdef _MSC_VER
+int GUI_TUT_CB_tmr (void *data) {}
+int GUI_TUT_m_CB (GtkWidget *widget, GdkEventExpose *event, gpointer userdata) {}
+#endif
+
+
+
+
 //====================================================================
   MemObj GUI_img__ (MemObj *o_par, char* filnam, char *opts) {
 //====================================================================
@@ -174,7 +184,7 @@ extern GtkWidget *UI_act_wi;
   i1 = 0;
   vp1 = (void**)icoNam;
   while (*vp1) {
-    sprintf(cbuf, "%s%s",OS_get_ico_dir(),(char*)*vp1);
+    sprintf(cbuf, "%s%s",AP_get_ico_dir(),(char*)*vp1);
       // printf(" icoNam[%d]=|%s|\n",i1,cbuf);
     if(OS_checkFilExist(cbuf, 0) == 0) {
       // TX_Error (" Imagefile %s does not exist",cbuf);

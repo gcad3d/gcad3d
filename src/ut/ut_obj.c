@@ -1961,7 +1961,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
   sizTab[Typ_CVCLOT] = sizeof(CurvClot);
   sizTab[Typ_CVBSP] = sizeof(CurvBSpl);
   sizTab[Typ_CVRBSP] = sizeof(CurvRBSpl);
-  sizTab[Typ_CVPSP3] = sizeof(polynom_d3);
+  sizTab[Typ_CVPSP3] = sizeof(CurvPsp3);
   // sizTab[Typ_CVComp] = sizeof(CurvCCV);   
   sizTab[Typ_CVTRM] = sizeof(CurvCCV);
 
@@ -2870,6 +2870,7 @@ static ObjGX  *odb;
             (typ == Typ_CVTRM)     ||
             (typ == Typ_CVCLOT)    ||
             (typ == Typ_CVBSP)     ||
+            (typ == Typ_CVPSP3)    ||
             (typ == Typ_CVRBSP))      {
       // printf(" curve - typ=%d form=%d\n",typ,ox1->form);
 
@@ -2899,6 +2900,7 @@ static ObjGX  *odb;
               (ox1->form == Typ_CVELL)    ||
               (ox1->form == Typ_CVCLOT)   ||
               (ox1->form == Typ_CVBSP)    ||
+              (ox1->form == Typ_CVPSP3)   ||
               (ox1->form == Typ_CVRBSP))     {
       *objOut = ox1->data;
       typ = ox1->form;
@@ -3016,7 +3018,7 @@ static ObjGX  *odb;
 
 
   L_done:
-    // printf(" ex UTO_objDat_ox typ=%d\n",typ);
+    // printf(" ex UTO_objDat_ox typ=%d oNr=%d\n",typ,*oNr);
 
   return typ;
 
@@ -3440,6 +3442,13 @@ static ObjGX  *odb;
       *v1 = ((CurvCCV*)crv)->v1;
       break;
 
+    case Typ_CVPSP3:    // polynom_d3
+      *v0 = ((CurvPsp3*)crv)->v0;
+      *v1 = ((CurvPsp3*)crv)->v1;
+      // // does not have limiting parameters in struct ..
+      // *v0 = 0.;
+      // *v0 = 1.;
+      break;
 
     default:
       // unknown form
@@ -5218,7 +5227,7 @@ static ObjGX  *odb;
 
 
   //=========================================================
-  } else if(typ == Typ_CVPSP3) {     //see psp_psp3_tra_m3
+  } else if(typ == Typ_CVPSP3) {     //see CVPSP_psp3_tra_m3
     pola = cvi->data;
 
     UT3D_pt_tra_pt_m3 (&pt0, trmat, (Point*)&UT3D_PT_NUL);

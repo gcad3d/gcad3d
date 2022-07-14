@@ -1,4 +1,4 @@
-# Link & run:
+# Link GUI_dlg1_gtk2_MS.exe
 # nmake -f GUI_dlg1.nmak
 
 
@@ -11,7 +11,8 @@ EXENAM  = GUI_dlg1_$(VGUI)
 
 # ../gui_gtk2/GUI_file_open.c
 # ../gui_gtk2_MS/GUI_file_open.c
-SRC1 = ../gui_$(VGUI)/GUI_dlg1.c ../ut/deb_prt.c
+#SRC1 = ../gui_$(VGUI)/GUI_dlg1.c ../ut/deb_prt.c
+SRC1 = ../gui_gtk2/GUI_dlg1.c ../ut/deb_prt.c
 OBJ1 = $(SRC1:.c=.obj)
 OBJ1 = $(OBJ1:/=\)
 

@@ -417,7 +417,7 @@ static  Plane  pln;
   //-----------------------------------------------------
   } else if(!strcmp(cp1, "Export")) {
 
-    sprintf(cBuf, "%sdialog.ige",OS_get_tmp_dir());
+    sprintf(cBuf, "%sdialog.ige",AP_get_tmp_dir());
     AP_ExportIges__ (cBuf);
 
 

@@ -564,7 +564,7 @@ __declspec(dllexport) int STP_w__ (char*);
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../ut/ut_obj.h"              // UTO_stru_2_obj
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
 #include "../ut/ut_memTab.h"           // MemTab
@@ -818,7 +818,7 @@ static jmp_buf     jmp1;
 
 
 //   // remove all old files
-//   sprintf (s1, "%sexp*.exp",OS_get_tmp_dir());
+//   sprintf (s1, "%sexp*.exp",AP_get_tmp_dir());
 //   OS_file_delGrp (s1);
 
 

@@ -110,7 +110,7 @@ APP_act_proc      // name of processor (dll)
 #include "../ut/ut_umb.h"                  // UMB_pos__
 #include "../ut/ut_geo.h"                  // Typ_Memspc
 #include "../ut/ut_txt.h"                   // fnam_del
-#include "../ut/ut_os.h"                    // OS_get_bin_dir
+#include "../ut/ut_os.h"                    // AP_get_bin_dir
 #include "../ut/ut_memTab.h"           // MemTab
 
 #include "../gui/gui__.h"
@@ -203,9 +203,9 @@ char **process_CmdTab;     // was NCCmdTab
   //----------------------------------------------
   // fix DLL-FileName
 #ifdef _MSC_VER
-  sprintf(s1, "%splugins\\%s.dll",OS_get_bin_dir(), dllNam);
+  sprintf(s1, "%splugins\\%s.dll",AP_get_bin_dir(), dllNam);
 #else
-  sprintf(s1, "%splugins/%s.so",OS_get_bin_dir(), dllNam);
+  sprintf(s1, "%splugins/%s.so",AP_get_bin_dir(), dllNam);
 #endif
     // printf(" so=|%s|\n",s1);
 
@@ -282,7 +282,7 @@ char **process_CmdTab;     // was NCCmdTab
   PRC_lst_processes ();
 
   // display list of processes; let user select
-  sprintf(fnam, "%sprocesses.lst", OS_get_tmp_dir());
+  sprintf(fnam, "%sprocesses.lst", AP_get_tmp_dir());
 //   i1 = GUI_list1_dlg_w (s1, 256,
 //                        NULL, " select process", fnam,
 //                        "1", NULL, "60,20");
@@ -321,7 +321,7 @@ char **process_CmdTab;     // was NCCmdTab
 
 
   // save active process: copy editor -> file
-  sprintf(s1, "%s%s", OS_get_tmp_dir(), APP_act_nam);
+  sprintf(s1, "%s%s", AP_get_tmp_dir(), APP_act_nam);
   ED_save_file (s1);
 
 
@@ -365,7 +365,7 @@ char **process_CmdTab;     // was NCCmdTab
 
 
   // test if file tmp/<pNam> exists
-  sprintf(s1, "%s%s", OS_get_tmp_dir(), pNam);
+  sprintf(s1, "%s%s", AP_get_tmp_dir(), pNam);
     // printf(" %s\n",s1);
   if(!OS_checkFilExist (s1, 1)) {
     TX_Print ("***** process does not exist ..");
@@ -513,7 +513,7 @@ static char sproc[128];
 
 
       // get list-of-processes into optLst; display
-      sprintf(s1, "%scadprocessors.lst",OS_get_tmp_dir());
+      sprintf(s1, "%scadprocessors.lst",AP_get_tmp_dir());
       optLst = UTX_wTab_file (memspc55, sizeof(memspc55), s1);
       if(!optLst) {TX_Print("***** no processors found .."); return -1;}
       w1 = GUI_optmen__ (&box2, optLst[0], optLst, NULL, PRC_Cre_ui__, "10");
@@ -577,12 +577,12 @@ static char sproc[128];
 
   // list files  -> file <tmp>processes.lst
   // outfilnam
-  sprintf(s2, "%sprocesses.lst",OS_get_tmp_dir());
+  sprintf(s2, "%sprocesses.lst",AP_get_tmp_dir());
   // dir to search
-  sprintf(s1, "%s",OS_get_tmp_dir());
+  sprintf(s1, "%s",AP_get_tmp_dir());
   i1 = UTX_dir_listf (s2, s1, "process_", NULL);
-    // printf(" nrFiles=%d\n",i1);
 
+    // printf("ex-PRC_lst_processes nrFiles=%d\n",i1);
 
   return i1;
 
@@ -606,9 +606,9 @@ static char sproc[128];
 
   // list files -> postprocessors -> file
   // dir to search
-  sprintf(s1, "%splugins%c%s",OS_get_bin_dir(),fnam_del,&sproc[4]);
+  sprintf(s1, "%splugins%c%s",AP_get_bin_dir(),fnam_del,&sproc[4]);
   // outfilnam
-  sprintf(s2, "%spostproc.lst",OS_get_tmp_dir());
+  sprintf(s2, "%spostproc.lst",AP_get_tmp_dir());
   i1 = UTX_dir_listf (s2, s1, NULL, NULL);
     printf(" nrFiles=%d\n",i1);
 
@@ -649,7 +649,7 @@ static char sproc[128];
 
   // create new processfile
   // fnam: <tempDir>process_<processname>
-  sprintf(s1, "%sprocess_%s",OS_get_tmp_dir(),sprnam);
+  sprintf(s1, "%sprocess_%s",AP_get_tmp_dir(),sprnam);
 
 
 
@@ -682,6 +682,9 @@ static char sproc[128];
   // add process to browser
   Brw_Prcs_add (sprnam);
 
+  // update file <tmpDir>processes.lst
+  PRC_lst_processes ();
+
 
   return 0;
 
@@ -702,7 +705,7 @@ static char sproc[128];
 
 
   // display list of processes; let user select
-  sprintf(fnam, "%sprocesses.lst", OS_get_tmp_dir());
+  sprintf(fnam, "%sprocesses.lst", AP_get_tmp_dir());
 //   i1 = GUI_list1_dlg_w (s1, 256,
 //                        NULL, " delete process", fnam,
 //                        "1", NULL, "60,20");
@@ -736,9 +739,12 @@ static char sproc[128];
   sprintf(s2, "delete process %s",pNam);
   TX_Print(s2);
 
-  sprintf(s2, "%s%s", OS_get_tmp_dir(),pNam);
+  sprintf(s2, "%s%s", AP_get_tmp_dir(),pNam);
     printf(" del |%s|\n",s2);
   OS_file_delete (s2);
+
+  // update file <tmpDir>processes.lst
+  PRC_lst_processes ();
 
   return 0;
 
@@ -759,7 +765,7 @@ static char sproc[128];
 
 
   // try to open outfile
-  sprintf(cbuf1, "%scadprocessors.lst",OS_get_tmp_dir());
+  sprintf(cbuf1, "%scadprocessors.lst",AP_get_tmp_dir());
     // printf(" Dll.lst=|%s|\n",cbuf1);
   if((fpo=fopen(cbuf1,"w")) == NULL) {
     printf("***** PRC_lst_write E001 %s\n",cbuf1);
@@ -769,7 +775,7 @@ static char sproc[128];
 
 
   // Searchpath
-  sprintf(cbuf1, "%splugins/",OS_get_bin_dir());
+  sprintf(cbuf1, "%splugins%c",AP_get_bin_dir(),fnam_del);
     printf(" path-plugins=|%s|\n",cbuf1);
 
 
@@ -830,13 +836,26 @@ static char sproc[128];
 
 
 //================================================================
+//================================================================
+// RPC
+//================================================================
+//================================================================
+ 
+
+//================================================================
   int RPC_restart () {
 //================================================================
 /// reStart remote
 /// TODO: check if already active ..
 
-  int   irc;
-  char  fn[SIZFNam];
+  int   irc, act_typ;
+  char  fn[SIZFNam], s1[512], *p0, act_dir[SIZMFTot], act_nam[128];
+  FILE  *fpi;
+
+
+  printf("RPC_restart %d |%s|%s|\n",APP_act_typ,AP_dir_prg,APP_act_nam);
+
+
 
   if(APP_act_typ != 4) {
     TX_Error("RPC_restart - active prog must be remote-control-prog ..");
@@ -844,6 +863,57 @@ static char sproc[128];
   }
 
 
+  // copy, restore at end (enable Ctrl-P even after activation of APPLI)
+  act_typ = APP_act_typ;
+  strcpy(act_dir, AP_dir_prg);
+  strcpy(act_nam, APP_act_nam);
+
+
+  TX_Print("**** start of RPC-program %s",act_nam);
+
+
+  //----------------------------------------------------------------
+  // resolv filename -> fn
+  sprintf(s1, "%s%s.cmd",AP_dir_prg,APP_act_nam);
+    // printf(" RPC_restart-fn-1 |%s|\n",s1);
+  MDLFN_ffNam_fNam (fn, s1);
+    // printf(" RPC_restart-fn-2 |%s|\n",fn);
+
+  if((fpi = fopen (fn, "r")) == NULL) {
+    MSG_ERR__ (ERR_file_open, "'%s'", fn);
+    return -1;
+  }
+
+
+  // loop tru file dir.lst
+  while (!feof (fpi)) {
+    // read s1 = next line = next |symbol directory| from file
+    if (fgets (s1, 500, fpi) == NULL) break;
+    p0 = UTX_pos_1n (s1); // skip blanks
+    // skip comment
+    if(*p0 == '#') continue;
+    UTX_CleanCR (p0);
+      // printf(" RPC_restart-nxt |%s|\n",p0);
+
+    if(!strncmp (p0, "APP", 3)) {
+      UI_CAD_ON ();
+      TX_Print(" - activating CAD for Application ..");
+    }
+
+
+    // execute
+    irc = CTRL_CB_do__ (s1);
+  }
+
+  fclose (fpi);
+
+  TX_Print("**** end of RPC-program %s",act_nam);
+
+
+
+
+//----------------------------------------------------------------
+/* old version
 // TODO: check execute-permission 
   sprintf(fn, "%s%s.cmd",AP_mod_dir, APP_act_nam);
     printf(" TODO: check execute-permission |%s|\n",fn);
@@ -851,11 +921,28 @@ static char sproc[128];
 
   // execute nonblocking
   // cd <<bindir>/remote&&excute
-  // sprintf(memspc011, "cd %sremote&&./%s&",OS_get_bin_dir(), APP_act_nam);
+  // sprintf(memspc011, "cd %sremote&&./%s&",AP_get_bin_dir(), APP_act_nam);
   sprintf(memspc011, "cd %s &&./%s.cmd &",AP_mod_dir, APP_act_nam);
     printf("RPC_restart |%s|\n",memspc011);
   irc = OS_system (memspc011);
     printf(" _restart %d\n",irc);
+*/
+
+
+//----------------------------------------------------------------
+  // restore
+  APP_act_typ = 4;
+  strcpy(AP_dir_prg, act_dir);
+  strcpy(APP_act_nam, act_nam);
+
+  // display prgTyp (RPC)
+  UI_Set_typPrg ();
+
+  // display prgNam
+  UI_Set_actPrg (APP_act_nam, 0);
+
+
+    printf(" ex-RPC_restart APP_act_typ=%d\n",APP_act_typ);
 
 
   return 0;
@@ -889,17 +976,18 @@ static char sproc[128];
   MDLFN_syFn_f_name (s1);
 
   // list directory <bindir>/remote
-  sprintf(s2, "%sprg/", OS_get_loc_dir());
+  sprintf(s2, "%sprg%s", AP_get_loc_dir(),fnam_del_s);
 //   irc = GUI_file_open__ (pNam, 128, s1, 200, NULL, NULL, "open", "*");
 //   if(irc) return 0;
 
   // (dirIn/filnamOut sSiz symDir filter title)
   irc = GUI_file_open__ (s2, 256, s1, "\"*.cmd\"", "open remote control-prog");
-    printf(" open %d |%s|\n",irc, s2);
+  if(irc) goto L_exit;
+    printf(" RPC_Loa-open %d |%s|\n",irc, s2);
 
   // UTX_add_fnam_del (s1);    // add following "/"
 
-  // cut dirctory/filename
+  // cut directory/filename
   UTX_fnam__ (AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, s2);
 
   APP_act_typ = 4;                        // "RPC "
@@ -910,9 +998,11 @@ static char sproc[128];
 
 
   // execute nonblocking
-  RPC_restart ();
+  irc = RPC_restart ();
 
-  return 0;
+  L_exit:
+      printf(" ex-RPC_Loa %d\n",irc);
+    return irc;
 
 }
 

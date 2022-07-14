@@ -121,7 +121,7 @@ man kann sortiert/unsortiert (betreff Selektionsreihenfolge!) ausgeben:
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
-// #include "../ut/ut_os.h"               // OS_get_bas_dir ..
+// #include "../ut/ut_os.h"               // AP_get_bas_dir ..
 // #include "../ut/ut_obj.h"              // UTO_stru_2_obj
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
 #include "../ut/ut_os.h"               // OS_ ..
@@ -267,12 +267,12 @@ static TimeStamp GrpTS;
 
   // export (native) alle objects of obj-list --> file tmpDir/selection1.gcad
   strcpy(s1,"selection1");
-  Grp_exp (s1, OS_get_tmp_dir());
+  Grp_exp (s1, AP_get_tmp_dir());
 
 
   //----------------------------------------------------------------
   // create subModel smNam from file tmpDir/selection1.gcad
-  sprintf(s1, "%sselection1.gcad", OS_get_tmp_dir());
+  sprintf(s1, "%sselection1.gcad", AP_get_tmp_dir());
 //   irc = Mod_SM_add_file (smNam, s1);
   irc = MDL_load_mdl_grp (smNam, s1);
   if(irc < 0) return -1;

@@ -2038,7 +2038,7 @@ static int ptOff;
 
 
   if(GLT_pta_ind >= GLT_pta_SIZ) {
-    printf("GLT_spp_vert %ld\n",GLT_pta_SIZ);
+      // printf("GLT_spp_vert %ld\n",GLT_pta_SIZ);
     if(GLU_Err < 0) return;
     GLU_Err = GLT_alloc_pta (GLT_pta_ind);
   }
@@ -2171,7 +2171,7 @@ static int ptOff;
 // Subfunctions:
 // mode = 0  init, ptNr ist Anzahl Patches
 // mode = 1  close record
-// mode = 2  add strip (used by GL_set_strip2)
+// mode = 2  add strip (used by GL_set_strip_v)
 // mode = 3  add planaren fan (used by GL_set_fan)
 // mode = 4  add nichtPlanaren fan (used by GL_set_fan)
 // mode = 5  add Color actCol

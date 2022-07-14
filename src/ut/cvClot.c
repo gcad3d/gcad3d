@@ -537,7 +537,7 @@ L_InErr:
 /// \code
 /// make polygon from planar curve (clotoid)
 /// NOT YET SUPPORTED: parabola, hyperbola, ellipsis)
-/// See also pspl_pol_psp bspl_pol_bsp UT3D_cv_rbsp
+/// See also CVPSP_pol_psp bspl_pol_bsp UT3D_cv_rbsp
 /// Input:
 ///   ptNr         max size of pTab
 ///   pTab[ptNr]   empty

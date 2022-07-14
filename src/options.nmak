@@ -15,7 +15,7 @@ VGUI = gtk2_MS
 
 # Debug 1=Development; Debug-ON
 #       2=Distribute;  Debug-OFF
-DEB = 1
+DEB = 2
 
 # do not modify ....
 #BITS = $(shell getconf LONG_BIT)  MS ?

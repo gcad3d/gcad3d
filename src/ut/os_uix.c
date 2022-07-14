@@ -21,6 +21,23 @@ see also
 ../ut/ut_os__.c      OS-independant functions
 -----------------------------------------------------
 
+=====================================================
+List_functions_start:
+
+OS_system                Perform OS-Command; wait for completion (system)
+OS_exec                  Perform OS-Command; do not wait for completion.
+OS_stdout__              direct console-output into file
+OS_checkFilExist         check if File or Directory exists
+OS_sys1                  get systemCommand (popen); skip if starting with "##"
+OS_osVar_eval        expand shell variables in string
+OS_get_tmp_dir                get directory for temporary files
+OS_edit__                 edit file with system-editor
+OS_get_edi                get system-editor
+
+List_functions_end:
+=====================================================
+// OS_filnam_eval    DO-NOT-USE  - replaced by OS_osVar_eval
+
 USING:
 TX_Print
 
@@ -36,6 +53,7 @@ TX_Print
 #include <string.h>
 #include <stdarg.h>              // for ...
 
+#include <signal.h>
 #include <unistd.h>          ///f. access, R_OK ..
 #include <errno.h>
 #include <wordexp.h>         // OS_filnam_eval
@@ -49,6 +67,245 @@ TX_Print
 
 // errno.h:
 extern int errno;
+
+
+ //========================================================================
+  int OS_file_delete (char *fNam) {
+//========================================================================
+/// \code
+/// delete File; NO Wildcards !
+/// MS u Unix gleich.
+/// retCod: 0=OK; -1=Error.
+/// \endcode
+
+  // printf("OS_file_delete |%s|\n",fNam);
+
+  return remove (fNam);    // ACHTUNG: keine Wildcards mit remove !
+
+}
+
+
+//==========================================================================
+  int OS_file_copy (char *oldNam, char *newNam) {
+//==========================================================================
+// OS_file_copy             copy file - force overwrite
+//   retCode      0=OK; else Error
+
+  char cbuf[512];
+
+  // printf("OS_file_copy |%s|%s|\n",oldNam,newNam);
+
+  sprintf(cbuf,"/bin/cp -f \"%s\" \"%s\"",oldNam,newNam);
+    // printf(cBuf, "copy /y %s %s",fnOld, fnNew);  // MS
+    // printf("OS_file_copy |%s|\n",cbuf);
+
+  return system (cbuf);
+
+  // return 0;
+
+}
+
+
+//========================================================================
+  int OS_file_rename (char *fnOld, char *fnNew) {
+//========================================================================
+/// rename File; NO Wildcards !
+// MS u Unix gleich.
+
+  // printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
+
+  remove (fnNew);    // delete File (sonst get das rename ned ..)
+                     // ACHTUNG: keine Wildcards mit remove !
+  rename (fnOld, fnNew);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int OS_system (char *buf) {
+//================================================================
+// OS_system                  Perform OS-Command; wait for completion (system)
+//   do not wait: use OS_exec
+
+// Spezialversion fuer AIX + CATIA.
+
+
+  void *catch;
+  int ret;
+
+  catch = signal(SIGCLD, SIG_DFL);
+  ret = system(buf);
+
+  signal(SIGCLD, catch);
+  if (ret) { perror(buf); }
+
+  return(ret);
+
+}
+
+
+//================================================================
+  int OS_exec (char* txt) {
+//================================================================
+// OS_exec                  Perform OS-Command; do not wait for completion.
+//   do wait: use OS_system
+
+// es geht nur system mit &
+
+// alle exec*: 
+//   timer expired ..
+
+// mit fork:
+//  The program '<unknown>' received an X Window System error.
+//  The error was 'BadAccess (attempt to access private resource denied)'.
+//  Xlib: unexpected async reply (sequence 0x209d)!
+
+  char cbuf[256];
+
+  sprintf(cbuf, "%s &", txt);
+
+  OS_system (cbuf);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int OS_edit__ (char *filnam) {
+//================================================================
+// OS_edit__                 edit file with system-editor
+// waits for end of process.
+// DO NOT USE: use APP_edit
+
+  char  cbuf[720];
+
+  snprintf(cbuf, sizeof(cbuf), "%s %s",OS_get_edi(),filnam);
+
+  // printf("OS_edit_ |%s|\n",cbuf);
+  // TX_Print("%s",cbuf);
+
+  OS_system(cbuf);
+
+  return 0;
+
+}
+
+
+//================================================================
+  char* OS_get_edi () {
+//================================================================
+///  returns fileEditorProgram; eg "gedit "  or "kedit "
+
+  static char sEd[8];
+
+
+  sEd[0] = '\0';
+
+  if(system("which gedit 1>/dev/null 2>/dev/null") == 0)
+    strcpy(sEd, "gedit ");
+  if(system("which kwrite 1>/dev/null 2>/dev/null") == 0)
+    strcpy(sEd, "kwrite ");
+  if(system("which kedit 1>/dev/null 2>/dev/null") == 0)
+    strcpy(sEd, "kedit ");
+  if(system("which kate 1>/dev/null 2>/dev/null") == 0)
+    strcpy(sEd, "kate ");
+  if(system("which dtpad 1>/dev/null 2>/dev/null") == 0)
+    strcpy(sEd, "dtpad ");
+
+  if(strlen(sEd) < 2) { 
+    printf(" **** no Editor found\n");
+  }
+
+  return sEd;
+}
+
+
+//================================================================
+  char* OS_get_tmp_dir() {
+//================================================================
+// OS_get_tmp_dir                get directory for temporary files
+// - must end with "/" or (MS-Win) "\"
+
+
+
+// #ifdef _MSC_VER
+//   static  char os_tmp_dir[256] = "\0\0", *p1;
+// 
+// 
+//   if(!os_tmp_dir[0]) {
+//     p1 = getenv ("TEMP");           // %TEMP%
+//     strcpy(os_tmp_dir, p1);
+//     UTX_add_fnam_del (os_tmp_dir);
+// 
+//       // TESTBLOCK
+//       // printf(" OS_get_tmp_dir |%s|\n",os_tmp_dir);
+//       // END TESTBLOCK
+//   }
+// 
+//   return os_tmp_dir;
+// 
+// #else
+  static  char u_tmp_dir[] = "/tmp/";
+
+  return u_tmp_dir;
+
+// #endif
+
+}
+
+
+//================================================================
+  int OS_stdout__ (int mode, void *data) {
+//================================================================
+// OS_stdout__              direct console-output into file
+// mode     0   set filename for console-output
+// mode     1   (re-)open file for console-output
+//          2   close console-output into file; continue with output to console ..
+
+  static int     o;
+  static char    fn[256];
+  static FILE    *fp = NULL;
+
+
+  // printf("OS_stdout__ %d |%s|\n",mode,fn);
+
+
+  if(mode == 0) {
+    // set filenam only
+    if(strlen((char*)data) >= 250) {printf("***** OS_stdout__ E1 \n"); return -1;}
+    strcpy(fn, (char*)data);
+
+
+  } else if(mode == 1) {
+    // 1 = direct stdout into file fn
+    if(fp) { fflush (fp); fclose (fp);}
+    // o = dup(fileno(stdout));
+    clearerr ( stdout);
+    fp = freopen (fn, "a", stdout);
+    if(!fp) {printf("***** OS_stdout__ E2 \n"); return -1;}
+
+
+  } else {
+    // 2 = redirect stdout to console
+    // printf(" -------- OS_stdout__ close debugfile ---------------\n");
+    if(fp) {
+      fflush (fp);
+      // stdout = fdopen (2, "w");
+      fclose (fp);
+      fp = NULL;
+      clearerr ( stdout);
+      freopen ("/dev/tty", "a", stdout);
+      // dup2 (o, fileno(stdout));
+      // close(o);
+    }
+  }
+
+  return 0;
+
+}
 
 
 //=============================================================
@@ -106,14 +363,14 @@ extern int errno;
 //================================================================
   int OS_sys1 (char *sOut, int sSiz, char *cmd) {
 //================================================================
-/// \code
-/// OS_sys1                  get systemCommand (popen); skip if starting with "##"
-/// RetCod:
-///     >0      OK, nr of chars returned in sOut
-///    -1       cannot open pipe
-///    -2       sOut too small
-///    -3       execution-error
-/// \endcode
+// OS_sys1                  get systemCommand (popen); skip if starting with "##"
+// DO NOT USE freopen (.. stdout) in <cmd>
+// output-lines starting with "##" are skipped (debug-output)
+// RetCod:
+//     >0      OK, nr of chars returned in sOut
+//    -1       cannot open pipe
+//    -2       sOut too small
+//    -3       execution-error
 
   int   irc=0, ii=0, i1;
   FILE  *fPip1;
@@ -172,8 +429,18 @@ extern int errno;
 // On Windows, you can use ExpandEnvironmentStrings.
 // preReq: <wordexp.h>
 //
-// Example: in  "${DIR_DEV}cadfiles/gcad/" 
-//          out "/mnt/serv2/devel/cadfiles/gcad/"
+// Example: 
+//   // expand shell variables
+//   char fnIn[SIZFNam];
+//   // strcpy(fnIn, "${DIR_DEV}cadfiles/gcad/");
+//   p1 = strchr (fnIn, '$');
+//   if(p1) {
+//     // expand shell variables
+//     irc = OS_osVar_eval (fnIn, sizeof(s1));
+//     if(irc < 0) {TX_Error("MDLFN_oFn_fNam OS_osVar_eval"); return -1;}
+//       // printf(" oFn_fNam-exp=|%s|\n",fnIn);
+//   }
+//   // returns fnIn = "/mnt/serv2/devel/cadfiles/gcad/"
 //
 // was OS_filnam_eval
 
@@ -181,8 +448,8 @@ extern int errno;
   char **w;
   wordexp_t p;
 
-  printf("OS_filnam_eval |%s|\n",fn);
 
+  // printf("OS_osVar_eval |%s|\n",fn);
 
   // wordexp provides n results, use only first.
   wordexp(fn, &p, 0);
@@ -198,7 +465,7 @@ extern int errno;
 
   L_exit:
 
-    printf(" ex-OS_filnam_eval |%s|\n",fn);
+    // printf(" ex-OS_osVar_eval |%s|\n",fn);
 
   return 0;
 

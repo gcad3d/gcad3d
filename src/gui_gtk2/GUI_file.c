@@ -47,10 +47,15 @@ gcc `pkg-config --cflags gtk+-3.0` ../gui/GUI_file_open.c `pkg-config --libs gtk
 
 #include <gtk/gtk.h>
 
-#include "../ut/deb_prt.h"          // printd
+#include "../ut/ut_os.h"          // OS_get_tmp_dir
+// #include "../ut/deb_prt.h"          // printd
 
 
-// #include "../gui/gui__.h"
+// activate printd
+// #define printd printf
+// disable printd
+#define printd if(0) printf
+
 
 
 /// FilenamedelimiterChar
@@ -64,8 +69,13 @@ gcc `pkg-config --cflags gtk+-3.0` ../gui/GUI_file_open.c `pkg-config --libs gtk
 
 
 // GLOBAL:
-static char *sGui = "gtk2";
-int  nArg;
+#ifdef _MSC_VER
+static char *sGui = "gtk2_MS";      
+#else
+static char *sGui = "gtk2";      
+#endif
+
+int  nArg, fnID;
 char **paArg;
 char fnOut[512];
 char title[512];
@@ -102,15 +112,43 @@ void TX_Print (char* txt, ...) { printf("%s\n",txt); }
 }
 
 
-//================================================================
-  char* OS_get_tmp_dir () {
-//================================================================
-/// returns tempDir (with closing '/')  <gcad_dir_local>tmp/
+//=======================================================================
+  int UTX_fgetLine (char *cbuf, int sizBuf, char *filNam, int lNr) {
+//=======================================================================
+/// \code
+/// UTX_fgetLine           read line nr. <lNr> out of file <filNam>
+///             first line has lineNr 1
+/// sizBuf      size of cbuf
+/// rc -1   File does not exist
+/// rc -2   Line does not exist
+/// rc  0   OK
+/// \endcode
 
-static char* os_tmp_dir = "/tmp/";
 
-  return os_tmp_dir;
+  int    i1;
+  FILE   *fpi;
 
+  // printf("UTX_fgetLine |%s| %d\n",filNam,lNr);
+
+
+  if ((fpi = fopen (filNam, "r")) == NULL) {
+    return -1;
+  }
+
+  i1=0;
+  while (!feof (fpi)) {
+    ++i1;
+    if (fgets (cbuf, sizBuf, fpi) == NULL) goto Fertig;
+    // printf(" ..--in |%s|\n",cbuf);
+    if(i1 != lNr) continue;
+    fclose(fpi);
+    UTX_CleanCR (cbuf);
+    // printf("ex UTX_fgetLine %d |%s|\n",lNr,cbuf);
+    return 0;
+  }
+  Fertig:
+  fclose(fpi);
+  return -2;
 }
 
 
@@ -270,26 +308,41 @@ static char* os_tmp_dir = "/tmp/";
 //================================================================
   int GUI_file_symdir__ (char *sDir, int sSiz) {
 //================================================================
-// get symbilic-directory
+// get symbolic-directory
 
   int    irc, il;
-  char   s2[2048], s3[512], *binDir, *p1;
+  char   s2[2048], s3[512], fnTmp[400], *binDir, *p1;
   FILE   *fpi;
 
   // get binDir
   binDir = getenv("gcad_dir_bin");
     printd(" GUI_file_symdir__-binDir |%s|\n",binDir);
 
+  // filename outputFile
+  sprintf (fnTmp, "%stemp_%d",OS_get_tmp_dir(),rand());
+
   // call GUI_dlg1_gtk2 list1
   // <binDir>/GUI_dlg1_gtk2 list1 <symListfile> title
-  sprintf(s2,"%sGUI_dlg1_%s list1 %s \"symbolic directory\" \"x40,y20\"",
-          binDir, sGui, fnSymDir);
+#ifdef _MSC_VER
+  sprintf(s2,
+"CMD /C \"\"%sGUI_dlg1_%s\" list1 \"%s\" \"symbolic directory\" \"x40,y20\" \"%s\"\"",
+          binDir,     sGui,       fnSymDir,                                  fnTmp);
+#else
+  sprintf(s2,"%sGUI_dlg1_%s list1 %s \"symbolic directory\" \"x40,y20\" %s",
+          binDir,       sGui,  fnSymDir,                              fnTmp);
+#endif
     printd(" GUI_file_symdir__ |%s|\n",s2);
 
-  irc = OS_sys1 (sDir, sSiz, s2);
-  if(irc < 0) {printf("***** symdir__ - Error OS_sys1 %d\n",irc); return -1;}
+  // irc = OS_sys1 (sDir, sSiz, s2);
+  irc = OS_system (s2);
+  if(irc) {printf("***** symdir__ - Error OS_sys1 %d\n",irc); return -1;}
   UTX_CleanCR (sDir);
     printd("## GUI_file_symdir__-in %d |%s|\n",irc,sDir);
+
+
+  // read file <tmp>/tmp_<iRnd>, delete file, return filecontent:
+  irc = UTX_fgetLine (sDir, sSiz, fnTmp, 1);
+  OS_file_delete (fnTmp);
 
 
   //----------------------------------------------------------------
@@ -336,11 +389,19 @@ static char* os_tmp_dir = "/tmp/";
     // directory sDir does not exist;
       printd("##  dir__ |%s| does not exist\n",sDir);
 
+
+  // start GUI
+#ifdef _MSC_VER
+    sprintf(s2,"CMD /C \"%sGUI_dlg1_%s info \"ERROR - Directory %s does not exist\"\"",
+            binDir, sGui, sDir);
+#else
     sprintf(s2,"%sGUI_dlg1_%s info \"ERROR - Directory %s does not exist\"",
             binDir, sGui, sDir);
+#endif
       printd("##  symdir__-4 |%s|\n",s2);
 
-    OS_sys1 (sDir, sSiz, s2);
+    // OS_sys1 (sDir, sSiz, s2);
+    OS_system (s2);
     sDir[0] = '\0';
     return -5;
   }
@@ -424,7 +485,7 @@ static char* os_tmp_dir = "/tmp/";
   printd("## GUI_file_save__\n");
 
   // prepare filename, title
-  if(nArg < 6)  return GUI_file_err1 ();
+  if(nArg < 7)  return GUI_file_err1 ();
   sDir     = paArg[2];
   fnSymDir = paArg[3];
   sFilter  = paArg[4];
@@ -562,7 +623,7 @@ static char* os_tmp_dir = "/tmp/";
   printd("## GUI_file_open__\n");
 
   // prepare filename, title
-  if(nArg < 6)  return GUI_file_err1 ();
+  if(nArg < 7)  return GUI_file_err1 ();
   sDir     = paArg[2];
   fnSymDir = paArg[3];
   sFilter  = paArg[4];
@@ -701,11 +762,8 @@ static char* os_tmp_dir = "/tmp/";
   if(nArg < 3) return (GUI_file_err1());
 
 
-#ifdef DEB
-  DEB_prt_init (1); // init "printd"-file
   printd("***** start exe GUI_file V1.0 ..\n");
   for(i1=0; i1<argc; ++i1) printd("## GUI_file argv[%d]=|%s|\n",i1,argv[i1]);
-#endif
 
 
   gtk_disable_setlocale ();  // sonst Beistrich statt Decimalpunkt !! (LC_ALL)
@@ -743,13 +801,21 @@ static char* os_tmp_dir = "/tmp/";
 //================================================================
 // exit - provide selection to caller via stdout
 
-  printf("%s\n", sOut);  // to provide to caller via stdout
-  fflush(stdout);
+//   printf("%s\n", sOut);  // to provide to caller via stdout
+//   fflush(stdout);
 
-#ifdef DEB
+  FILE    *fpo;
+
   printd("exit-GUI_file_exit |%s|\n",sOut);
-  DEB_prt_init (0); // close "printd"-file
-#endif
+
+
+  if((fpo=fopen(paArg[6],"w")) == NULL) {
+    printf("***** symdir__ - Error GUI_file GUI_file_exit Open %s\n",paArg[6]);
+    exit(1);
+  }
+
+  fprintf(fpo, "%s\n",sOut); 
+  fclose(fpo);
 
   // gtk_widget_destroy (wfl1);
 

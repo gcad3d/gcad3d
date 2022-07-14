@@ -96,9 +96,9 @@ Example:
 #define MSG_ERR_typ_WNG     1
 #define MSG_ERR_typ_ERR     2
 #define MSG_ERR_typ_BRK     3
-#define MSG_ERR_typ_CON     4        // continuation line
+#define MSG_ERR_typ_CON     4        // continuation line - skip also if errTyp > 2
 
-int MSG_ERR_out (int msgTyp, const char *fnc, int ikey, char *txt, ...);
+int MSG_ERR_out (int msgTyp, const char *fnc, int lNr, int ikey, char *txt, ...);
 
 
 /// \code
@@ -116,7 +116,7 @@ int MSG_ERR_out (int msgTyp, const char *fnc, int ikey, char *txt, ...);
 /// \endcode
 int MSG_ERR__ (int iErr, ...);
 #define MSG_ERR__(iErr,...)\
- MSG_ERR_out (MSG_ERR_typ_ERR,__func__,iErr,__VA_ARGS__)
+ MSG_ERR_out (MSG_ERR_typ_ERR,__func__,__LINE__,iErr,__VA_ARGS__)
 
 
 // keys for error-Messages MSG_ERR__;

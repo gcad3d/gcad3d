@@ -143,7 +143,7 @@ static MemObj UI_DialogEntryWin;
   printf("GUI_AboutInfo \n");
 
 
-  sprintf(s1, "%s%s",OS_get_ico_dir(),img);
+  sprintf(s1, "%s%s",AP_get_ico_dir(),img);
   img1 = gdk_pixbuf_new_from_file (s1, &error);
       if (error) {
         TX_Error ("GUI_AboutInfo icon %s not found ..\n", error->message);

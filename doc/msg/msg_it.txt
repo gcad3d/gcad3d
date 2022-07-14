@@ -33,6 +33,7 @@ MMdspr=ripristina la vista memorizzata
 
 MMdspon=display the names of all objects of group
 MMdspdir=display the direction of all curves of group
+MMdsptn=do not display textnotes (text at specific position)
 MMdsppt=Visualizza i punti (P) on / off  (solo in VWR)
 MMdsppl=Visualizza i piani (R) on / off (solo in VWR)
 MMdspso=Visualizza i solidi (Sfera / Cono / Toro / Cubo) pieni o filiformi
@@ -139,6 +140,7 @@ CADhelpInput=display a Help-text for active inputfield in html-browserwindow
 CADexit=Esce dalla funzione. Non salva l'oggetto attivo. Edit-mode: Cancel twice, right mousebutton  - edit.
 CADclear=clear active CAD-inputfield
 CADsave=salva l'oggetto attivo, Vai all'oggetto successivo. MouseButton destro, tasto Enter.
+CADupd=update display
 
 PT_cartes__offset=Punto da coordinate: seleziona o digita i valori di offset [per X / Y / Z]
 PT_polar=Punto da coordinate polari: punto base, angolo di rotazione intorno all'asse Z, [angolo di inclinazione rispetto al piano xy)], Distanza
@@ -188,7 +190,7 @@ V_Angle_2_lines_vectors=angle from 2 lines / vectors
 S_Ellipse_Center_AxisEndPoint_Point=Ellisse da: centro, punto finale dell'asse principale, punto di Ellisse
 S_Ellipse_Center_Axes__EndPoints_=Ellisse (limitata) da: centro, vettore asse principale, vettore asse secondario, punto di partenza, punto di arrivo
 S_Polygon___Points___=Poligono da: punti
-S_Polygon___Rectangle=Parallelogramma da: punto di angolo e 2 vettori
+S_Polygon_4_side_quadrilateral=Parallelogram, trapezium or rhombus from cornerpoint and 2 vectors
 S_BSpline___Points___=B-Spline da: punti; [CTRL (punti di controllo / attraverso i punti)]
 S_BSpline___Polygon___=B-Spline da: poligono; [CTRL (punti di controllo / attraverso i punti)]
 S_BSpline___convert___join_obj_s=B-Spline collegando Linee / Cerchi / B-spline

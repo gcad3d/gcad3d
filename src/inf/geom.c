@@ -73,7 +73,8 @@ INF_SURF_trim-punch-3D
 INF_surf_funcs___
 INF_tess__
 INF_Intersect_Surf
-INF_Intersect_Body INF_Create_Body
+INF_Intersect_Body
+INF_Create_Body
 
 
 
@@ -81,46 +82,49 @@ INF_Intersect_Body INF_Create_Body
 ================================================================== \endcode */}
 void INF_surf_opers(){                   /*! \code
 
-- create intersect-Curves mesh1 - mesh2
-- create points at all start- and endPoints of the intersect-Curves
+ surf1     surf2      surf1,surf2        NOT           OR         AND
++---+     .   .      +---+          +---+        +---+        .   .
+| . | .     +---+    | +-+-+        | +-+ .      | . +-+        +-+
+| . | .     +---+    | +-+-+        | +-+ .      | . +-+        +-+
++---+     .   .      +---+          +---+        +---+        .   .
+
 
 //================================================================
-CUT:    (mesh1 NOT mesh2)
-- start at first endpoint of intersect-Curves at OB of mesh1
-- L1: follow mesh-1 fwd to next intersectionpoint with mesh-2 ( = endPt of 
+NOT:    (surf1 NOT surf2)
+- surf3 = surf1 without parts of surf2 covering surf1
+- start at first endpoint of intersect-Curves at OB of surf1
+- L1: follow surf-1 fwd to next intersectionpoint with surf-2 ( = endPt of 
   a intersect-Curve) or endPt of curve or end contour
   - next intersectionpoint found: 
-    - follow mesh-2 bwd to next intersectionpoint ( = startPt of active
+    - follow surf-2 bwd to next intersectionpoint ( = startPt of active
       intersect-Curve); goto L1.
 
 
 //================================================================
-BLEND:   (mesh1 OR mesh2)
-- start at first endpoint of intersect-Curves at OB of mesh1
-- L1: follow OB of mesh-1 fwd to next intersectionpoint with mesh-2
+OR:   (surf1 OR surf2)
+- surf3 = all parts of surf1 and surf2 and also covered parts
+- start at first endpoint of intersect-Curves at OB of surf1
+- L1: follow OB of surf-1 fwd to next intersectionpoint with surf-2
   ( = endPt of a intersect-Curve) or endPt of curve or end contour
   - next intersectionpoint found: 
-    - follow OB of mesh-2 fwd to next intersectionpoint; goto L1.
+    - follow OB of surf-2 fwd to next intersectionpoint; goto L1.
 
 
 //================================================================
-INTersect:  (mesh1 AND mesh2)
-- start at first endpoint of intersect-Curves at OB of mesh1
-- L1: follow OB of mesh-2 fwd to next intersectionpoint with mesh-1
+AND:  (surf1 AND surf2)
+- surf3 = only parts where surf1 is covering surf2
+- start at first endpoint of intersect-Curves at OB of surf1
+- L1: follow OB of surf-2 fwd to next intersectionpoint with surf-1
   ( = endPt of a intersect-Curve) or endPt of curve or end contour
   - next intersectionpoint found: 
-    - follow mesh-1 fwd to next intersectionpoint; goto L1.
+    - follow surf-1 fwd to next intersectionpoint; goto L1.
 
 
-================================================================== \endcode */}
-void INF_SURF_trim-punch-2D(){                   /*! \code
 
-- support-surf -> 2D
-- tesselate
-- outer boundary -> 2D
-- inner boundaries -> 2D
-- 2D-grid bestimmen
-- included gridpoints mitvermehsen
+- create intersect-Curves surf1 - surf2
+- create points at all start- and endPoints of the intersect-Curves
+
+
 
 
 ================================================================== \endcode */}
@@ -136,15 +140,25 @@ void INF_SURF_trim-punch-3D(){                   /*! \code
 Prerquisites: mesh must provide neighbour-faces.
 
 
+================================================================== \endcode */}
+void INF_SURF_trim-punch-2D(){                   /*! \code
+
+- support-surf -> 2D
+- tesselate
+- outer boundary -> 2D
+- inner boundaries -> 2D
+- 2D-grid bestimmen
+- included gridpoints mitvermehsen
+
 
 ================================================================== \endcode */}
 void INF_Intersect_Surf(){                   /*! \code
 
 
-Operations for surfaces: intersect
- - intersect surface - plane;
+Operations for surfaces: AND OR NOT  - see INF_surf_opers
  - intersect surface - surface;
- - intersect all surfaces of 2 bodies
+ - intersect surface - plane;
+ - intersect surface - curve;
 
 - get Intersect-Surface-Curve as n polgons;
 - change n polygons into n analytic curves (line|circle|conic|bspline)
@@ -166,6 +180,14 @@ see GLU - ../gr/ut_GLU.c:130
     - continue with next old boundary-segments
 
 
+- intersect 2 surfaces
+   result = 2 groups of surfaces (left/right of intersection-curve)
+- AND:     ??
+- OR:      join resulting surfaces (left + right) to new body
+- NOT:     join resulting surfaces (left + left) to new body
+
+
+
 Functions:
 MSHI_int_pln
   INT_nln_nfac_pln2
@@ -178,15 +200,10 @@ see myReadme.surfaces
 ================================================================== \endcode */}
 void INF_Intersect_Body(){                   /*! \code
 
-Operations for bodies: subtract join
+ - intersect all surfaces of 2 bodies
+
+Operations for bodies: AND OR NOT
 - intersect all surfaces of 2 bodies
-   result = 2 groups of surfaces (left/right of intersection-curve)
-- Join:    join resulting surfaces (left + right) to new body
-- Subract: join resulting surfaces (left + left) to new body
-
-
-
-- intersect all surfaces of body
 
 see INF_Intersect_Surf
 
@@ -197,6 +214,11 @@ void INF_Create_Body(){                   /*! \code
 - simple-body = cylinder or sphere or ...
   - create boundaries + supporting-surfaces
 - complex-body = list of surfaces
+
+
+- assemble body from surfaces  (module BDAS)
+       in:  surfaces
+       out: body
 
 - store body in DB (body = list of connected surfaces)
 

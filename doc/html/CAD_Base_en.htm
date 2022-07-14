@@ -13,7 +13,7 @@
 </STYLE>
 </HEAD>
 <BODY LANG="en-US"
-      style="font-family:Helvetica; font-size:12pt; font-weight:ormal;">
+      style="font-family:Helvetica; font-size:10pt; font-weight:ormal;">
 <PRE>
 
 
@@ -955,21 +955,29 @@ Example of rotate and tilt:
      6 = Arrowhead 2D (SymbolPosition is the arrowhead)
 
 
+
 <HR><!-- ============================================================ -->
-<p><a name="symFnam"><h2>Symbolic modelfilenames</h2></a></p>
+<p><a name="symFnam"><h4>Symbolic modelfilenames</h4></a></p>
+
+A symbolic-directory is a abbreviation for a directory-path.
+
 A symbolic file name consists of 
-"{path}/{filename}" 
-All symbolic pathe are defined in file {base}xa/dir.lst. 
-The icon can be freely chosen. 
-Interactively define the path using the "Standards/Directories". 
-Default directory is {base}/dat; the identifier for this 
- directory is "Data". 
- 
-Example of symbolic file name: 
-"Data/Niet1.dat" 
+"{symbolic-path}/{filename}" 
 
-Establish symbolic directory: see <a href="Settings_en.htm#ModelDirectories">Standards / Directories</a>.
+The assignements symbolic-path to full-directory-path are defined in files.
 
+All symbolic path-names are defined in the active directory-path-file.
+
+The active directory-path-file can be changed with <a href="Settings_en.htm#ModelDirectoryFile">select directory-path-group</a>).
+
+
+The default directory-path is ~/gCAD3D/dat; its symbolic name is "Data".
+
+Examples symbolic filenames:
+"Data/Niet1.dat"
+"Data/symEl1/res1.gcad"
+
+To edit the files see <a href="Settings_en.htm#ModelDirectories">edit directory-path-group</a>.
 
 
 
@@ -1080,13 +1088,20 @@ MODE BAR2 ON
 MODE DISP_PL OFF
 
 # Display points on (in mode VWR display points is OFF per default)
+# interactive: Display/PointDisplay ON
+# - add at end of model - works for already existing objects
 MODE DISP_PT ON
 
 # Display points off
 MODE DISP_PT OFF
 
-# Display all object-names
+# Display all object-names  (interactive: Display/ObjNames ON)
+# - add at end of model - works for already existing objects
 MODE DISP_OID ON
+
+# do not display object-ID's of Notes (if "MODE DISP_OID ON" is active)
+# - add before defining Notes
+MODE DISP_ONAM_NT OFF
 
 
 

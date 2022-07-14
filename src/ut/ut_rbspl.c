@@ -2236,13 +2236,16 @@ Returncodes:
 //================================================================
 // UT3D_rbspl_tst_cv     display Curve
 
+#define SIZ_PTAB 2048
+
   int   ptNr;
   Point *pTab;
 
 
   // disp. Rat.B-Spl as fine polygon ..
-  pTab = (Point*)memspc55;
-  ptNr = sizeof(memspc55) / sizeof(Point);
+  ptNr = SIZ_PTAB;
+  pTab = (Point*) MEM_alloc_tmp (sizeof(Point) * ptNr);
+  if(!pTab) {TX_Error("UT3D_rbspl_tst_cv EOM"); return -1;}
   UT3D_cv_rbsp (&ptNr, pTab, NULL, rbspl, ptNr, 0.1);
   GR_tDyn_pcv (pTab, ptNr, 9);
 

@@ -149,7 +149,7 @@ GL_set_quad           2 triangles
 GL_set_ntri           display triangles from points
 GL_set_fan            TriangFan planar or not
 GL_set_strip1         stripe from 1 pTab
-GL_set_strip2         stripe from 2 pTabs
+GL_set_strip_v         stripe from 2 pTabs
 GL_set_strip_v        disp strip vertical
 GL_set_patch          display Opengl-patch (type & n-points)
 GL_set_ipatch         display indexed-Opengl-patch (type,indexTable,points)
@@ -653,7 +653,7 @@ cl -c ut_GL.c
 #include "../ut/ut_txt.h"                // 
 #include "../ut/ut_TX.h"                 // TX_Error
 #include "../ut/ut_cast.h"               // INT_PTR
-#include "../ut/ut_os.h"                 // OS_get_bas_dir
+#include "../ut/ut_os.h"                 // AP_get_bas_dir
 #include "../ut/func_types.h"                 // ATT_LN_RAY
 
 #include "../ut/func_types.h"                 // Typ_Att_def, SYM_TRI_S, ..
@@ -807,7 +807,7 @@ int  GL_rub_stat = 0;             // 0=uninitilized; 1=initilized; 2=box exists
 
 
 static ObjDB   *GR_selTab = NULL; // table of selected dli's
-static long    GR_Siz_selTab = 0;
+static int     GR_Siz_selTab = 0;
 static int     GR_nr_selTab = 0;
 
 
@@ -3744,7 +3744,7 @@ Screenkoords > Userkoords.
 
 
 
-  printf("GL_DefineDisp mode=%d mode1=%d\n",mode,mode1);
+  // printf("GL_DefineDisp mode=%d mode1=%d\n",mode,mode1);
 
 
   switch (mode) {
@@ -5138,18 +5138,42 @@ static Point ptOri;
 
 
 //================================================================
+  int GL_selTab_init () {
+//================================================================
+
+  printf("GL_selTab_init %d\n",GR_Siz_selTab);
+
+
+  if(GR_Siz_selTab) {
+    free(GR_selTab);
+    GR_selTab = NULL;
+    GR_Siz_selTab = 0;
+    GR_nr_selTab = 0;
+    GL_selTab_realloc ();
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
   int GL_selTab_realloc () {
 //================================================================
 
+#define selTab_INC_SIZ 200
+
   long  newSiz;
 
-  GR_Siz_selTab += 2000;
+  GR_Siz_selTab += selTab_INC_SIZ;
 
-  newSiz = sizeof(ObjDB) * (GR_Siz_selTab + 2);
+  newSiz = sizeof(ObjDB) * GR_Siz_selTab;
 
   GR_selTab = (ObjDB*)realloc(GR_selTab, newSiz);
 
   if(GR_selTab) return 0;
+
+  TX_Error ("GL_selTab_realloc EOM");
 
   return -1;
 
@@ -5160,6 +5184,9 @@ static Point ptOri;
   int GL_sel_add_DB (ObjDB **dla, long dbi, int typ) {
 //================================================================
 // add DB-obj into selectionBuffer GR_selTab
+// Output:
+//   dla       pointer -> GR_selTab;
+//   retCode   GR_nr_selTab = size of GR_selTab;
 
   // printf("GL_sel_add_DB %d %d %ld\n",GR_nr_selTab,typ,dbi);
 
@@ -5170,13 +5197,14 @@ static Point ptOri;
       TX_Error("GL_sel_add_DB E001");
       return -1;
     }
-    *dla = GR_selTab;
   }
 
   GR_selTab[GR_nr_selTab].dlInd = -1L;
   GR_selTab[GR_nr_selTab].dbInd = dbi;
   GR_selTab[GR_nr_selTab].typ   = typ;
   ++GR_nr_selTab;
+
+  *dla = GR_selTab;
 
   return GR_nr_selTab;
 
@@ -8671,7 +8699,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // GL_DrawStripe (ptAnz, pa1, pa2);
-  GL_set_strip2 (pa1, pa2, ptAnz, 0);
+  GL_set_strip_v (pa1, pa2, ptAnz, 0);
 
 
   glEndList ();
@@ -8857,18 +8885,25 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
 
+  //----------------------------------------------------------------
+  // compute surf
   if(TSU_mode != 0) {  // 0 = draw OpenGL
     if(newS) GLT_stor_rec (6, NULL, NULL, Typ_SUR);
     return GLT_stor_rec (2, pa, pb, ptNr);
   }
 
-  glEnable(GL_LIGHTING);
-
-  i0 = -1;
-  i1 = 0;
 
 
   //----------------------------------------------------------------
+  // disp surf
+  glEnable(GL_LIGHTING);
+  i0 = ptNr -1;
+  for(i1=0; i1<i0; ++i1) GL_set_quad (&pa[i1],&pb[i1]);
+
+/*
+  i0 = -1;
+  i1 = 0;
+
   L_nxt_quad:
     ++i0;
     ++i1;
@@ -8886,19 +8921,19 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       GL_set_tria (&pb[i0], &pa[i1], &pb[i1]);
       goto L_nxt_quad;
 
-  //----------------------------------------------------------------
   L_drw_end:
 
     glEnd ();
+*/
 
-
-  /* zusaetzl. noch Boundarygrenzen hinmalen */
+  //----------------------------------------------------------------
+  // zusaetzl. noch Boundarygrenzen hinmalen 
   if(WC_stat_bound == ON) {
     glDisable (GL_LIGHTING);
 
     glCallList (DL_base_LnAtt + Typ_Att_Symb);
 
-    /* glDepthFunc (GL_ALWAYS);   // ueberschreibt immer (auch Flaechen !) */
+    // glDepthFunc (GL_ALWAYS);   // ueberschreibt immer (auch Flaechen !)
     glBegin (GL_LINES);
     i1=ptNr-1;
       // glVertex3d (pa1[i1].x,pa1[i1].y,pa1[i1].z);
@@ -8906,7 +8941,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       // glVertex3d (pa2[i1].x,pa2[i1].y,pa2[i1].z);
       glVertex3dv ((double*)&pb[i1]);
     glEnd ();
-    /* glDepthFunc (GL_LEQUAL);              // eine Spur besser als LESS */
+    // glDepthFunc (GL_LEQUAL);              // eine Spur besser als LESS
 
     glEnable (GL_LIGHTING);
   }
@@ -8917,6 +8952,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 }
 
 
+/* replaced with GL_set_strip_v
 //======================================================================
   int GL_set_strip2 (Point *pa, Point *pb, int ptNr, int newS) {
 //======================================================================
@@ -8963,11 +8999,10 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
 
   // printf("----------------------------------------------- \n");
-  // printf("GL_set_strip2 ptNr=%d mode=%d tol=%f\n",ptNr,TSU_mode,UT_TOL_pt);
-  // for(i1=0;i1<ptNr;++i1)DEB_dump_obj__(Typ_PT,&pa[i1]," pa[%d]:",i1);
-  // for(i1=0;i1<ptNr;++i1)DEB_dump_obj__(Typ_PT,&pb[i1]," pb[%d]:",i1);
-  // for(i1=0;i1<ptNr;++i1)GR_set_obj(OPERS_TDYN,0L,Typ_PT,&pa[i1],1,0);
-  // // return 0;
+  printf("GL_set_strip2 ptNr=%d mode=%d tol=%f\n",ptNr,TSU_mode,UT_TOL_pt);
+  for(i1=0;i1<ptNr;++i1)DEB_dump_obj__(Typ_PT,&pa[i1]," pa[%d]:",i1);
+  for(i1=0;i1<ptNr;++i1)DEB_dump_obj__(Typ_PT,&pb[i1]," pb[%d]:",i1);
+
 
 
   if(TSU_mode != 0) {  // 0 = draw OpenGL
@@ -9014,128 +9049,128 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   //----------------------------------------------------------------
   L_end:
 
-/*
-  // test if pa1 is a point (strip from revolved surfaces) can have 
-  // same point on pa1, pa2.
-  // iSta=2: 1.point of pa1 and pa2 is identical; else iSta=1.
-  if(UT3D_comp2pt (&pa[0], &pb[0], UT_DISP_cv) == 1)  { i0 = 1;  i1 = 2; }
-  else                                                { i0 = 0;  i1 = 1; }
-    // printf(" i0=%d i1=%d\n",i0,i1);
-
-  // MUST draw 1. triangle separate !
-
-  if(i1 == 2) {          // first strip is only a triangle ..
-      // printf(" a0,b1,a1\n");
-    glBegin (GL_TRIANGLE_STRIP);
-    GRU_calc_normal(&GL_norm1, &pa[0], &pb[1], &pa[1]);
-    glNormal3dv ((double*)&GL_norm1);
-
-    glVertex3dv ((double*)&pa[0]);
-    glVertex3dv ((double*)&pb[1]);
-    glVertex3dv ((double*)&pa[1]);
-    glEnd ();
-  }
-
-  glBegin (GL_TRIANGLE_STRIP);
-
-  GRU_calc_normal(&GL_norm1, &pa[i0], &pb[i0], &pa[i1]);
-  glNormal3dv ((double*)&GL_norm1);
-
-    // printf(" a%d b%d a%d / i0=%d i1=%d\n",i0,i0,i1,i0,i1);
-  glVertex3dv ((double*)&pa[i0]);
-  glVertex3dv ((double*)&pb[i0]);
-  glVertex3dv ((double*)&pa[i1]);
-
-  GRU_calc_normal(&GL_norm2, &pa[i1], &pb[i0], &pb[i1]);
-  glNormal3dv ((double*)&GL_norm2);
-
-      // printf(" b%d\n",i1);
-  glVertex3dv ((double*)&pb[i1]);
-
-  L_drw_nxt:
-    ++i0;
-    ++i1;
-    if(i1 >= ptNr) goto L_drw_end;
-
-    GRU_calc_normal(&GL_norm1, &pa[i0], &pb[i0], &pa[i1]);
-    glNormal3dv ((double*)&GL_norm1);
-      // DEB_dump_obj__ (Typ_VC, &GL_norm1, " nvc1[%d]:",i1);
-    // TestDisp Vektor:
-    // dli = -1; GL_DrawSymV3 (&dli, SYM_ARROW, 2, &pa[i1], &GL_norm1, 10.);
-
-      // printf(" a%d\n",i1);
-    glVertex3dv ((double*)&pa[i1]);
-
-    GRU_calc_normal(&GL_norm2, &pa[i1], &pb[i0], &pb[i1]);
-    glNormal3dv ((double*)&GL_norm2);
-      // DEB_dump_obj__ (Typ_VC, &GL_norm2, " nvc2[%d]:",i1);
-    // TestDisp Vektor:
-    // dli = -1; GL_DrawSymV3 (&dli, SYM_ARROW, 2, &pb[i1], &GL_norm2, 10.);
-      // printf(" b%d\n",i1);
-    glVertex3dv ((double*)&pb[i1]);
-    goto L_drw_nxt;
-*/
+/
+//   // test if pa1 is a point (strip from revolved surfaces) can have 
+//   // same point on pa1, pa2.
+//   // iSta=2: 1.point of pa1 and pa2 is identical; else iSta=1.
+//   if(UT3D_comp2pt (&pa[0], &pb[0], UT_DISP_cv) == 1)  { i0 = 1;  i1 = 2; }
+//   else                                                { i0 = 0;  i1 = 1; }
+//     // printf(" i0=%d i1=%d\n",i0,i1);
+// 
+//   // MUST draw 1. triangle separate !
+// 
+//   if(i1 == 2) {          // first strip is only a triangle ..
+//       // printf(" a0,b1,a1\n");
+//     glBegin (GL_TRIANGLE_STRIP);
+//     GRU_calc_normal(&GL_norm1, &pa[0], &pb[1], &pa[1]);
+//     glNormal3dv ((double*)&GL_norm1);
+// 
+//     glVertex3dv ((double*)&pa[0]);
+//     glVertex3dv ((double*)&pb[1]);
+//     glVertex3dv ((double*)&pa[1]);
+//     glEnd ();
+//   }
+// 
+//   glBegin (GL_TRIANGLE_STRIP);
+// 
+//   GRU_calc_normal(&GL_norm1, &pa[i0], &pb[i0], &pa[i1]);
+//   glNormal3dv ((double*)&GL_norm1);
+// 
+//     // printf(" a%d b%d a%d / i0=%d i1=%d\n",i0,i0,i1,i0,i1);
+//   glVertex3dv ((double*)&pa[i0]);
+//   glVertex3dv ((double*)&pb[i0]);
+//   glVertex3dv ((double*)&pa[i1]);
+// 
+//   GRU_calc_normal(&GL_norm2, &pa[i1], &pb[i0], &pb[i1]);
+//   glNormal3dv ((double*)&GL_norm2);
+// 
+//       // printf(" b%d\n",i1);
+//   glVertex3dv ((double*)&pb[i1]);
+// 
+//   L_drw_nxt:
+//     ++i0;
+//     ++i1;
+//     if(i1 >= ptNr) goto L_drw_end;
+// 
+//     GRU_calc_normal(&GL_norm1, &pa[i0], &pb[i0], &pa[i1]);
+//     glNormal3dv ((double*)&GL_norm1);
+//       // DEB_dump_obj__ (Typ_VC, &GL_norm1, " nvc1[%d]:",i1);
+//     // TestDisp Vektor:
+//     // dli = -1; GL_DrawSymV3 (&dli, SYM_ARROW, 2, &pa[i1], &GL_norm1, 10.);
+// 
+//       // printf(" a%d\n",i1);
+//     glVertex3dv ((double*)&pa[i1]);
+// 
+//     GRU_calc_normal(&GL_norm2, &pa[i1], &pb[i0], &pb[i1]);
+//     glNormal3dv ((double*)&GL_norm2);
+//       // DEB_dump_obj__ (Typ_VC, &GL_norm2, " nvc2[%d]:",i1);
+//     // TestDisp Vektor:
+//     // dli = -1; GL_DrawSymV3 (&dli, SYM_ARROW, 2, &pb[i1], &GL_norm2, 10.);
+//       // printf(" b%d\n",i1);
+//     glVertex3dv ((double*)&pb[i1]);
+//     goto L_drw_nxt;
+/
 
   L_drw_end:
 
     glEnd ();
 
-/*
-  glBegin (GL_TRIANGLE_STRIP);
+/
+//   glBegin (GL_TRIANGLE_STRIP);
+// 
+//     GRU_calc_normal(&GL_norm, &pa1[0], &pa1[1], &pa1[2]);
+//     glNormal3d (GL_norm.dx, GL_norm.dy, GL_norm.dz);
+// 
+//     for(i1=0; i1<ptNr; ++i1) {
+// 
+//       if(i1 > 2) {
+//         // GRU_calc_normal(&GL_norm, &pa1[i1], &pa1[i1-1], &pa1[i1-2]);
+//         glNormal3d (GL_norm.dx, GL_norm.dy, GL_norm.dz);
+//         glNormal3dv (&GL_norm);
+//       }
+// 
+//       // glVertex3d (pa1[i1].x,   pa1[i1].y,   pa1[i1].z);
+//       glVertex3dv (&pa1[i1]);
+// 
+//     }
+// 
+//   glEnd ();
+/
 
-    GRU_calc_normal(&GL_norm, &pa1[0], &pa1[1], &pa1[2]);
-    glNormal3d (GL_norm.dx, GL_norm.dy, GL_norm.dz);
-
-    for(i1=0; i1<ptNr; ++i1) {
-
-      if(i1 > 2) {
-        // GRU_calc_normal(&GL_norm, &pa1[i1], &pa1[i1-1], &pa1[i1-2]);
-        glNormal3d (GL_norm.dx, GL_norm.dy, GL_norm.dz);
-        glNormal3dv (&GL_norm);
-      }
-
-      // glVertex3d (pa1[i1].x,   pa1[i1].y,   pa1[i1].z);
-      glVertex3dv (&pa1[i1]);
-
-    }
-
-  glEnd ();
-*/
-
-/*
-  // Variante, wenn die Punkte abwechselnd liegen.
-  // Variante in Dreicke zerlegen und Normalvektor 
-  glBegin (GL_TRIANGLES);
-
-    a1 = 1; a2 = 2;
-    for(i1=2; i1<ptNr; ++i1) {
-
-      GRU_calc_normal(&GL_norm, &pa1[i1-a2], &pa1[i1-a1], &pa1[i1]);
-      glNormal3d (-GL_norm.dx, -GL_norm.dy, -GL_norm.dz);
-      // glNormal3dv (&GL_norm);
-
-      glVertex3dv (&pa1[i1-a2]);
-      glVertex3dv (&pa1[i1-a1]);
-      glVertex3dv (&pa1[i1]);
-
-      // beim naechsten Drehrichtung umdrehen !
-      if(a1 == 1) {
-        a1 = 2; a2 = 1;
-      } else {
-        a1 = 1; a2 = 2;
-      }
-    }
-  glEnd ();
-*/
+/
+//   // Variante, wenn die Punkte abwechselnd liegen.
+//   // Variante in Dreicke zerlegen und Normalvektor 
+//   glBegin (GL_TRIANGLES);
+// 
+//     a1 = 1; a2 = 2;
+//     for(i1=2; i1<ptNr; ++i1) {
+// 
+//       GRU_calc_normal(&GL_norm, &pa1[i1-a2], &pa1[i1-a1], &pa1[i1]);
+//       glNormal3d (-GL_norm.dx, -GL_norm.dy, -GL_norm.dz);
+//       // glNormal3dv (&GL_norm);
+// 
+//       glVertex3dv (&pa1[i1-a2]);
+//       glVertex3dv (&pa1[i1-a1]);
+//       glVertex3dv (&pa1[i1]);
+// 
+//       // beim naechsten Drehrichtung umdrehen !
+//       if(a1 == 1) {
+//         a1 = 2; a2 = 1;
+//       } else {
+//         a1 = 1; a2 = 2;
+//       }
+//     }
+//   glEnd ();
+/
 
 
-  /* zusaetzl. noch Boundarygrenzen hinmalen */
+  // zusaetzl. noch Boundarygrenzen hinmalen
   if(WC_stat_bound == ON) {
     glDisable (GL_LIGHTING);
 
     glCallList (DL_base_LnAtt + Typ_Att_Symb);
 
-    /* glDepthFunc (GL_ALWAYS);   // ueberschreibt immer (auch Flaechen !) */
+    // glDepthFunc (GL_ALWAYS);   // ueberschreibt immer (auch Flaechen !)
     glBegin (GL_LINES);
     i1=ptNr-1;
       // glVertex3d (pa1[i1].x,pa1[i1].y,pa1[i1].z);
@@ -9143,14 +9178,16 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       // glVertex3d (pa2[i1].x,pa2[i1].y,pa2[i1].z);
       glVertex3dv ((double*)&pb[i1]);
     glEnd ();
-    /* glDepthFunc (GL_LEQUAL);              // eine Spur besser als LESS */
+    // glDepthFunc (GL_LEQUAL);              // eine Spur besser als LESS
 
     glEnable (GL_LIGHTING);
   }
 
 
   return 0;
+
 }
+*/
 
 
 //================================================================
@@ -9162,15 +9199,15 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   // printf("GL_set_tria \n");
   // printf("    %12.3f %12.3f %12.3f \n",p1->x,p1->y,p1->z);
-  // printf("    %12.3f %12.3f %12.3f \n",p2->x,p1->y,p1->z);
-  // printf("    %12.3f %12.3f %12.3f \n",p3->x,p1->y,p1->z);
+  // printf("    %12.3f %12.3f %12.3f \n",p2->x,p2->y,p2->z);
+  // printf("    %12.3f %12.3f %12.3f \n",p3->x,p3->y,p3->z);
 
 
 
   glBegin (GL_TRIANGLES);
 
-    GRU_calc_normal(&GL_norm, p1, p2, p3);
-    glNormal3dv ((double*)&GL_norm);
+    // GRU_calc_normal(&GL_norm, p1, p2, p3);
+    // glNormal3dv ((double*)&GL_norm);
 
     glVertex3dv ((double*)p1);
     glVertex3dv ((double*)p2);
@@ -9186,14 +9223,14 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 //================================================================
 // GL_set_quad                2 triangles
 //
-// pa  0--1
+// pb  0--1
 //     | /|
 //     |/ |
-// pb  0--1
+// pa  0--1
 //
 // see also GL_set_fan
  
-  Vector   GL_norm;
+  Vector   nv;
 
   // printf("GL_set_quad \n");
   // printf("    pa[0] %12.3f %12.3f %12.3f \n",pa[0].x,pa[0].y,pa[0].z);
@@ -9204,15 +9241,17 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
 
   glBegin (GL_TRIANGLE_FAN);
 
-    GRU_calc_normal(&GL_norm, &pb[0], &pb[1], &pa[1]);
-    glNormal3dv ((double*)&GL_norm);
+    GRU_calc_normal(&nv, &pb[0], &pb[1], &pa[1]);
+      // printf("    norm1: %12.3f %12.3f %12.3f \n",nv.dx,nv.dy,nv.dz);
+    glNormal3dv ((double*)&nv);
 
     glVertex3dv ((double*)&pb[0]);
     glVertex3dv ((double*)&pb[1]);
     glVertex3dv ((double*)&pa[1]);
 
-    GRU_calc_normal(&GL_norm, &pb[0], &pa[1], &pa[0]);
-    glNormal3dv ((double*)&GL_norm);
+    GRU_calc_normal(&nv, &pb[0], &pa[1], &pa[0]);
+      // printf("    norm2: %12.3f %12.3f %12.3f \n",nv.dx,nv.dy,nv.dz);
+    glNormal3dv ((double*)&nv);
 
     glVertex3dv ((double*)&pa[0]);
 
@@ -9249,7 +9288,8 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   Vector   GL_norm;
 
 
-  // printf("GL_set_fan %d\n",ptNr);
+  // printf("GL_set_fan %d %d %d\n",ptNr,typ,newS);
+  // for(i1=0;i1<ptNr;++i1) printf(" %d %f %f %f\n",i1,pa1[i1].x,pa1[i1].y,pa1[i1].z);
   // GR_tDyn_npt__ (1, pt1, SYM_TRI_S, 3);
   // GR_tDyn_npt__ (ptNr, pa1, SYM_TRI_S, 3);
   // return;
@@ -9384,7 +9424,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // printf(" TSU_mode=%d styl=%d\n",TSU_mode,styl);
 
 
-  // see GL_set_fan & GL_set_strip2
+  // see GL_set_fan & GL_set_strip_v
   if(TSU_mode != 0) {  // 0 = draw OpenGL
     // store for export
     // GLT_stor_rec (6, NULL, NULL, Typ_SUR);
@@ -9475,7 +9515,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   // printf(" TSU_mode=%d styl=%d\n",TSU_mode,styl);
 
 
-  // see GL_set_fan & GL_set_strip2
+  // see GL_set_fan & GL_set_strip_v
   if(TSU_mode != 0) {  // 0 = draw OpenGL
     // store for export
     // GLT_stor_rec (6, NULL, NULL, Typ_SURPMSH);
@@ -10477,10 +10517,14 @@ glCallList (DL_shade_wire);
 //   dbi        DB-index (for use of PRCV) else 0
 //   att        see INF_COL_CV
 
-  int     irc, grMode, ptNr, rMax, mdli;
+  int     irc, grMode, ptNr, rMax, mdli, oNr;
   double  tol;
   Point   *pta;
   MemTab(Point) mtpa = _MEMTAB_NUL;
+
+
+  // printf("GL_set_ocv form=%d dbi=%ld att=%d\n",form,dbi,att);
+  // DEB_dump_obj__ (form, obj, "GL_set_ocv-in");
 
 
   // get polygon pta = points for curve, display;
@@ -10498,7 +10542,8 @@ glCallList (DL_shade_wire);
   mdli = AP_modact_ibm;
 
   // get polygon from curve
-  irc = UT3D_mtpt_obj (&mtpa, NULL, form, obj, 1, dbi, mdli, tol, grMode);
+  oNr = 1;
+  irc = UT3D_mtpt_obj (&mtpa, NULL, form, obj, oNr, dbi, mdli, tol, grMode);
   if(irc < 0) {TX_Error("GL_set_ocv E2"); goto L_exit;}
 
   ptNr = mtpa.rNr;
@@ -10638,7 +10683,7 @@ glCallList (DL_shade_wire);
 
   L_err_img:
   if(pixSiz < 0) {
-    sprintf(bNam, "%sNO_IMAGE32x32_24.bmp",OS_get_ico_dir());
+    sprintf(bNam, "%sNO_IMAGE32x32_24.bmp",AP_get_ico_dir());
     pixSiz = bmp_load (&mSpc, &ix, &iy, bNam);
     if(pixSiz < 0) return -1;
     scl = 1.;
@@ -12003,7 +12048,7 @@ glCallList (DL_shade_wire);
     // printf(" BMP-siz=%d %d\n",ix,iy);
 
   if(pixSiz < 0) {
-    sprintf(bNam, "%sNO_IMAGE32x32_24.bmp",OS_get_ico_dir());
+    sprintf(bNam, "%sNO_IMAGE32x32_24.bmp",AP_get_ico_dir());
     pixSiz = bmp_load (&mSpc, &ix, &iy, bNam);
     if(pixSiz < 0) return -1;
   }

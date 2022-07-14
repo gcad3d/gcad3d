@@ -187,16 +187,19 @@ UTX_sget_nrRange       get nr or range out of textstring
 
 UTX_db_tx              read float from ascii-string
 
+UTX_ffNam_fNam         get full-filename from (unknown) filename
 UTX_fnam__             separate/copy directory,fileName,fileTyp of full filename
 UTX_fnam1__            separate/copy directory,fileName of full filename
 UTX_ftyp_s             get filetyp from filename (change => upper)
 UTX_fnam_s             get fnam from string
 UTX_fdir_s             get fileDirectory from string
 UTX_ftyp_cut           remove Filetyp from string
+UTX_fnam_rem_dirLast   remove last dir
 UTX_safeName           make a safe modelname from a modelname
 UTX_fnam_fnrel         make absolute filename from relative Filename and basDir
 UTX_fnam_rel2abs       make absolute filename from relative Filename and actDir
 UTX_fnam_abs2rel       make relative filename from absolutFilename and actDir
+UTX_fnam_ck_rel        test if fn is relativ; -1=no; else position
 UTX_fdir_cut           cut last subpath from path
 
 UTX_fget_add_MS        add file into memSpc (remove CR from MS-files)  
@@ -236,7 +239,8 @@ UTX_dump_c__           dump <cLen> chars - does not stop at \n
 UTX_dump__             dump <cLen> chars (replace \n\r\t)  - stop at \0
 UTX_dump_s__           dump <cLen> chars (replace \n\r\t\0)
 UTX_dump_p1p2          dump string from ps to pe
-UTX_dump_wTab          dumpt table of words
+UTX_dump_wTab          dump table of words
+UTX_dump_ia            dump formatted list of ints, 10 per line
 
 List_functions_end:
 =====================================================
@@ -808,9 +812,10 @@ static char   TX_buf2[128];
 //================================================================
 // UTX_safeName           make a safe modelname from a modelname
 // mode:
-//   0:  change all '.' ' ' to '_';              do not change '/' '\'
+//   0:  change all '.' ' ' to '_';              do not change '/' '\' (relative fn)
 //   1,2 change all '.' ' ' '/' '\' to '_'
-//   3:  change all ' ' '/' '\' to '_'           do not change '.'
+//       MS-Win:    ':'             to '_'       (eg "C:\xx\yy")
+//   3:  change all '.' ' ' '(' ')' to '_'       for internal subModelnames
 
 
   int   iPos, iLen;
@@ -836,7 +841,12 @@ static char   TX_buf2[128];
 
   //----------------------------------------------------------------
   L_1:
-    iPos = strcspn (snam, ". /\\");
+    // mode 1,2
+#ifdef _MSC_VER
+    iPos = strcspn (snam, " ./:\\");
+#else
+    iPos = strcspn (snam, " ./\\");
+#endif
     if(iPos < iLen) {
       snam[iPos] = '_';
       goto L_1;
@@ -845,7 +855,7 @@ static char   TX_buf2[128];
 
   //----------------------------------------------------------------
   L_3:
-    iPos = strcspn (snam, " /\\");
+    iPos = strcspn (snam, " .()");
     if(iPos < iLen) {
       snam[iPos] = '_';
       goto L_3;
@@ -891,6 +901,38 @@ static char   TX_buf2[128];
 }
 
 
+//================================================================
+  int UTX_fnam_ck_rel (char *fn) {
+//================================================================
+// UTX_fnam_ck_rel           test if fn is relativ;
+//   returns -1=yes-relative; else position of last directory-separator ('/')
+//   test only for '/'  (MS:'\' or '/')
+//   does not recognize "./" "../" ..
+
+
+  int    i1;
+  char   *pfn;
+
+
+  i1 = -1;
+
+#ifdef _MSC_VER
+  pfn = strchr(fn, '\\');
+  if(!pfn) pfn = strchr(fn, '/');
+#else
+  pfn = strchr(fn, fnam_del);
+#endif
+
+  if(pfn) i1 = pfn - fn;
+
+  L_exit:
+    // printf("## ex UTX_fnam_ck_rel %d |%s|\n",i1,fn);
+
+  return i1;
+
+}
+
+ 
 //=========================================================================
   int UTX_fnam_fnrel (char *fnAbs, int isiz, char *fnRel, char *basDir) {
 //=========================================================================
@@ -1130,6 +1172,115 @@ static char   TX_buf2[128];
 
 
 //================================================================
+  int UTX_fnam_rem_dirLast (char *sDir) {
+//================================================================
+// UTX_fnam_rem_dirLast        remove last dir 
+// Example: "/actDir1/actDir2/" -> "/actDir1/"
+
+
+  int    irc, sl;
+  char   *pfn;
+
+  // printf("UTX_fnam_rem_dirLast |%s|\n",sDir);
+
+  // remove last directory-delimiter
+  sl = strlen(sDir);
+  --sl;
+  if(sl < 1) {irc = -1; goto L_exit;}
+  if(sDir[sl] == fnam_del) {
+    sDir[sl] = '\0';
+    --sl;
+  }
+
+  // pfn = find last filename-delimiter
+  // must check for '/' AND '\' (in MS '/' can come from out of source)
+#ifdef _MSC_VER
+  pfn = UTX_find_strrchrn(sDir, "/\\");
+#else
+  pfn = strrchr(sDir, fnam_del);
+#endif
+
+  if(pfn) {++pfn; *pfn = '\0';}
+
+  irc = 0;
+
+  L_exit:
+    // printf("ex-UTX_fnam_rem_dirLast %d |%s|\n",irc,sDir);
+  return irc;
+
+}
+
+
+//================================================================
+  int UTX_ffNam_fNam (char *ffNam, char *fnIn, char *actDir) {
+//================================================================
+// UTX_ffNam_fNam       get full-filename from (unknown) filename
+// Input:
+//   actDir     pwd; used for relative path; must have closing '/'
+// Output:
+//   ffNam      size must be >= sMaxLen = 400
+// Test with: 
+// UTX_ffNam_fNam (s2, "../../../xy/dev.dat","/actDir1/actDir2/");
+// see also MDLFN_ffNam_fNam
+
+#define sMaxLen 400
+
+  int    irc, ls;
+
+  // printf("UTX_ffNam_fNam |%s|%s|\n",fnIn,actDir);
+
+  // check for absolute path
+  if(!OS_ck_DirAbs(fnIn)) {strcpy(ffNam, fnIn); goto L_exit;}
+
+
+  //----------------------------------------------------------------
+  // relative path -> full-filename
+  ls = strlen(actDir);
+  if(ls >= sMaxLen) goto L_err;
+  strcpy (ffNam, actDir);
+
+  if(fnIn[0] != '.') {
+    // eg ("act.dat", "/actDir/"); add actDir+fnIn
+    if(ls + strlen(fnIn) >= sMaxLen) goto L_err;
+    strcat(ffNam, fnIn);
+    goto L_exit;
+  }
+
+  if(fnIn[1] != '.') {
+    // eg ("./dev.dat", "/actDir/"); remove "./", add actDir+fnIn
+    if(ls + strlen(fnIn) - 2 >= sMaxLen) goto L_err;
+    strcat(ffNam, &fnIn[2]);
+    goto L_exit;
+  }
+
+  // eg ("../xy/dev.dat","/actDir1/actDir2/"); for each "../" remove last dir of actDir
+  L_nxtRem:
+      // printf(" L_nxtRem: |%s|%s|\n",ffNam,fnIn);
+    irc = UTX_fnam_rem_dirLast (ffNam);  // skip last part of dir
+    if(irc < 0) {
+        // printf(" L_nxtRem_-1: |%s|%s|\n",ffNam,fnIn);
+      strcpy(ffNam, fnIn);
+      goto L_exit;
+    }
+    fnIn += 3;  // skip "../"
+    if(!strncmp(fnIn, "../",3)) goto L_nxtRem;
+    if(strlen(fnIn) + strlen(ffNam) >= sMaxLen) goto L_err;
+    strcat(ffNam, fnIn);
+
+  //----------------------------------------------------------------
+  L_exit:
+    // printf(" ex-MDLFN_ffNam_fNam |%s|\n\n",ffNam);
+  return 0;
+
+
+  L_err:
+    TX_Error ("UTX_ffNam_fNam - string too long");
+    return -1;
+
+}
+
+
+//================================================================
   int UTX_fnam__ (char *fdir, char *fnam, char *ftyp, char *fnIn) {
 //================================================================
 /// \code
@@ -1275,14 +1426,20 @@ static char   TX_buf2[128];
   p1 = strrchr(cbuf, '.');  // find last .
   if(p1 == NULL) {
     ftyp[0] ='\0';
-    if(sln < 2) {irc = -2; goto L_exit;}
+    if(sln < 1) {
+      irc = -2;
+      goto L_exit;
+    }
     irc = -1;
     goto L_exit;
   }
 
   // wenn filename mit . beginnt, gilt das als Filename und nicht als Filetyp !
   if(p1 == cbuf) {irc = -1; goto L_exit;}           // eg ".s" or ./s"
-  if(*(p1-1) == fnam_del) {irc = -1; goto L_exit;}  // z.B. "./.0"
+  if(*(p1-1) == fnam_del) {
+    irc = -1;
+    goto L_exit;
+  }  // z.B. "./.0"
 
   if(ftyp) {
     ++p1;   // skip "."
@@ -1352,13 +1509,11 @@ static char   TX_buf2[128];
 //================================================================
   int UTX_fdir_s (char *fdir, char *cbuf) {
 //================================================================
-/// \code
-/// UTX_fdir_s        get fileDirectory from string
-/// last char ist immer der FilenamedelimiterChar !
-/// alles vor dem letzten FilenamedelimiterChar fnam_del ist fileDir;
-/// Wenn erster Char ist fnam_del: absolutes fileDir; else relativ.
-/// relativ: das pwd (os_bas_dir) vorne weg ...
-/// \endcode
+// UTX_fdir_s        get fileDirectory from string
+// last char ist immer der FilenamedelimiterChar !
+// alles vor dem letzten FilenamedelimiterChar fnam_del ist fileDir;
+// Wenn erster Char ist fnam_del: absolutes fileDir; else relativ.
+// relativ: das pwd (os_bas_dir) vorne weg ...
 
   int    i1;
   char   *p1, *p2;
@@ -1379,7 +1534,7 @@ static char   TX_buf2[128];
 #endif
 
   L_rel: // relatives verzeichnis
-    strcpy (fdir, OS_get_bas_dir ());
+    strcpy (fdir, AP_get_bas_dir ());
     p1 = cbuf;
     if((*p1 == '.')&&(*(p1+1) == fnam_del)) p1 += 2;  // skip "./"
     strcat (fdir, p1);
@@ -1438,7 +1593,7 @@ static char   TX_buf2[128];
   FILE    *fpi;
 
 
-  printf("UTX_cat_file |%s|\n",fnam);
+  // printf("UTX_cat_file |%s|\n",fnam);
 
 
   fSiz = OS_FilSiz (fnam);
@@ -4140,7 +4295,7 @@ Das folgende ist NICHT aktiv:
   cl = cbuf[strlen(cbuf)-1];
 
   if((cl != '/')&&(cl != '\\')) {
-    strcat(cbuf, "/");
+    strcat(cbuf,fnam_del_s);
   }
 
   return 0;
@@ -4757,7 +4912,7 @@ L_exit:
   }
 
   // open tempfile for write
-  sprintf(fn2,"%stempfile.txt",OS_get_tmp_dir());
+  sprintf(fn2,"%stempfile.txt",AP_get_tmp_dir());
   if((fp2=fopen(fn2,"w")) == NULL) {
     TX_Print("***** UTX_fmod_lnTxt E002 %s",fn2);
     goto L_err;
@@ -5016,7 +5171,7 @@ L_exit:
   // Datei zeilenweise einlesen
   while (fgets (cpos, sizRest, flun) != NULL) {
 
-    // printf(" add |%s|\n",cpos);
+    // printf(" fget_add_MS |%s|\n",cpos);
 
     // change fileformat dos --> unix
     // das Zeileende muss so aussehen:   \n  \0;
@@ -5149,12 +5304,10 @@ L_exit:
 //===========================================================
   char* UTX_CleanCR (char* string) {
 //===========================================================
-/// \code
-/// UTX_CleanCR              Delete Blanks, CR's and LF's at end of string
-/// returns positon of stringterminator \0
-/// 
-/// see also UTX_del_follBl UTX_CleanSC
-/// \endcode
+// UTX_CleanCR              Delete Blanks, CR's and LF's at end of string
+// returns positon of stringterminator \0
+// 
+// see also UTX_del_follBl UTX_CleanSC
 
 
   int  ilen;
@@ -5208,14 +5361,19 @@ L_exit:
 
   sLen = strlen(sBuf);
 
+  // printf("UTX_CleanLF %d |%s|\n",sLen,sBuf);
+
 
   // letzter char muss \n sein
-  if(sLen < 2) {
-    // only one char: \r > \n
-    if(*sBuf == '\r') *sBuf = '\n';
-    // add \n if none ..
-    if(*sBuf == '\n') goto L_done;
-    goto L_add;
+  if(sLen < 3) {
+    if(sLen < 2) {
+      // only one char: \r > \n
+      if(*sBuf == '\r') {*sBuf = '\n'; goto L_done;}
+      // add \n if none ..
+      if(*sBuf == '\n') goto L_done;
+      goto L_add;
+    }
+    if(sBuf[0] == 26) {*sBuf = '\n'; goto L_done;} // sub-char (ancient EOF)
   }
 
 
@@ -6719,6 +6877,48 @@ Example (scan line):
 
 
 //================================================================
+  int UTX_dump_ia (int *ia, int iNr, int dNr, char *txt) {
+//================================================================
+// UTX_dump_ia        dump formatted list of ints, 10 per line
+// Input:
+//   dNr     max nr digits including sign
+// TODO: dNr UNUSED - using '3'
+// TODO: format of range-value must depend on iNr
+
+  int    i1, i2, i3, ie;
+
+
+  printf("UTX_dump_ia %s %d\n",txt,iNr);
+
+  printf("-----------0;---1;---2;---3;---4;---5;---6;---7;---8;---9;\n");
+  //              1234;1234;1234;1234;1234;1234;1234;1234;1234;1234;
+  //
+
+  i3 = 0;
+  for(i1=0; i1<iNr; i1 += 10) {
+    ie = iNr - i1; 
+    if(ie > 10) ie = 10;
+    printf(" [%5d]",i1);          // range-value
+    for(i2=0;i2<ie;++i2) {
+      printf(" %3d;",ia[i1+i2]);
+    }
+    printf("\n");
+    ++i3; 
+    if(i3 >= 20) {
+      printf("-----------0;---1;---2;---3;---4;---5;---6;---7;---8;---9;\n");
+      i3 = 0;
+    }
+  }
+  printf("\n");
+
+
+
+  return 0;
+
+}
+
+
+//================================================================
   int UTX_dump_p1p2 (char *p1, char *p2) {
 //================================================================
 /// \code
@@ -7195,7 +7395,7 @@ Example (scan line):
 // ctyp = "": kein weiterer Wert mehr gefunden. (test: if (*ctyp) ..)
 // 
 //  char   cbuf1[128], cbuf2[128], cbuf3[128];
-//  sprintf(cbuf3,"%sxa%cgCAD3D.rc",OS_get_bas_dir(),fnam_del);
+//  sprintf(cbuf3,"%sxa%cgCAD3D.rc",AP_get_bas_dir(),fnam_del);
 //  L_read:
 //    UTX_setup_get (cbuf1, cbuf2, "ZBUFSIZ", cbuf3);
 //    if(*cbuf2) {

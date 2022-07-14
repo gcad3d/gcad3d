@@ -60,6 +60,7 @@ chmod 0755 ${instDir}/usr/bin/gcad3d
 /bin/cp -f ${gcad_dir_bin}gCAD3D         ${instDir}/usr/lib/gcad3d/${hTyp}/.
 /bin/cp -f ${gcad_dir_bin}*.so           ${instDir}/usr/lib/gcad3d/${hTyp}/.
 /bin/cp -f ${gcad_dir_bin}GUI_*          ${instDir}/usr/lib/gcad3d/${hTyp}/.
+/bin/cp -f ${gcad_dir_bin}gcad3d_gMsh    ${instDir}/usr/lib/gcad3d/${hTyp}/.
 /bin/cp -f ${gcad_dir_bin}plugins/*.so   ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/.
 /bin/cp -f ${gcad_dir_bin}plugins/cut1/* ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/cut1/.
 
@@ -67,6 +68,7 @@ chmod 0755 ${instDir}/usr/bin/gcad3d
 chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/gCAD3D
 chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/*.so
 chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/GUI_*
+chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/gcad3d_gMsh
 chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/*.so
 chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/cut1/*
 
@@ -87,6 +89,7 @@ chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/cut1/*
 /bin/cp -f ${basDir}/icons/*.png               ${instDir}/usr/share/gcad3d/icons/.
 /bin/cp -f ${basDir}/icons/*.xpm               ${instDir}/usr/share/gcad3d/icons/.
 /bin/cp -f ${basDir}/icons/*.bmp               ${instDir}/usr/share/gcad3d/icons/.
+/bin/cp -f ${basDir}/doc/*.txt                 ${instDir}/usr/share/gcad3d/doc/.
 /bin/cp -f ${basDir}/doc/html/*.htm            ${instDir}/usr/share/gcad3d/doc/html/.
 /bin/cp -f ${basDir}/doc/html/*.png            ${instDir}/usr/share/gcad3d/doc/html/.
 /bin/cp -f ${basDir}/doc/html/*.js             ${instDir}/usr/share/gcad3d/doc/html/.

@@ -95,7 +95,7 @@ The mainTimer calls CTRL_CB__ periodically;
 // #include "../ut/ut_umem.h"               // MEM_alloc_tmp
 #include "../ut/ut_txTab.h"              // TxtTab
 #include "../ut/ut_txt.h"                // UTX_pos_skipLeadBlk
-#include "../ut/ut_os.h"                 // OS_get_bas_dir
+#include "../ut/ut_os.h"                 // AP_get_bas_dir
 #include "../ut/ctrl_os.h"               // OS_CTL_read__
 #include "../ut/ut_memTab.h"           // MemTab
 
@@ -167,7 +167,7 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
 
 
     // open input-pipe
-    sprintf(sBufOut, "%sCTRLpin",OS_get_tmp_dir());
+    sprintf(sBufOut, "%sCTRLpin",AP_get_tmp_dir());
     irc = OS_CTL_read_init (sBufOut);
     if(irc < 0) {
       sprintf(sBufOut,"OS_CTL_read_init: open error %d\n",irc);
@@ -175,7 +175,7 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
     }
 
     // open output-pipe
-    sprintf(sBufOut, "%sCTRLpout",OS_get_tmp_dir());
+    sprintf(sBufOut, "%sCTRLpout",AP_get_tmp_dir());
     irc = OS_CTL_write_init (sBufOut);
     if(irc < 0) {
       sprintf(sBufOut,"OS_CTL_write_init: error %d\n",irc);
@@ -242,6 +242,9 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
 // executes commands.
 // Input:
 //   parCmd    command; eg "system (pluma /tmp/t1)"
+// Output:
+//   retCod    0 = OK, continue
+//             1 = wait for selection or ..
 
  
   int      irc, i1;
@@ -256,7 +259,7 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
          
 
 
-  // printf("CTRL_CB_do__  |%s|\n", parCmd);
+  printf("CTRL_CB_do__  |%s|\n", parCmd);
 
 /*
   // DO NOT USE mem_cbuf1; WC_Work1 is using it !
@@ -393,7 +396,8 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
   // does NOT check model-is-modified
   } else if(!strcmp(cmd, "LOAD")) {
     wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
-    AP_Mod_load_fn (wPos1, 0);
+    // AP_Mod_load_fn (wPos1, 0);
+    irc = AP_Mod_load_init (wPos1);
   
 
   
@@ -422,6 +426,9 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
   } else if(!strcmp(cmd, "APP")) {
     wPos1 = UTX_CleanBracks (wPos1, '\"', '\"');    // remove "
       printf(" start app. |%s|\n",wPos1);
+    UTX_fnam1__ (s3, s2, wPos1);
+    irc = PRG_CB  (s2, s3);  // s2 = filename, s3 = directory
+/*
     // find last '/' or '\\'
     p1 = strrchr (wPos1, fnam_del);
     if(!p1) goto L_err_par;
@@ -430,7 +437,8 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
     i1 = p1 - wPos1;
     strncpy(s3, wPos1, i1);
     s3[i1] = '\0';
-    irc = PRG_CB  (p1, s3);
+    irc = PRG_CB  (p1, s3);  // p1 = filename, s3 = directory
+*/
     if(irc < 0) return -1;
     // TEST ONLY PRG_CB  ("CirPat.gcap", "/home/fwork/gCAD3D/prg/");
     PRG_start ();
@@ -569,7 +577,7 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
     ctrlStat = 2;             // waiting-for-input
     UI_wait_Esc_msg ("test") ;
     // UI_block__ (1, 1, 1);                 // reset input & cursor
-      return 1;      // wait for next timerCB
+      return 0;      // wait for next timerCB
 
 
   //----------------------------------------------------------------
@@ -739,19 +747,19 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
   // MS-Win
   // copy test_release.cmd X:\Devel\gcad3d\gCAD3D\tmp\CTRLpin
 
-  // sprintf(s1, "%srcmd.txt", OS_get_tmp_dir());
-  // sprintf(s2, "%sCTRLpin", OS_get_tmp_dir());
+  // sprintf(s1, "%srcmd.txt", AP_get_tmp_dir());
+  // sprintf(s2, "%sCTRLpin", AP_get_tmp_dir());
     // printf(" copy |%s|%s|\n",s1,s2);
   // OS_file_copy (s1, s2);
-  sprintf(s1, "copy/y %srcmd.txt %sCTRLpin &",
-          OS_get_tmp_dir(), OS_get_tmp_dir());
+  sprintf(s1, "CMD /C \"COPY /Y \"%srcmd.txt\" \"%sCTRLpin\" &\"",
+          AP_get_tmp_dir(), AP_get_tmp_dir());
     printf("CTRL_f_do__ |%s|\n",s1);
   OS_system (s1);
 
 #else
   // Unix
   sprintf(s1, "cat %srcmd.txt > %sCTRLpin &",
-          OS_get_tmp_dir(), OS_get_tmp_dir());
+          AP_get_tmp_dir(), AP_get_tmp_dir());
     printf("CTRL_f_do__ |%s|\n",s1);
   OS_system (s1);
 #endif

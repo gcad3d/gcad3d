@@ -1354,19 +1354,27 @@ Beispiel drehen und Kippen:
 
 <HR><!-- ============================================================ -->
 <p><a name="symFnam"><h2>Symbolische Dateibezeichnungen:</h2></a></p>
+
+Eine symbolisches Pfad ist eine Kurzbezeichnung für einen Dateiverzeichnis.
+
 Eine symbolische Dateibezeichnung besteht aus
 "{symbolischer_Pfad}/{Dateiname}"
 
-Alle symbolischen Pfade sind in Datei {base}xa/dir.lst definiert.
-Das Symbol ist frei wählbar.
-Pfad interaktiv definieren mit der Funktion "Standards/Directories".
+Die Zuordnung symbolischer_Pfad zu Dateiverzeichnis ist Files definiert.
+
+
+Alle symbolischen Pfade sind in der gerade aktiven Datei "directory-path-group" definiert.
+Die aktiven Datei kann gewechselt werden mit <a href="Settings_en.htm#ModelDirectoryFile">select directory-path-group</a>).
+
+
 Standardverzeichnis ist {base}/dat; das Zugriffsysmbol für dieses
   Verzeichnis ist "Data".
   
-Beispiel symbolische Dateibezeichnungen:
+Beispiele symbolische Dateibezeichnungen:
 "Data/Niet1.dat"
+"Data/symEl1/res1.gcad"
 
-Symbolisches Directory einrichten: siehe <a href="Settings_de.htm#ModelDirectories">Standards / Directories</a>.
+Symbolisches Directory einrichten oder modifizieren: <a href="Settings_de.htm#ModelDirectories">edit directory-path-group</a>.
 
 
 
@@ -1472,13 +1480,22 @@ MODE BAR2 ON
 MODE DISP_PL OFF
 
 # Anzeige Punkte ein (im Modus VWR steht die Anzeige von Punkten OFF)
+# interactiv: Display/PointDisplay ON
+# - Am Ende zufügen - anzeigen aller existierenden Punkte
 MODE DISP_PT ON
 
 # Anzeige Punkte aus
 MODE DISP_PT OFF
 
-# Anzeige aller Object-Names
+# Anzeige aller Object-Names (interaktiv: Display/ObjNames ON
+# - Am Ende zufügen - anzeigen der ID's aller existierenden Objekte
 MODE DISP_OID ON
+
+# die Object-Names aller Notes nicht anzeigen (wenn "MODE DISP_OID ON" aktiv ist)
+# - am Beginn (vo definition der Notes) zufügen
+MODE DISP_ONAM_NT OFF
+
+
 
 
 <HR><!-- ============================================================ -->

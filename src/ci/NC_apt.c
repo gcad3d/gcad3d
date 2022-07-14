@@ -216,6 +216,8 @@ cc -c NC_apt.c
 #include "../ut/func_types.h"                  // Typ_Att_hili
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_deb.h"                 // DEB_stop
+
 
 #include "../gr/ut_gr.h"               /* Typ_PT ...  */
 #include "../gr/ut_DL.h"
@@ -1579,12 +1581,13 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
 
 
 
-  //TX_Print("exit APT_decode_var %f\n",*d1);
-
-
   L_fertig:
+    APT_subTyp = Typ_VAR;
 
-  APT_subTyp = Typ_VAR;
+    // TESTBLOCK
+    // printf(" ex-APT_decode_var %f\n",*d1);
+    // DEB_exit ();
+    // END TESTBLOCK
 
   return irc;
 
@@ -2681,7 +2684,7 @@ S24=CCV2,S23,0.2        - Circ/Line from 2D-Polygon, tol
 
 
   if(aus_anz < 2) {
-    TX_Error(" zuenig Parameter");
+    TX_Error(" not enough Parameters");
     return -1;
   }
 
@@ -2717,10 +2720,7 @@ S24=CCV2,S23,0.2        - Circ/Line from 2D-Polygon, tol
   }
 
   for(i1=1; i1<=ii; ++i1) {
-    if(aus_typ[i1] != Typ_PT) {
-      TX_Error("APT_decode_pt2bsp E001");
-      return -1;
-    }
+    if(aus_typ[i1] != Typ_PT) {TX_Error("UT3D_cbsp_ptn format"); return -1;}
     pTab[ptNr] = DB_GetPoint ((long)aus_tab[i1]);
     ++ptNr;
   }
@@ -2739,6 +2739,12 @@ S24=CCV2,S23,0.2        - Circ/Line from 2D-Polygon, tol
     return 1;  // nur 1. Punkt anzeigen
   }
 
+    // printf(" _pt2bsp ptNr=%d deg=%d\n",ptNr,deg);
+  if(deg >= ptNr) {
+    TX_Error("Bspline degree must be < number of points");
+    return -1;
+  }
+
 
   // umwandeln in BSP;
   if(iTyp == 0) {   // iTyp: 0=Interpolierend
@@ -2746,14 +2752,20 @@ S24=CCV2,S23,0.2        - Circ/Line from 2D-Polygon, tol
     iTyp = 0; //0=Standard; 1=optimized;
     // optimized=genauer, aber f GordonSurfs nicht verwendbar).
     i1 = UCBS_BspCrvPts (cv1, tbuf1, ptNr, pTab, deg, iTyp, tbuf2);
+    if(i1 < 0) {TX_Error("APT_decode_pt2bsp E001"); return -1;}
+      // printf(" _pt2bsp-_BspCrvPts %d\n",i1);
+
 
   } else {          // iTyp: 1=Controlpoints
     i1 = UT3D_cbsp_ptn (cv1, tbuf1, pTab, ptNr, deg);
+    if(i1 < 0) {TX_Error("UT3D_cbsp_ptn E001"); return -1;}
   }
 
   cv1->clo = -1;
 
-  return i1;
+
+  L_exit:
+    return 0;
 
 }
 
@@ -3300,11 +3312,12 @@ int APT_BLEND__  (ObjGX *oxo,
 // ACHTUNG: CurvPol3: cv1->polTab = memspc55
 
 
-  int    i1, i2, fTabNr, fTabSiz, polNr;
-  char   *p1;
-  double *fTab;
+  static CurvPsp3    cv1;
+
+  int         i1, i2, fTabNr, fTabSiz, polNr;
+  char        *p1;
+  double      *fTab;
   polynom_d3  *polTab;
-  // CurvPol3 *cv1;
 
 
   // printf("APT_decode_psp3: %d\n",aus_anz);
@@ -3362,13 +3375,25 @@ int APT_BLEND__  (ObjGX *oxo,
   }
 
 
+  cv1.plyNr  = polNr;
+  cv1.plyTab = polTab;
+  cv1.v0     = 0.;
+  cv1.v1     = 1.;
+  cv1.dir    = 0;
+  cv1.clo    = -1;
+  cv1.trm    = 1;
+
+
   cv_out->typ   = Typ_CVPSP3;
   cv_out->form  = Typ_CVPSP3;         // Typ_polynom_d3;
-  cv_out->siz   = polNr;
-  cv_out->data  = (void*)polTab;
+  cv_out->siz   = 1;
+  cv_out->data  = &cv1;
 
 
-
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_CVPSP3, &cv1, "ex APT_decode_psp3");
+    // DEB_stop ();
+    // END TESTBLOCK
 
   return 0;
 
@@ -3385,14 +3410,17 @@ int APT_BLEND__  (ObjGX *oxo,
                       int aus_anz, int aus_typ[], double aus_tab[]){
 //=============================================================================
 // Rectangle
+// type: 1=parallelogram, rectangle, square; 2=trapezium; 3=rhombus, kite
 // war APT_decode_rect1
 
 
 static CurvPoly plg1;
 
-  int      i1;
-  Point    *pt1, *pTab;
-  Vector   *vcx, *vcy;
+  int      i1, iTyp;
+  double   d1;
+  Point    *pt1, *pTab, pth;
+  Vector   *vcx, *vcy, vcmy;
+  Plane    pl1;
 
 
 
@@ -3400,6 +3428,15 @@ static CurvPoly plg1;
   // for(i1=0; i1<aus_anz; ++i1) {
     // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
   // }
+
+  // get type
+  iTyp = 1;
+  i1 = aus_anz - 1;
+  if(aus_typ[i1] == Typ_modif) {
+    iTyp = aus_tab[i1];
+    --aus_anz;
+  }
+    // printf(" iTyp=%d\n",iTyp);
 
 
   // S=REC Point vector vector
@@ -3414,13 +3451,13 @@ static CurvPoly plg1;
 
 
   } else {
-    TX_Error("Definition nicht implementiert");
+    TX_Error("Polygon-4side - Definition not implemented");
     return -1;
   }
 
 
 
-  // den Platz im memSeg1 reservieren
+  // get space for 5 points in memSeg1
   pTab = memSeg1->next;
   i1 = UME_add (memSeg1, sizeof(Point) * 5);
   if(i1 < 0) {
@@ -3431,24 +3468,55 @@ static CurvPoly plg1;
     // DEB_dump_obj__ (Typ_VC, vcx, "vcx");
     // DEB_dump_obj__ (Typ_VC, vcy, "vcy");
 
-
   pTab[0] = *pt1;
-  UT3D_pt_traptvc (&pTab[1], pt1, vcx);
-  UT3D_pt_traptvc (&pTab[2], &pTab[1], vcy);
-  UT3D_pt_traptvc (&pTab[3], pt1, vcy);
+  UT3D_pt_traptvc (&pTab[1], pt1, vcx);   // endPt of vcx
+  UT3D_pt_traptvc (&pTab[3], pt1, vcy);   // endPt of vcy
   pTab[4] = *pt1;
 
 
+  //----------------------------------------------------------------
+  // fix type = 1 (parallelogram, rectangle, square)
+  if(iTyp != 1)  goto L_quad_2;
+    UT3D_pt_traptvc (&pTab[2], &pTab[1], vcy);
+    goto L_quad_do;
 
-  // CurvPolygon erstellen
-  UT3D_plg_pta (&plg1, pTab, 5, memSeg1);
 
-  cv_out->typ   = Typ_CVPOL;
-  cv_out->form  = Typ_CVPOL;
-  cv_out->siz   = 1;
-  cv_out->data  = &plg1;
 
-    // DEB_dump_obj__ (Typ_CVPOL, &plg1, "ex decode_rec");
+  //----------------------------------------------------------------
+  // fix type = 2 (trapezium)
+  L_quad_2:
+    if(iTyp != 2)  goto L_quad_3;
+    // get pl1 = plane normal to vcx tru p1
+    UT3D_pl_ptvc (&pl1, &pTab[1], vcx);
+    // get vcmy = vcy mirrored by pl1 in p1 
+    UT3D_vc_mirvcpl (&vcmy, vcy, &pl1);
+    UT3D_pt_traptvc (&pTab[2], &pTab[1], &vcmy);   // endPt of vcy
+    goto L_quad_do;
+
+
+  //----------------------------------------------------------------
+  // fix type = 3 (rhombus, kite)
+  L_quad_3:
+    if(iTyp != 3)  {TX_Error("Polygon-4side type implemented"); return -1;}
+    // get pth = project p0 onto p1-p3
+    UT3D_pt_projpt2pt (&pth, &d1, pt1, &pTab[1], &pTab[3]);
+    // get p2 = p1 opposite pth
+    UT3D_pt_opp2pt (&pTab[2], &pth, pt1);
+
+
+  //----------------------------------------------------------------
+  L_quad_do:
+    // create CurvPolygon
+    UT3D_plg_pta (&plg1, pTab, 5, memSeg1);
+
+    cv_out->typ   = Typ_CVPOL;
+    cv_out->form  = Typ_CVPOL;
+    cv_out->siz   = 1;
+    cv_out->data  = &plg1;
+  
+    APT_modMax1 = 3;
+
+      // DEB_dump_obj__ (Typ_CVPOL, &plg1, "ex decode_rec");
 
 
   return 0;
@@ -5657,7 +5725,7 @@ static  TraRot  trr;
 // 
 // see APT_decode_fsub
 
-  int      irc, i1, oNr, typ, bp;
+  int      irc, i1, i2, oNr, typ, bp, iNxt;
   long     dbi, ipl;
   double   bpd;
   void     *ob;
@@ -5677,13 +5745,23 @@ static  TraRot  trr;
 
   //----------------------------------------------------------------
   // get plane = support-surface
-
-  // get outer-boundary
-  typ = aus_typ[0];
-  dbi = aus_tab[0];
+  iNxt = 0;
+  typ = aus_typ[iNxt];
+  dbi = aus_tab[iNxt];
   irc = UTO_obj_dbo (&ob, &oNr, &typ, dbi);
   if(irc < 0) {TX_Error("APT_decode_spl E1"); return irc;}
-    // DEB_dump_obj__ (typ, ob, "decode_spl-ob");
+    // DEB_dump_obj__ (typ, ob, "decode_spl-ob-1");
+
+  if(typ == Typ_PLN) {
+    ipl = dbi;
+    ++iNxt;
+    goto L_bnd;
+  }
+
+
+
+  //----------------------------------------------------------------
+  // first obj is outer-boundary; get support-surface (plane) from this obj
 
   // get plane for outer-boundary (Circ, ellipse, polygon)
   irc = UT3D_pl_obj (&pl1, typ, ob, oNr);
@@ -5705,28 +5783,31 @@ static  TraRot  trr;
     // printf(" decode_spl-ipl=%ld\n",ipl);
 
 
+  //----------------------------------------------------------------
+  L_bnd:
+
   // set support-surface PLANE
   OGX_SET_INDEX (&oxTab[0], Typ_PLN, ipl);
 
-
-  //----------------------------------------------------------------
   // add boundaries 
-  for(i1=0; i1<aus_anz ; ++i1) {
-    oxTab[i1+1].typ  = aus_typ[i1];
-    oxTab[i1+1].form = Typ_Index;
-    oxTab[i1+1].siz  = 1;
+  i2 = 1;
+  for(i1=iNxt; i1<aus_anz; ++i1) {
+    oxTab[i2].typ  = aus_typ[i1];
+    oxTab[i2].form = Typ_Index;
+    oxTab[i2].siz  = 1;
     dbi = aus_tab[i1];
-    oxTab[i1+1].data = PTR_LONG(dbi);
+    oxTab[i2].data = PTR_LONG(dbi);
+    ++i2;
   }
 
   // primary obj trimmed-perforated-surface
-  ox1->typ    = Typ_SUR;
+  ox1->typ    = Typ_SUTP;
   ox1->form   = Typ_ObjGX;
-  ox1->siz    = aus_anz + 1;
+  ox1->siz    = i2;
   ox1->data   = oxTab;
 
-    // DEB_dump_ox__ (ox1, "Pln.Sur:");
-    // DEB_dump_ox_0 (ox1, "Pln.Sur:");
+    // DEB_dump_ox__ (ox1, "ex-APT_decode_spl");
+    // DEB_dump_ox_0 (ox1, "ex-APT_decode_spl");
 
   return 0;
 
@@ -5912,11 +5993,11 @@ static  TraRot  trr;
   if(aus_anz < 2) return -1;
 
 
-  // outSurf must be different from supportSurf ..
-  if(APT_act_ind == (long)aus_tab[1]) {
-    TX_Error("*** outSurf = supportSurf");
-    return -1;
-  }
+  // // outSurf must be different from supportSurf (but suppSur can be B !)
+  // if(APT_act_ind == (long)aus_tab[1]) {
+    // TX_Error("*** outSurf = supportSurf");
+    // return -1;
+  // }
 
 
   oxTab = (ObjGX*)memspc51;
@@ -5935,6 +6016,9 @@ static  TraRot  trr;
   ox1->form   = Typ_ObjGX;
   ox1->siz    = aus_anz - 1;
   ox1->data   = oxTab;
+
+    // DEB_dump_ox_s_ (ox1, "ex-APT_decode_fsub");
+    // DEB_dump_ox_0 (ox1, "ex-APT_decode_fsub");
 
   return 0;
 
@@ -9179,6 +9263,12 @@ goto Error;
       else if(i1 == T_DRY) vc1 = pl1.vy;
       else if(i1 == T_DRZ) vc1 = pl1.vz;
       else goto L_parErr;
+      goto Fertig;
+    } else if (aus_typ[1] == Typ_VC) {
+      i1 = aus_tab[1];
+      if     (i1 == DB_VCX_IND) vc1 = pl1.vx;
+      else if(i1 == DB_VCY_IND) vc1 = pl1.vy;
+      else if(i1 == DB_VCZ_IND) vc1 = pl1.vz;
       goto Fertig;
     }
     goto L_parErr;
@@ -18994,6 +19084,7 @@ long defInd;
         // printf(" Typ_SUR: iCmd=%d\n",iCmd);
 
         if(iCmd == T_BSP0) {
+          // bspl-surf
           UME_init (&tbuf1, mem_cbuf1, mem_cbuf1_SIZ); // 2014-01-23
           i1 = APT_decode_sbsp (&ox1, &APTSpcObj, &APTSpcTmp, &tbuf1,
                                 aus_anz,aus_typ,aus_tab);
@@ -19011,12 +19102,14 @@ long defInd;
 
 
         } else if(iCmd == T_PTAB) {
+          // PTAB from points-only
           i1 = APT_decode_msh_p (&ox1, defInd, aus_anz, aus_typ, aus_tab);
           if(i1 < 0) return -1;
           goto L_SUR_sav;
 
 
         } else if(iCmd == T_MSH) {
+          // MESH over PTAB
           i1 = APT_decode_msh__ (&ox1, aus_anz, aus_typ, aus_tab);
           if(i1 < 0) return -1;
           goto L_SUR_sav;
@@ -19025,6 +19118,7 @@ long defInd;
         }
       }
 
+      // decode planar surf
       i1 = APT_decode_sur (&ox1, aus_anz, aus_typ, aus_tab, &APTSpcTmp);
       if(i1 == -2) {   // nur Display (zB WCUT)
         DB_StoreDummy (Typ_SUR, defInd);   // nur den Platz besetzen;
@@ -19448,7 +19542,7 @@ Offen: Pointer out auf das next Word ...
   if(irc == 0) {    // abs.Path
     sprintf(fnam, "%s",cp);
   } else {
-    sprintf(fnam, "%s%s",OS_get_tmp_dir(),cp);
+    sprintf(fnam, "%s%s",AP_get_tmp_dir(),cp);
   }
 
   // remove following '"'

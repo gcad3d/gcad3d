@@ -106,6 +106,7 @@ GR_perm_Dimen          hor/vert/parall. dimension
 GR_tDyn_ox            temp.Dyn complex-obj ObjGX
 GR_tDyn_dbo           temp.Dyn DB-obj
 GR_tDyn_ocv           temp.Dyn display of all kinds of curves from binary-obj
+GR_tDyn_osu           temp.Dyn display surf from binary-obj
 GR_tDyn_obj           tempDisp obj from typ+struct
 GR_tDyn_nobj          tempDisp objects from typ+struct, nr
 
@@ -887,6 +888,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
   LN_WIDTH_DEF = LN_WIDTH_ADJUST;
   LN_WIDTH_FAT = LN_WIDTH_ADJUST * 4.f;
 
+  MODE_DISP_ONAM_NT = 1;   // disp objNames of notes
 
   // adjust GL_pickSiz
   GL_pickSiz = 8;
@@ -1289,7 +1291,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
     if(newS) GLT_stor_rec (6, NULL, NULL, newS);
 
     for(i1=0; i1<ptVNr-1; ++i1) {
-      irc = GL_set_strip2 (pa, &pa[ptUNr], ptUNr, 0);
+      irc = GL_set_strip_v (pa, &pa[ptUNr], ptUNr, 0);
       if(irc < 0) return irc;
       pa += ptUNr;              // advance 1 row
     }
@@ -1315,7 +1317,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
   if(newS) GLT_stor_rec (6, NULL, NULL, newS);
 
   for(i1=0; i1<ptVNr-1; ++i1) {
-    irc = GL_set_strip2 (pa, &pa[ptUNr], ptUNr, 0);
+    irc = GL_set_strip_v (pa, &pa[ptUNr], ptUNr, 0);
     if(irc < 0) return irc;
     pa += ptUNr;              // advance 1 row
   }
@@ -1363,12 +1365,12 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
     GL_Draw_Ini (ind, attInd);
-    GL_set_strip2 (pa1, pa2, anz, 0);
+    GL_set_strip_v (pa1, pa2, anz, 0);
     GL_EndList ();
 
   } else {
     GLT_stor_rec (0, NULL, NULL, 0);
-    GL_set_strip2 (pa1, pa2, anz, 0);
+    GL_set_strip_v (pa1, pa2, anz, 0);
     GLT_stor_rec (1, NULL, NULL, 0);
   }
 
@@ -1589,7 +1591,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
       GLT_stor_rec (0, NULL, NULL, 0);
       if((GL_actCol.color != 0) || (GL_actCol.vtra != 0))
         GLT_stor_rec (5, NULL, NULL, 0);
-      // tessel,store via GL_set_strip2/GLT_stor_rec(2)
+      // tessel,store via GL_set_strip_v/GLT_stor_rec(2)
       i1 = GL_disp_tor (to1, sStyl);
       if(i1 == -10) goto L_draw;              // realloc
       // close & copy record --> TSU_vM
@@ -1675,6 +1677,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
   if(db1->typ == Typ_TOR) return GR_CreSolTor (ind, attInd, db1->data); 
   if(db1->typ == Typ_BREP)return GR_CreSolBrep(ind, attInd, db1->siz, db1->data); 
 
+  // db1->typ = Typ_SOL
 
 // wie sieht PRISM aus ?
 
@@ -2212,8 +2215,8 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
 
   if(FlagLoch == 0) {
-    // GL_set_strip2 (p1Anz, GL_ptArr31, GL_ptArr30);
-    GL_set_strip2 (pa2, pa1, p1Anz, 1);
+    // GL_set_strip_v (p1Anz, GL_ptArr31, GL_ptArr30);
+    GL_set_strip_v (pa2, pa1, p1Anz, 1);
   } else {
     GL_set_fan (pc, p1Anz, pa1, 0, 1);
   }
@@ -2235,7 +2238,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 /// \code
 ///   Erzeugung eines Zylinders / Konus   (Cyl / Cone)
 /// See also GL_draw_cone GL_set_patch GL_set_fan
-///          GL_set_strip1 GL_set_strip2 GL_DrawRCone
+///          GL_set_strip1 GL_set_strip_v GL_DrawRCone
 /// \endcode
 
 
@@ -2387,8 +2390,8 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
 
   // GL_DrawRSur (ind, attInd, p2Anz);
-  // GL_set_strip2 (p2Anz, GL_ptArr30, GL_ptArr31);
-  GL_set_strip2 (GL_ptArr30, GL_ptArr31, p2Anz);
+  // GL_set_strip_v (p2Anz, GL_ptArr30, GL_ptArr31);
+  GL_set_strip_v (GL_ptArr30, GL_ptArr31, p2Anz);
 
 
   ++ii1;
@@ -2828,7 +2831,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
     // printf(" STRIP %d %d\n",irow1,irow2);
   for(i1=1; i1<irow1; ++i1) {
     oxp2 = &oxa[i1];
-    // GL_set_strip2 ((Point*)oxp1->data, (Point*)oxp2->data, irow2);
+    // GL_set_strip_v ((Point*)oxp1->data, (Point*)oxp2->data, irow2);
     GR_DrawStrip ((Point*)oxp1->data, (Point*)oxp2->data, irow2, Typ_SUR);
     oxp1 = oxp2;              // advance 1 row
   }
@@ -2997,7 +3000,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
     // import Mockup from file into Mockup-struct
     TSU_imp_tess (&impSpc, ffnam);
     // copy tess-file -> tmp/.
-    sprintf (memspc011, "%s%s.tess",OS_get_tmp_dir(),mnam);
+    sprintf (memspc011, "%s%s.tess",AP_get_tmp_dir(),mnam);
       // printf(" DrawModel-ffnam=|%s|\n",memspc011);
     OS_file_copy (ffnam, memspc011);
 
@@ -3211,8 +3214,8 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
 
   /* GL_DrawRSur (ind, attInd, p2Anz); */
-  // GL_set_strip2 (p2Anz, GL_ptArr30, GL_ptArr31);
-  GL_set_strip2 (pa1, pa2, p2Anz, 0);
+  // GL_set_strip_v (p2Anz, GL_ptArr30, GL_ptArr31);
+  GL_set_strip_v (pa1, pa2, p2Anz, 0);
 
 
   ++ii1;
@@ -3558,7 +3561,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
   ptMax = sizeof(memspc55) / sizeof(Point);
 
   // Spline -> Polygon   Toleranz
-  irc = pspl_pol_psp (&ptNr, pTab, cv1, ptMax, UT_DISP_cv);
+  irc = CVPSP_pol_oPsp3 (&ptNr, pTab, cv1, ptMax, UT_DISP_cv);
   if(irc < 0) {
     TX_Error("GR_tDyn_psp3 E001");
     return;
@@ -5459,7 +5462,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 /// newS:  0=do not start new surface; else start new Surf with this type
 /// \endcode
 
-  // printf("GR_DrawFan %d\n",ptAnz);
+  // printf("GR_DrawFan %d %d\n",ptAnz,TSU_mode);
 
 
   if(TSU_mode != 0) {
@@ -5583,7 +5586,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   }
 
   // disp
-  GL_set_strip2 (pa1, pa2, ptAnz, newS);
+  // GL_set_strip_v (pa1, pa2, ptAnz, newS);
+  GL_set_strip_v (pa1, pa2, ptAnz, newS);
 
   if(TSU_mode != 0)
     GLT_stor_rec (1, NULL, NULL, 0);  // save
@@ -7142,7 +7146,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     // printf(" _mdMock_imp safNm=|%s|\n",safNm);
 
   // set tessFn = filename tess-file (tmp/Model_
-  sprintf(tessFn, "%sMod_%s.tess",OS_get_tmp_dir(),safNm);
+  sprintf(tessFn, "%sMod_%s.tess",AP_get_tmp_dir(),safNm);
     // printf(" _mdMock_imp tessFn |%s|\n",tessFn);
 
   // set ffnam = full filename of input (mockup-model)
@@ -8011,7 +8015,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
   int           irc, typ, bTyp, ptNr, grpNr;
-  long          dli, dlSiz, dbi;
+  long          dli, dlSiz, dbi, l1;
   char          oid[32];
   Point         *pta, pt1;
   Vector        vc1;
@@ -8024,16 +8028,21 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
 
   // get memSpc for points
-  MemTab_ini_fixed (&mtp, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
-                    sizeof(Point), Typ_PT);
+  // MemTab_ini_fixed (&mtp, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
+                    // sizeof(Point), Typ_PT);
+  MemTab_ini__ (&mtp, sizeof(Point), Typ_PT, 0);
+  irc = MemTab_add (&mtp, &l1, NULL, 3000, 2);   // get spc
+  if(irc < 0) {TX_Error("GR_temp_att_1 EOM-1"); return -1;}
 
   // get nr of groupMembers
   grpNr = Grp_get__ (&grp);
-    // printf(" _dispDir-grpNr=%d\n",grpNr);
+    // printf(" temp_att_1-grpNr=%d\n",grpNr);
     // Grp_dump ();
 
   // get DL
   dlSiz = DL_get__ (&dla);
+    // printf(" temp_att_1-dlSiz=%ld\n",dlSiz);
+
 
   // preset GL-record-index
   if(iAtt == dspNam) DL_temp_ind = GR_TMP_IDO;    // 0=objID
@@ -8081,6 +8090,9 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     bTyp = AP_typDB_typ (dla[dli].typ);
       // printf(" typ_2_bastyp %d from %d\n",bTyp,typ);
 
+    // skip notes if MODE_DISP_ONAM_NT is 0
+    if((bTyp == Typ_Note)&&(!MODE_DISP_ONAM_NT)) continue;
+
 
     // skip objects with no direction ..
     if(iAtt == dspDir) {
@@ -8110,7 +8122,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
           goto L_disp;
         }
       }
-      TX_Print("**** TODO: GR_temp_att_1 typ %d not yet supp.",bTyp);
+// TODO:
+//       TX_Print("**** TODO: GR_temp_att_1 typ %d not yet supp.",bTyp);
       continue;
     }
 
@@ -8126,7 +8139,11 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     ptNr = mtp.rNr;
     pta  = mtp.data;
+
+      // TESTBLOCK
       // DEB_dump_nobj__ (Typ_PT, ptNr, pta, "_dispDir-pta");
+      // if(ptNr > 200) DEB_halt();
+      // END TESTBLOCK
 
 
     //----------------------------------------------------------------
@@ -8153,6 +8170,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   }
 
   GL_list_close (); // close GL-record  glEndList
+
+  MemTab_free (&mtp);
 
   return 0;
 

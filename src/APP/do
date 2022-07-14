@@ -26,7 +26,7 @@ echo "./do complete           # compile, link all."
 echo "./do                    # start gcad3d in local-test-environment"
 echo "---------------------------------------------------------------------"
 echo "./do gui-gtk2           # set GUI gtk2"
-echo "./do gui-gtk3           # set GUI gtk3"
+#echo "./do gui-gtk3           # set GUI gtk3"
 echo "./do guiinit            # recompile all sources of active GUI-version"
 echo "./do gui                # rebuild xa_gui_gtk-*.so"
 echo "./do guiexe             # rebuild executables GUI_*"
@@ -34,7 +34,7 @@ echo "---------------------------------------------------------------------"
 echo "./do c                  # compile & link core"
 echo "./do all                # compile & link corelibs"
 echo "./do allDemos           # compile & link demos"
-echo "./do processes          # compile & link NC-processes"
+echo "./do processes          # compile & link NC-processes and extras"
 echo "---------------------------------------------------------------------"
 echo "./do pack_src           # create zip-file of sources "
 echo "./do pack_doc           # create zip-file of complete doc"
@@ -108,11 +108,11 @@ if [ $? -ne 0 ]; then
   echo "****** ERROR build gui-gtk2 *******"
   exit 1
 fi
-./do gui-gtk3
-if [ $? -ne 0 ]; then
-  echo "****** ERROR build gui-gtk3 *******"
-  exit 1
-fi
+#./do gui-gtk3
+#if [ $? -ne 0 ]; then
+#  echo "****** ERROR build gui-gtk3 *******"
+#  exit 1
+#fi
 # rebuild executables GUI_*
 ./do guiexe
 if [ $? -ne 0 ]; then
@@ -265,17 +265,16 @@ fi
 fi
 
 
-if test "$1" = "gui-gtk3"; then
-# test if gtk3 installed and set as active gui-version
-../gui_version_set.sh gtk3
-if [ $? -ne 0 ] ; then
-  exit 1
-fi
-# compile ..
-./do guiinit
-  exit $?
-fi
-
+#if test "$1" = "gui-gtk3"; then
+## test if gtk3 installed and set as active gui-version
+#../gui_version_set.sh gtk3
+#if [ $? -ne 0 ] ; then
+#  exit 1
+#fi
+## compile ..
+#./do guiinit
+#  exit $?
+#fi
 
 
 if test "$1" = "guiinit"; then
@@ -346,6 +345,10 @@ fi
 if test "$1" = "c"; then
   rm -f *.o
   make -f gcad3d.mak
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR gcad3d.mak *******"
+    exit 1;
+  fi
   make -f gcInfo.mak
   exit $?
 fi
@@ -368,6 +371,11 @@ fi
 # build gcad3d-NC-processes
 if test "$1" = "processes"; then
   make -f gcad3d.mak processes
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR gcad3d.mak processes *******"
+    exit 1;
+  fi
+  make -f gcad3d.mak extras
   exit $?
 fi
 

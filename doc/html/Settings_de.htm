@@ -17,7 +17,8 @@
 <a href="#Text">Standards / Text</a>
 <a href="#stdcol">Standards / Color</a>
 <a href="#Linetypes">Standards / Linetypes</a>
-<a href="#ModelDirectories">Standards / Directories</a>
+<a href="#ModelDirectories">Standards / edit directory-path-group</a>
+<a href="#ModelDirectoryFile">Standards / select directory-path-group</a>
 
 Standards / Directories              Ändern des HTML-Browsers (für Help)
 Standards / Editor                   Ändern des Texteditors (für Directories)
@@ -155,6 +156,37 @@ G2=0 2 1
 
 
 ____________________________________________________________________________
+<p><a name="ModelDirectoryFile"></a></p>
+<h2>menu Standards - select directory-path-group</h2>
+
+
+Eine symbolisches Pfad ist eine Kurzbezeichnung für einen Dateiverzeichnis.
+  (siehe <a href="CAD_Base_en.htm#symFnam">Symbolic modelfilenames</a>)
+
+Standardverzeichnis ist ~/gCAD3D/dat; das Zugriffsysmbol für dieses
+  Verzeichnis ist "Data".
+
+Der symbolische Dateiname "Data/Haus1.gcad will" wird zu "~/gCAD3D/dat/Haus1.gcad".
+Der symbolische Dateiname "Data/symEl1/res1.gcad" wird zu "~/gCAD3D/dat/symEl1/res1.gcad".
+
+Die Zuordnung symbolischer_Pfad zu Dateiverzeichnis ist in der gerade aktiven Datei "directory-path-group" definiert.
+"Standards/select directory-path-group" ermöglicht den Wechsel dieser Datei.
+Menü "select directory-path-group" zeigt eine Liste von Dateien mit Symboldefinitionen.
+Die ab nun aktive Gruppe von Symboldefinitionen kann ausgewählt werden.
+
+
+Die symbolischen Pfade sind definiert in Konfigurationsverzeichnis.
+Das Konfigurationsverzeichnis ist ~/gCAD3D/cfg_{os}/
+{os} ist "Linux" oder "MS". 
+Das Standardfile ist ~/gCAD3D/cfg_Linux/dir.lst
+Neue Files müssen manuell erzeugt werden.
+
+
+Symbolisches Directory einrichten oder modifizieren: <a href="Settings_de.htm#ModelDirectories">edit directory-path-group</a>.
+
+
+
+____________________________________________________________________________
 <p><a name="ModelDirectories"></a></p>
 <h2>Standards / Directories</h2>
 
@@ -171,6 +203,15 @@ Es wird der Systemeditor mit Datei {base}/gCAD3D/cfg_{os}/dir.lst aufgerufen.
   Achtung: Zugriffsrecht für Schreiben erforderlich.
 
 Siehe auch <a href="CAD_Base_de.htm#symFnam">Symbolische Dateibezeichnungen</a>.
+
+Die aktive Datei mit Symbol-Pfad-Zuordnungen kann gewechselt werden mit <a href="Settings_en.htm#ModelDirectoryFile">select directory-path-group</a>).
+
+Die aktive Datei mit Symbol-Pfad-Zuordnungen kann verändert werden mit <a href="Settings_de.htm#ModelDirectories">edit directory-path-group</a>.
+  Es ist die Berechtigung für Schreibzugriff erforderlich.
+
+Kommentar-Zeilen müssen mit "#" beginnen.
+Alle Pfad-Definitionen müssen mit '/' (MS: '\') abgeschlossen werden.
+Symbolnamen können frei gewählt werden.
 
 Beispiel Unix:
 Data     /usr/home/gCAD3D/dat/

@@ -1,23 +1,35 @@
 # use mit nmake -f G-Code.nmak
 # 1. Parameter = inputfilename
-# ./G-Code /home/fwork/gCAD3D/tmp/nc.apt
+# cd ..\prc\cut1 && nmake -f G-Code.nmak
 
 
 EXENAM  = G-Code
 
 
-OBJ1 =\
-  G-Code.obj\
+SRC1 = G-Code.c pp_ut.c
+OBJ1 = $(SRC1:.c=.obj)
+OBJ1 = $(OBJ1:/=\)
 
 
+SRCOS = ..\..\ut\os_w32.c
+OBJOS = $(SRCOS:.c=.obj)
+OBJOS = $(OBJOS:/=\)
+
+
+
+#OBJ1 =\
+#  G-Code.obj\
+#
 # Sourcen; bei denen keine Abhaengigkeit erforderlich ist.
-OBJ2 =\
-  pp_ut.obj\
-
-
+#OBJ2 =\
+#  pp_ut.obj\
+#
+#OBJ3 =\
+#  ..\..\ut\os_w32.obj
+#
 #  ../../ut/ut_os_aix.o
-
-
+#
+#
 #BITS := $(shell getconf LONG_BIT)
 #ifeq "$(BITS)" "32"
 #OS = ..\binMS32
@@ -41,20 +53,28 @@ CXFLG = /nologo /Od
 #LKFLG = -lm
 
 
-$(EXENAM): $(OBJ1) $(OBJ2)
-	$(CC) -o $(EXENAM) $(OBJ1) $(OBJ2) $(LKFLG)
+#$(EXENAM): $(OBJ1) $(OBJ2) $(OBJ3)
+#	$(CC) -o $(EXENAM) $(OBJ1) $(OBJ2) $(OBJ3) $(LKFLG)
+
+$(EXENAM): $(OBJ1) $(OBJOS)
+	@echo "........... build $(EXENAM) ..........."
+	@echo "SRC1: $(SRC1)"
+	@echo "OBJ1: $(OBJ1)"
+	@echo "OBJOS: $(OBJOS)"
+	$(CC) -o $(EXENAM) $(OBJ1) $(OBJOS) $(LKFLG)
 #	ctags --excmd=number -f ut.tag $(SRC2)
 	move/y $(EXENAM).exe $(OUTDIR)\plugins\cut1\.
 
 
 # vi holt fuer Alt f (grep) damit seine Sourcefileliste
 SRCLST:
-	@echo $(SRC1) $(SRC2)
+	@echo $(SRC1) $(SRC2) $(SRC3)
 
 
-.c.o:
+.c.obj:
 	$(CC) -c $(CXFLG) $<
-	if test $(@D) != "."; then mv $(@F) $@; fi
+	move $(@F) $@
+#	if test $(@D) != "."; then move $(@F) $@; fi
 #	ctags -f $*.tag $<
 
 

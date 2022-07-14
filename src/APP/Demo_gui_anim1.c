@@ -82,7 +82,7 @@ __declspec(dllexport) int gCad_fini ();
 
 
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../ut/ut_cast.h"             // INT_PTR
 
 #include "../gui/gui__.h"

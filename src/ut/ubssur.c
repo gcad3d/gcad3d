@@ -80,6 +80,7 @@ USBS_4QuBspSur            4 quarters <-- bspline surface
 
 List_functions_end:
 =====================================================
+see also ../ut/ut_sbsp.c
 
 \endcode *//*----------------------------------------
 

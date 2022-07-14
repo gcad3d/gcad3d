@@ -44,24 +44,19 @@ Modifications:
 =====================================================
 List_functions_start:
 
-IGE_ckFileFormat
-AP_ImportIg_CB           Callback an mainModule mit auszugebendem Objekt
 IGE_r__                  Mainentry
+IGE_ckFileFormat         test if file is IGES-File
 IGE_r_work__             abarbeiten; zuerst Subfigures, dann main
 IGE_r_work_1             eine Subfig oder main abarbeiten
 IGE_r_work_2             ein Obj abarbeiten
 IGE_r_work_3             ein phys.Dep.Obj nachtraeglich noch generieren
+IGE_r_G__
 IGE_r_D__                alle D-Zeilen einlesen
 IGE_r_P__                alle P-Zeilen einlesen
 IGE_r_getP_              alle Parameter der naechsten P - Zeile linnr. into ra.
 IGE_r_decodeP_           Decodiere alle Parameter der aktuellen P-Zeile into ra
-
-IGE_r_DmaxPmax           Anzahl D- und P-Zeilen aus letzte zeile einlesen
-IGE_r_allocD             realloc impTab
-IGE_r_ind2dNr            index  --> D-Nr
-IGE_r_dNr2ind            D-Nr --> Index
-IGE_r_ck_skip            check if entity is supported
-IGE_r_dump_impTab        dump einen impTab-Record
+IGE_r_tra__
+IGS_out__                output obj - gcad-sourcecode
 
 IGE_r_116
 ..
@@ -69,7 +64,16 @@ IGE_r_116
 IGE_rw_102
 ..
 
+IGE_r_allocD             realloc impTab
+IGE_r_line
 IGE_r_hide               hide obj
+IGE_r_DmaxPmax           Anzahl D- und P-Zeilen aus letzte zeile einlesen
+IGE_r_allocD             realloc impTab
+IGE_r_ind2dNr            get D-lineNr from impTab-index
+IGE_r_dNr2ind            D-Nr --> Index
+IGE_r_ck_skip            check if entity is supported
+IGE_r_skip_wd
+IGE_r_dump_impTab        dump einen impTab-Record
 
 List_functions_end:
 =====================================================
@@ -114,15 +118,30 @@ Eingelesen wird ueber 3 Units; die erste (fp_in) liest die D-Zeilen,
    Main sind alle uebriggebliebenen Objekte.
 
 
+programFlow:
+IGE_r__ main import iges
+  IGE_r_D__           alle D-Zeilen einlesen
+  IGE_r_P__           alle P-Zeilen einlesen
+  IGE_r_tra__        transform
+  IGE_r_work_2(-1)   init (resolve links ?)                                 <<<< ??
+    IGE_rw_1*          eg IGE_rw_144 (resolv trimmedSurf)
+      IGE_r_work_3       work until now unresolved objs
+  IGE_r_work__         abarbeiten
+    IGE_r_work_1         work active subfigs/main
+      IGE_r_work_2(i)      write-out obj i                                  <<<< ??
+        IGS_out__            save
+          AP_obj_2_txt
+          UTF_file_Buf1__      write srcCode into UTF_FilBuf1
+  MDL_load_import_attr create PermanentAttributes - HIDE, G#, SSTYLS ..
 
-IGE_r__              (AP_ImportIg1)
- IGE_r_D__           alle D-Zeilen einlesen
- IGE_r_P__           alle P-Zeilen einlesen
- IGE_r_work__        abarbeiten
-  IGE_r_work_1       subfigs, dann main abarbeiten
-   IGE_r_work_2      ein Obj ausgeben
-    AP_ImportIg_CB   save
 
+Types:
+116=PT 110=LN 100=CI
+142=CCV (CurveOnParametricSurface)
+124=TrMat
+108=190=PLN
+118=122=SRU 120=SRV 128=SRBS
+143=144=TPS
 
 
 ----------------------------------------------------------
@@ -193,8 +212,6 @@ cc -c ige_r.c
 
 
 ===========================================================================
-Doku:           /mnt/win_d/dev/gCAD3D/formate/igs
-
 
 Format: 
   Generell 80 Zeichen.
@@ -223,9 +240,10 @@ D-Block ("Definition")
   Zeile 1:
 
   0:
-    Die Entity-Nr. 100=AC, 110=LN, 116=PT, 124 = TrMat
+    Entity-type. 100=AC, 110=LN, 116=PT, 124 = TrMat
   1:
     Die Zeilen# des zugehoerigen P-Blocks. Es gibt immer einen P-Teil !
+    lineNr of obj in P-block
   2:
     Structure; Negated D-Pointer; ??
   3:
@@ -243,22 +261,22 @@ D-Block ("Definition")
     LabelDisplayAssoc. Immer 0.
   8:
     Status ( 4 Statusse a 2 digits; 0-3 -> stat01; 3-7 -> stat02)
-      01:  00=Visible, 01=Blanked(hide)
-      23:  subordinate switch indicate physical dependency.
+      01:  00=Visible, 01=Blanked(hide)                     Col 65-66 (first col 1)
+      23:  subordinate switch indicate physical dependency. Col 67-68
            00=unabhaengig; (main-model); obj can exist alone.
            01=Phys.abhaengig,(SubFig-objects, CCV-objects, View-objects)
               cannot exist until its parent exists !
            02=log.abhaengig, (f.Ent.410?)
               can exist alone, but is referenced by a parent.
            03=phys.u.log.abhaeng.
-      45:  00=Geometrie,
+      45:  00=Geometrie,                                     Col 69-70
            01=Annotation (Kommentar)
            02=Definition,
            03=Other,
            04=Logical/Positional,
            05=2D-Param,
            06=ConstructionGeometry
-      67:  Hierarchie; 00=TopDown, 01 02
+      67:  Hierarchie; 00=TopDown, 01 02                     Col 71-72
 
       00 01 00 01   part of subfig or CCV; visible.
 
@@ -489,7 +507,7 @@ P-Block: ("Parameter")
      P[N]      N Pointers to Boundarycurves (Aussenkontur, Loecher ..)
 
 
- 144 Trimmed Parametric Surface (Bound = 142)
+ 144 TrimmedParametricSurface (Bound = 142)
      Ptr auf die Stuetzflaeche; zB auf 102 od 128
      TrimmedFlag; 0=untrimmed, 1=trimmed
      IBN = Anzahl Inseln innerhalb der Boundary
@@ -575,7 +593,7 @@ P-Block: ("Parameter")
  402 Assoziativity (Group,Set, ...):
     (Assoziative Instance, Form 7)  Bei Euclid Figur ?
     Fuer alle Objekte; Trans. muessen hier aber nicht rein.
-    402,Anzahl,ind1,ind2 ... indn;
+    402,Anzahl,ind1,ind2 ... indn;  (index into D-LineNr)
     Enthaelt auch 102.
     D-Par1/9 = 301; bei den Objekten depandant - D-1/9=20001.
     Form  1: Group (Unordered group with back-pointers instance)
@@ -605,10 +623,48 @@ T-Block
 
 
 
-------------------------------------------------------------------------------
+//================================================================
 Doku:
-xpdf /mnt/F/dev/exp/ige/version6.pdf
-Inhaltsverz: S14
+  igs/doc/version6.pdf
+    Inhaltsverz: S14
+
+
+//================================================================
+Testmodels:
+IGS/0.igs                 5K        OK
+IGS/samp_ige_geo2.igs    14K        OK
+IGS/SolidWorks0.igs      25K        OK
+IGS/Rohr1.igs            29K        OK
+IGS/su1.igs              35K        OK
+IGS/wash1.igs            30K        OK
+IGS/Rohr2.igs            35K        OK
+IGS/nut1.igs             45K        OK
+IGS/Starcd_1.igs         46K        OK
+IGS/wash_M12.igs         62K        OK
+IGS/Drehteil.igs        500K        OK
+IGS/bspsur4.igs          71K        OK
+IGS/Block.igs           2.1M        OK
+IGS/Schuh.igs           420K        OK
+IGS/Unfold.igs          375K        OK
+
+IGS/1.igs
+IGS/01.igs
+IGS/DIM_TEST.igs
+IGS/GelochteFlaeche2.igs
+IGS/M4.igs
+IGS/Plot_1_Modell.ig2
+IGS/c109806.igs
+IGS/ccv1.igs
+
+IGS/f126x.igs
+IGS/f128_2.igs
+IGS/f408_2.igs
+IGS/m2_2.igs
+IGS/rhi5.igs
+IGS/submod1.igs
+IGS/sur_bspRev1.igs
+IGS/bspsur_bsp.igs
+IGS/tisler_01.igs
 
 */
 
@@ -646,10 +702,11 @@ __declspec(dllexport) int IGE_r__ (void*);
 
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_obj.h"              // UTO_stru_2_obj UTO_obj_save
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../ut/ut_TX.h"               // TX_Print
 #include "../ut/func_types.h"               // UI_Func...
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_deb.h"              // DEB_*
 
 #include "../gr/ut_DL.h"               // DL_GetAtt
 #include "../gr/ut_gr.h"               // GTX_..
@@ -674,10 +731,29 @@ __declspec(dllexport) int IGE_r__ (void*);
 static int   impStat=0;                     // Statuscode.
 // 2 import sofort beenden.
 
+
+
+
+// .fTyp      EntityNr
+// .fInd      P-LineNr (im P-Block ganz rechts)
+//            die D-LineNr (ganz rechts): dlNr = impInd*2
+//            impInd=(D-Linenr+1)/2 (im D-Block ganz rechts)
+// .trInd     TraMatNr
+// .stat01    0=Visible, 01=Blanked(hide)
+// .stat23    00=unabhaengig; (main-model); obj can exist alone.
+// .siz       nr of records; eg for CCV ?
+// .typ, form, ind: vom gespeicherten gCAD_Objekt!
+//            308-Submodels: ind=BasModelNr
+//            ind speichert vorher D-Lnr der TraMat
+// .data      ObjGX of obj
+// .done      0=no-gcadObj-created-yet
+// .activ     1 = this obj is used in the active group - output it
+// .stat__    128  (rbspl-curve) 1=planar, else 0
 typedef struct {long ind, trInd; void *data;
+                int fInd;
                 unsigned short siz;
                 unsigned short typ, form, fTyp;
-                unsigned fInd:28,
+                unsigned stat__:28,
                          stat01:1, stat23:1,
                          done:1, activ:1;}                           ImpObj;
 
@@ -690,16 +766,7 @@ static long   impTabSiz=0, impNr=0, impInd;
 // impTabSiz  Anzahl allokierter structs
 // impNr      Anzahl belegter Records (= Anzahl D-Bloecke)
 // impInd     der aktuelle Recordindex;
-// .fTyp      EntityNr
-// .fInd      P-LineNr (im P-Block ganz rechts)
-//            die D-LineNr (ganz rechts): dlNr = impInd*2
-//            impInd=(D-Linenr+1)/2 (im D-Block ganz rechts)
-// .typ, form, ind: vom gespeicherten gCAD_Objekt!
-//            308-Submodels: ind=BasModelNr
-//            ind speichert vorher D-Lnr der TraMat
-// .trInd = TraMatNr
-// .form, .stat01, .stat23
-// .data      ObjGX of obj
+
 // Nicht mehr used:
 // ID         IG_recID=D-LineNr D-ganzRechts) gespeichert (fuer CCV)
 
@@ -783,7 +850,7 @@ typedef struct {char *mnam; int siz; long *iTab;}                ImpSubmodel;
 
 
 //===========================================================================
-  int AP_ImportIg_CB (ObjGX *ox1) {
+  int IGS_out__ (ObjGX *ox1) {
 //===========================================================================
 // Callback des Iges-Import;
 // mit Open next Model
@@ -800,16 +867,16 @@ typedef struct {char *mnam; int siz; long *iTab;}                ImpSubmodel;
   ImpSubmodel *sm1;
 
 
-  // printf("AP_ImportIg_CB typ=%d siz=%d impInd=%ld\n",ox1->typ,ox1->siz,impInd);
+  // printf("IGS_out__ typ=%d siz=%d impInd=%ld\n",ox1->typ,ox1->siz,impInd);
   // printf(" IG_modNam=|%s| impStat=%d\n",IG_modNam,impStat);
-  // if(impInd==2224) DEB_dump_ox_0 (ox1, "iI=2224");
+  // if(impInd==5) DEB_dump_ox_0 (ox1, "iI=5");
 
 
 
   if(impStat != 0) return -1;
   
   if(impInd >= impTabSiz) {
-    printf("***** Error: AP_ImportIg_CB E001\n");
+    printf("***** Error: IGS_out__ E001\n");
     return -1;
   }
 
@@ -829,7 +896,7 @@ typedef struct {char *mnam; int siz; long *iTab;}                ImpSubmodel;
     // ein Submodel ist aktiv: den Buffer in die Datei schreiben,
       if(strlen(IG_modNam) > 0) {  // Main hat leeren Name
         UTF_add1_line ("# import end\n");
-        sprintf(cbuf,"%sModel_%s",OS_get_tmp_dir(),IG_modNam);
+        sprintf(cbuf,"%sModel_%s",AP_get_tmp_dir(),IG_modNam);
         // write buffer-1 into file cbuf
         UTF_file_Buf1__ (cbuf);
       }
@@ -873,7 +940,7 @@ typedef struct {char *mnam; int siz; long *iTab;}                ImpSubmodel;
       sm1 = (ImpSubmodel*)impTab[i1].data;
       if(!sm1->iTab) {
         // model not found ..
-        TX_Error("AP_ImportIg_CB E1 model M%d not found",IG_mdli);
+        TX_Error("IGS_out__ E1 model M%d not found",IG_mdli);
         return -1;
       }
         // printf("  modelRef-1 |%s|\n",sm1->mnam);
@@ -950,7 +1017,7 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
     // ++impNr;
     // if(impNr >= impTabSiz) break;
 
-      // printf("ex-AP_ImportIg_CB\n");
+      // printf("ex-IGS_out__\n");
 
     return 0;
 
@@ -960,11 +1027,12 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
 //===========================================================================
   int IGE_r__ (void* pBlk[2])  {
 //===========================================================================
+// IGE_r__     main import iges
 // mode3d: ON  = 0 = Ja,   als 2D-Mode behandeln;
 // mode3d: OFF = 1 = Nein, als 3D-Mode behandeln;
 // Input:
 //   pBlk[0]    fnam = full Igesfilename
-//   pBlk[1]    fnam = full outfilename
+//   pBlk[1]    fnam = full outfilename  = IG_mainNam
 
 // Subfigures werden -> datei imp_lun ausgegeben, die mainfig -> memory.
 
@@ -979,10 +1047,11 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
   IG_mainNam = (char*)pBlk[1];
   IG_modNam[0] = '\0';
 
-  // printf("\n\nIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n");
-  printf("IGE_r__  |%s|\n",fnam);
-  // printf("  IG_mainNam |%s|\n",IG_mainNam);
 
+  // printf("\n\nIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\n");
+  // printf("IGE_r__  |%s|\n",fnam);
+  // printf("  IG_mainNam |%s|\n",IG_mainNam);
+  // AP_debug__("IGE_r__-in");
 
 
   impStat = 0;
@@ -1044,8 +1113,8 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
   TX_Print("IgesImport: %d Records loaded",impNr);
     // IGE_test (3);
 
-  // printf("impTabSiz=%d impNr=%d impInd=%d\n",impTabSiz,impNr,impInd);
-  // printf("impTab tot=%d\n",impNr*sizeof(ImpObj));
+  // printf("impTabSiz=%ld impNr=%ld impInd=%ld\n",impTabSiz,impNr,impInd);
+  // printf("impTab tot=%ld\n",impNr*sizeof(ImpObj));
 
 
   // init dataspace
@@ -1059,7 +1128,7 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
 
   // alle P-Zeilen einlesen
   if(IGE_r_P__ (fp1) < 0) goto L_exit;
-    // printf(" igi01\n");
+    // printf(" foll-IGE_r_P__ IG_modNam=|%s|\n",IG_modNam);
     // IGE_test (5);
 
 
@@ -1078,8 +1147,8 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
 
   
   // TESTAUGABEN__________________
-  // DEB_dump_ox_0 (impTab[2224].data, "iI=2224");
-  // IGE_r_dump_impTab (2224);
+  // DEB_dump_ox_0 (impTab[0].data, "iI=0");
+  // IGE_r_dump_impTab (0);
   // return 0;
   // TESTAUGABEN__________________
 
@@ -1118,7 +1187,7 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
   MDL_load_import_attr (IG_mainNam, mSiz);
 
     // TESTBLOCK
-    // UTF_dump__ ();
+    // UTF_dump__ ("ex-IGE_r__");
     // printf(" ex-IGE_r__\n");
     // END TESTBLOCK
  
@@ -1139,6 +1208,10 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
     // Exitmessage
     IGE_r_work_2 (-2);
       // printf(" igi07\n");
+
+      // TESTBLOCK
+      // sprintf(memspc50,"cat %s",IG_mainNam); system(memspc50);
+      // END TESTBLOCK
 
     return irc;
 
@@ -1213,7 +1286,7 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
 
   // printf(" next Main %d %d\n",impInd,impTab[impInd].fTyp);
 
-  // alle main-abj aktiv setzen
+  // alle main-obj aktiv setzen
   for(impInd=0; impInd<impNr; ++impInd) {
     if(impTab[impInd].done == 0) {
       // printf(" ... nxt mem impInd=%d fTyp=%d fInd=%d\n",impInd,
@@ -1249,7 +1322,7 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
   // Start new Model - Callback
   // ox1 = UTO_stru_2_obj (Typ_SubModel, Typ_SubModel, memspc55);
   OGX_SET_OBJ (&ox1, Typ_SubModel, Typ_SubModel, 1, memspc55);
-  AP_ImportIg_CB (&ox1);
+  IGS_out__ (&ox1);
 
 
   //--------------------------------------
@@ -1260,7 +1333,7 @@ OFFEN: bei SubModels in Datei ausgeben; erst wenn alles im Buffer ist
     if(impInd >= impNr) goto L_fertig;
 
     if(impTab[impInd].activ != 1) goto L_next;  // find next member
-      // printf("\n... nxt impInd=%ld fTyp=%d fInd=%d\n",impInd,
+      // printf("\n... work_1 nxt impInd=%ld fTyp=%d fInd=%d\n",impInd,
                // impTab[impInd].fTyp,impTab[impInd].fInd);
 
     // obj ausgeben
@@ -1317,7 +1390,7 @@ static  int oCnt1, oCnt2;
 
 
 
-  printf(">>>>>> IGE_r_work_2 impInd=%d dNr=%d fTyp=%d\n",ind,dNr,IG_typ_act);
+  // printf(">>>>>> IGE_r_work_2 impInd=%d dNr=%d fTyp=%d\n",ind,dNr,IG_typ_act);
 
 
 
@@ -1362,7 +1435,7 @@ static  int oCnt1, oCnt2;
   ox1.data = impTab[ind].data;
 
   // printf("    typ=%d form=%d\n",ox1.typ,ox1.form);
-  // printf("    ftyp=%d ind=%d\n",impTab[ind].fTyp,impTab[ind].ind);
+  // printf("    ftyp=%d ind=%ld\n",impTab[ind].fTyp,impTab[ind].ind);
 
 
 
@@ -1388,7 +1461,7 @@ static  int oCnt1, oCnt2;
       oxp2 = &oxp1[0];
       i1 = INT_PTR(oxp2->data);
       if(impTab[i1].typ == Typ_Error) goto L_err1;
-      // printf(" SRU ind1=%d %d %d\n",i1,impTab[i1].typ,impTab[i1].ind);
+        // printf(" SRU ind1=%d %d %d\n",i1,impTab[i1].typ,impTab[i1].ind);
       oxp2->typ  = impTab[i1].typ;
       if(impTab[i1].ind == 0) IGE_r_work_3 (i1);
       if(impTab[i1].ind == 0) goto L_err2;
@@ -1398,12 +1471,12 @@ static  int oCnt1, oCnt2;
       oxp2 = &oxp1[1];
       i1 = INT_PTR(oxp2->data);
       if(impTab[i1].typ == Typ_Error) goto L_err1;
-      // printf(" SRU ind2=%d %d %d\n",i1,impTab[i1].typ,impTab[i1].ind);
+        // printf(" SRU ind2=%d %d %d\n",i1,impTab[i1].typ,impTab[i1].ind);
       oxp2->typ  = impTab[i1].typ;
       if(impTab[i1].ind == 0) IGE_r_work_3 (i1);
       if(impTab[i1].ind == 0) goto L_err2;
       oxp2->data = PTR_LONG(impTab[i1].ind);
-      // printf(" impTab[%d].ind2=%d\n",i1,impTab[i1].ind);
+        // printf(" impTab[%d].ind2=%d\n",i1,impTab[i1].ind);
     }
 
 
@@ -1436,6 +1509,8 @@ static  int oCnt1, oCnt2;
 
   // 144 oder 143 = Begrenzte Flaeche
   } else if(ox1.typ == Typ_SUR) {
+      // printf(" work_2-Typ_SUR-typ=%d\n",impTab[ind].fTyp);
+
     if(impTab[ind].fTyp == 143) {
       i1 = IGE_rw_143 (&ox1);
       if(i1 < 0) return i1;
@@ -1452,6 +1527,12 @@ static  int oCnt1, oCnt2;
       goto L_OK;   // fertig
 
     } else if(impTab[ind].fTyp == 128) {
+      // 128=BSplSurf can be planar, used for planar trimmed surface.
+      // Do not output it if planar ..
+        // TESTBLOCK
+        // IGE_r_dump_impTab (ind);
+        // DEB_exit();
+        // END TESTBLOCK
       goto L_OK;   // fertig
 
     } else goto L_err3;
@@ -1466,7 +1547,12 @@ static  int oCnt1, oCnt2;
     }
 
 
+  // } else {
+  // typ-22 Typ_CVPSP3 OK
+    // TX_Error("IGE_r_work_2 E004 %dP typ=%d fTyp=%d siz=%d\n",
+            // IGE_r_ind2dNr(ind),ox1.typ,impTab[ind].fTyp,impTab[ind].siz);
   }
+
 
   L_OK:
 
@@ -1475,7 +1561,7 @@ static  int oCnt1, oCnt2;
 
 
   //======================================================================
-  return AP_ImportIg_CB (&ox1);    // save
+  return IGS_out__ (&ox1);    // save
 
 
   //-------------------------------------
@@ -1561,7 +1647,7 @@ static  int oCnt1, oCnt2;
   L_NextLine:
   // printf("--------L_NextLine\n");
 
-  // Erste D-Zeile einlesen
+  // IGlnD1 = Erste D-Zeile einlesen
   if (fgets (IGlnD1, 84, fp_in) == NULL) return -2;
   if(strlen(IGlnD1) < 72) {
     TX_Error("IGES-Formatfehler E001");
@@ -1577,7 +1663,7 @@ static  int oCnt1, oCnt2;
 
   if(IGlnD1[72] != 'D') goto L_fertig;
 
-  // zweite D-Zeile einlesen
+  // IGlnD2 = zweite D-Zeile einlesen
   //TX_Print(" vor read 2.D-Zeile");
   if (fgets (IGlnD2, 84, fp_in) == NULL) return -2;
     // printf("      D2=/%s/\n", IGlnD2);
@@ -1626,10 +1712,11 @@ static  int oCnt1, oCnt2;
   // printf(" IgsObj[%d] Ent=%d pNr=%d\n",impNr,
            // impTab[impNr].fTyp,impTab[impNr].fInd);
 
-  impTab[impNr].done  = 0;
-  impTab[impNr].activ = 0;
-  impTab[impNr].typ   = Typ_Error;
-  impTab[impNr].ind   = 0;
+  impTab[impNr].done   = 0;
+  impTab[impNr].activ  = 0;
+  impTab[impNr].typ    = Typ_Error;
+  impTab[impNr].ind    = 0;
+  impTab[impNr].stat__ = 0;
 
 
   ++impNr;
@@ -1714,6 +1801,7 @@ static  int oCnt1, oCnt2;
   L_next:
       // printf(" impTab[%d].fTyp = %d trInd = %ld\n",ii,
                // impTab[ii].fTyp,impTab[ii].trInd);
+
 
     if(impTab[ii].trInd == 0) goto L_continue;
 
@@ -1800,7 +1888,7 @@ static  int oCnt1, oCnt2;
       ox1.data = impTab[ii].data;
       pox1 = &ox1;
       // UTO_ox_tra (&pox1, &ox1, IG_trMat);
-      psp_psp3_tra_m3 (&ox1, &ox1, IG_trMat);
+      CVPSP_psp3_tra_m3 (&ox1, &ox1, IG_trMat);
       goto L_continue;
 
 
@@ -2069,6 +2157,7 @@ static  int oCnt1, oCnt2;
   } else if (IG_typ_act == 128) {
     irc = IGE_r_128 (&ox1, IG_ra);
     if(irc < 0) goto L_weiter;
+    if(irc == 1) impTab[impInd].stat__ = 1; // rbspl-curve is planar
 
 
   //---- BoundedSurf; Typ 143 ------
@@ -2124,7 +2213,7 @@ static  int oCnt1, oCnt2;
 
 
   // add obj aus ox1 -> memspc
-    printf("  sav dat impInd=%ld typ=%d siz=%d\n",impInd,ox1.typ,ox1.siz);
+    // printf("  sav dat impInd=%ld typ=%d siz=%d\n",impInd,ox1.typ,ox1.siz);
   impTab[impInd].typ  = ox1.typ;
   impTab[impInd].form = ox1.form;
   impTab[impInd].siz  = ox1.siz;
@@ -2159,6 +2248,12 @@ static  int oCnt1, oCnt2;
 
   //--------------------------------------------------------
   L_work:
+
+    // TESTBLOCK
+    // printf(" ex-IGE_r_P__ impInd=%ld impNr=%ld\n",impInd,impNr);
+    // IGE_r_dump_impTab (0);
+    // END TESTBLOCK
+
 
   return 0;
 
@@ -2517,6 +2612,7 @@ static  int oCnt1, oCnt2;
 //=======================================================================
   int IGE_r_ind2dNr (int ind) {
 //=======================================================================
+// get D-lineNr from impTab-index
 // Die D-ZeilenNr ist somit (Index*2)-1
 // 0->1, 1->3, 2->5, ..
 
@@ -2593,20 +2689,38 @@ static  int oCnt1, oCnt2;
   int IGE_r_dump_impTab  (int ind) {
 //================================================================
 // IGE_r_dump_impTab        dump einen impTab-Record
+// Input:
+//   ind   impTabindex impTab; 
 
+  int    i1;
+  char   oid[40];
 
   printf("IGE_r_dump_impTab %d ======================= \n",ind);
+
 
   // printf(" D-Nr[%d]= %dP\n",ind,IGE_r_ind2dNr(ind));
 
   // so sieht die P-Zeile aus:
-  printf("%d,... %dP %d\n",impTab[ind].fTyp,IGE_r_ind2dNr(ind),impTab[ind].fInd);
+  printf("D%d P%d  %d,..\n",IGE_r_ind2dNr(ind),impTab[ind].fInd,impTab[ind].fTyp);
 
-  printf(" fTyp=%d fInd=%d typ=%d form=%d ind=%ld\n",
+  printf(" fTyp=%d fInd=%d typ=%d form=%d ind=%ld siz=%d\n",
          impTab[ind].fTyp, impTab[ind].fInd,
-         impTab[ind].typ, impTab[ind].form, impTab[ind].ind);
+         impTab[ind].typ, impTab[ind].form, impTab[ind].ind, impTab[ind].siz);
 
-  DEB_dump_obj__ (impTab[ind].form, impTab[ind].data, " [%d].data\n",ind);
+  // DEB_dump_obj__ (impTab[ind].form, impTab[ind].data, " [%d].data\n",ind);
+  if(impTab[ind].form == Typ_Index) {
+    for(i1=0;i1<impTab[ind].siz; ++i1) {
+      APED_oid_dbo__ (oid, impTab[ind].typ, impTab[ind].ind);
+      printf(" [%d] %s\n",i1,oid);
+    }
+
+  } else if(impTab[ind].form == Typ_Txt) {
+    printf(" |%s| \n",(char*)impTab[ind].data);
+
+
+  } else {
+    DEB_dump_nobj__ (impTab[ind].form, impTab[ind].siz, impTab[ind].data, "");
+  }
 
   return 0;
 
@@ -3266,6 +3380,8 @@ static Plane      pl1;
 // Curve = ObjGX; data (table of polynom_d3) goes -> impSpc
 
 
+  CurvPsp3 cv1;
+
   int        irc, i1, polNr, polSiz;
   polynom_d3 *polTab;
   // ObjGX      el;
@@ -3286,29 +3402,49 @@ static Plane      pl1;
   if(polNr < 0) return -2;
 
 
-    // for(i1=0; i1<=polNr; ++i1) {
-      // DEB_dump_obj__ (Typ_Polynom3, &polTab[i1], "pol3[%d]",i1);
-    // }
+    // TESTBLOCK
+    // printf(" polNr=%d\n",polNr);
+    // for(i1=0; i1<=polNr; ++i1)
+      // DEB_dump_obj__ (Typ_polynom_d3, &polTab[i1], "pol3[%d]",i1);
+    // END TESTBLOCK
 
 
-  // alle Daten ins el packen
-  ox1->typ  = Typ_CVPSP3;
-  ox1->form = Typ_CVPSP3;       // Typ_polynom_d3;
-  ox1->siz  = polNr + 1;        // polNr = Anzahl Segmente !
-  // ox1->data = polTab;
-  ox1->data = impSpc.next;
-
-
-  // offen: hier testen, ob curve linear;
-  // jes: degrade to Line (see UT3D_bsp_degrad)
+  // see also APT_decode_psp3
+  cv1.plyNr  = polNr;
+  // cv1.plyTab = polTab;
+  cv1.plyTab = impSpc.next;
+  cv1.v0     = 0.;
+  cv1.v1     = 1.;
+  cv1.dir    = 0;
+  cv1.clo    = -1;
+  cv1.trm    = 1;
 
 
   // Poly.koeff. -> impSpc speichern
   UME_save (&impSpc, (void*)polTab, (polNr+1)*sizeof(polynom_d3));
 
 
-  // DEB_dump_ox_0 (ox1, "ex IGE_r_112");
-  // printf("ex IGE_r_112 %d\n",IG_ia1[1]);
+  // alle Daten ins el packen
+  ox1->typ  = Typ_CVPSP3;
+  ox1->form = Typ_CVPSP3;       // Typ_polynom_d3;
+  // ox1->siz  = polNr + 1;        // polNr = Anzahl Segmente !
+  ox1->siz  = 1; 
+  // ox1->data = polTab;
+  // ox1->data = &cv1;
+  ox1->data = impSpc.next;
+
+
+  // pack cv1 into impSpc
+  UME_save (&impSpc, (void*)&cv1, sizeof(CurvPsp3));
+
+
+  // offen: hier testen, ob curve linear;
+  // jes: degrade to Line (see UT3D_bsp_degrad)
+
+
+    // TESTBLOCK
+    // DEB_dump_ox_0 (ox1, "ex IGE_r_112");
+    // END TESTBLOCK
 
 
 /* 2007-07-06      ausgelagert nach IGE_r_tra__
@@ -3764,6 +3900,11 @@ static Plane      pl1;
   ox1->siz  = strlen(cBuf) + 1;
   ox1->data = (void*)cBuf;
 
+    // TESTBLOCK
+    // DEB_stop();
+    // END TESTBLOCK
+ 
+
   return 0;
 
 }
@@ -3956,15 +4097,15 @@ static Plane      pl1;
 //=====================================================================
   int IGE_rw_142 (int ind) {
 //=====================================================================
+// CurveOnParametricSurface
 // eine Boundary fuer eine TrimmedSurface decodieren
 // Den gCAD-Typ und Index der zugehoerigen CCV hier eintragen.
 
   int    i1, i2;
 
 
-  // printf("IGE_rw_142 %d fTyp=%d ind=%d\n",ind,
+  // printf("IGE_rw_142 %d fTyp=%d ind=%ld\n",ind,
                         // impTab[ind].fTyp,impTab[ind].ind);
-
   // if(impTab[ind].done > 0) return 0;   // bereits erledigt
 
 
@@ -3985,9 +4126,13 @@ static Plane      pl1;
     // gCAD-Typ und Index eintragen.
     impTab[ind].typ  = impTab[i1].typ;
     impTab[ind].ind  = impTab[i1].ind;
+    impTab[ind].siz  = 1;                  // 2022-05-30
     impTab[ind].done = 1;
 
-    // printf("ex IGE_rw_142 typ=%d ind=%d\n",impTab[ind].typ,impTab[ind].ind);
+      // TESTBLOCK
+      // printf("ex IGE_rw_142 typ=%d ind=%ld\n",impTab[ind].typ,impTab[ind].ind);
+      // DEB_exit();
+      // END TESTBLOCK
 
     return 0;
   }
@@ -4448,11 +4593,10 @@ static Plane      pl1;
 //=====================================================================
 // 128 Rational B-Spline Surface
 // Datenfelder pTab, kTabU u kTabV zeigen into ra !!
-/*
+// retCode: 0 OK
+//          1 is planar-curve; data=text "S(POL..)"
 
-
-EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
-*/
+// EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
 
   static SurBSpl  IG_suBSpl;
 
@@ -4606,13 +4750,29 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
   UME_save (&impSpc, (void*)kTabV, kTabV_Nr*sizeof(double));
 
 
+    // TESTBLOCK
+    // DEB_dump_ox_0 (ox1, "IGE_r_128-L10");
+    // END TESTBLOCK
 
   // degradieren ?
   // if((ptU_Nr == 2)||(ptV_Nr == 2)) UT3D_sbs_degrad (ox1, &IG_suBSpl, &impSpc);
   if((MU == 1)||(MV == 1)) UT3D_obj_cnvt_sbsp (ox1, &IG_suBSpl, &impSpc);
 
 
-  return 0;
+  // test if its planar; yes: irc = 1,
+  if((ox1->typ == Typ_SUR)&&(ox1->form == Typ_Txt)) irc = 1;
+  else irc = 0;
+    
+
+
+    // TESTBLOCK
+    // printf("ex IGE_r_128 irc=%d\n",irc);
+    // DEB_dump_ox_0 (ox1, "ex IGE_r_128");
+    // DEB_exit();
+    // END TESTBLOCK
+
+
+  return irc;
 
 }
 
@@ -4838,8 +4998,9 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
 
   static char IG_cBuf[1024];
 
-  int     io1, io2, i1, i2, i3, irc, typ_bound, typ_body, cNr;
-  long    l1, ind_bound, ind_body, id_body, *iTab;
+  int     io1, io2, i1, i2, i3, irc, typ_bound, typ_body, cNr, id_bnd, id_body;
+  long    l1, ind_bound, ind_body, *iTab;
+  double  d1;
   char    auxBuf [64];
   ObjGX   oxa1, *oxp;
   SurBSpl *su1;
@@ -4853,8 +5014,7 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
 
 
   // printf("IGE_rw_144 ============= Stuetz=%d Bound=%d cNr=%d\n",io1,io2,cNr);
-  // for(i1=0; i1<cNr; ++i1) printf(" insel[%d]=%d\n",i1,iTab[i1+4]);
-
+  // for(i1=0; i1<cNr; ++i1) printf(" insel[%d]=%ld\n",i1,iTab[i1+4]);
 
 
   // Ausgabeflaeche entspricht dem zugehoerigen Body.
@@ -4862,23 +5022,37 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
 
   //================================================================
   // decode Boundary
-  i1 = IGE_r_dNr2ind (io2);
+  id_bnd = IGE_r_dNr2ind (io2);
 
   // decode Boundary (typ u ind der CCV holen
-  if(IGE_rw_142 (i1) < 0) return -1;
+  if(IGE_rw_142 (id_bnd) < 0) return -1;
 
-  typ_bound = impTab[i1].typ;
-  ind_bound = impTab[i1].ind;
-  // printf(" bound= %d %d\n",typ_bound,ind_bound);
+  typ_bound = impTab[id_bnd].typ;
+  ind_bound = impTab[id_bnd].ind;
 
+    // TESTBLOCK
+    // printf(" rw_144-bnd typ=%d ind=%ld D=%d\n",typ_bound,ind_bound,id_bnd);
+    // IGE_r_dump_impTab (id_bnd);
+    // DEB_exit();
+    // END TESTBLOCK
 
 
 
   //================================================================
-  // decode Body (Stuetzflaeche)
+  // decode suppSur (Stuetzflaeche)
   id_body = IGE_r_dNr2ind (io1);
 
-  if(impTab[id_body].ind == 0) IGE_r_work_3 (id_body);
+    // printf(" rw_144-suppSur.stat__=%d\n",impTab[id_body].stat__);
+
+  if(impTab[id_body].stat__ == 0) {
+    // suppSur ist not planar - get outerBnd
+    if(impTab[id_body].ind == 0) IGE_r_work_3 (id_body);
+
+  } else {
+    // suppSur planar; skip creation of outer boundary
+    goto L_144_out;
+  }
+
 
   typ_body = impTab[id_body].typ;
   ind_body = impTab[id_body].ind;
@@ -4888,18 +5062,23 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
     return -2;
   }
 
-  // printf(" Body=%d %d D=%d\n",typ_body,ind_body,id_body);
+    // TESTBLOCK
+    // printf(" rw_144-suppSur typ=%d ind=%ld D=%d\n",typ_body,ind_body,id_body);
+    // IGE_r_dump_impTab (id_body);
+    // DEB_exit();
+    // END TESTBLOCK
 
 
 
   //================================================================
+  L_144_out:
   // load outputText
   IG_cBuf[0] = '\0';
   // if(cNr > 0) strcpy(IG_cBuf, "FSUB");
 
   // add Boundary
   AP_obj_add_dbo (IG_cBuf, typ_bound, ind_bound);
-  // printf(" bound-ID=|%s|\n",IG_cBuf);
+    // printf(" rw_144-bound-ID1=|%s|\n",IG_cBuf);
 
   // add Inseln
   if(cNr > 0) {
@@ -4916,6 +5095,8 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
       // printf(" bound[%d]=|%s| %d %d\n",i1,IG_cBuf,typ_bound,ind_bound);
     }
   }
+    // printf(" rw_144-bound-ID2=|%s|\n",IG_cBuf);
+    // DEB_exit();
 
 
   //===================================================
@@ -4925,6 +5106,15 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
     goto L_out;
 
 
+
+  // //===================================================
+  } else if(impTab[id_body].fTyp == 128) {
+    // trimmedSurf
+    // is supportSurf planar -
+    if(impTab[id_body].stat__ == 1) {
+      goto L_out;
+    }
+    
 
   //===================================================
   // trimmed B_SplineSurf
@@ -4943,7 +5133,9 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
 
 
     // ist BSP-Surf planar ? dann (ohne BSP-Surf) ausgeben
-    if(UT3D_sbs_ck_planar(su1) < UT_TOL_pt) goto L_out;
+    d1 = UT3D_sbs_ck_planar(su1);
+      // printf(" rw_144-d1=%f tol=%f\n",d1,UT_TOL_cv);
+    if(d1 < UT_TOL_cv) goto L_out;
 
     // trimmed BSP-Surf
     // printf("IGE_rw_144 E003 %d %d %d\n",typ_bound,typ_body,io1);
@@ -4996,8 +5188,9 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
 
   //===================================================
   // trimmed conus / torus
-  if((typ_body != Typ_CON) &&
-     (typ_body != Typ_TOR) &&
+  if((typ_body != Typ_CON)    &&
+     (typ_body != Typ_TOR)    &&
+     (typ_body != Typ_SURBSP) &&
      (typ_body != Typ_SUR)) {
     TX_Error("***** Error IGE_rw_144 E005 %d %d %d",typ_bound,typ_body,io1);
     return -2;
@@ -5029,6 +5222,11 @@ EINE FLAECHE MIT 2 X 2 Punkte koennte man als Rechteck ausgeben ???
   ox1->siz  = strlen(IG_cBuf) + 1;
   ox1->data = (void*)IG_cBuf;
 
+    // TESTBLOCK
+    // printf(" ex-IGE_rw_144 |%s|\n",IG_cBuf);
+    // DEB_exit();
+    // END TESTBLOCK
+ 
 
   return 0;
 

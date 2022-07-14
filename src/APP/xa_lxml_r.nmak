@@ -1,0 +1,16 @@
+# nmake -f xa_lxml_r.nmak
+
+DLLNAM = xa_lxml_r
+
+SRC1 =\
+ ../exp/lxml_r.c\
+
+
+CORE = J
+
+
+# create executable ..
+!include "..\APP\gcad__.nmak"
+
+
+########################### EOF #######################

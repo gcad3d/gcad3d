@@ -57,6 +57,7 @@ Compile/Link/Reload is done while gCad3D is up and running !!
 
 
 
+
 // #include <GL/gl.h>                     // GL_TRIANGLE_FAN
 #define GL_TRIANGLE_FAN  6             // unsauber ..
 
@@ -80,11 +81,14 @@ __declspec(dllexport) int gCad_fini ();
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // Fac3 MshFac
 
+#include "../db/ut_DB.h"               // DB_GetObjGX
+
 #include "../gr/ut_gr.h"               // GR_tDyn_*
 
 #include "../gui/gui__.h"
 
 #include "../xa/xa_ui.h"                     // UID_..
+#include "../xa/xa_mem.h"              // memspc*
 
 
 
@@ -153,15 +157,19 @@ char myMemspc[50000];
   // - cannot be found by "Scale All"
   // - Rework ("END") will delete these objects
   // cre_tDyn_obj ();        // Temporary-Dynamic binary-obj
-  cre_tDyn_sym ();        // Temporary-Dynamic symbols
+  // cre_tDyn_sym ();        // Temporary-Dynamic symbols
   // cre_tDyn_txt ();        // Temporary-Dynamic text
   // cre_tDyn_mdr ();        // Temporary-Dynamic modelRefs;
 
 
   //----------------------------------------------------------------
   // surfaces
+  // cre_perm_surbsp ();        // via code
   // cre_tDyn_sur_nifac1 ();    // indexed-faces
   // cre_tDyn_sur_nifac2 ();    // double-indexed-faces
+  // cre_tDyn_surbsp ();        // create, display, dump
+  cre_DB_surbsp ();          // create, store in DB, load from DB, dump
+
 
 
 
@@ -1115,6 +1123,172 @@ char myMemspc[50000];
   //----------------------------------------------------------------
   UI_but_END ();    // process additional src
 
+
+  return 0;
+
+}
+
+
+//================================================================
+  int cre_perm_surbsp () {
+//================================================================
+//         // via code
+
+  // clear ("new")
+  UI_men__ ( "new");
+
+  UTF_clear1();
+  UTF_add1_line ("S20=POL P(10.,10.,0.) P(20.,10.,0.) P(30.,10.,0.)");
+  UTF_add1_line ("S21=POL P(10.,13.,0.) P(20.,13.,5.) P(30.,13.,0.)");
+  UTF_add1_line ("S22=POL P(10.,16.,0.) P(20.,16.,0.) P(30.,16.,0.)");
+  UTF_add1_line ("A20=BSP U(S20 S21 S22)");
+
+  // Add Aux.Buffer -> MainBuffer
+  UTF_insert1 (-1L);
+
+  // execute 
+  UI_but_END ();
+
+  return 0;
+
+}
+
+
+//================================================================
+  int cre_DB_surbsp () {
+//================================================================
+// cre_DB_surbsp ();          // create, store in DB, load from DB, dump
+
+  int      irc, i1, oTyp, sTyp, oNr;
+  long     dbi;
+  Memspc   msSu1;
+  char     spc1[10000];  // space for surf
+  ObjGX    ox1;
+  void     *obj, *sur;
+
+
+  printf("--------------- cre_DB_surbsp\n");
+
+  // get ox1 = b-spline-surface
+  UME_init (&msSu1, spc1, sizeof(spc1));
+  irc = cre_get_surbsp (&ox1, &msSu1);
+  if(irc < 0) {TX_Error("cre_DB_surbsp E1"); return -1;}
+
+
+  // store surf in DB as A20
+  dbi = 20L;
+  irc = DB_StoreSur (&dbi, &ox1);
+
+
+  // load A20 from DB (returns TypObjGX = ObjGX)
+  oTyp = UTO__dbo (&obj, &oNr, Typ_SUR, dbi);
+  if(oTyp < 0) {TX_Error("cre_DB_surbsp E2"); return -1;}
+    DEB_dump_ox_s_ (obj, "cre_DB_surbsp-obj");
+
+  // ox2 = DB_GetObjGX (Typ_SUR, dbi);
+  // if(ox2.typ == Typ_Error) {TX_Error("cre_DB_surbsp E2"); return -1;}
+    // DEB_dump_ox_s_ (&ox2, "cre_DB_surbsp-ox2");
+
+  // display
+  GR_tDyn_osu (obj, 0L, ATT_COL_GREEN);
+
+  // unpack ObjGX
+  OGX_GET_OBJ (&sTyp, &sur, &oNr, (ObjGX*)obj);
+
+  // dump
+  DEB_dump_obj__ (sTyp, sur, "cre_DB_surbsp-sur");
+
+  return 0;
+
+}
+
+  
+//================================================================
+  int cre_tDyn_surbsp () {
+//================================================================
+// cre_tDyn_surbsp            create b-spline-surface, disp dynam., dump
+
+  int      irc, oTyp, oNr;
+  Memspc   msSu1;
+  char     spc1[10000];  // space for surf
+  ObjGX    ox1;
+  void     *obj;
+
+
+  //----------------------------------------------------------------
+  // get ox1 = b-spline-surface
+  UME_init (&msSu1, spc1, sizeof(spc1));
+  irc = cre_get_surbsp (&ox1, &msSu1);
+  if(irc < 0) {TX_Error("cre_DB_surbsp E1"); return -1;}
+
+  // display
+  GR_tDyn_osu (&ox1, 0L, ATT_COL_GREEN);
+    DEB_dump_ox_s_ (&ox1, "cre_tDyn_surbsp-ox1");
+
+  // unpack ObjGX
+  OGX_GET_OBJ (&oTyp, &obj, &oNr, &ox1);
+
+  // dump obj
+  DEB_dump_obj__ (oTyp, obj, "cre_tDyn_surbsp-su1");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int cre_get_surbsp (ObjGX *ox1, Memspc *msSu1) {
+//================================================================
+// test_msh3d_getSur                 test 3D-tesselate
+// test tesselate simple blspl-surf
+
+  int      irc, i1;
+  Point    cv1[] = {{10.,10.,0.},{20.,10.,0.},{30.,10.,0.}};
+  Point    cv2[] = {{10.,13.,0.},{20.,13.,5.},{30.,13.,0.}};
+  Point    cv3[] = {{10.,16.,0.},{20.,16.,0.},{30.,16.,0.}};
+  CurvBSpl cvTab[3];
+  SurBSpl  su1;
+  Memspc   msCv, msTb1, msTb2;
+  char     spc1[10000];  // space for curves
+  void     *cv1tab[3];
+
+
+  //----------------------------------------------------------------
+  // create su1 = b-spline-surface
+
+  // get mespc for B-Spline
+  UME_init (&msCv, spc1, sizeof(spc1));
+
+  // B-Spline-Curve, Degree 3  from points
+  //           (cvBsp, &memSeg1, pTab, ptNr, deg);
+  UT3D_cbsp_ptn (&cvTab[0], &msCv, cv1,   3,   2);
+  UT3D_cbsp_ptn (&cvTab[1], &msCv, cv2,   3,   2);
+  UT3D_cbsp_ptn (&cvTab[2], &msCv, cv3,   3,   2);
+
+    // disp
+    // GR_tDyn_ocv (Typ_CVBSP, &cvTab[0], 0, Typ_Att_blue);
+    // GR_tDyn_ocv (Typ_CVBSP, &cvTab[1], 0, Typ_Att_blue);
+    // GR_tDyn_ocv (Typ_CVBSP, &cvTab[2], 0, Typ_Att_blue);
+
+
+  // get temp memspc
+  UME_init (&msTb1, memspc101, sizeof(memspc101));   // temSpc
+  UME_init (&msTb2, memspc102, sizeof(memspc102));   // temSpc
+
+  // get cv1tab = pointers to 3 curves
+  for(i1=0; i1<3; ++i1) cv1tab[i1] = &cvTab[i1];
+
+  // get su1 = bslpl-surf from table-of-curves
+  irc = UT3D_sbsp_ncv (&su1, msSu1, 3, cv1tab, 2, &msTb1, &msTb2);
+  if(irc < 0) {TX_Error("test_msh3d_getSur E1"); return -1;}
+    // DEB_dump_obj__ (Typ_SURBSP, &su1, "cre_get_surbsp-su1");
+
+  // pack into complex-obj
+  OGX_SET_OBJ (ox1, Typ_SURBSP, Typ_SURBSP, 1, &su1);
+    // DEB_dump_ox_s_ (ox1, "cre_get_surbsp-ox1");
+
+  // display
+  // GR_tDyn_osu (ox1, 0L, ATT_COL_GREEN);
 
   return 0;
 

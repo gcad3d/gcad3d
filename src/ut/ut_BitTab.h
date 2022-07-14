@@ -1,4 +1,5 @@
 /* BitTab.h       Functions for bit-arrays         2010-04-29  RF
+for setting bits see also BIT_SET BIT_GET ..
 */
 #ifdef globTag
 void BitTab(){}

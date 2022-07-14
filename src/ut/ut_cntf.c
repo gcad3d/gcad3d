@@ -112,6 +112,7 @@ All trimmed-curves refer to the basic-curve.
 
 
 // contour-finder-object
+// clo        0=closed; 1=not-closed; -2=degen
 // pend       0=obj is not pending, already out (use only pte). Else pending.
 typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
                 int typ, pend; char obj[OBJ_SIZ_MAX], dir, clo, cer;}      cfo;
@@ -378,10 +379,13 @@ typedef struct {double v0, v1; long dbi, ip0, ip1; Point pts, pte;
   if(oNew.clo < -1) {
     // degenerated lfig;
       // printf(" degen:%d\n",oNew);
-//     APED_oid_dbo_sm (oid, sizeof(oid), oNew.typ, oNew.dbi);
-    MDL_mNam_imb (oid, 250, oNew.typ, oNew.dbi);
+    APED_oid_dbo__ (oid, oNew.typ, oNew.dbi);
+// TODO: which model ?
+    // APED_oid_dbo_sm (oid, sizeof(oid), oNew.typ, oNew.dbi);
+    // cannot use MDL_mNam_imb - degen. obj not in DB
+    // MDL_mNam_imb (oid, 250, oNew.typ, oNew.dbi);
     // TX_Print("skip degenerated object %s %s",oid,AP_modact_nam);
-    TX_Print("**** skip degenerated object in %s",oid);
+    TX_Print("**** skip degenerated object %s",oid);
     // return oNew.clo;
     return 0;
   }

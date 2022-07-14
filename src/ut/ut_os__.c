@@ -34,6 +34,8 @@ void OS(){}
 =====================================================
 List_functions_start:
 
+OS_setenv                setenv
+OS_ck_DirAbs             check if string is absolute or relative Filname
 OS_file_sig_cre          create signal-file
 OS_file_sig_wait         wait for signalfile & get its content
 
@@ -46,21 +48,152 @@ List_functions_end:
 
 */
 
+#ifdef _MSC_VER
+// #define _CRT_SECURE_NO_DEPRECATE
+#include <windows.h>
+#include <winspool.h>
+#else
+#include <dirent.h>        // f. DIR ..
+#include <sys/utsname.h>
+#include <sys/time.h>
+#include <signal.h>
+#include <unistd.h>          ///f. access, R_OK .. 
+#endif
 
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
-
+#include <ctype.h>                     // isdigit
+#include <stdarg.h>                    // va_list
+#include <time.h>
+#include <float.h>                    // DBL_MAX
 #include <errno.h>
 
 #include "../ut/ut_cast.h"             // INT_PTR
-
+#include "../ut/ut_txt.h"              // UTX_..
 #include "../ut/ut_os.h"
 
 
 
+//================================================================
+   int OS_setenv (char *var, char *dir) {
+//================================================================
+// returns -1 on error
+
+  int   irc;
+  char   s1[800], sDir[400];
+
+
+  // printf(" OS_setenv |%s|%s|\n",var,dir);
+
+  if(strlen(dir) >= 400) {TX_Error("OS_setenv dir too long"); return -1;}
+  strcpy(sDir, dir);
+
+  // resolv OS-? in dir
+  irc = OS_osVar_eval (sDir, sizeof(sDir));
+  if(irc < 0) {TX_Error("OS_osVar_eval %s",dir); return -1;}
+
+  // printf(" OS_setenv-1 |%s|\n",sDir);
+
+
+#ifdef _MSC_VER
+  // MS-Win
+  if(strlen(var) + strlen(sDir) >= 800) {
+    irc = -1;
+
+  } else {
+
+    irc = SetEnvironmentVariable (var, sDir);
+    if(!irc) irc = -1;
+
+    // sprintf(s1, "%s=%s",var,dir);
+      // printf(" OS_setenv %s|\n",s1);
+    // irc = _putenv (s1);
+  }
+
+#else
+  // Unix
+  irc = setenv (var, sDir, 1);
+#endif
+
+    // printf("OS_setenv irc=%d |%s|%s|\n",irc,var,dir);
+
+  L_exit:
+    if(irc < 0) printf("****** error OS_setenv |%s|%s|\n",var,dir);
+    return 0;
+
+}
+
+
+// //================================================================
+//   char* OS_get_tmp_dir () {
+// //================================================================
+// // OS_get_tmp_dir                get directory for temporary files
+// // - must end with "/" or (MS-Win) "\"
+// 
+// 
+// 
+// #ifdef _MSC_VER
+//   static  char os_tmp_dir[256] = "\0\0", *p1;
+// 
+// 
+//   if(!os_tmp_dir[0]) {
+//     p1 = getenv ("TEMP");           // %TEMP%
+//     strcpy(os_tmp_dir, p1);
+//     UTX_add_fnam_del (os_tmp_dir);
+// 
+//       // TESTBLOCK
+//       // printf(" OS_get_tmp_dir |%s|\n",os_tmp_dir);
+//       // END TESTBLOCK
+//   }
+// 
+//   return os_tmp_dir;
+// 
+// #else
+//   static  char u_tmp_dir[] = "/tmp/";
+// 
+//   return u_tmp_dir;
+// #endif
+// 
+// }
+
+
+//================================================================
+  int OS_ck_DirAbs (char *fNam) {
+//================================================================
+// check if string is absolute or relative Filname
+// Returncodes:
+//   0  = yes, absolut
+//   1  = no, relativ ..
+
+// see also OS_dirAbs_fNam
+
+// Tests:
+// /dir/fn          abs
+// ./fn             rel
+// ../dir/fn        rel
+// dir/fn           rel
+// C:\xx            abs-MS
+// \xx\yy           abs-MS
+
+
+  UTX_pos_skipLeadBlk (fNam);
+
+  if(fNam[0] == '/') return 0;
+
+
+#ifdef _MSC_VER
+  if(fNam[0] == '\\') return 0;
+  if(fNam[1] == ':') return 0;
+#endif
+
+
+  return 1;
+
+}
 
 
 //================================================================
@@ -187,7 +320,7 @@ List_functions_end:
 
 
   // clear signal-file
-  sprintf(fn, "%sGDW1.sig", OS_get_tmp_dir());
+  sprintf(fn, "%sGDW1.sig", AP_get_tmp_dir());
     // printf(" fn=|%s|\n",fn);
   OS_file_sig_cre (0, fn);
 

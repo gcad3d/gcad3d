@@ -246,7 +246,7 @@ void INF_Ico__ (){        /*! \code
 INF_Ico__     Icons  Ico
 
 
-OS_get_ico_dir returns os_ico_dir = <gcad_dir_bin>icons/
+AP_get_ico_dir returns os_ico_dir = <gcad_dir_bin>icons/
 /usr/share/gcad3d/icons/
 DevDir:   ../../icons/*.png
 
@@ -263,7 +263,7 @@ Ico_init                  // load icons
 ================================================================== \endcode */}
 void INF_symDir (){        /*! \code
 
-A symbolic file name consists of "{symbolic-directory}/{filename}" 
+A symbolic file name consists of "{symbolic-directory}/{extraPath}{filename}" 
 Example of symbolic file name: "Data/Niet1.dat" 
 Symbolic-directory can have size up to <SIZMFSym> chars.
 

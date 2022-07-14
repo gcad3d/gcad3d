@@ -65,6 +65,7 @@ Brw_row_set         change rowMode to active, normal, passive
 Brw_row_main_set    update modelname of mainModel
 
 Brw_Clear           clear window
+Brw_mdl_is_active   check if subModel is active; 0=not, else yes
 Brw_sel_sm1         hilite subModels
 Brw_hili_dli        hilite row  (CB M1-selection in GR-Win)
 Brw_unselect_all    unselect all
@@ -174,6 +175,16 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
                        //            1=normal selection ..
 
 
+
+
+//================================================================
+  int Brw_mdl_is_active () {
+//================================================================
+// Brw_mdl_is_active           check if subModel is active; 0=not, else yes
+ 
+  return mdl_is_active;
+
+}
 
 
 
@@ -400,7 +411,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   TreeNode      it1;
 
 
-  // printf("Brw_init__ %d\n",AP_stat.brw_stat);
+  printf("Brw_init__ %d\n",AP_stat.brw_stat);
 
 
   if(AP_stat.brw_stat < BRWSTAT_init) return 0;
@@ -608,7 +619,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   if(irc < 0) {TX_Print("***** Err-1 Brw_sel_sm2 %s",mnam); goto L_exit;}
 
   // find mnam in Model_*.lst; list in which Models
-  sprintf(fnam,"%s",OS_get_tmp_dir());
+  sprintf(fnam,"%s",AP_get_tmp_dir());
   lp = strlen(fnam);
 
   iNr = 0;
@@ -1075,17 +1086,17 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 //================================================================
   int Brw_Prcs_Init  () {
 //================================================================
-/// create all processes
+// create all processes
 
   int           i1, i2;
   char          s1[256];
   Memspc        mSpc1;
   UtxTab_NEW    (sTab1);
 
-  // printf("Brw_Prcs_Init \n");
+  printf("Brw_Prcs_Init \n");
 
   // test if processes exist
-  sprintf(s1, "%sprocesses.lst",OS_get_tmp_dir());
+  sprintf(s1, "%sprocesses.lst",AP_get_tmp_dir());
   if(OS_checkFilExist(s1,1) == 0) return 0;
 
   // get file <tmp>processes.lst into textTable
@@ -1244,7 +1255,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
 
 
   // open
-  sprintf(cbuf,"%sMod.lst",OS_get_tmp_dir());
+  sprintf(cbuf,"%sMod.lst",AP_get_tmp_dir());
   if((fp1=fopen(cbuf,"r")) == NULL) return 0;
 
   // read Submodels

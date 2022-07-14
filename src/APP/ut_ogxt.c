@@ -31,7 +31,6 @@ void OXMT(){}
 \file  ../ut/ut_ogxt.c
        ../ut/ut_ogxt.h
 \brief OgxTab = list of (complex-object (ObjGX) + variable-length-record)
-\code
 see INF_OgxTab
 
 =====================================================
@@ -57,8 +56,9 @@ OXMT_test_2
 
 List_functions_end:
 =====================================================
+requires:
+#include "../ut/ut_ox_base.h"          // OGX_SET_OBJ
 
-\endcode *//*----------------------------------------
 
 
 ==============================================================
@@ -81,6 +81,8 @@ List_functions_end:
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_ogxt.h"             // OgxTab ..
 #include "../xa/xa_msg.h"              // MSG_*
+#include "../ut/ut_ox_base.h"          // OGX_SET_OBJ
+
 
 // ../ut/ut_memTab.h MemTab
 // ../ut/ut_umem.h
@@ -415,7 +417,7 @@ typedef_MemTab(ObjGX);
 
   //----------------------------------------------------------------
   // disp bMsh 
-  BMSH_test_disp (bMsh, 2);
+  // BMSH_test_disp (bMsh, 2);
 
   //----------------------------------------------------------------
   L_exit:
@@ -430,6 +432,15 @@ typedef_MemTab(ObjGX);
   int OXMT_test_2 (ObjGX **bMsh, OgxTab *otb1) {
 //================================================================
 // OXMT_test1        create bMsh (tesselated surface) manually
+// create a surface and add into otb1; return the pointer to bMsh
+// Result is:
+// typ=SurGL_(70) form=ObjGX(205) siz=2 dir=0        bMsh
+//   typ=SurGLpp(71) form=ObjGX(205) siz=2 dir=0       planar-patch;
+//     typ=Vec(2) form=Vec(2) siz=1 dir=0                normal-vec
+//     typ=PT(3) form=PT(3) siz=5 dir=0 aux=6            5 points (GL_TRIANGLE_FAN)  OB
+//   typ=SurGLpp(71) form=ObjGX(205) siz=2 dir=0       planar-patch;
+//     typ=Vec(2) form=Vec(2) siz=1 dir=0                normal-vec
+//     typ=PT(3) form=PT(3) siz=5 dir=0 aux=6            5 points (GL_TRIANGLE_FAN)  IB
 // for writing into file must be serialized
 
 #define GL_TRIANGLE_FAN  6             // dont do this ..

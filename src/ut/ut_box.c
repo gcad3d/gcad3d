@@ -71,6 +71,7 @@ UT3D_box_ck_intLnLim      check if limited line intersects bbox
 UT3D_box_ck_intLnUnl      check if unlim. line intersects bbox
 UT3D_box_ck_intpl         check intersect. Plane / Box (estimate!)
 UT3D_box_ck_empty         test if box is empty
+UT3D_ch_lnbox             check line-Intersection with axis-parallel box (u3d.c)
 
 UT3D_box_ix_npt           get bounding-box for n points and find extreme points
 UT3D_box_pts              bounding box <-- points
@@ -97,15 +98,14 @@ UT3D_box_Torus
 UT3D_box_CurvClot
 UT3D_box_GText
 BBX_def__                 get default-modelbox (size=modelSize)
-
-UT3D_ptvc_intbox          intersect point/vector with box
-UT3D_ch_lnbox             check line-Intersection with axis-parallel box (u3d.c)
-UT3D_ln_intbox            relimit line inside box
-
 UT3D_cv_boxxy             load rect.points from xmin/xmax ymin/ymax in z=0
 
+UT3D_ptvc_intbox          intersect point/vector with box
+UT3D_ln_intbox            relimit line inside box
 
-Liste_Funktionen_Ende:
+UT3D_box_dump
+
+List_functions_end:
 =====================================================
 - see also:
 UT3D_box_ox                Box mit obj vergroessern
@@ -611,6 +611,29 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 
 
 //================================================================
+  int UT3D_box_dump (Point *p1, Point *p2, char *txt, ...) {
+//================================================================
+// see DEB_dump__ Typ_PT
+
+  char       cbuf[256];
+  va_list    va;
+
+
+  va_start(va,txt);
+  vsprintf(cbuf,txt,va);
+  va_end(va);
+
+  printf("UT3D_box_dump %s\n",cbuf);
+
+  printf("(Point) %9.3f,%9.3f,%9.3f\n",p1->x,p1->y,p1->z);
+  printf("(Point) %9.3f,%9.3f,%9.3f\n",p2->x,p2->y,p2->z);
+
+  return 0;
+
+}
+
+
+//================================================================
   int UT2D_box_dump (Point2 *p1, Point2 *p2, char *txt, ...) {
 //================================================================
 // see DEB_dump__ Typ_PT2
@@ -627,9 +650,6 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 
   printf("(Point2) %9.3f,%9.3f\n",p1->x,p1->y);
   printf("(Point2) %9.3f,%9.3f\n",p2->x,p2->y);
-
-
-
 
   return 0;
 
@@ -1060,9 +1080,12 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 /// \endcode
 
 
+    // TESTBLOCK
     // DEB_dump_obj__(Typ_PT, pt1, "UT3D_box_extend");
+    // if(UTP_comp2db(pt1->x, 2263.724, 0.1)) DEB_halt();
     // DEB_dump_obj__(Typ_PT, pb1, " _ext pb1i=");
     // DEB_dump_obj__(Typ_PT, pb2, " _ext pb2i=");
+    // END TESTBLOCK
 
 
   if(pt1->x < pb1->x) pb1->x = pt1->x;
@@ -2091,7 +2114,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 //   Retcod:   0 = OK;
 //            -1 = DispList empty (no obj to display)
 
-  int         i1, typ, bTyp, form, oNr;
+  int         irc, i1, typ, bTyp, form, oNr;
   long        dlSiz, dli, dbi;
   void        *obj;
   Point       pb1, pb2;
@@ -2109,7 +2132,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
   // dlSiz = GL_Get_DLind ();
   dlSiz = DL_get__ (&dla);
     // printf(" dlSiz=%ld\n",dlSiz);
-  if(dlSiz <= 0) return -1;
+  if(dlSiz <= 0) {irc = -1; goto L_exit;}
 
 
 
@@ -2153,6 +2176,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
       // printf(" typ_2_bastyp %d from %d\n",bTyp,typ);
 
 
+
     // get datastruct of dbo
     form = UTO__dbo (&obj, &oNr, bTyp, dbi);
     if(form <= 0) {
@@ -2160,8 +2184,12 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
       continue;
     }
 
-    // have primary obj for A, B !
+      // TESTBLOCK
+      // if((bTyp==Typ_CI)&&(dbi==943)) DEB_dump_obj__ (Typ_CI, obj, "box_mdl__-C943");
+      // END TESTBLOCK
+ 
 
+    // have primary obj for A, B !
     // get box for obj
     UT3D_box_obja (&pb1, &pb2, form, oNr, obj);
      
@@ -2197,10 +2225,13 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
     // printf("::::::::::::::::::::::::: ex UT3D_box_mdl__: ::::::::::: \n");
     // END TESTBLOCK
 
+  irc = 0;
   *PB1 = pb1;
   *PB2 = pb2;
 
-  return 0;
+  L_exit:
+    // printf(" ex-UT3D_box_mdl__ %d\n",irc);
+  return irc;
 
 }
 
@@ -2335,21 +2366,20 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
       UT3D_box_extend (pb1, pb2, &pta[i1]);
 
 
-
-/*
   //-----------------------------------------------------------------
-  } else if (typ1 == Typ_CVPSP3) {  // 11
-    // cvpsp3 = cv1->data;
-    cvpol3 = (polynom_d3*)cv1->data;
-    iNr  = cv1->siz;
-    for(i1=0;i1<iNr; ++i1) {
-      pt1.x = cvpol3[i1].x.a;
-      pt1.y = cvpol3[i1].y.a;
-      pt1.z = cvpol3[i1].z.a;
-      UT3D_box_extend (&pb1, &pb2, &pt1);
-      // printf(" seg %d %f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
-    }
-*/
+  } else if(form == Typ_CVPSP3) {  // 11
+    CVPSP_box_oPsp3 (pb1, pb2, (CurvPsp3*)obj);
+
+//     // cvpsp3 = cv1->data;
+//     cvpol3 = (polynom_d3*)cv1->data;
+//     iNr  = cv1->siz;
+//     for(i1=0;i1<iNr; ++i1) {
+//       pt1.x = cvpol3[i1].x.a;
+//       pt1.y = cvpol3[i1].y.a;
+//       pt1.z = cvpol3[i1].z.a;
+//       UT3D_box_extend (&pb1, &pb2, &pt1);
+//       // printf(" seg %d %f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
+//     }
 
   //-----------------------------------------------------------------
   } else if (form == Typ_CVTRM) {

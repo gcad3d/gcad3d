@@ -70,7 +70,7 @@ OS_debug_dll_
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/func_types.h"             // FUNC_Pan FUNC_Rot FUNC_LOAD ..
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../xa/xa.h"                  // AP_STAT
 
 
@@ -145,10 +145,10 @@ OS_debug_dll_
 // 
 //   // fix DLL-FileName
 // // #ifdef _MSC_VER
-//   // sprintf(cBuf, "%s\\xa_%s_r.dll",OS_get_bin_dir(),ftyp);
+//   // sprintf(cBuf, "%s\\xa_%s_r.dll",AP_get_bin_dir(),ftyp);
 //   sprintf(cBuf, "xa_%s_r",ftyp);
 // // #else
-//   // sprintf(cBuf, "%s/xa_%s_r.so",OS_get_bin_dir(),ftyp);
+//   // sprintf(cBuf, "%s/xa_%s_r.so",AP_get_bin_dir(),ftyp);
 //   // sprintf(cBuf, "xa_%s_r",ftyp);
 // // #endif
 //     // printf(" soNam=|%s|\n",cBuf);
@@ -227,6 +227,7 @@ OS_debug_dll_
   printf("DLL_run2 |%s| %d\n",soNam,ccFlg);
 
 
+  
 
 
   //----------------------------------------------------------------
@@ -241,11 +242,11 @@ OS_debug_dll_
 
 
     // test if DLL-File exists
-    sprintf(cbuf, "%splugins%c%s",OS_get_bin_dir(),fnam_del,soNam);
+    sprintf(cbuf, "%splugins%c%s",AP_get_bin_dir(),fnam_del,soNam);
     if(OS_checkFilExist (cbuf, 1) == 0) {
       // does not exist:
       if(ccFlg > 0) {
-        TX_Error("***** DLL_run2 E003 |%s|",soNam);
+        TX_Error("***** FILE DOES NOT EXIST - DLL_run2 E003 |%s|",soNam);
         return -1;
       }
     }
@@ -469,8 +470,8 @@ OS_debug_dll_
 
 #ifdef _MSC_VER
   //------------------------- MS-Windows ----------------------------------
-  // sprintf(cbuf, "%sxa\\%s",OS_get_bas_dir(),dllNam);
-  sprintf(cbuf, "%s..\\src\\APP\\%s",OS_get_loc_dir(),dllNam);
+  // sprintf(cbuf, "%sxa\\%s",AP_get_bas_dir(),dllNam);
+  sprintf(cbuf, "%s..\\src\\APP\\%s",AP_get_loc_dir(),dllNam);
   // ".dll" -> ".nmak"
   strcpy(&cbuf[strlen(cbuf)-4], ".nmak");
     // printf(" exist: |%s|\n",cbuf);
@@ -480,8 +481,8 @@ OS_debug_dll_
   TX_Print(".. compile .. link .. %s",dllNam);
 
 
-  // sprintf(cbuf, "cd %sxa&&nmake -f %s",OS_get_bas_dir(),dllNam);
-  sprintf(cbuf, "cd %s..\\src\\APP&&nmake -f %s",OS_get_loc_dir(),dllNam);
+  // sprintf(cbuf, "cd %sxa&&nmake -f %s",AP_get_bas_dir(),dllNam);
+  sprintf(cbuf, "cd %s..\\src\\APP&&nmake -f %s",AP_get_loc_dir(),dllNam);
 
   // strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
   // strcpy(&cbuf[strlen(cbuf)-4], ".mak OS=");
@@ -493,8 +494,8 @@ OS_debug_dll_
 
 #else
   //------------------------- Linux ----------------------------------
-  // sprintf(cbuf, "%sxa/%s",OS_get_bas_dir(),dllNam);
-  sprintf(cbuf, "%s../src/APP/%s",OS_get_loc_dir(),dllNam);
+  // sprintf(cbuf, "%sxa/%s",AP_get_bas_dir(),dllNam);
+  sprintf(cbuf, "%s../src/APP/%s",AP_get_loc_dir(),dllNam);
   // ".so" -> ".mak"
   strcpy(&cbuf[strlen(cbuf)-3], ".mak");
     printf(" exist: |%s|\n",cbuf);
@@ -504,8 +505,8 @@ OS_debug_dll_
   TX_Print(".. compile .. link .. %s",dllNam);
 
 
-  // sprintf(cbuf, "cd %sxa;make -f %s",OS_get_bas_dir(),dllNam);
-  sprintf(cbuf, "cd %s../src/APP;make -f %s",OS_get_loc_dir(),dllNam);
+  // sprintf(cbuf, "cd %sxa;make -f %s",AP_get_bas_dir(),dllNam);
+  sprintf(cbuf, "cd %s../src/APP;make -f %s",AP_get_loc_dir(),dllNam);
     printf(" OS_dll_build 2 |%s|\n",cbuf);
 
 

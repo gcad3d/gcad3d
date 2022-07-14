@@ -1163,18 +1163,18 @@ static IE_rec_stru IE_cad_v[]={
 
 
 static IE_rec_txt cad_lst_s[]={
-  "S Ellipse Center,AxisEndPoint,Point",     "ELL",
-  "S Ellipse Center Axes [EndPoints]",       "ELL",
+  "S Ellipse Center,AxisEndPoint,Point",     "ELL",   // 0
+  "S Ellipse Center Axes [EndPoints]",       "ELL",   // 1
   // "S connection-lines < Points...",          "MSH",   // 2
   // "S Ellipse < Proj. CIR/ELL -> PLN",        "ELL", 
-  "S Polygon < Points...",                   "POL",   // 3
-  "S Polygon < Rectangle",                   "REC",   // 4
+  "S Polygon < Points...",                   "POL",   // 2
+  "S Polygon 4-side quadrilateral",          "REC",   // 3
   // "S Polygon < Proj. Polygon -> PLN",        "POL",  
-  "S BSpline < Points...",                   "BSP",   // 5
+  "S BSpline < Points...",                   "BSP",   // 4
   // "S BSpline < Polygon...",                  "BSP",   
-  "S BSpline < convert & join obj's",        "BSP1",  // 6
-  "S Clotoid",                               "CLOT",  // 7
-  "S Contour(CCV) <- PT/LN/CIR/CRV",         "CCV",   // 8
+  "S BSpline < convert & join obj's",        "BSP1",  // 5
+  "S Clotoid",                               "CLOT",  // 6
+  "S Contour(CCV) <- PT/LN/CIR/CRV",         "CCV",   // 7
   // "S Contour  <- Rectangle rounded",  "CCV",
   "",""};
 
@@ -1197,10 +1197,11 @@ static IE_rec_stru IE_cad_s[]={
 //    2, Typ_Val,     "[Distance]",
   // "S Polygon < Points..."
    2, Typ_PT,       "<Points...>",
-  // "S Polygon  <- Rectangle",          "CCV",
+  // "S Polygon 4-side quadrilateral",          "REC"
    3, Typ_PT,       "CornerPoint",
-   3, Typ_VC,       "DX||DD0",
-   3, Typ_VC,       "DY||DD0",
+   3, Typ_VC,       "Vec/Pt first side||DD0",
+   3, Typ_VC,       "Vec/Pt last side ||DD0",
+   3, Typ_mod1,     "[Type]",
   // // "S Polygon  <- Proj. Polygon -> PLN",        "POL",   // 6
    // 5, Typ_CVPOL,   "Polygon",
    // 5, Typ_PLN,     "Plane",
@@ -2038,7 +2039,7 @@ static int IE_first, IE_last;
 
   // copy next expr from w_act into cBuf
   w_nxt = APT_cp_ausd (cBuf, w_act, 256);
-    // printf("L_next_expr |%s|\n",cBuf);
+    // printf(" decode_Ln-L_next_ |%s|\n",cBuf);
 
 
   // L_test_string:
@@ -2047,12 +2048,12 @@ static int IE_first, IE_last;
     i1 = strlen(p1) - 1;
     if(p1[i1] != '\"') goto L_test_function;
     p1[i1] = '\0';
-    ++p1;
-      // printf(" decode_Ln-string |%s|\n",p1);
+    ++p1;  // skip the "
+      // printf(" decode_Ln-p1 |%s|\n",p1);
     // TYP_FilNam must have directory ('/') and afterwards filetyp ('.')
     p2 = strchr(p1, '/');
-    p3 = strchr(p2, '.');
     if(p2) {
+      p3 = strchr(p2, '.');
       if(p3) {
         // string has '/' and '.'
         // if typ == ".ctlg" then Typ_CtlgPart, else TYP_FilNam
@@ -2066,6 +2067,7 @@ static int IE_first, IE_last;
       goto L_weiter;
     }
     // no '/'
+    p3 = strchr(p1, '.');
     if(!p3) {
       // no '/' no '.'
       // - if menGrpInd=IE_Func_Models then Typ_SubModel (M intern) else Typ_String
@@ -2279,7 +2281,7 @@ static int IE_first, IE_last;
   char     *cp1, oNam[32];
 
 
-  printf("IE_edit_dbo %ld %d %ld\n",dli, typ, dbi);
+  // printf("IE_edit_dbo %ld %d %ld\n",dli, typ, dbi);
 
 
   // CAD must be active
@@ -2489,8 +2491,8 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   //---------------------------------------------------------
   // MODIFY. Inputs: IE_buf=line_to_modify; AP_ED_oNam=primary_obj
   L_modify:
-    printf("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm \n");
-    printf("IE_modif__ Modify |%s|%s|\n", IE_buf, AP_ED_oNam);
+    // printf("mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm \n");
+    // printf("IE_modif__ Modify |%s|%s|\n", IE_buf, AP_ED_oNam);
 
 
   if(IE_modify == 0) MSG_pri_0 ("CADinit");
@@ -3538,7 +3540,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
     MDL_file_lst__ (0); // make list of all Submodels -> <baseDir>/tmp/Mod.lst
 
     // let user select from list of Submodelnames
-    sprintf(cbuf1,"%sMod.lst",OS_get_tmp_dir());
+    sprintf(cbuf1,"%sMod.lst",AP_get_tmp_dir());
     i1 = GUI_listf1__ (fNam,sizeof(fNam),cbuf1,"\"select model\"","\"x40,y40\"");
     if(i1 < 0) return -1;
 
@@ -4004,7 +4006,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 // see also IE_cad_Inp_undo
 
 
-  printf("IE_cad_exitFunc IE_modify=%d\n",IE_modify);
+  // printf("IE_cad_exitFunc IE_modify=%d\n",IE_modify);
 
   // exit if CAD not yet initialized
   if(UI_InpMode != UI_MODE_CAD) {
@@ -4060,7 +4062,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
   //----------------------------------------------------------------
   L_exit:
-    printf("ex-IE_cad_exitFunc\n");
+    // printf("ex-IE_cad_exitFunc\n");
 
   return 0;
 
@@ -4126,7 +4128,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
   printf("00000000000000000000000000000000000000000000 \n");
   printf("IE_cad_init0\n");
-  UTF_dump1__ ();
+  // UTF_dump1__ ();
 
 
   // aktueller ObjTyp=IE_cad_typ,  akt. ObjInd=IE_objInd
@@ -5113,7 +5115,7 @@ static int _do_not = 0;
   // error - reactivate previous field
   L_err:
     // printf(" ======== reactivate field %d\n",indOld);
-  sele_set__ (IE_inpTypR[indOld]);    // reset GR_selTmpStat
+  if(indOld >= 0) sele_set__ (IE_inpTypR[indOld]);    // reset GR_selTmpStat
   // GUI_obj_focus (&IE_wCad_obj[indOld]);
   if(IE_inpInd >= 0) IE_info_col_set (0, IE_inpInd);  // reset 
   IE_inpInd = indOld;
@@ -5211,7 +5213,10 @@ static int _do_not = 0;
       i2 = strlen(p1);
       // i2 = UTX_wordnr (p1);
         // printf(" Group-txt=|%s| i2=%d\n",IE_buf,i2);
-      if(i2 < 1) goto L_not_ok;         // if(i2 < i4) goto L_not_ok;
+      if(i2 < 1) {
+        // TX_Print ("*** - group needs min. 2 objects ..");
+        goto L_not_ok;         // if(i2 < i4) goto L_not_ok;
+      }
       // if(strlen(IE_buf) > 3) goto L_start;
       if(strlen(p1) > 1) ++i3;
       continue;
@@ -5413,14 +5418,18 @@ static int _do_not = 0;
       // printf(" typChar = |%c|\n",typChar);
 
 
-    // normal-group; no "U("; get text from IE_buf while IE_ed1__ win is active
     if(typChar == '<') {
+      // normal-group "<GROUP>" (no "U(");
+      // get text from IE_buf while IE_ed1__ win is active
       if(IE_outTxt[strlen(IE_outTxt)-1] != '=') strcat(IE_outTxt, " ");
       p1 = ep[i1];
-      // if(!strcmp(p1, "<Group>"))     // 2019-04-26
-      p1 = IE_buf;
-      UTX_pos_skipLeadBlk (p1);   // skip leading blanks
-      strcat(IE_outTxt, p1);
+      if(!strcmp(p1, "<GROUP>")) {
+        // inputfield <GROUP> is active - get content from window IE_ed1__
+        strcat(IE_outTxt, IE_buf);
+      } else {
+        // inputfield <GROUP> is not active - get its content
+        strcat(IE_outTxt, p1);
+      }
         // printf(" outTxt(group)=|%s|%s|\n",IE_outTxt,IE_buf);
       continue;
     }
@@ -5429,7 +5438,7 @@ static int _do_not = 0;
     if(typChar == '(') {
         // printf(" get union-group %d act=%d\n",i1,IE_inpInd);
       if(IE_outTxt[strlen(IE_outTxt)-1] != '=') strcat(IE_outTxt, " ");
-      // if active field = "<Group>" then get IE_buf; else field
+      // if active field = "<GROUP>" then get IE_buf; else field
       // if(ep[i1][0] == '<') p1 = IE_buf;
       if(i1 == IE_inpInd) p1 = IE_buf;
       else                p1 = ep[i1];
@@ -5547,7 +5556,7 @@ static int _do_not = 0;
   iMdl = 0;
   if(IE_outTxt[0] == 'M') {
     iMdl = 1;
-    sprintf(tmpBuf,"%sIE_inpTxtG.txt",OS_get_tmp_dir());
+    sprintf(tmpBuf,"%sIE_inpTxtG.txt",AP_get_tmp_dir());
     if(UTX_wrf_str(tmpBuf, IE_outTxt) < 0) return -1;
   }
 
@@ -6481,7 +6490,7 @@ static int _do_not = 0;
 
   printf("IE_cad_InpIn_String %d\n",IE_inpInd);
 
-  sprintf(fnam,"%sselection.txt",OS_get_tmp_dir());
+  sprintf(fnam,"%sselection.txt",AP_get_tmp_dir());
 
   // das aktive Feld --> datei ausgeben
   // printf(" _inpTxtG|%s|\n",IE_inpTxtG[IE_inpInd]);
@@ -6960,7 +6969,7 @@ static IE_info_rec IE_info_tab[] = {
   // printf(" inp=|%s| %d\n",p1,strlen(p1));
 
   L_noAmoi:
-  sprintf(s1,"%sMod.lst",OS_get_tmp_dir());
+  sprintf(s1,"%sMod.lst",AP_get_tmp_dir());
   if(UTX_fgetLine (s2, 126, s1, i1) < 0) {
     --i1;
     goto L_noAmoi;
@@ -8092,7 +8101,7 @@ static IE_info_rec IE_info_tab[] = {
 // IE_inp_ck_empty      check if all inputfelds empty
 // retCod: 0=fields not empty;
 //         1=all fields empty
-// test also "<group>" for eg planar Surf. ?
+// test also "<GROUP>" for eg planar Surf. ?
 
   int   i1;
   char  *p1;
@@ -8266,13 +8275,14 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   // if(grp_typ_old == '<') {    // disactivate normal-group
   if((grp_typ_old == '<')||(grp_typ_old == '(')) {  // disactivate group
+    // disactivate inputfield "<GROUP>" or "U(..)"
     // if(IE_ed1_win.stat != 0) {   // exit normal-group
       // printf(" IE_edWin1.ioff=%d\n",IE_edWin1.ioff);
 
     if(GUI_OBJ_IS_VALID(&IE_edWin1)) {
         // printf(" IE_edWin1 is active ..\n");
 
-      // copy "Group-Edit" - content -> IE_buf
+      // copy content of inputfield -> IE_buf
       IE_ui_func (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncGet));
       // copy IE_buf -> field[ind_old]
       GUI_entry_set (&IE_wCad_obj[ind_old], IE_buf);
@@ -8355,16 +8365,18 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
       // Start GroupEditor
       IE_ui_func = IE_ed1__;
     }
-    // set existing text into Group-Edit-Window
+    // copy existing text from inputfield into Group-Edit-Window
     if(i1) {
       strcpy(IE_buf, pi); 
       IE_bufSiz = i1;
     }
     // activate Group-Edit-Window
     IE_ui_func (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
-    // write "(Group)" -> inpField
-    IE_inp_set_txt (IE_inpInd, "<Group>");
+    // write "<GROUP>" -> inpField
+    IE_inp_set_txt (IE_inpInd, "<GROUP>");
     irc = 0;
+    // redisplay
+    IE_cad_test__ ();
     goto L_exit;
   }
 
@@ -8385,7 +8397,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // // Start GroupEditor
     // IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
     // // write "(Group)" -> inpField
-    // IE_inp_set_txt (IE_inpInd, "<Group>");
+    // IE_inp_set_txt (IE_inpInd, "<GROUP>");
     // goto L_exit;
   // }
 
@@ -8436,7 +8448,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     // // Start GroupEditor
     // IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
     // // write "(Group)" -> inpField
-    // IE_inp_set_txt (IE_inpInd, "<Group>");
+    // IE_inp_set_txt (IE_inpInd, "<GROUP>");
     // goto L_exit;
   // }
 
@@ -8717,7 +8729,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   inpAuxDat *auxDat;
 
 
-  printf("IE_cad_inp_vcPos_i %d\n",iind);
+  // printf("IE_cad_inp_vcPos_i %d\n",iind);
 
   if(iind < 0) return 0;
   auxDat = &IE_inpAuxDat[iind];
@@ -8726,7 +8738,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // get pos = centerpoint from iind=auxInf-char-3; no pos: screenCenter.
   IE_get_inpAuxPt (pos, auxInf, 2);
 
-    DEB_dump_obj__ (Typ_PT, pos, "ex-IE_cad_inp_vcPos_i");
+    // DEB_dump_obj__ (Typ_PT, pos, "ex-IE_cad_inp_vcPos_i");
 
   return 0;
 
@@ -9010,8 +9022,8 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     *pto = IE_inpAuxDat[ii].pos;
   }
 
-    DEB_dump_obj__ (Typ_PT, pto, "ex-IE_get_inpAuxPt |%s| ipos=%d ii=%d",
-                    auxInf,ipos,ii);
+    // DEB_dump_obj__ (Typ_PT, pto, "ex-IE_get_inpAuxPt |%s| ipos=%d ii=%d",
+                    // auxInf,ipos,ii);
   return 0;
 
   L_def:
@@ -11986,7 +11998,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   //================================================================
   L_print:
-  sprintf(cbuf, "%sanalyz.dat",OS_get_tmp_dir());
+  sprintf(cbuf, "%sanalyz.dat",AP_get_tmp_dir());
   // DEB_dump_obj__ (TYP_FuncInit, NULL, cbuf);
   // DEB_dump_obj__ (typ1, vp1, "");
   // DEB_dump_obj__ (TYP_FuncEnd, NULL, cbuf);

@@ -247,7 +247,7 @@ static int    Tex_actEnt=0;     // actine InputWidget 0=Scale; 1=Offset; 2=RotAn
   // UI_Tex__ (NULL, (void*)UI_FuncUCB7);  // redisplay nach hide only ...
 //   if(fnam == NULL) return 0;
 
-  MDLFN_dump_ofn  (mns1, "UI_Tex_Load");
+  // MDLFN_dump_ofn  (mns1, "UI_Tex_Load");
 
   // get keepFlag from UI_Tex__
   // i1 = UI_Tex__ (NULL, (void*)UI_FuncUCB6);

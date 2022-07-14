@@ -32,18 +32,20 @@
 #
 #
 #----------------------------------------------------------------------
+fnID=/tmp/temp_$RANDOM
 
 
+par="open /mnt/serv2/devel/cadfiles/gcad/ /mnt/serv2/devel/gcad3d/gCAD3D/cfg_Linux/dir_UX.lst \"*\" \"Datei Öffnen\" ${fnID}"
 
-par="open /mnt/serv2/devel/cadfiles/gcad/ /mnt/serv2/devel/gcad3d/gCAD3D/cfg_Linux/dir.lst '*' 'Datei Öffnen'"
 
-
+#----------------------------------------------------------------
 #par="save /mnt/serv2/devel/cadfiles/gcad/unknown.gcad /mnt/serv2/devel/gcad3d/gCAD3D/cfg_Linux/dir.lst '*' 'Speichern'"
 
 
+
+#----------------------------------------------------------------
 echo "par = |"${par}"|"
 
-########################################
 . ../options.sh
 fnmak=GUI_file.mak
 VGUI=`cat ../gcad_gui_version`
@@ -53,7 +55,12 @@ echo "cmd = |"${cmd}"|"
 
 eval "${cmd} ${par}"
 
-cat /tmp/debug.dat
+
+echo "--------------- ${fnID} -------------------------"
+cat ${fnID}
+echo "-------------------------------------------------"
+rm -f ${fnID}
+#cat /tmp/debug.dat
 ########################################
 
 # eof

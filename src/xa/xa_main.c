@@ -61,7 +61,7 @@ Batch-main ist in xa_batch.c.
 //#include <ctype.h>
 
 #include "../ut/ut_geo.h"         // OFF, ON ..
-#include "../ut/ut_os.h"          // OS_get_bas_dir
+#include "../ut/ut_os.h"          // AP_get_bas_dir
 #include "../ut/ut_txt.h"         // fnam_del
 #include "../ut/ut_txTab.h"              // TxtTab
 #include "../ut/ut_memTab.h"           // MemTab
@@ -93,13 +93,13 @@ extern double  APT_ModSiz;
 
 //_____________________________________
 // LOCALS:
-static char *os_bin_dir;         // gcad_dir_bin
-static char *os_bas_dir;         // gcad_dir_bas
-static char *os_loc_dir;         // local
-static char *os_cfg_dir;
-static char *os_tmp_dir;
-static char *os_doc_dir;
-static char *os_ico_dir;
+static char *AP_bin_dir;         // gcad_dir_bin
+static char *AP_bas_dir;         // gcad_dir_bas
+static char *AP_loc_dir;         // local
+static char *AP_cfg_dir;
+static char *AP_tmp_dir;
+static char *AP_doc_dir;
+static char *AP_ico_dir;
 
 
 #define LNG_MAX_NR 16
@@ -191,7 +191,7 @@ static int     lngNr;
 
 
   // set application-directories:
-  // OS_get_tmp_dir OS_get_cfg_dir OS_get_doc_dir OS_get_ico_dir
+  // AP_get_tmp_dir AP_get_cfg_dir AP_get_doc_dir AP_get_ico_dir
   AP_get_dir__ ();
 
 
@@ -215,19 +215,19 @@ static int     lngNr;
 
 
   //----------------------------------------------------------------
-  // test if directory os_tmp_dir exists; if not:
+  // test if directory AP_tmp_dir exists; if not:
   // test if <gcad_dir_bas> == <gcad_dir_local>; if not:
-  // create directory os_tmp_dir;
-  //   extract <os_bas_dir>examples.gz here.
-  // create directory os_cfg_dir;
-  //   copy  <os_bas_dir>xa/* here.
-  //   create <os_cfg_dir>dir.lst.
+  // create directory AP_tmp_dir;
+  //   extract <AP_bas_dir>examples.gz here.
+  // create directory AP_cfg_dir;
+  //   copy  <AP_bas_dir>xa/* here.
+  //   create <AP_cfg_dir>dir.lst.
 
     // system("rm -rf /home/fwork/gCAD3D"); // TEST ONLY
 
 
   // create directory <local>
-  if(!OS_checkDirExist (OS_get_loc_dir())) {
+  if(!OS_checkDirExist (AP_get_loc_dir())) {
     sprintf(txbuf2, "cannot create directory %s.\n"
             " Fix gcad_dir_local in startup-script.", dirLocal);
     GUI_MsgBox(txbuf2);
@@ -235,23 +235,23 @@ static int     lngNr;
   }
 
 
-  // create directory os_tmp_dir;
-  if(!OS_checkDirExist (OS_get_tmp_dir())) {
+  // create directory AP_tmp_dir;
+  if(!OS_checkDirExist (AP_get_tmp_dir())) {
     sprintf(txbuf2, "cannot create directory %s.\n"
-            " Fix gcad_dir_local in startup-script.", OS_get_tmp_dir());
+            " Fix gcad_dir_local in startup-script.", AP_get_tmp_dir());
     GUI_MsgBox(txbuf2);
     exit(0);
   }
 
 
   // dirLocal = remove "tmp/" from the tmpdir;
-  strcpy(dirLocal, OS_get_tmp_dir());
+  strcpy(dirLocal, AP_get_tmp_dir());
   dirLocal[strlen(dirLocal) - 4] = '\0';
-    printf(" local:|%s| base:|%s|\n",dirLocal,OS_get_bas_dir());
+    printf(" local:|%s| base:|%s|\n",dirLocal,AP_get_bas_dir());
 
   
-  // // test if <os_bas_dir> == <gcad_dir_local>; if not:
-  // if(!strcmp(OS_get_bas_dir(), dirLocal)) goto L_startup_defaults;
+  // // test if <AP_bas_dir> == <gcad_dir_local>; if not:
+  // if(!strcmp(AP_get_bas_dir(), dirLocal)) goto L_startup_defaults;
 
   // // test if <gcad_dir_bas>icons/ exist;
 // MIST: /usr/share/gcad3d/icons existiert immer !
@@ -259,8 +259,8 @@ static int     lngNr;
 
 
   // test if gCAD3D/cfg_Linux/gCAD3D.rc exists; if not: unpack examples.gz
-  sprintf(txbuf1, "%sgCAD3D.rc", OS_get_cfg_dir());
-    // printf(" test configfile |%s|\n",txbuf1);
+  sprintf(txbuf1, "%sgCAD3D.rc", AP_get_cfg_dir());
+    printf(" test configfile |%s|\n",txbuf1);
   if(OS_checkFilExist (txbuf1, 1)) goto L_startup_defaults;
 
   printf("****** configfile %s does not exist - init config-directory\n",txbuf1);
@@ -268,36 +268,39 @@ static int     lngNr;
 
 // restore all cfg-files;
 #ifdef _MSC_VER
+  // MS-Win:-------------------------------------------------------
   // create directory if not yet exists
-  sprintf(txbuf1, "mkdir \"%scfg_%s\\\"",os_loc_dir, OS_get_os__());
+  sprintf(txbuf1, "CMD /C \"MKDIR \"%scfg_%s\"\"",AP_loc_dir, OS_get_os__());
     printf("%s\n",txbuf1);
   OS_system (txbuf1);
   // copy all files from \cfg\ to \cfg_MS\.  /i /y
-  sprintf(txbuf1, "xcopy/y \"%scfg\\*.*\" \"%scfg_%s\\\"", os_loc_dir,
-          os_loc_dir, OS_get_os__());
+  sprintf(txbuf1, "CMD /C \"XCOPY /Y \"%scfg\\*.*\" \"%scfg_%s\\\"\"", AP_loc_dir,
+          AP_loc_dir, OS_get_os__());
     printf("%s\n",txbuf1);
   OS_system (txbuf1);
 
 #else
-  // POSTINSTALL:  extract <os_bas_dir>examples.gz -> local /cfg/
+  // LINUX:-------------------------------------------------------
+  // POSTINSTALL:  extract <AP_bas_dir>examples.gz -> local /cfg/
   sprintf(txbuf2, "cd %s && tar -xzf /usr/share/gcad3d/examples.gz",
-          dirLocal);  //, OS_get_bas_dir());
+          dirLocal);  //, AP_get_bas_dir());
     printf("%s\n",txbuf2);
-  system(txbuf2);
+  OS_system(txbuf2);
 
-  // rename dir. /cfg/ /cfg_Linux/ or /cfg_MS/
-  sprintf(txbuf1, "%scfg/", os_loc_dir);
-  sprintf(txbuf2, "%scfg_%s/", os_loc_dir, OS_get_os__());
+  // rename dir. /cfg/ /cfg_Linux/
+  sprintf(txbuf1, "%scfg/", AP_loc_dir);
+  sprintf(txbuf2, "%scfg_%s/", AP_loc_dir, OS_get_os__());
+    printf("rename |%s|%s|\n",txbuf1, txbuf2);
   OS_file_rename (txbuf1, txbuf2);
 
 /*
   // copy desktop-link -> ~/gCAD3D/gCAD3D.desktop
   sprintf(txbuf2, "cp -f /usr/share/gcad3d/gcad3d.desktop %s.",
-          OS_get_loc_dir());
+          AP_get_loc_dir());
     printf("%s\n",txbuf2);
   system(txbuf2);
   sprintf(txbuf2, "chmod +x %sgcad3d.desktop",
-          OS_get_loc_dir());
+          AP_get_loc_dir());
     printf("%s\n",txbuf2);
   system(txbuf2);
 */
@@ -308,7 +311,7 @@ static int     lngNr;
 /*
   //----------------------------------------------------------------
   // check / try to create tempDir (~/gCAD3D/tmp
-  sprintf(txbuf1,"%s",OS_get_tmp_dir());
+  sprintf(txbuf1,"%s",AP_get_tmp_dir());
   i1 = OS_checkFilExist (txbuf1, 1);
   if(i1 == 0) {
     sprintf (txbuf2, "mkdir -p %s", txbuf1);
@@ -325,7 +328,7 @@ static int     lngNr;
   }
 
   // check / try to create tempDir (~/gCAD3D/tmp
-  sprintf(txbuf1,"%s",OS_get_tmp_dir());
+  sprintf(txbuf1,"%s",AP_get_tmp_dir());
   i1 = OS_checkDirExist(txbuf1);
   if(i1 == 0) {
     // printf ("**** Verzeichnis %s konnte nicht erzeugt werden\n",txbuf1);
@@ -340,9 +343,9 @@ static int     lngNr;
   //----------------------------------------------------------------
   // Init; check / try to create Baseverzeichnisse
   // check / try to create ./dat
-  // strcpy(txbuf1, OS_get_bas_dir ());
+  // strcpy(txbuf1, AP_get_bas_dir ());
   // strcat(txbuf1,"dat");
-  sprintf(txbuf1,"%sdat/",OS_get_bas_dir());
+  sprintf(txbuf1,"%sdat/",AP_get_bas_dir());
   i1 = OS_checkDirExist(txbuf1);
   if(i1 == 0) {    // 0=YES
     // printf ("**** Verzeichnis %s konnte nicht erzeugt werden\n",txbuf1);
@@ -351,7 +354,7 @@ static int     lngNr;
 
 
   // check / try to create ./tmp
-  sprintf(txbuf1,"%s",OS_get_tmp_dir());
+  sprintf(txbuf1,"%s",AP_get_tmp_dir());
   i1 = OS_checkDirExist(txbuf1);
   if(i1 == 0) {
     // printf ("**** Verzeichnis %s konnte nicht erzeugt werden\n",txbuf1);
@@ -369,11 +372,11 @@ static int     lngNr;
     printf(" L_startup_defaults:\n");
 
   // test if <cfgdir>dir.lst exists
-  sprintf(txbuf1, "%sdir.lst",OS_get_cfg_dir());
+  sprintf(txbuf1, "%sdir.lst",AP_get_cfg_dir());
   if(!OS_checkFilExist(txbuf1, 1)) goto L_write_defaults;
 
   // test if <cfgdir>xa.rc exists
-  sprintf(txbuf1,"%sxa.rc",OS_get_cfg_dir());
+  sprintf(txbuf1,"%sxa.rc",AP_get_cfg_dir());
   if(OS_checkFilExist(txbuf1, 1)) goto L_normal_start;
 
 
@@ -421,7 +424,7 @@ static int     lngNr;
   L_normal_start:
 
   // load gui-dll
-  // sprintf(txbuf1, "%splugins/xa_gui_gtk_2.so",OS_get_bin_dir());
+  // sprintf(txbuf1, "%splugins/xa_gui_gtk_2.so",AP_get_bin_dir());
     // printf(" gui-dll=|%s|\n",txbuf1);
   // irc = OS_dll_global (txbuf1);    // dlopen
     // if(irc < 0) return -1;
@@ -435,11 +438,11 @@ static int     lngNr;
 kopieren geht nicht mehr - 
   // copy tmp/ltyp.rc if it does not exist
   // VERSCHWINDET LEIDER MANCHMAL; UNGEKLAERT.
-  sprintf(txbuf2, "%sltyp.rc",OS_get_cfg_dir());
+  sprintf(txbuf2, "%sltyp.rc",AP_get_cfg_dir());
   i1 = OS_checkFilExist(txbuf2, 1);
     // printf(" ltyp.rc: i1=%d\n",i1);
   if(i1 == 0) {
-    sprintf(txbuf1, "%sxa%cltyp.rc",OS_get_bas_dir(),fnam_del);
+    sprintf(txbuf1, "%sxa%cltyp.rc",AP_get_bas_dir(),fnam_del);
       printf("copy |%s|%s|\n",txbuf1,txbuf2);
     OS_file_copy (txbuf1, txbuf2);                // old new
   }
@@ -455,7 +458,7 @@ kopieren geht nicht mehr -
 
 
   // delete pipe CTRLpin (after crash commands can remain ..)
-  sprintf(txbuf1, "%sCTRLpin",OS_get_tmp_dir());
+  sprintf(txbuf1, "%sCTRLpin",AP_get_tmp_dir());
   OS_file_delete (txbuf1);
 
   // read Defaults from <base>/cfg/xa.rc
@@ -613,7 +616,7 @@ kopieren geht nicht mehr -
     // printf(" FilBuf0Len=%d\n",UTF_GetLen0());
   if(UTF_GetLen0() < 24) {
     AP_defLoad (0);
-    // sprintf(txbuf1,"%stmp%cModel",OS_get_bas_dir(),fnam_del);
+    // sprintf(txbuf1,"%stmp%cModel",AP_get_bas_dir(),fnam_del);
     // Mod_load__ (txbuf1);
     // ED_work_END (0); // ABARBEITEN
   }
@@ -682,7 +685,7 @@ kopieren geht nicht mehr -
   int AP_get_dir__ () {
 //================================================================
 // set application-directories
-// OS_get_tmp_dir OS_get_cfg_dir OS_get_doc_dir OS_get_ico_dir
+// AP_get_tmp_dir AP_get_cfg_dir AP_get_doc_dir AP_get_ico_dir
 
   char    *p1, *p2, s1[512];
 
@@ -691,7 +694,7 @@ kopieren geht nicht mehr -
 
 
   //----------------------------------------------------------------
-  // os_bin_dir                        ("/home/fwork/binLinux32/")
+  // AP_bin_dir                        ("/home/fwork/binLinux32/")
   p1 = getenv("gcad_dir_bin");
   if(p1) {
 
@@ -717,13 +720,13 @@ kopieren geht nicht mehr -
   UTX_add_fnam_del (s1);
 
   UtxTab_add (&AP_TxTab1, s1);
-  UtxTab_query (&os_bin_dir, &AP_TxTab1);
+  UtxTab_query (&AP_bin_dir, &AP_TxTab1);
 
 
 
 
   //----------------------------------------------------------------
-  // get os_bas_dir  (examples.gz,icons/)        ("../")
+  // get AP_bas_dir  (examples.gz,icons/)        ("../")
   // get "/usr/share/gcad3d/"
   p1 = getenv("gcad_dir_bas");
   if(p1) {
@@ -734,7 +737,7 @@ kopieren geht nicht mehr -
   } else {
 #ifdef _MSC_VER
     // MS-WIN
-    strcpy(s1, os_bin_dir);
+    strcpy(s1, AP_bin_dir);
     UTX_endDelChar (s1, fnam_del);    // remove last char ('/')
     UTX_endDelWord (s1, fnam_del, 0); // remove last word (keep '/')
     // strcat(s1, "icons\\");
@@ -755,12 +758,12 @@ kopieren geht nicht mehr -
   }
 
   UtxTab_add (&AP_TxTab1, s1);
-  UtxTab_query (&os_bas_dir, &AP_TxTab1);
+  UtxTab_query (&AP_bas_dir, &AP_TxTab1);
 
 
 
   //----------------------------------------------------------------
-  // get os_loc_dir from get gcad_dir_local or $HOME   ("/home/fwork/gCAD3D/")
+  // get AP_loc_dir from get gcad_dir_local or $HOME   ("/home/fwork/gCAD3D/")
   p1 = getenv("gcad_dir_local");
   if(!p1) {
     p1 = getenv("HOME");
@@ -778,38 +781,38 @@ kopieren geht nicht mehr -
   UTX_add_fnam_del (s1);   // add closing "/"
   strcat(s1, "gCAD3D");
   UTX_add_fnam_del (s1);   // add closing "/"
-    // printf(" os_loc_dir = |%s|\n",s1);
+    // printf(" AP_loc_dir = |%s|\n",s1);
 
   UtxTab_add (&AP_TxTab1, s1);
-  UtxTab_query (&os_loc_dir, &AP_TxTab1);
+  UtxTab_query (&AP_loc_dir, &AP_TxTab1);
 
 
 
   //----------------------------------------------------------------
-  // os_tmp_dir         ("/home/fwork/gCAD3D/tmp/");
-  strcpy(s1, os_loc_dir);
+  // AP_tmp_dir         ("/home/fwork/gCAD3D/tmp/");
+  strcpy(s1, AP_loc_dir);
   strcat(s1, "tmp");
   UTX_add_fnam_del (s1);   // add closing "/"
 
   UtxTab_add (&AP_TxTab1, s1);
-  UtxTab_query (&os_tmp_dir, &AP_TxTab1);
+  UtxTab_query (&AP_tmp_dir, &AP_TxTab1);
 
 
 
   //----------------------------------------------------------------
-  // os_cfg_dir         ("/home/fwork/gCAD3D/cfg_<os>/");
-  strcpy(s1, os_loc_dir);
+  // AP_cfg_dir         ("/home/fwork/gCAD3D/cfg_<os>/");
+  strcpy(s1, AP_loc_dir);
 //   strcat(s1, "cfg");
 //   UTX_add_fnam_del (s1);   // add closing "/"
-  sprintf(s1, "%scfg_%s%c", os_loc_dir, OS_get_os__(),fnam_del);
+  sprintf(s1, "%scfg_%s%c", AP_loc_dir, OS_get_os__(),fnam_del);
 
   UtxTab_add (&AP_TxTab1, s1);
-  UtxTab_query (&os_cfg_dir, &AP_TxTab1);
+  UtxTab_query (&AP_cfg_dir, &AP_TxTab1);
 
 
 
   //----------------------------------------------------------------
-  // os_doc_dir         ("/mnt/serv1/Devel/dev/gCAD3D/doc/"  html, msg)
+  // AP_doc_dir         ("/mnt/serv1/Devel/dev/gCAD3D/doc/"  html, msg)
   p1 = getenv("gcad_dir_doc");
   if(p1) {
     if(strlen(p1) > 255) goto L_err2;
@@ -818,7 +821,7 @@ kopieren geht nicht mehr -
   
   } else {
 #ifdef _MSC_VER
-    strcpy(s1, os_bin_dir);           // ("/home/fwork/binLinux32/")
+    strcpy(s1, AP_bin_dir);           // ("/home/fwork/binLinux32/")
     UTX_endDelChar (s1, fnam_del);    // remove last char ('/')
     UTX_endDelWord (s1, fnam_del, 0); // remove last word (keep '/')
     strcat(s1, "doc\\");
@@ -837,13 +840,13 @@ kopieren geht nicht mehr -
 
 
   UtxTab_add (&AP_TxTab1, s1);
-  UtxTab_query (&os_doc_dir, &AP_TxTab1);
+  UtxTab_query (&AP_doc_dir, &AP_TxTab1);
 
 
 
   //----------------------------------------------------------------
-  // os_ico_dir         ("/home/fwork/gCAD3D/icons/");
-  //   OS-MS: can use os_bin_dir!
+  // AP_ico_dir         ("/home/fwork/gCAD3D/icons/");
+  //   OS-MS: can use AP_bin_dir!
   p1 = getenv("gcad_dir_ico");
   if(p1) {
     if(strlen(p1) > 255) goto L_err2;
@@ -852,7 +855,7 @@ kopieren geht nicht mehr -
 
   } else {
 #ifdef _MSC_VER
-    strcpy(s1, os_bin_dir);           // ("/home/fwork/binLinux32/")
+    strcpy(s1, AP_bin_dir);           // ("/home/fwork/binLinux32/")
     UTX_endDelChar (s1, fnam_del);    // remove last char ('/')
     UTX_endDelWord (s1, fnam_del, 0); // remove last word (keep '/')
     strcat(s1, "icons\\");
@@ -862,15 +865,15 @@ kopieren geht nicht mehr -
   }
 
   if(!OS_checkFilExist(s1, 1)) {
-    printf("***** os_ico_dir: %s\n",s1);
-    strcpy(s1, "Directory \"os_ico_dir\" not found; Installationproblem.\n"
+    printf("***** AP_ico_dir: %s\n",s1);
+    strcpy(s1, "Directory \"AP_ico_dir\" not found; Installationproblem.\n"
            " Fix gcad_dir_ico in startup-script.");
     GUI_MsgBox (s1);
   }
 
 
   UtxTab_add (&AP_TxTab1, s1);
-  UtxTab_query (&os_ico_dir, &AP_TxTab1);
+  UtxTab_query (&AP_ico_dir, &AP_TxTab1);
 
 
 
@@ -974,9 +977,9 @@ kopieren geht nicht mehr -
   // - make list of all <docdir>/msg/msg_*.txt
 
 #ifdef _MSC_VER
-  sprintf(cbuf1,"%smsg",OS_get_doc_dir());
+  sprintf(cbuf1,"%smsg",AP_get_doc_dir());
 #else
-  sprintf(cbuf1,"%smsg/",OS_get_doc_dir());
+  sprintf(cbuf1,"%smsg/",AP_get_doc_dir());
 #endif
 
 
@@ -1026,65 +1029,66 @@ kopieren geht nicht mehr -
 
 
 //================================================================
-  char* OS_get_loc_dir () {
+  char* AP_get_loc_dir () {
 //================================================================
 /// returns confDir (with closing '/')  <gcad_dir_local>xa/
 
-  return os_loc_dir;
+  return AP_loc_dir;
 
 }
 
 //================================================================
-  char* OS_get_cfg_dir () {
+  char* AP_get_cfg_dir () {
 //================================================================
 /// returns confDir (with closing '/')  <gcad_dir_local>xa/
       
-  return os_cfg_dir;
+  return AP_cfg_dir;
 
 }
 
 //================================================================
-  char* OS_get_tmp_dir () {
+  char* AP_get_tmp_dir () {
 //================================================================
-/// returns tempDir (with closing '/')  <gcad_dir_local>tmp/
+// returns tempDir (with closing '/')  <gcad_dir_local>tmp/
+// SEE ALSO OS_get_tmp_dir()
 
-  return os_tmp_dir;
+  return AP_tmp_dir;
 
 }
 
 //================================================================
-  char* OS_get_doc_dir () {
+  char* AP_get_doc_dir () {
 //================================================================
-/// OS_get_doc_dir           returns path of docu
+/// AP_get_doc_dir           returns path of docu
            
-  return os_doc_dir;
+  return AP_doc_dir;
 
 } 
 
 //================================================================
-  char* OS_get_ico_dir () {
+  char* AP_get_ico_dir () {
 //================================================================
 /// returns directory for icons (with closing '/')  <gcad_dir_bin>icons/
 
-  return os_ico_dir;
+  return AP_ico_dir;
 
 }
 
 //================================================================
-  char* OS_get_bin_dir () {
+  char* AP_get_bin_dir () {
 //================================================================
-/// OS_get_bin_dir           returns path of executables, $gcad_dir_bin
+/// AP_get_bin_dir           returns path of executables, $gcad_dir_bin
 
-  return os_bin_dir;
+  return AP_bin_dir;
 
 }
 
 //================================================================
-  char* OS_get_bas_dir () {
+  char* AP_get_bas_dir () {
 //================================================================
-/// OS_get_bas_dir           returns path of ?
+/// AP_get_bas_dir           returns path of ?
 
-  return os_bas_dir;
+  return AP_bas_dir;
 
 }
 
@@ -1092,7 +1096,7 @@ kopieren geht nicht mehr -
 //================================================================
   int TODO (char *fn, ...) {
 //================================================================
-/// OS_get_bas_dir           returns path of ?
+/// AP_get_bas_dir           returns path of ?
 
   printf("************ TODO func %s () ***********\n",fn);
 

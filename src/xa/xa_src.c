@@ -50,7 +50,6 @@ SRC_src_pt_dbo      create obj (src) from point and DB-obj (curve, surface)
 AP_src_parPt_selSur create sourceCode for parameteric-point from surface
 
 SRC_parPt_ptDbo     create parametric_point (sourceCode) from point and Db-obj
-SRC_src_pt_dbo      create obj (sourceCode) from point and Database-object
 SRC_LnAc_ptDbo      create L() or C() from obj dbTyp,dbi at position pti
 
 SRC_dump__          dump modelsource
@@ -256,7 +255,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     // write mem (UTF_FilBuf0) --> file
 
     // open temp. html-File
-    sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
+    sprintf(cbuf1, "%stmp.html",AP_get_tmp_dir());
 
     if(mode == 0) {
       // open html

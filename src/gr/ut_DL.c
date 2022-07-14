@@ -114,6 +114,7 @@ DL_hide_chg             change hidden/visible for all objs
 DL_hide_all             change all active, visible objs to hidden|visible
 DL_disp_def             fuer alle nun folgenden Obj GR_ObjTab.disp=mode setzen
 DL_hide_unvisTypes      view or hide all joints,activities.
+DL_hide_textNotes       view or hide all textNotes
 
 DL_del_last             free (delete) last DL-obj
 DL_disp_reset           delete all DL-objects starting from line-nr
@@ -763,7 +764,7 @@ static long   DL_hidden = -1L;
   // printf("DL_sav_dynDat\n");
 
 
-  sprintf(fnam, "%sdyn.dat",OS_get_tmp_dir());
+  sprintf(fnam, "%sdyn.dat",AP_get_tmp_dir());
 
   // Achtung: fuer MS MUSS write und read BINARY sein; sonst kommt Mist !!!
   if((fp1=fopen(fnam,"wb")) == NULL) {
@@ -814,7 +815,7 @@ static long   DL_hidden = -1L;
 
   // printf("DL_load_dynDat\n");
 
-  sprintf(fnam, "%sdyn.dat",OS_get_tmp_dir());
+  sprintf(fnam, "%sdyn.dat",AP_get_tmp_dir());
 
   // Achtung: fuer MS MUSS write und read BINARY sein; sonst kommt Mist !!!
   if((fp1=fopen(fnam,"rb")) == NULL) {
@@ -1195,6 +1196,38 @@ static long   DL_hidden = -1L;
 
     GR_ObjTab[ind].disp = mode;  // 0=view, 1=hide.
     GR_ObjTab[ind].hili = 1;     // hili OFF; else cannot be hidden ..
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int DL_hide_textNotes (int mode) {
+//================================================================
+// DL_hide_textNotes                view or hide all textNotes
+//   mode                    1=view, 0=hide.
+// see also DL_hide_unvisTypes
+
+
+  long      dli;
+
+
+  // printf("DL_hide_textNotes %d\n",mode);
+
+
+  for(dli=0; dli<GR_TAB_IND; ++dli) {
+
+    // skip all but textNotes (TAG)
+    if(GR_ObjTab[dli].typ != Typ_ATXT)  continue;
+    // skip not in active model
+    if((INT_16)GR_ObjTab[dli].modInd != MDL_BMI_ACT) continue;
+
+    GR_ObjTab[dli].unvis = mode;  // 0=view, 1=hide.
+
+    // GR_ObjTab[ind].disp = mode;  // 0=view, 1=hide.
+    // GR_ObjTab[ind].hili = 1;     // hili OFF; else cannot be hidden ..
   }
 
   return 0;
@@ -2207,7 +2240,7 @@ static long   DL_hidden = -1L;
 
 
   // try to open inListe
-  sprintf(cbuf1,"%sltyp.rc",OS_get_cfg_dir());
+  sprintf(cbuf1,"%sltyp.rc",AP_get_cfg_dir());
 
   if((fp1=fopen(cbuf1,"r")) == NULL) {
     TX_Print("***** DL_InitAttTab E001 %s",cbuf1);
@@ -3877,10 +3910,11 @@ static long   DL_hidden = -1L;
 // DL_ReScale__                 rescale and redraw active model
 
 
+  int      irc;
   Point    *bp1, *bp2;
   ModelBas *mb1;
 
-  printf("DL_ReScale__ AP_modact_ibm=%d\n",AP_modact_ibm);
+  // printf("DL_ReScale__ AP_modact_ibm=%d\n",AP_modact_ibm);
 
 
 
@@ -3899,7 +3933,13 @@ static long   DL_hidden = -1L;
 
 
   // get boxPoints
-  UT3D_box_mdl__ (bp1, bp2, AP_modact_ibm, 0);
+  irc = UT3D_box_mdl__ (bp1, bp2, AP_modact_ibm, 0);
+  if(irc < 0) return irc;
+
+    // TESTBLOCK
+    // UT3D_box_dump (bp1, bp2, "DL_ReScale__-L20");
+    // END TESTBLOCK
+ 
 
 
   // view box 
@@ -3940,9 +3980,9 @@ static long   DL_hidden = -1L;
   Point   pOri, pt1;
 
 
-  printf("DL_ReScale_box \n");
-  DEB_dump_obj__ (Typ_PT, pb1, "pb1");
-  DEB_dump_obj__ (Typ_PT, pb2, "pb2");
+  // printf("DL_ReScale_box \n");
+  // DEB_dump_obj__ (Typ_PT, pb1, "pb1");
+  // DEB_dump_obj__ (Typ_PT, pb2, "pb2");
     
     
   // get origin from box of tess-model; but only if very far outside ..

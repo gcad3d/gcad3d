@@ -37,6 +37,7 @@ PLU_free               kernel-free; see PLU_realloc
 PLU_realloc            kernel-realloc
 PLU_close              ReEnable Ctrl Y
 PLU_unl                unload plugin
+PLU_clear              clear and unload plugin <APP_act_nam>
 PLU_Loa                reStart remote
 PLU_restart            exec plugin
 PLU_appNamTab_set      provide names for application-objects
@@ -69,7 +70,7 @@ List_functions_end:
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../ut/func_types.h"               // UI_FuncUCB8
 #include "../ut/ut_memTab.h"           // MemTab
 
@@ -152,6 +153,24 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
 }
 
 
+//================================================================
+   int PLU_clear () {
+//================================================================
+// PLU_clear       clear and unload plugin <APP_act_nam>
+
+  printf("PLU_clear \n");
+
+  // unload active prg, clear
+  PLU_unl ();
+  APP_act_typ = 0;
+  UI_Set_typPrg ();
+  strcpy(APP_act_nam, "-");
+  UI_Set_actPrg (APP_act_nam, 0);
+
+  return 0;
+
+}
+
 
 //================================================================
    int PLU_unl () {
@@ -220,7 +239,7 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
 
 
   // display list of plugins (see AP_DllLst_write ) let user select
-  sprintf(fnam, "%splugins.lst", OS_get_tmp_dir());
+  sprintf(fnam, "%splugins.lst", AP_get_tmp_dir());
 //   i1 = GUI_list1_dlg_w (s1, 256,
 //                        NULL, " select program", fnam,
 //                        "1", NULL, "60,40");

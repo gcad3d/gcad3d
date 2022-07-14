@@ -317,7 +317,7 @@ extern Vector *GL_eyeZ;
          UIw_Box_TB,  // box for the Toolbars; under Grafic, over textWindow.
          UI_box_ntb;  // Notebook-box (browser,editor);
 
-  static MemObj ckb_nam, ckb_dir, ckb_shd, ckb_ptDisp, ckb_plDisp,
+  static MemObj ckb_nam, ckb_dir, ckb_shd, ckb_tnDisp, ckb_ptDisp, ckb_plDisp,
          ckb_bound, ckb_light, ckb_compl, ckb_Iact, ckb_Bar1, ckb_Bar2,
          ckb_backW, // background white
          ckb_Tut,   // ScreenCast ON/OFF
@@ -751,6 +751,30 @@ static int   UI_PREV_ACT = 0, UI_PREV_FNC = 0;
   L_exit:
   return 0;
 
+}
+
+
+//================================================================
+  int UI_upd_tnDisp (int mode) {
+//================================================================
+
+  // printf("UI_upd_tnDisp %d\n",mode);
+
+  MODE_DISP_ONAM_NT = mode;
+
+  if(mode == 0) {
+    // hide pts
+    GUI_menu_checkbox_set (&ckb_tnDisp, FALSE);
+
+  } else {
+    // view pts (std)
+    GUI_menu_checkbox_set (&ckb_tnDisp, TRUE);
+  }
+
+  DL_hide_textNotes (mode);
+  DL_Redraw ();
+
+  return 0;
 }
 
 
@@ -1234,6 +1258,8 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 //     i1 = GUI_get_keys_mod ();
 //   }
 
+    printf(" ex-UI_wait_Esc__\n");
+
   return 0;
 
 }
@@ -1251,7 +1277,7 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
   int     i1;
 
 
-  printf("- %s - key Esc to continue ..\n",msg);
+  // printf("- %s - key Esc to continue ..\n",msg);
 
   DL_Redraw ();    // display now
 
@@ -1288,7 +1314,7 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
 /// \endcode
 
 
-  // printf("UI_askEscape\n");
+  // printf("UI_askEscape esc=%d\n",KeyStatEscape);
 
   // for WAIT_ESC in MAN necessary
   if(AP_src == AP_SRC_EDI) EDI_focus ();
@@ -2947,7 +2973,7 @@ static char LstBuf[LstSiz][32];
   // sleep (2);
 
   MDLFN_syFn_f_name (cbuf1);   // get filename of dir.lst
-  // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+  // sprintf(cbuf1,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
   sprintf(cbuf3,"copy %s File to",ftyp);
   GMDL_exp__ (cbuf3,            // titletext
           AP_mod_dir,            // path
@@ -4362,7 +4388,7 @@ static char LstBuf[LstSiz][32];
 
     // copy active process into editor
     // get file -> tempSpc
-    sprintf(s1, "%s%s",OS_get_tmp_dir(),APP_act_nam);
+    sprintf(s1, "%s%s",AP_get_tmp_dir(),APP_act_nam);
       // printf(" get file |%s|\n",s1);
     // UME_TMP_FILE (&fBuf, &UI_Ed_fsiz, s1);
     UI_Ed_fsiz = OS_FilSiz (s1);   
@@ -4505,7 +4531,7 @@ static char LstBuf[LstSiz][32];
   int     i1,  opMod;
 
 
-  printf("UI_VWR_ON %d\n",UI_InpMode);
+  // printf("UI_VWR_ON %d\n",UI_InpMode);
 
     opMod = UI_InpMode;    // old mode
 
@@ -4624,7 +4650,7 @@ static char LstBuf[LstSiz][32];
   int     i1,  opMod;
 
 
-  printf("UI_CAD_ON UI_InpMode=%d\n",UI_InpMode);
+  // printf("UI_CAD_ON UI_InpMode=%d\n",UI_InpMode);
 
     opMod = UI_InpMode;    // old mode
 
@@ -4703,7 +4729,7 @@ static char LstBuf[LstSiz][32];
 // disactivate CAD
 
 
-  printf("UI_CAD_OFF %d\n",IE_FuncTyp);
+  // printf("UI_CAD_OFF %d\n",IE_FuncTyp);
 
 
   // remove GroupEdit-win
@@ -4744,7 +4770,7 @@ static char LstBuf[LstSiz][32];
   int     i1,  opMod;
 
 
-  printf("UI_MAN_ON %d\n",UI_InpMode);
+  // printf("UI_MAN_ON %d\n",UI_InpMode);
 
 
     opMod = UI_InpMode;    // old mode
@@ -5560,7 +5586,7 @@ See UI_but__ (txt);
 
 
   // open file
-  sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
+  sprintf(cbuf1, "%stmp.html",AP_get_tmp_dir());
   DEB_dump_obj__ (TYP_FuncInit, (void*)"htm", cbuf1);
 
 
@@ -5697,7 +5723,7 @@ See UI_but__ (txt);
 
 
   // open temp. html-File
-  sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
+  sprintf(cbuf1, "%stmp.html",AP_get_tmp_dir());
   printf("UI_dump__ %d |%s|\n",typ,cbuf1);
 
 
@@ -5804,7 +5830,7 @@ See UI_but__ (txt);
 
   //================================================================
   } else if(!strcmp(cp1, "open")) {
-      printf(" UI_men__-open\n");
+      // printf(" UI_men__-open\n");
 
     //----------------------------------------------------------------
     // save active model if modified
@@ -5827,7 +5853,8 @@ See UI_but__ (txt);
 
     //----------------------------------------------------------------
     // load Model from file 
-    irc = AP_Mod_load_fn (cbuf2, 0);
+    // irc = AP_Mod_load_fn (cbuf2, 0);
+    irc = AP_Mod_load_init (cbuf2);
     if(irc) return irc;
 
     return 0;
@@ -5846,7 +5873,7 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "opePtab")) {
 
     // Liste mit Dir-Auswahl
-    sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+    sprintf(cbuf1,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
     GUI_List2 ("open Pointfile",    // titletext
             AP_mod_dir,            // Pfadname des activeDirectory
             cbuf1,                  // Liste der directories
@@ -5861,7 +5888,7 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "insert")) {
     // GUI_File_selext ("Include File","./", UI_openCB,(void*)"insert");
     MDLFN_syFn_f_name (cbuf1);   // get filename of dir.lst
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+    // sprintf(cbuf1,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
     GUI_List2 ("Model add",    // titletext
             AP_mod_dir,       // Pfadname des activeDirectory
             cbuf1,              // Liste der directories
@@ -5879,7 +5906,7 @@ See UI_but__ (txt);
 /*
   //-------------------------------------------------
   } else if(!strcmp(cp1, "loadMock")) {
-    sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+    sprintf(cbuf1,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
     GUI_List2 ("Load Mockup-Model (VRML/OBJ/TESS)",    // titletext
             AP_mod_dir,       // Pfadname des activeDirectory
             cbuf1,              // Liste der directories
@@ -5888,7 +5915,7 @@ See UI_but__ (txt);
 
 
   } else if(!strcmp(cp1, "loadBmp")) {
-    sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+    sprintf(cbuf1,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
     GUI_List2 ("Load Bitmap-Image (BMP)",    // titletext
             AP_mod_dir,       // Pfadname des activeDirectory
             cbuf1,              // Liste der directories
@@ -5940,7 +5967,7 @@ See UI_but__ (txt);
 /*
   //-------------------------------------------------
   } else if(!strcmp(cp1, "saveMock")) {
-    sprintf(txbuf,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+    sprintf(txbuf,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
     GMDL_exp__ ("save tesselated as VRML / OBJ / TESS",   // titletext
             AP_mod_dir,           // path
             txbuf,                 // directoryList
@@ -5998,7 +6025,7 @@ See UI_but__ (txt);
     strcpy(memspc011, AP_mod_fnam);
     strcat(memspc011, ".igs");
     MDLFN_syFn_f_name (cbuf1);   // get filename of dir.lst
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+    // sprintf(cbuf1,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
     GMDL_exp__ ("save model as IGES",   // titletext
             AP_mod_dir,           // path
             cbuf1,                 // directoryList
@@ -6235,8 +6262,8 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "doc2")) {
     // disp doku
     // strcpy(AP_lang, "de");
-    // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", OS_get_bas_dir(), AP_lang);
-    sprintf(cbuf1, "%shtml%cindex_%s.htm", OS_get_doc_dir(), fnam_del, AP_lang);
+    // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", AP_get_bas_dir(), AP_lang);
+    sprintf(cbuf1, "%shtml%cindex_%s.htm", AP_get_doc_dir(), fnam_del, AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
 /*
@@ -6244,8 +6271,8 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "doc2_old")) {
     // disp doku
     // strcpy(AP_lang, "de");
-    // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", OS_get_bas_dir(), AP_lang);
-    sprintf(cbuf1, "%shtml%cgCAD3D_en.htm", OS_get_doc_dir(), fnam_del);
+    // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", AP_get_bas_dir(), AP_lang);
+    sprintf(cbuf1, "%shtml%cgCAD3D_en.htm", AP_get_doc_dir(), fnam_del);
     OS_browse_htm (cbuf1, NULL);
   
 
@@ -6253,87 +6280,87 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "doc_tra")) { 
     // disp doku
     // strcpy(AP_lang, "de");
-    // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", OS_get_bas_dir(), AP_lang);
-    sprintf(cbuf1, "%shtml%ctransl_en.htm", OS_get_doc_dir(), fnam_del);
+    // sprintf(cbuf1, "%sdoc/gCAD3D_%s.htm", AP_get_bas_dir(), AP_lang);
+    sprintf(cbuf1, "%shtml%ctransl_en.htm", AP_get_doc_dir(), fnam_del);
     OS_browse_htm (cbuf1, NULL);
 */
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "staVWR")) {
-    sprintf(cbuf1, "%shtml%cVWR_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    // sprintf(cbuf1, "%sgCAD3D_startVWR_%s.htm",OS_get_doc_dir(),AP_lang);
+    sprintf(cbuf1, "%shtml%cVWR_%s.htm",AP_get_doc_dir(), fnam_del,AP_lang);
+    // sprintf(cbuf1, "%sgCAD3D_startVWR_%s.htm",AP_get_doc_dir(),AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "staMAN")) {
-    sprintf(cbuf1, "%shtml%cMAN_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
+    sprintf(cbuf1, "%shtml%cMAN_%s.htm",AP_get_doc_dir(), fnam_del,AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "staCAD")) {
-    // sprintf(cbuf1, "%shtml%cCAD_examples_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
-    sprintf(cbuf1, "%shtml%cCAD_using_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
+    // sprintf(cbuf1, "%shtml%cCAD_examples_%s.htm",AP_get_doc_dir(), fnam_del,AP_lang);
+    sprintf(cbuf1, "%shtml%cCAD_using_%s.htm",AP_get_doc_dir(), fnam_del,AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docSearch")) {
-    sprintf(cbuf1, "%shtml%cSearch_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
+    sprintf(cbuf1, "%shtml%cSearch_%s.htm",AP_get_doc_dir(), fnam_del,AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docIact")) {
-    sprintf(cbuf1, "%shtml%cCAD_Activ_%s.htm",OS_get_doc_dir(),fnam_del,AP_lang);
+    sprintf(cbuf1, "%shtml%cCAD_Activ_%s.htm",AP_get_doc_dir(),fnam_del,AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docTex")) {
-    sprintf(cbuf1, "%shtml%cTextures_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
+    sprintf(cbuf1, "%shtml%cTextures_%s.htm",AP_get_doc_dir(), fnam_del,AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docCatalog")) {
-    sprintf(cbuf1, "%shtml%cCatalog_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
+    sprintf(cbuf1, "%shtml%cCatalog_%s.htm",AP_get_doc_dir(), fnam_del,AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
   //-------------------------------------------------
   // } else if(!strcmp(cp1, "docAppli")) {
-    // sprintf(cbuf1, "%sAppli_%s.htm",OS_get_doc_dir(),AP_lang);
+    // sprintf(cbuf1, "%sAppli_%s.htm",AP_get_doc_dir(),AP_lang);
     // OS_browse_htm (cbuf1);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docPlugin")) {
-    sprintf(cbuf1, "%shtml%cPlugin_%s.htm",OS_get_doc_dir(),
+    sprintf(cbuf1, "%shtml%cPlugin_%s.htm",AP_get_doc_dir(),
             fnam_del, AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docCTRL")) {
-    sprintf(cbuf1, "%shtml%cRemoteControl_%s.htm",OS_get_doc_dir(),
+    sprintf(cbuf1, "%shtml%cRemoteControl_%s.htm",AP_get_doc_dir(),
             fnam_del, AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "docWC_g")) {
-    sprintf(cbuf1, "%shtml%cwcut_de.htm",OS_get_doc_dir(), fnam_del);
+    sprintf(cbuf1, "%shtml%cwcut_de.htm",AP_get_doc_dir(), fnam_del);
     OS_browse_htm (cbuf1, NULL);
 
   //-------------------------------------------------
 
   } else if(!strcmp(cp1, "docTransl")) {
-    sprintf(cbuf1, "%shtml%ctransl_%s.htm",OS_get_doc_dir(), fnam_del,AP_lang);
+    sprintf(cbuf1, "%shtml%ctransl_%s.htm",AP_get_doc_dir(), fnam_del,AP_lang);
     OS_browse_htm (cbuf1, NULL);
 
 
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "LtypEd")) {
-    sprintf(cbuf1, "%sltyp.rc",OS_get_cfg_dir());
+    sprintf(cbuf1, "%sltyp.rc",AP_get_cfg_dir());
     APP_edit (cbuf1, 0);
     DL_InitAttTab ();             // neu einlesen
     ED_Reset (); ED_work_END (0); // redraw
@@ -6371,6 +6398,13 @@ See UI_but__ (txt);
 
     // ED_Reset (); // imply END-Button (Redraw)
     // ED_work_END (0);
+
+
+  //-------------------------------------------------
+  } else if(!strcmp(cp1, "ckb_tnDisp")) {
+    // set 1=disp=default; 0=hide;
+    i1 = GUI_menu_checkbox_get (&ckb_tnDisp); // 1=checked; 0=not
+    UI_upd_tnDisp (i1);
 
 
   //-------------------------------------------------
@@ -6609,7 +6643,7 @@ See UI_but__ (txt);
 //     if(i1 < 0) return -1;
 //     // see also AP_delActMdl
 // 
-//     sprintf(cbuf2, "%stmp.model",OS_get_tmp_dir());
+//     sprintf(cbuf2, "%stmp.model",AP_get_tmp_dir());
 //       printf(" cbuf2 |%s|\n",cbuf2);
 //     OS_file_rename (fnOld, cbuf2);
 //     TX_Print ("**** %s moved %s",fnOld,cbuf2);
@@ -6622,7 +6656,7 @@ See UI_but__ (txt);
 /*
     // Liste mit Dir-Auswahl
     MDLFN_syFn_f_name (cbuf1);   // get filename of dir.lst
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+    // sprintf(cbuf1,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
     GUI_List2 ("rename File",    // titletext
             AP_mod_dir,         // Pfadname des activeDirectory
             cbuf1,               // Liste der directories
@@ -6639,7 +6673,7 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "cpyMdl")) {   // copy Model
 /*
     // Liste mit Dir-Auswahl
-    // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+    // sprintf(cbuf1,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
     // GUI_List2 ("copy File - select from",      // titletext
             // AP_mod_dir,         // Pfadname des activeDirectory
             // cbuf1,               // Liste der directories
@@ -6704,7 +6738,7 @@ See UI_but__ (txt);
   //======================================================
   } else if(!strcmp(cp1, "paste_tx")) {   // paste textBuffer (ctrl del)
     if(UI_InpMode == UI_MODE_MAN) {
-      sprintf(cbuf1,"%sselection.txt",OS_get_tmp_dir());
+      sprintf(cbuf1,"%sselection.txt",AP_get_tmp_dir());
       GUI_edi_InsFile (&winED, cbuf1);
       xa_fl_TxMem = 1;
     }
@@ -6801,7 +6835,7 @@ See UI_but__ (txt);
 
   //======================================================
   } else if(!strcmp(cp1, "dump_ga")) {
-    sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
+    sprintf(cbuf1, "%stmp.html",AP_get_tmp_dir());
     UTX_htm_fop (&fpo, cbuf1);    // open
     GA_dump__ (fpo);
     UTX_htm_fcl (&fpo);                // close
@@ -6810,7 +6844,7 @@ See UI_but__ (txt);
   //======================================================
   } else if(!strcmp(cp1, "dump_prcv")) {
 
-    sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
+    sprintf(cbuf1, "%stmp.html",AP_get_tmp_dir());
     DEB_dump_obj__ (TYP_FuncInit, (void*)"htm", cbuf1);
 
     PRCV_DB_dump ("");
@@ -6822,7 +6856,7 @@ See UI_but__ (txt);
   } else if(!strcmp(cp1, "mods")) {
     // UI_dump__ (Typ_Model);
 
-    sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
+    sprintf(cbuf1, "%stmp.html",AP_get_tmp_dir());
     DEB_dump_obj__ (TYP_FuncInit, (void*)"htm", cbuf1);
 
     // il1 = DB_dbo_get_free (Typ_Model);
@@ -6841,7 +6875,7 @@ See UI_but__ (txt);
   //======================================================
   } else if(!strcmp(cp1, "dumpGrp")) {
 
-    sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
+    sprintf(cbuf1, "%stmp.html",AP_get_tmp_dir());
     DEB_dump_obj__ (TYP_FuncInit, (void*)"htm", cbuf1);
 
     Grp_dump ();
@@ -6852,15 +6886,15 @@ See UI_but__ (txt);
   //======================================================
   } else if(!strcmp(cp1, "dumpStd")) {     // dump standards
 
-    sprintf(cbuf1, "%stmp.html",OS_get_tmp_dir());
+    sprintf(cbuf1, "%stmp.html",AP_get_tmp_dir());
     DEB_dump_obj__ (TYP_FuncInit, (void*)"htm", cbuf1);
     
     DEB_dump_txt("Date:          %s",OS_date1());
     DEB_dump_txt("User:          %s",OS_get_user());
     DEB_dump_txt("Language:      %s",AP_lang);
-    DEB_dump_txt("Basedirectory: %s",OS_get_bas_dir());
-    DEB_dump_txt("Tempdirectory: %s",OS_get_tmp_dir());
-    DEB_dump_txt("Bin.directory: %s",OS_get_bin_dir());
+    DEB_dump_txt("Basedirectory: %s",AP_get_bas_dir());
+    DEB_dump_txt("Tempdirectory: %s",AP_get_tmp_dir());
+    DEB_dump_txt("Bin.directory: %s",AP_get_bin_dir());
     DEB_dump_txt("Model:         %s",AP_mod_fnam);
     DEB_dump_txt("Modelsize:     %f",APT_ModSiz);
     DEB_dump_txt("Tol.Points:    %f",UT_TOL_pt);
@@ -6956,7 +6990,7 @@ See UI_but__ (txt);
   //======================================================
   } else if(!strcmp(cp1, "uninst")) {
     TX_Print("exit gCAD3D; in Filebrowser start %sUninstall",
-             OS_get_bas_dir());
+             AP_get_bas_dir());
 
 
   //======================================================
@@ -7003,11 +7037,11 @@ See UI_but__ (txt);
   // Liste aller userprograms
 #ifdef _MSC_VER
   // sprintf(cbuf1, "dir/b \"%sxa\\*.dll\" > \"%stmp\\Dll.lst\"",
-                  // OS_get_bas_dir(),OS_get_bas_dir());
+                  // AP_get_bas_dir(),AP_get_bas_dir());
   ftyplen = 4; // ".dll"
 #else
   // sprintf(cbuf1, "cd %sxa;ls -1 *.so > %stmp/Dll.lst",
-                  // OS_get_bas_dir(),OS_get_bas_dir());
+                  // AP_get_bas_dir(),AP_get_bas_dir());
   ftyplen = 3; // ".so"
 #endif
 
@@ -7015,7 +7049,7 @@ See UI_but__ (txt);
   // OS_system(cbuf1);
 
 
-  sprintf(cbuf1, "%sDll.lst",OS_get_tmp_dir());
+  sprintf(cbuf1, "%sDll.lst",AP_get_tmp_dir());
     printf(" read Dll.lst |%s|\n",cbuf1);
   if ((fpi = fopen (cbuf1, "r")) == NULL) { return -1; }
 
@@ -7068,7 +7102,7 @@ See UI_but__ (txt);
   printf("UI_DllLst_CB |%d|\n",lNr);
 
   // // Line #  lNr aus Datei tmp/Dll.lst einlesen
-  // sprintf(cbuf1, "%sDll.lst",OS_get_tmp_dir());
+  // sprintf(cbuf1, "%sDll.lst",AP_get_tmp_dir());
   // UTX_fgetLine (memspc011, 256, cbuf1, lNr);
 
 
@@ -7508,11 +7542,15 @@ box1
       // GUI_Tip  ("Darstellung aller NC-Hilfsfunktionen (als Text) an "
                 // "den jeweiligen Positionen.");
 
+      ckb_tnDisp = GUI_menu_checkbox__ (&wtmp1, "Textnotes OFF", 0,
+                                    UI_menCB, (void*)"ckb_tnDisp");
+      MSG_Tip ("MMdsptn"); // do not display textnotes (text at specific position)
+
+
       ckb_ptDisp = GUI_menu_checkbox__ (&wtmp1, "PointDisplay ON", 0,
                                     UI_menCB, (void*)"ckb_ptDisp");
-                                    // UI_viewCB, (void*)"PT_OFF");
-      MSG_Tip ("MMdsppt"); //
-      // GUI_Tip  ("Darstellung Punkte EIN / AUS");
+      MSG_Tip ("MMdsppt"); //  ("Darstellung Punkte EIN / AUS");
+
 
       ckb_plDisp = GUI_menu_checkbox__ (&wtmp1, "PlanesDisplay ON", 0,
                                     UI_menCB, (void*)"ckb_plDisp");
@@ -8357,7 +8395,7 @@ box1
         // disp. Logo rechts neben dem Textwindow.
         wtmp1 = GUI_box_v (&box2B2, "a,6a");   // 6 lines high
         // ../icons/xa_logo.xpm 127x46 pixels
-        sprintf(cbuf1, "%sxa_logo.xpm", OS_get_ico_dir ());
+        sprintf(cbuf1, "%sxa_logo.xpm", AP_get_ico_dir ());
         GUI_img__ (&wtmp1, cbuf1, "-127,-64");   // min = 46; 2013-10-05
   
       } else {
@@ -8369,7 +8407,7 @@ box1
         // disp. Logo rechts neben dem Textwindow.
         wtmp1 = GUI_box_v (&box2B2, "a,a");   // -150
         // ../icons/xa_logo.xpm 127x46 pixels
-        sprintf(cbuf1, "%sxa_logo.xpm", OS_get_ico_dir ());
+        sprintf(cbuf1, "%sxa_logo.xpm", AP_get_ico_dir ());
         GUI_img__ (&wtmp1, cbuf1, "a,a");
       }
 
@@ -8505,7 +8543,7 @@ box1
       // }
 
       // // akt. Datei als tmp/xa.apt rausschreiben
-      // strcpy(AP_mod_fnam, OS_get_bas_dir ());
+      // strcpy(AP_mod_fnam, AP_get_bas_dir ());
       // strcat(AP_mod_fnam,"tmp/xa.apt");
 
       // model in tmp saven
@@ -8699,7 +8737,7 @@ box1
 
   //----------------------------------------------------------------
   // user-select from list of last-used models
-  sprintf(fnam, "%sMdlLst.txt", OS_get_tmp_dir());
+  sprintf(fnam, "%sMdlLst.txt", AP_get_tmp_dir());
   i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"select model\"", "\"x40,y30\"");
   if(i1 < 0) return -1;
     printf("UI_open_last-sel |%s|\n",s1);
@@ -8710,9 +8748,10 @@ box1
   AP_mdl_init (0);
 
   // load selected model
-  irc = AP_Mod_load_fn (s1, 0);
+  // irc = AP_Mod_load_fn (s1, 0);
+  irc = AP_Mod_load_init (s1);
 
-  return 0;
+  return irc;
 
 }
 
@@ -8724,13 +8763,15 @@ box1
 //   retCode       -1   error or cancel
 
   int     irc;
-  char    s1[408], s2[400], sTit[80];
+  char    s1[408], s2[400], sTit[128];
 
 
-  printf("UI_file_open__ |%s|\n",AP_mod_dir);
+  // printf("UI_file_open__ |%s|\n",AP_mod_dir);
 
   // title "Model open"
-  strcpy(sTit, MSG_const__(MSG_open));
+  // strcpy(sTit, MSG_const__(MSG_open));
+  // strcpy(sTit, MSG_const__(MSG_open));
+  sprintf(sTit, "\"%s\"", MSG_const__(MSG_open));
   // strcpy(sTit, "open file ..");
 
   // get filename of cfg_<os>/dir.lst
@@ -8738,18 +8779,19 @@ box1
 #ifdef _MSC_VER
   MDLFN_syFn_f_name (s2);            // get filNam of list of symbolic directories
   sprintf(s1, "\"%s\"", s2);
-  sprintf(sOut, "\"%s \"", AP_mod_dir);  // |\"| makes BUG in MS 
+  sprintf(sOut, "\"%s\\\"", AP_mod_dir);  // |\"| makes BUG in MS 
 #else
   MDLFN_syFn_f_name (s1);           // get filNam of list of symbolic directories
   strcpy(sOut, AP_mod_dir);
 #endif
 
-  // preset active directory
+
+    // TESTBLOCK
     // printf(" UI_file_open__ sOut=|%s|\n",sOut);
     // printf(" UI_file_open__ s1=|%s|\n",s1);
     // printf(" UI_file_open__ UI_fnamFilt=|%s|\n",UI_fnamFilt);
     // printf(" UI_file_open__ sTit=|%s|\n",sTit);
-
+    // END TESTBLOCK
 
 
   // get filename for "open file" from user, waiting.
@@ -8757,13 +8799,13 @@ box1
   irc = AP_GUI__ (sOut, siz_so, "GUI_file", "open",
                   sOut,
                   s1,
-                  UI_fnamFilt,
+                  "\"*\"",             // UI_fnamFilt makes errors ..
                   sTit,
                   NULL);
   if(irc < 0) return -1;
   if(strlen(sOut) < 1) return -1;    // cancel
 
-    printf(" ex-UI_file_open__ |%s|\n",sOut);
+    // printf(" ex-UI_file_open__ |%s|\n",sOut);
 
   return 0;
 
@@ -8781,7 +8823,7 @@ box1
   MemObj m1, ma, me;
 
 
-  printf("UI_lang_men |%s|\n",AP_lang);
+  // printf("UI_lang_men |%s|\n",AP_lang);
 
 
   // get list of loaded languages (lngCode[lngNr]);
@@ -8934,7 +8976,7 @@ box1
 
       box0 = GUI_box_v (&win0, "");
       // GUI_Pix (box0, "xa_logo.xpm", 0);
-      sprintf(cbuf, "%sxa_logo.xpm", OS_get_ico_dir ());
+      sprintf(cbuf, "%sxa_logo.xpm", AP_get_ico_dir ());
       GUI_img__ (&box0, cbuf, "");
 
       strcpy(cbuf, INIT_TXT);
@@ -9273,7 +9315,7 @@ return 0;
 
     //---------------------------------------------------------
     case UI_FuncUCB2:                   // Reset
-      sprintf(cbuf3,"%sgCAD3D.rc",OS_get_cfg_dir());
+      sprintf(cbuf3,"%sgCAD3D.rc",AP_get_cfg_dir());
       printf(" setupFile=|%s|\n",cbuf3);
         i1 = UTX_setup_get (cbuf1, "NTEXTSIZ", cbuf3, 1);
         if(i1 >= 0) {
@@ -9694,7 +9736,7 @@ return 0;
     case UI_FuncUCB2:   // 1002
 
       // APT_ModSiz = 500.;
-      sprintf(cbuf3,"%sgCAD3D.rc",OS_get_cfg_dir());
+      sprintf(cbuf3,"%sgCAD3D.rc",AP_get_cfg_dir());
       printf(" setupFile=|%s|\n",cbuf3);
         i1 = UTX_setup_get (cbuf1, "MODELSIZ", cbuf3, 1);
         if(i1 >= 0) {

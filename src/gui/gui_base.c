@@ -38,7 +38,7 @@ void GUI(){}
 #include "../gui/gui__.h"              // includefile for all GUI-functions
 
 ------ Links to Gtk ---------------
-../gui_gtk3/gtk_base.c              Window Box
+../gui_gtk3/gtk_base.c              Window Box tooltips
 ../gui_gtk3/gtk_label.c             Label
 ../gui_gtk3/gtk_button.c            Button (with image) Checkbox
 ../gui_gtk3/gtk_menu.c              Menu
@@ -293,8 +293,8 @@ char*   GUI_Win_tit     (void *gtkWin);
                   sTit,
                   opts,
                   NULL);
+    printf(" f-AP_GUI__ %d |%s|\n",irc,sOut);
   if(irc < 0) return -1;
-    // printf(" f-AP_GUI__ |%s|\n",sOut);
 
   // cancel ?
   irc = strlen(sOut);
@@ -650,7 +650,8 @@ char*   GUI_Win_tit     (void *gtkWin);
 
   // printf("GUI_file_save__ %d |%s|%s|%s|%s|\n",fSiz,filNam,dirLst,fTyp,sTit);
 
-  sprintf(sFilt, "\"*.%s\"", fTyp);
+  // sprintf(sFilt, "\"*.%s\"", fTyp);
+  strcpy(sFilt, "\"*\"");
 
   // get filename for save from user
   irc = AP_GUI__ (filNam, fSiz, "GUI_file", "save",

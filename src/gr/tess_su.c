@@ -289,7 +289,7 @@ TSU_mSpc->mPos   ist die naechste freie Position
 // typedef_MemTab(int);
 // typedef_MemTab(Point);
 // typedef_MemTab(Fac3);
-// typedef_MemTab(EdgeLine);
+// typedef_MemTab(IntTab);
 
 
 
@@ -412,10 +412,11 @@ static TSU_struct1 *TSU_mSpc;
   //----------------------------------------------------------------
   // see APT_Draw__ - GR_set_osu
   switch (ox1->typ) {
-    case Typ_SUR:      // trimmed-perforated surface     
+    case Typ_SUTP:      // trimmed-perforated surface     
+    case Typ_SUR:       // trimmed-perforated surface    old-version
       // get type of support-surface
       ssTyp = ((ObjGX*)ox1->data)[0].typ;
-        // printf(" VR2_exp_ox__-ssTyp = %d\n",ssTyp);
+        // printf(" TSU_SUR__-ssTyp = %d\n",ssTyp);
 
 
     switch (ssTyp) {
@@ -472,6 +473,7 @@ static TSU_struct1 *TSU_mSpc;
       // support-surface - B-SplineSurface
       irc = Tess_sur__ (ox1, att, dbi);
       break;
+
 
     //----------------------------------------------------------------
     // tesselated-surfaces
@@ -1306,7 +1308,7 @@ Noe GLT_stor_rec
 //================================================================
   int TSU_stor_rec (Point *pa1, Point *pa2, int ptNr, int mode) {
 //================================================================
-// 1 Streifen, durch 2 Polygone beschrieben (ruled Surf) wie GL_set_strip2
+// 1 Streifen, durch 2 Polygone beschrieben (ruled Surf) wie GL_set_strip_v
 // Subfunctions:
 // mode = 0  init, ptNr ist Anzahl Patches
 // mode = 1  close record
@@ -2145,7 +2147,7 @@ static int   patNr;     // nr of Patches
   // draw
   if(sTyp < 1) {         // 0=stripe, als GL-STRIP ausgeben
     
-    // GL_set_strip2 (p1Tab, p2Tab, ptNr);
+    // GL_set_strip_v (p1Tab, p2Tab, ptNr);
     GR_DrawStrip (p1Tab, p2Tab, ptNr, 0);
 
 
@@ -2407,9 +2409,9 @@ static int   patNr;     // nr of Patches
 
 
   // check if bin.meshfile exists
-  // sprintf(fNam, "%sM%dA%ld.msh", OS_get_tmp_dir(), AP_modact_ibm, dbi);
-//   sprintf(fNam, "%s%s_A%ld.msh", OS_get_tmp_dir(), AP_modact_nam, dbi);
-  sprintf(fNam, "%s_A%ld.msh", OS_get_tmp_dir(),dbi);
+  // sprintf(fNam, "%sM%dA%ld.msh", AP_get_tmp_dir(), AP_modact_ibm, dbi);
+//   sprintf(fNam, "%s%s_A%ld.msh", AP_get_tmp_dir(), AP_modact_nam, dbi);
+  sprintf(fNam, "%s_A%ld.msh", AP_get_tmp_dir(),dbi);
     // printf(" fNam fc |%s|\n", fNam);
   if(OS_checkFilExist(fNam, 1) == 1) goto L_f_load;
 
@@ -3016,7 +3018,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
   int       i1, i2, irc, cNr, cMax, pcNr, pc2Nr, plMain, iu, iv, rNr;
   double    d1, u1, u2, v1, v2;
-  ObjGX     *oTab, *oxp1, *gSur;
+  ObjGX     *oTab, *oxp1, *oxp2, *gSur;
   Point     *pcTab, *pc2Tab, box1[6], *pp1;
   ContTab   *cTab;
   ColRGB    *col;
@@ -3041,11 +3043,6 @@ memspc102  TSU_grid  Vergleichspunkteraster
   UTO_objDat_ox (&oxp1, &rNr, &oTab[0]);
     // printf(" supp.typ=%d form=%d siz=%d\n",oxp1->typ,oxp1->form,oxp1->siz);
 
-  // Planar ?
-  if(oxp1->typ == Typ_SUR) {
-    return TSU_DrawSurTP (oxi,att,dbi);
-  }
-
 
   if((oxp1->typ == Typ_SURBSP)  ||
      (oxp1->typ == Typ_SURRBSP) ||
@@ -3054,10 +3051,34 @@ memspc102  TSU_grid  Vergleichspunkteraster
      (oxp1->typ == Typ_TOR)     ||
      (oxp1->typ == Typ_SURRU))       goto L_L1;
 
-    TX_Error(" muss BSPS od CON od TOR od SRU sein");
-    return -1;
 
 
+  // check for planar-surf  (new version Typ_SUTP 2022)
+  if(oxp1->typ == Typ_SUTP) {
+    // suppSur must have 2 records; surf(Typ_PLN) and boundary.
+    oxp2 = oxp1->data;
+      // DEB_dump_ox_s_ (oxp1, "DrawSurTC-p1");
+      // DEB_dump_ox_s_ (oxp2, "DrawSurTC-p2");
+    // test if suppSur is planar
+    if(oxp2->typ == Typ_PLN) {
+      return TSU_DrawSurTP (oxi,att,dbi);
+    }
+  }
+
+
+  // check for planar-surf
+  if(oxp1->typ == Typ_SUR) {                  // OLD-VERSION
+    return TSU_DrawSurTP (oxi,att,dbi);
+  }
+
+
+  TX_Error(" supporting surface must be BSPS or CON or TOR or SRU");
+  return -1;
+
+
+
+
+  //----------------------------------------------------------------
   // data[0] ist eine brauchbare Stuetzflaeche
   L_L1:
 

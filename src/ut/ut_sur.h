@@ -38,6 +38,7 @@ typedef struct {long dbi; int mdli; ObjGX *oxs;
 //   vcz        NULL: surface not planar; vc3 set.
 //              else normalvector of planar surface; vc3 not set.
 //              if planar surf has n patches: all patches have same normalvector
+// TODO: vcz into SUR_DAT_pln ?
 //----------------------------------------------------------------
 
 

@@ -77,6 +77,7 @@ mkdir %outDirD%
 mkdir %outDirD%\tmp
 mkdir %outDirD%\dat
 mkdir %outDirD%\dat\symEl1
+mkdir %outDirD%\dat\gMsh
 mkdir %outDirD%\prg
 mkdir %outDirD%\cfg
 mkdir %outDirD%\ctlg
@@ -88,7 +89,6 @@ mkdir %outDirD%\ctlg\Profile
 REM copy -> baseDir
 copy gCAD3D.ico                  %outDirP%\.
 copy unInstall.ico               %outDirP%\.
-copy ..\doc\gCAD3D_MS-Win.txt    %outDirP%\doc\.
 
 REM gcad3d.bat is created by gCAD3D.nsi
 
@@ -101,6 +101,7 @@ xcopy /s %binDirIn%        %outDirP%\%binDir%
 
 
 REM copy doc
+copy ..\doc\*.txt                %outDirP%\doc\.
 copy ..\doc\html\*.htm           %outDirP%\doc\html\.
 copy ..\doc\html\*.png           %outDirP%\doc\html\.
 copy ..\doc\html\*.js            %outDirP%\doc\html\.
@@ -124,6 +125,7 @@ copy %dirMdl%\SteinMarmor1.jpg     %outDirD%\dat\.
 copy %dirMdl%\Niet1.gcad           %outDirD%\dat\.
 copy %dirMdl%\Schrau1.gcad         %outDirD%\dat\.
 copy %dirMdl%\symEl1\*             %outDirD%\dat\symEl1\.
+copy %dirMdl%\gMsh\samp*           %outDirD%\dat\gMsh\.
 
 REM copy progs, catalog ..
 copy %datDirIn%\prg\demo_*.gcap          %outDirD%\prg\.
@@ -133,6 +135,7 @@ copy %datDirIn%\prg\Haus1.gcap           %outDirD%\prg\.
 copy %datDirIn%\prg\Stair*.gcap          %outDirD%\prg\.
 copy %datDirIn%\prg\demo_*.gcap          %outDirD%\prg\.
 copy %datDirIn%\prg\DemoRC*              %outDirD%\prg\.
+copy %datDirIn%\prg\sample_*.cmd         %outDirD%\prg\.
 
 REM copy -> cfg
 copy %datDirIn%\cfg_orig\ltyp.rc              %outDirD%\cfg\.

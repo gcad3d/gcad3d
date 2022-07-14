@@ -76,14 +76,24 @@ S24 = POL P20 P21 P22 P(30,12,0) P(30,10,10) P(40,30,10)
 
 
 <p><a name="F3"></a></p>
-<h2>S Polygon &lt; Rectangle                      REC</h2>
-Parallelogram from a corner and 2 vectors:
-  CornerPoint     lower left point
-  DX              horizontal vector; you can add the length
-  DY              vertical vector; you can add the length
+<h2>S Polygon 4-side quadrilateral                REC</h2>
+Quadrilateral from point and 2 vectors or points:
+  CornerPoint          lower left point
+  Vec/Pt first side    horizontal vector or point;
+  Vec/Pt last side     vertical vector or point;
+  [Type]               Typ 1 (default) for parallelogram, rectangle, square
+                       Typ 2 for trapezium
+                       Typ 3 for rhombus, kite
+
+<img src="poly_4_side.jpg">
 
 Example:
-S20 = REC P(100 0 0) D(50 0 0) D(DY 12)
+# parallelogram, horizontal, length 100; vertical length 12
+S20 = REC P(100 -100 0) D(50 0 0) D(DY 32)
+# trapezium
+S21=REC P(100 0 0) D(100 0 0) D(20 60 0) MOD(2)
+# kite
+S22=REC P(100 100 0) D(100 0 0) D(-20 60 0) MOD(3)
 
 
 

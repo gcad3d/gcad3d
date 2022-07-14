@@ -424,6 +424,10 @@ UT3D_npt_ci                circular polygon
       pNr = ((CurvPol2*)data)->ptNr;
       break;
 
+    case Typ_CVPSP3:
+      CVPSP_ptNr_oPsp3 (&pNr, data, tol);
+      break;
+
     case Typ_CVPOL:   // CurvPoly
       pNr = ((CurvPoly*)data)->ptNr;
       break;
@@ -723,9 +727,9 @@ UT3D_npt_ci                circular polygon
 
   // printf("UT3D_mtpt_obj typ=%d siz=%d dbi=%ld tol=%lf mode=%d\n",
           // typ, siz, dbi, tol, mode);
+  // DEB_dump_nobj__ (typ, siz, data, " mtpt_obj-in");
   // DEB_dump_obj__ (Typ_MemTab, mtpa, " mtpt_obj-mtpa");
   // if(mtsn) DEB_dump_obj__ (Typ_MemTab, mtsn, " mtpt_obj-mtsn");
-  // DEB_dump_obj__ (typ, data, " __npt_obj");
 
 
   nptFree = MEMTAB_RFREE(mtpa);
@@ -887,7 +891,6 @@ UT3D_npt_ci                circular polygon
     }
 
 
-
   //----------------------------------------------------------------
   } else if(typ == Typ_CVRBSP) {
     // CurvRBSpl
@@ -898,6 +901,16 @@ UT3D_npt_ci                circular polygon
     mtpa->rNr += ptn;
 
     if(mtsn) {TX_Print("***** UT3D_mtpt_obj ERR mtsn unsupp. %d",Typ_CVRBSP);}
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_CVPSP3) {
+    // polynom_d3
+    if(!mode) goto L_prcv;  // get points from PRCV
+
+    // get points from analytic-curve
+    irc = CVPSP_pol_oPsp3 (&ptn, pa1,  data, ptn, tol);
+    mtpa->rNr += ptn;
 
 
   //----------------------------------------------------------------
@@ -1239,6 +1252,14 @@ UT3D_npt_ci                circular polygon
 
 
   //----------------------------------------------------------------
+  } else if(typ == Typ_CVPSP3) {
+    ptn = ptSiz - *ptNr;
+    // irc = CVPSP_pol_nPsp3 (&ptn, &pTab[*ptNr], data, siz, ptn, tol);
+    irc = CVPSP_pol_oPsp3 (&ptn, &pTab[*ptNr], data, ptn, tol);
+    *ptNr += ptn;
+
+
+  //----------------------------------------------------------------
   } else if(typ == Typ_Model) {
     pTab[*ptNr] = ((ModelRef*)data)->po;
     *ptNr += 1;
@@ -1384,9 +1405,14 @@ UT3D_npt_ci                circular polygon
   // DEB_dump_obj__ (Typ_CVPOL, plg, " plg");
 
 
+  ptMax = *ptNr;
+  *ptNr = 0;
+    // printf("  ptMax=%d\n",ptMax);
+
+
   // copy the primary obj
   cv1 = *plg;
-  ipe = plg->ptNr - 1;
+  ipe = plg->ptNr - 1;  // index last point
 
 
   //----------------------------------------------------------------
@@ -1396,18 +1422,19 @@ UT3D_npt_ci                circular polygon
     if(cv1.v1 != cv1.lvTab[ipe]) goto L_tr;
   }
   cv1.trm = 1;   // 1=not_trimmed
-  // if(cv1.trm == 1) {
-    // if curve is not trimmed: copy; ignore v0,v1,lvTab
-    // reverse ?
-    // copy cptab -> pTab
-    memcpy (pTab, cv1.cpTab, sizeof(Point) * cv1.ptNr);
-    if(cv1.dir) {
-      // bwd
-      UT3D_cv_inv (cv1.ptNr, pTab);
-    }
-    *ptNr = cv1.ptNr;
-    irc = 0;
-    goto L_exit;
+  // curve is not trimmed: copy; ignore v0,v1,lvTab
+  // reverse ?
+  if(cv1.ptNr >= ptMax) {TX_Error("UT3D_pta_plg EOM"); irc = -1; goto L_exit;}
+
+  // copy cptab -> pTab
+  memcpy (pTab, cv1.cpTab, sizeof(Point) * cv1.ptNr);
+  if(cv1.dir) {
+    // bwd
+    UT3D_cv_inv (cv1.ptNr, pTab);
+  }
+  *ptNr = cv1.ptNr;
+  irc = 0;
+  goto L_exit;
   // }
 
 
@@ -1415,10 +1442,6 @@ UT3D_npt_ci                circular polygon
   //----------------------------------------------------------------
   // curve is trimmed;
   L_tr:
-
-  ptMax = *ptNr;
-  *ptNr = 0;
-    // printf("  ptMax=%d\n",ptMax);
 
 
   if(cv1.dir) {

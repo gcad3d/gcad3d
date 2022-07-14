@@ -57,6 +57,16 @@ __________________________________________________________________________
 <p><a name="rc1"></a></p>
 <b>What is RemoteControl</b>
 
+
+
+RemoteControl has 3 modes: 
+- External-control - do cad-operations from a terminal or process outside gcad (remote)
+- StartRemote      - start a RemoteControlScript at startup
+- Internal-control - start a RemoteControlScript from menu "Remote"
+
+
+<b>External-control:</b>
+
 With RemoteControl you can control the cad-program gCAD3D from programs.
 All programming languages can be used, even shell-scripts.
 For input and output 2 pipes (Linux; MS-Windows: Files) are used.
@@ -131,6 +141,21 @@ All following examples are linux-examples.
 
 Please send improved examples or examples for other programming-languages to
  support at gcad3d.org
+
+
+<b>StartRemote</b>
+RemoteControlScripts can be executed at startup using:
+gcad3d rcmd <filename>.cmd
+
+Example: see file Data/prg/sample_cmd1.cmd
+   (to see the path for directory "Data" do Standards/edit directory-path-group)
+
+
+
+<b>Internal-control:</b>
+Start a RemoteControlScript with Menu Remote/Select ..
+
+
 
 
 __________________________________________________________________________

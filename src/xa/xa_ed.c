@@ -2994,8 +2994,11 @@ static int  actLev=0;
   // naechste Zeile holen (get a copy !)  returns ++ED_lnr_act
   // lNr is the lineNr in the primary model (calling model)
   lNr = ED_Read_Line (cbuf);
+
+    // TESTBLOCK
     // printf(" ED_Run-nxt lNr=%d |%s|\n",lNr,cbuf);
     // printf(" AP_src=%d UI_InpMode=%d AP_mode__ =%d\n",AP_src,UI_InpMode,AP_mode__);
+    // END TESTBLOCK
 
 
 
@@ -3347,7 +3350,7 @@ static int  actLev=0;
   if(!strcmp(ppnam, "ISO")) goto L_Start;
 
   // nach dem PP-File suchen
-  strcpy (cmdBuf, OS_get_bas_dir ());
+  strcpy (cmdBuf, AP_get_bas_dir ());
   strcat (cmdBuf, "\\pp\\");
   strcat (cmdBuf, ppnam);
   strcat (cmdBuf, ".exe ");
@@ -3398,7 +3401,7 @@ static int  actLev=0;
   L12:
   //strcpy (cmdBuf, "call ");
   strcpy (cmdBuf, "start ");
-  strcat (cmdBuf, OS_get_bas_dir ());
+  strcat (cmdBuf, AP_get_bas_dir ());
   strcat (cmdBuf, "\\pp\\");
   strcat (cmdBuf, ppnam);
   strcat (cmdBuf, ".exe ");
@@ -3409,7 +3412,7 @@ static int  actLev=0;
     // Display Ergebnis (nur Test) (statt pp)
     //strcpy (cmdBuf, "notepad pp\\pp.dat");
     strcpy (cmdBuf, "notepad ");
-    strcat (cmdBuf, OS_get_bas_dir ());
+    strcat (cmdBuf, AP_get_bas_dir ());
     strcat (cmdBuf, "\\pp\\pp.dat");
 
   }

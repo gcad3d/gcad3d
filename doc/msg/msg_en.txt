@@ -33,6 +33,7 @@ MMdspr=restore stored view
 
 MMdspon=display the names of all objects of group
 MMdspdir=display the direction of all curves of group
+MMdsptn=do not display textnotes (text at specific position)
 MMdsppt=display points (P) on / off (only in VWR)
 MMdsppl=display planes (R) on / off (only in VWR)
 MMdspso=display Solids (Sphere/Cone/Torus/Cube) shaded or wireframe
@@ -139,6 +140,7 @@ CADhelpInput=display a Help-text for active inputfield in html-browserwindow
 CADexit=cancel function. Does not save active object. Edit-mode: Cancel twice, right mousebutton  - edit.
 CADclear=clear active CAD-inputfield
 CADsave=save active obj., goto next obj. Right mousebutton, Enterkey.
+CADupd=update display
 
 PT_cartes__offset=point; select or key; [offsetvalues for X/Y/Z]
 PT_polar=polar, relativ; Basepoint, Rotationangle (Z-Axis), [Tiltangle (X-Y-plane),] Distance
@@ -188,7 +190,7 @@ V_Angle_2_lines_vectors=angle from 2 lines / vectors
 S_Ellipse_Center_AxisEndPoint_Point=Ellipse from center, end point main axis, point on ellipse
 S_Ellipse_Center_Axes__EndPoints_=ellipse (limited) from center, vector main axis, vector secondary axis, start point, end point
 S_Polygon___Points___=Polygon from points
-S_Polygon___Rectangle=Parallelogram from cornerpoint and 2 vectors
+S_Polygon_4_side_quadrilateral=Parallelogram, trapezium or rhombus from cornerpoint and 2 vectors
 S_BSpline___Points___=B-Spline from points; [CTRL (controlpoints/through-points)]
 S_BSpline___Polygon___=B-Spline from polygon; [CTRL (controlpoints/through-points)]
 S_BSpline___convert___join_obj_s=join lines,circles,b-splines. Result is b-spline.

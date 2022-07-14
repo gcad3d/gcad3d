@@ -9,6 +9,10 @@ Korr:
 #endif
 
 
+
+#include "../xa/ap_dir.h"      // prototypes for gcad3d-directories (AP_get_tmp_dir ..)
+
+
   int    OS_Init_  (char *cmd);
   char*  OS_os_c   ();
   void   OS_date   (long *i1, long *i2, long *i3);
@@ -35,14 +39,7 @@ Korr:
 
   void   OS_get_curDir    (char *sd, int sSiz);
 
-// ex ../xa/xa_main.c
-  char*  OS_get_bas_dir   ();
   char*  OS_get_tmp_dir   ();
-  char*  OS_get_loc_dir   ();
-  char*  OS_get_cfg_dir   ();
-  char*  OS_get_ico_dir   ();
-  char*  OS_get_bin_dir   ();
-  char*  OS_get_doc_dir   ();
   char*  OS_get_user      ();
   char*  OS_get_term      ();
   char*  OS_get_edi       ();
@@ -62,6 +59,8 @@ Korr:
   int    OS_file_delete (char *fNam);
   int    OS_file_readm1 (char *cbuf, int cSiz, char *fnam);
   int    OS_file_waitExist (char *fn, int maxTim);
+  // int OS_file_concat (char *fno, char *fn1, char *fn2);
+  int OS_files_join (char *fno, char *fn1, char *fn2, ...);
 
   int    OS_dll__ (void **dll, int mode, void *fDat);
   int    OS_dll_global (char *dllNam);

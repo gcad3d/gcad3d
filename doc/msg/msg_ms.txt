@@ -33,6 +33,7 @@ MMdspr=pulih pandangan tersimpan
 
 MMdspon=display the names of all objects of group
 MMdspdir=display the direction of all curves of group
+MMdsptn=do not display textnotes (text at specific position)
 MMdsppt=papar titik (P) hidup / mati (hanya dalam VWR)
 MMdsppl=papar satah (R) hidup / mati (hanya dalam VWR)
 MMdspso=papar bingkai wayar Pepejal atau terlorek (Sfera/Kon/Torus/Kiub)
@@ -139,6 +140,7 @@ CADhelpInput=papar Teks-bantuan untuk tahu medanInput dalam tetigkapPelayar-html
 CADexit=batal fungsi. Jangan simpan objek aktif. Mod-sunting: Batal dua kali, butTetikus kanan - sunting.
 CADclear=clear active CAD-inputfield
 CADsave=simpan obj. aktif, pergi ke obj berikutnya. ButTetikus kanan, Enterkey.
+CADupd=update display
 
 PT_cartes__offset=titik; pilih atau key; [nilaiofset untuk X/Y/Z]
 PT_polar=polar, relativ; Titikdasar, Sudutputaran (paksi-Z), [Sudutcondong (satah-X-Y),] Jarak
@@ -188,7 +190,7 @@ V_Angle_2_lines_vectors=angle from 2 lines / vectors
 S_Ellipse_Center_AxisEndPoint_Point=Elips dari pusat, paksi utama titik akhr, titik pada elips
 S_Ellipse_Center_Axes__EndPoints_=elips (terhad) dari pusat, paksi utama vektor, paksi sekunder vektor, titik mula, titik akhir
 S_Polygon___Points___=Poligon dari titik
-S_Polygon___Rectangle=Segiempat selari dari titikbucu dan 2 vektor
+S_Polygon_4_side_quadrilateral=Parallelogram, trapezium or rhombus from cornerpoint and 2 vectors
 S_BSpline___Points___=B-Spline dari titik; [CTRL (titikkawalan/titik-tuju)]
 S_BSpline___Polygon___=B-Spline dari poligon; [CTRL (titikkawalan/titik-tuju)]
 S_BSpline___convert___join_obj_s=B-Spline = cantum (sambung) garisan/bulat/b-spline

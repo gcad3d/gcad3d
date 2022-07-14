@@ -1,6 +1,6 @@
 # Link & run:
 # . ../options.sh && make -f GUI_dlg1.mak
-# . ../options.sh && make -f gcad_gui__.mak GUI_exe
+# ./GUI_dlg1.sh
 # ./do gui
 #
 # DIR_DEV     home of sourcefiles, scripts, linkjobs, packages
@@ -16,7 +16,8 @@ VGUI := $(shell cat ../gcad_gui_version)
 # ../gui_gtk2/GUI_dlg1.c
 # ../gui_gtk2_MS/GUI_dlg1.c
 SRC1 =\
- ../gui_$(VGUI)/GUI_dlg1.c ../ut/deb_prt.c
+ ../gui_gtk2/GUI_dlg1.c ../ut/deb_prt.c
+#../gui_$(VGUI)/GUI_dlg1.c ../ut/deb_prt.c
 
 # get SRCOS
 SRCOS = ../ut/os_uix.c

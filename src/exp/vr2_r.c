@@ -509,7 +509,7 @@ __declspec(dllexport) int gCad_main (void*);
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../ut/ut_obj.h"              // UTO_stru_2_obj
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
 
@@ -519,7 +519,7 @@ __declspec(dllexport) int gCad_main (void*);
 // typedef_MemTab(int);
 // typedef_MemTab(Point);
 // typedef_MemTab(Fac3);
-// typedef_MemTab(EdgeLine);
+// typedef_MemTab(IntTab);
 
 
 //----------------------------------------------------------------
@@ -552,8 +552,8 @@ static int     *iTab, iTabSiz, iTabNr;           // memspc501
 
 
 static MemTab(Fac3) fTab = _MEMTAB_NUL;         // table of Fac3's
-static MemTab(EdgeLine) eTab = _MEMTAB_NUL;     // table of EdgeLine's
-static MemTab(int) eDat = _MEMTAB_NUL;          // dataSpace for all EdgeLines
+static MemTab(IntTab) eTab = _MEMTAB_NUL;     // table of IntTab's
+static MemTab(int) eDat = _MEMTAB_NUL;          // dataSpace for all IntTabs
 // static int     *iTab=NULL;                       // memspc201
 // static int     vTabSiz, vTabNr;
 
@@ -729,7 +729,7 @@ static double  newRot[4], newpRot[4];  // rotation
   // connect mem
   MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, inc_pTab);
   MemTab_ini__ (&fTab, sizeof(Fac3), Typ_Fac3, inc_fTab);
-  MemTab_ini__ (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 5);
+  MemTab_ini__ (&eTab, sizeof(IntTab), Typ_IntTab, 5);
   MemTab_ini__ (&eDat, sizeof(int), Typ_Int4, 5);
 
 
@@ -795,7 +795,7 @@ static double  newRot[4], newpRot[4];  // rotation
 
   } else {            // save subModel ---------------------------------
     // save -> file
-    sprintf(memspc011,"%sModel_%s",OS_get_tmp_dir(),mdlNam);
+    sprintf(memspc011,"%sModel_%s",AP_get_tmp_dir(),mdlNam);
       // printf(" save model |%s|\n",memspc011);
 
     UTF_file_Buf1__ (memspc011);

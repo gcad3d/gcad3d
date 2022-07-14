@@ -57,6 +57,7 @@ AP_obj_blank        add blank but not after '=' or '|' or blank
 
 AP_obj_2_txt_query  get typ and DB-index of last created Textline
 AP_obj_set_last     aux for AP_obj_add_last (set act_typ/act_ind)
+AP_obj_get_last     get typ/ind of last obj
 AP_obj_add_last     add last created object to buffer
 
 AP_obj_hdr_sur      create textHeader for A
@@ -212,6 +213,18 @@ static long su_ind;
 
 }
 */
+
+
+//================================================================
+  int AP_obj_get_last (int *dbi) {
+//================================================================
+// AP_obj_get_last     get typ/ind of last obj
+
+  *dbi = act_ind;
+  return act_typ;
+
+}
+
 
 //=================================================================
   int AP_obj_set_last (char *ED_buf1) {
@@ -971,7 +984,11 @@ static long su_ind;
 
 
   // Init:
-  if(ED_buf1 == NULL) {AP_stru_2_txt (NULL, 0L, NULL, 0L); return 0;}
+  if(ED_buf1 == NULL) {
+      // printf(" AP_obj_2_txt-init\n");
+    AP_stru_2_txt (NULL, 0L, NULL, 0L);
+    return 0;
+  }
 
 
 
@@ -1142,8 +1159,10 @@ static long su_ind;
   AText     *txa1;
   Dimen     *dim1;
   polynom_d3 *polTab;
+  CurvPoly  *cvplg;
   CurvBSpl  *cpbsp;
   CurvRBSpl *prbsp;
+  CurvPsp3  *cvpsp;
   SurBSpl   *subsp;
   SurRBSpl  *srbsp;
   SurRev    *srv;
@@ -1167,6 +1186,8 @@ static long su_ind;
 
   //=====================================================================
   if(ED_buf1 == NULL) {
+    // printf(" AP_stru_2_txt-init\n");
+
 
     if(ind == 0) {                         // init DB-indices
       vc_ind = DB_dbo_get_free (Typ_VC);    // D
@@ -1517,10 +1538,20 @@ static long su_ind;
     irc = ind;
 
     sprintf(ED_buf1,"S%ld=",ind);
-      // printf(" out Typ_CVELL: |%s|\n",ED_buf1);
 
     if(form == Typ_Txt) {
       goto L_add_text;
+
+
+    } else if(form == Typ_CVPOL) {
+      strcat(ED_buf1,"POL ");
+      cvplg = (CurvPoly*)o1->data;
+      iNr = cvplg->ptNr;
+      pTab = cvplg->cpTab;
+      for(i1=0; i1<iNr; ++i1) {
+        AP_obj_add_pt (ED_buf1, &pTab[i1]);
+      }
+        // printf(" stru_2_txt-plg: iNr=%d |%s|\n",iNr,ED_buf1);
 
 
     } else goto L_unknown_form;
@@ -1580,6 +1611,7 @@ static long su_ind;
 
     sprintf(ED_buf1,"N%ld=",ind);
 
+    if(form == Typ_Txt) goto L_add_text;
 
     if(txa1->aTyp != 0) goto L_NYI;
 
@@ -1589,7 +1621,8 @@ static long su_ind;
       AP_obj_add_pt (ED_buf1, &txa1->p1);
 
       // leaderline
-      if(fabs(txa1->p2.z) < UT_DB_MAX)
+      // if(fabs(txa1->p2.z) < UT_DB_MAX)
+      if(txa1->ltyp >= 0)
         AP_obj_add_pt (ED_buf1, &txa1->p2);
 
       // Text
@@ -1648,7 +1681,7 @@ static long su_ind;
 
 
   //=====================================================================
-  } else if (typ == Typ_Dimen) {
+  } else if (typ == Typ_Dimen) {            // Note
 
     // hole naechsten freien Index
     if(ind < 0) { ++tx_ind; ind = tx_ind; }
@@ -1857,12 +1890,6 @@ static long su_ind;
       ++cv_ind;
       ind = cv_ind;
     }
-/*
-    if(ind >= APT_CV_SIZ) {
-      TX_Error("max. Anzahl Curves erreicht");
-      goto L_err_2;
-    }
-*/
     irc = ind;
 
     sprintf(ED_buf1,"S%ld=PSP3",ind);
@@ -1870,10 +1897,12 @@ static long su_ind;
 
     if(form == Typ_Txt) goto L_add_text;
 
-      polTab = o1->data;  // data = memspc55 !!
+      cvpsp = (CurvPsp3*)o1->data;
 
+      polTab = cvpsp->plyTab;
+      iNr = cvpsp->plyNr;
 
-      for(i1=0; i1<o1->siz; ++i1) {
+      for(i1=0; i1<=iNr; ++i1) {
         // printf(" seg %d u=%f %f  %f  %f\n",i1,polTab[i1].u,
                // polTab[i1].x.a,polTab[i1].y.a,polTab[i1].z.a);
 
@@ -2654,6 +2683,11 @@ TX_Error("TODO: AP_stru_2_txt - MBTYP_CATALOG |%s|",cp1);
 
 
 
+  //=====================================================================
+  } else if (typ == Typ_Txt) {
+    // add text, eg attrib, command, label ..; no obj-definition
+    strcpy(ED_buf1, (char*)o1->data);
+
 
   //=====================================================================
   } else {
@@ -2672,6 +2706,8 @@ TX_Error("TODO: AP_stru_2_txt - MBTYP_CATALOG |%s|",cp1);
 
   act_typ = typ;
   act_ind = ind;
+    // printf(" exAP_stru_2_txt act_typ=%d act_ind=%ld\n",typ,ind);
+
 
   return irc;
 

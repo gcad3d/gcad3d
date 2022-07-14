@@ -138,7 +138,7 @@ Beispiel ptUNr=2 ptVNr=4:
 // tempWorkspace is tbuf2, tbuf3
 // Input:
 //   cvNr   nr of input-curves; 2-n
-//   cvtab  <cvNr> bSpline-curves
+//   cvtab  <cvNr> bSpline-curves (array of pointers)
 
   int       irc, dirUV, i1, i2;
   double    pvT;

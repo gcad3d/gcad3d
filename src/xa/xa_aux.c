@@ -85,7 +85,7 @@ cl -c /I ..\include xa_aux.c
 #include "../ut/ut_txt.h"                 // UTX_add_fl_u2
 #include "../ut/ut_TX.h"                  // TX_Print
 #include "../ut/ut_txTab.h"               // UtxTab
-#include "../ut/ut_os.h"                  // OS_get_bas_dir
+#include "../ut/ut_os.h"                  // AP_get_bas_dir
 #include "../ut/ut_txfil.h"               // UTF_FilBufSiz
 #include "../ut/func_types.h"                  // SYM_..
 #include "../ut/ut_memTab.h"           // MemTab
@@ -234,7 +234,7 @@ static int   arNr;
       sprintf(mem_cbuf1,"# Import Submodel %s",(char*)ox1->data);
       UTF_add1_line (mem_cbuf1);
 
-      sprintf(cbuf,"%sModel_%s",OS_get_tmp_dir(),(char*)ox1->data);
+      sprintf(cbuf,"%sModel_%s",AP_get_tmp_dir(),(char*)ox1->data);
       printf("Submodel |%s|\n",cbuf);
       if((imp_lun=fopen(cbuf,"w")) == NULL) {
         TX_Print("Mod_chg__ E001 %s",cbuf);
@@ -567,7 +567,7 @@ static int   arNr;
 
 // }
 
-
+/* 
 //================================================================
   int AP_ImportXML (char* fnam) {
 //================================================================
@@ -602,7 +602,7 @@ static int   arNr;
   return 0;
 
 }
-
+*/
 
 
 //===========================================================================
@@ -707,7 +707,7 @@ int lwo_cb_saveFace (int vNr, int *vTab) {
   char  auxBuf[32];
 
 
-  printf("lwo_cb_saveFace A%d nNr=%d  ",arNr,vNr);
+  // printf("lwo_cb_saveFace A%d nNr=%d  ",arNr,vNr);
 
   sprintf(mem_cbuf1, "A%d=RCIR",arNr);
   ++arNr;
@@ -1029,7 +1029,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
     // Textbuffer 1 in die Hauptdatei einfuegen
     // UTF_insert1(-1L);
 
-    sprintf(cbuf, "%s%cModel_",OS_get_tmp_dir(),fnam_del);
+    sprintf(cbuf, "%s%cModel_",AP_get_tmp_dir(),fnam_del);
     UTF_file_Buf1__ (cbuf);
 
   }
@@ -1094,7 +1094,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
     // Textbuffer 1 in die Hauptdatei einfuegen
     // UTF_insert1(-1L);
 
-    sprintf(cbuf, "%s%cModel_%s",OS_get_tmp_dir(),fnam_del,pf);
+    sprintf(cbuf, "%s%cModel_%s",AP_get_tmp_dir(),fnam_del,pf);
     UTF_file_Buf1__ (cbuf);
 
   }
@@ -1323,7 +1323,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
   // einen Tempfilename für die Hilfsdatei
   // sprintf(cbuf,"%s\\tmp\\IGES.tmp",os_get_bas_dir ());
-  sprintf(cbuf,"%sIGES.tmp",OS_get_tmp_dir ());
+  sprintf(cbuf,"%sIGES.tmp",AP_get_tmp_dir ());
   if ((fp2 = fopen (cbuf, "w+")) == NULL) {
     // TX_Error ("beim Öffen der Ausgabehilfsdatei ****");
     TX_Error ("Open file %s",cbuf);
@@ -1364,13 +1364,13 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
 
   // try to open inListe
-  sprintf(cbuf,"%sMod.lst",OS_get_tmp_dir());
+  sprintf(cbuf,"%sMod.lst",AP_get_tmp_dir());
   if((fpi=fopen(cbuf,"r")) == NULL) {
     TX_Print("AP_ExportIges__ E002 %s",cbuf);
     return;
   }
 
-  sprintf(cbuf,"%sModel_",OS_get_tmp_dir());
+  sprintf(cbuf,"%sModel_",AP_get_tmp_dir());
   ipos = strlen(cbuf);
 
   while (!feof (fpi)) {
@@ -1390,7 +1390,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 //     ED_Init ();
 //     ED_lnr_reset ();
 // 
-//     sprintf(s1,"%sModel_%s",OS_get_tmp_dir(),smNam);
+//     sprintf(s1,"%sModel_%s",AP_get_tmp_dir(),smNam);
 //     if(ED_work_file (s1) < 0) {TX_Error("AP_ExportIges__: E003"); goto L_err;}
 //     ED_Run ();
 
@@ -1416,7 +1416,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
 
   // DL_disp_def (ON); // ab nun wieder alles anzeigen
 
-  // sprintf(cbuf,"%stmp%cModel_",OS_get_bas_dir(),fnam_del);
+  // sprintf(cbuf,"%stmp%cModel_",AP_get_bas_dir(),fnam_del);
   // printf("nxt model |%s|\n",cbuf);
   // fprintf(fp1,"nxt model main\n",cbuf);
 
@@ -1448,7 +1448,7 @@ void AP_ImportDxf(int mode, char *off, char* fnam) {
   L_exit:
   fclose(fp1);
   fclose(fp2);
-  sprintf(cbuf,"%sIGES.tmp",OS_get_tmp_dir ());
+  sprintf(cbuf,"%sIGES.tmp",AP_get_tmp_dir ());
   OS_file_delete (cbuf);
 
 

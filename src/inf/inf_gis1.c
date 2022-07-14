@@ -32,7 +32,7 @@ gis_init_UI
                         gis_CB1, (void*)"dumpPt", "");
 
 //----------------------------------------------------------------
-Import_EdgeLines:
+Import_IntTabs:
 gis_etab_load        import edgelinefile
 
 

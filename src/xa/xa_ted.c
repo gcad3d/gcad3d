@@ -398,7 +398,7 @@ static TexRef actTr;             // active TexRef (for Restore)
   } else if(!strcmp(cp1, "LdFile")) {    // load from file & apply
 /*
      MDLFN_syFn_f_name (cbuf1);   // get filename of dir.lst
-     // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+     // sprintf(cbuf1,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
      GUI_List2 ("select Texturefile", // titletext
               AP_mod_dir,             // Pfadname des activeDirectory
               cbuf1,                    // Liste der directories
@@ -672,7 +672,7 @@ extern int       KeyStatCtrl;
 //   if(fnam == NULL) return 0;
 
 
-  MDLFN_dump_ofn (mns1, "TED_Tex_Load");
+  // MDLFN_dump_ofn (mns1, "TED_Tex_Load");
 
 
   // load Texture
@@ -709,7 +709,7 @@ extern int       KeyStatCtrl;
   TexBas   *tb;
 
 
-  printf("TED_upd__ %d\n",mode);
+  // printf("TED_upd__ %d\n",mode);
 
 
 

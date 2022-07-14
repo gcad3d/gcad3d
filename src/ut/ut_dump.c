@@ -56,24 +56,27 @@ DEB_dump_dbo            dump DB-object
 DEB_dump_IgaTab
 
 DEB_dump_ntxt           dump n object's
-DEB_dump_txt
+DEB_dump_txt            dump formatted text (fprintf)
 DEB_dump__              dump object
 
 DEB_dump_file           dump file
 
-DEB_std_file            redirect stdout -> file or back
 DEB_stop                (conditional)stop in gdb                             INLINE
 DEB_exit                exit program - display exit-functionName             INLINE
+DEB_goto_L_exit         goto Label L_exit - display exit-functionName        INLINE
 
 DEB_halt                internal -used by DEB_stop
 
 List_functions_end:
 =====================================================
-see also
+see also:
+DEB_std_file            redirect stdout -> file or back
+DEB_prt_init         start/open | close debugfile;
+DEB_prt_print        printd = print-formatted in debug-mode                INTERNAL
+
 INF_debug
+
 DBO_dump__
-DEB_dump_ox_0              dump ObjGX
-DEB_dump_txt
 \endcode *//*----------------------------------------
 
 
@@ -156,32 +159,6 @@ DEB_dump_txt
 
 }
 */
-
-//================================================================
-  int DEB_std_file (char *fNam) {
-//================================================================
-// DEB_std_file                    redirect stdout -> file or back to console
-// Input:
-//   fNam      filename for consoleoutput or NULL for console
-
-
-  if(strlen(fNam) > 2) {
-    // redirect stdout -> file
-    // fflush (stdout);
-    // freopen (fNam, "w", stdout);
-    OS_stdout__ (0, fNam);
-    OS_stdout__ (1, NULL);
-
-  } else {
-    // redirect stdout -> console
-    // fflush (stdout);
-    // freopen ("/dev/tty", "w", stdout);
-    OS_stdout__ (2, NULL);
-  }
-
-  return 0;
-
-}
 
 
 //====================================================================
@@ -502,6 +479,7 @@ static FILE     *uo = NULL;
   CurvBSpl   *cvbs;
   CurvBSpl2  *cv2bs;
   CurvRBSpl  *cvrbs;
+  CurvPsp3   *cvpsp;
   CurvCCV    *cvccv;
   SurBSpl    *sbs;
   SurRBSpl   *srbs;
@@ -984,15 +962,31 @@ static FILE     *uo = NULL;
 
 
   //----------------------------------------------------------------
-  } else if((typ == Typ_CVPSP3)      ||
-            (typ == Typ_polynom_d3))    {
+  } else if(typ == Typ_CVPSP3) {
 
-    pold3 = (polynom_d3*)data;
+    cvpsp = data;
 
-    sprintf(cps,"Polynom3 %s",txt);
+    sprintf(cps,"Polynom.Spline %s",txt);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_CV);
+    sprintf(cps," plyNr=%d v0=%.3f,v1=%.3f",cvpsp->plyNr,cvpsp->v0,cvpsp->v1);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps," u=%9.3f",pold3->u);
-      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+
+    for(i1=0; i1<cvpsp->plyNr; ++i1) {
+      pold3 = (polynom_d3*)&cvpsp->plyTab[i1];
+      sprintf(cps,"  Polynom_d3 %d u =%9.3f",i1,pold3->u);
+      sprintf(s1, " [%d] ",i1);
+      DEB_dump__ (sTab, Typ_polynom_d3, pold3, s1, 0, 0);  // recurs
+    }
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_polynom_d3) {
+
+    pold3 = data;
+    // pold3 = (polynom_d3*)data;
+
+    sprintf(cps,"  Polynom_d3 %s u =%9.3f",txt,pold3->u);
+    UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
     sprintf(cps,"    x    a=%9.3f b=%9.3f c=%9.3f d=%9.3f",
          pold3->x.a,pold3->x.b,pold3->x.c,pold3->x.d);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
@@ -1002,7 +996,6 @@ static FILE     *uo = NULL;
     sprintf(cps,"    z    a=%9.3f b=%9.3f c=%9.3f d=%9.3f",
          pold3->z.a,pold3->z.b,pold3->z.c,pold3->z.d);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-
 
 
   //----------------------------------------------------------------
@@ -2925,6 +2918,7 @@ static char cOff[64];
   int DEB_dump_pTab (MemTab(Point) *mpt, MemTab(char) *mps, char *txt) {
 //======================================================================
 // DEB_dump_pTab           dump MemTab(Point) + MemTab(char) (point + status)
+// statusArray mps can be NULL
 
   int   i1;
   char  *sap;
@@ -2937,12 +2931,22 @@ static char cOff[64];
   
 
   pta = mpt->data;
-  sap = mps->data;
-    
-  for(i1=0; i1<mpt->rNr;  ++i1) {
-    printf(" P[%4d] %9.3f %9.3f %9.3f   %3d\n",i1,
-            pta[i1].x, pta[i1].y, pta[i1].z, sap[i1]);
+
+  if(mps) {
+    sap = mps->data;
+    for(i1=0; i1<mpt->rNr;  ++i1) {
+      printf(" P[%4d] %9.3f %9.3f %9.3f   %3d\n",i1,
+             pta[i1].x, pta[i1].y, pta[i1].z, sap[i1]);
+    }
+
+
+  } else {
+    for(i1=0; i1<mpt->rNr;  ++i1) {
+      printf(" P[%4d] %9.3f %9.3f %9.3f\n",i1,
+             pta[i1].x, pta[i1].y, pta[i1].z);
+    }
   }
+
 
   return 0;
   

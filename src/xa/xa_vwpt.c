@@ -56,7 +56,7 @@ List_functions_end:
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_cast.h"             // INT_PTR
-#include "../ut/ut_os.h"               // OS_get_bas_dir
+#include "../ut/ut_os.h"               // AP_get_bas_dir
 
 // #include "../xa/xa_uid.h"              // UID_ouf_vwz
 
@@ -152,7 +152,7 @@ extern MemObj  winMain;    // toolbarBox
 
   rSiz = (long)sizeof(view);
 
-  sprintf(txbuf, "%sview.dat", OS_get_tmp_dir());
+  sprintf(txbuf, "%sview.dat", AP_get_tmp_dir());
     // printf(" vwpt__ txbuf=|%s|\n",txbuf);
   fSiz = OS_FilSiz (txbuf);
   if(fSiz < rSiz) {
@@ -204,7 +204,7 @@ extern MemObj  winMain;    // toolbarBox
   if(mode == 3) {          // delete last activated viewport  (Ctrl-CursorDown)
     // remove ?
     TX_Print("....remove Viewport %d ....",stat);
-    sprintf(fntmp, "%stemp.dat", OS_get_tmp_dir());
+    sprintf(fntmp, "%stemp.dat", AP_get_tmp_dir());
 
     fp1 = fopen (txbuf, "rb");
     fp2 = fopen (fntmp, "wb");

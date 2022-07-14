@@ -1,0 +1,180 @@
+Doku gcad3d_gMsh                            CadCam-Services Franz Reiter 
+
+Program gMsh1 Version 1.12 / 2022-06-09
+
+
+Purpose: create mesh from points and lines, inner-boundaries and outer-boundary.
+  All input-data is read from textfiles. See:
+  File_format_points
+  File_format_breaklines_boundaries
+  File_format_meshfile-gcad
+  File_format_meshfile-dxf
+  File_format_controlfile
+
+
+
+Program-structure:
+  gcad3d-plugin gMsh1 - does:
+    start executable GUI_gMsh1  (see Exe_GUI_gMsh1)
+      GUI_gMsh1 displays menu for file-selection, creates controlfile
+    start executable gcad3d_gMsh -
+      gcad3d_gMsh creates meshfile (see Exe_gcad3d_gMsh)
+    display meshfile
+
+
+
+Example_using:
+- start plugin gMsh1 (Plugin/gMsh1) or restart plugin with Ctrl-P
+- select Controlfile (button select or button edit)
+    - edit to add / use setenv - record(s), files with symbolic directories;
+    - file-format see File_format_controlfile
+    - click into entry under "Controlfile:" to enter new controlfilename
+- select pointfile
+    - click button under "filename-points", select a file (double-click),
+- select checkbox "PT" to display point-ID's
+- click button "Mesh"
+
+- key Ctrl-P                - in grafic-window, restart plugin
+- click button "ViewLog"    - display logfile for last mesh
+
+
+========================================================
+File_format_points
+  one line in file describes one point;
+  3 floats per line; example:
+56,-53794.775,352988.157,299.1700
+
+
+========================================================
+File_format_breaklines_boundaries
+  one line in file describes one linesegment;
+  6 floats per line; example:
+-53752.162961,352943.624041,0.000000,-53767.243715,352944.934356,0.000000
+
+
+========================================================
+File_format_meshfile-gcad
+  the first lines can be errormessages, starting with "# ERROR <errormessage>"
+  followed by:
+- section points ("SECTION PTAB _<pointSetName>")
+  - lists all points, ends with "SECTIONEND"
+
+- section mesh ("SECTION MESH _<meshName>")
+  - lists all faces and edgelines, ends with "SECTIONEND"
+  - edgetypes:
+      edgetyp=1    breakline, user defined
+      edgetyp=2    outer-boundary, automatic created
+      edgetyp=3    inner-boundary, user defined
+      edgetyp=4    outer-boundary, user defined
+      edgetyp=5    inner-boundary, computed points
+      edgetyp=6    outer-boundary, computed points
+  
+<pointSetName>=PTAB
+<meshName>=MSH <pointSetName>
+
+
+
+========================================================
+File_format_meshfile-dxf
+
+- export of faces as 3DFACE
+- export of lines as POLYLINE - VERTEX
+- export of points as POINT (3D)
+
+
+
+========================================================
+File_format_controlfile
+
+   filetype of controlfiles is ".gmsh1"
+
+# Optional: define symbolic direcories; Example:
+setenv MSHDIR /home/test/gCAD3D/gMsh1/
+# use symbol for filenames eg:
+# ms_pt $MSHDIR/pt1.dat
+
+# System-variables can be used for setenv; Linux: $varnam; MS: %varnam%
+
+# Optional: define filename for the logfile;
+# Default is actMdl.log in the directory of the commandfile
+logfile <filename-logfile>
+
+# Optional: define filename for outputfile (mesh, points, curves);
+# Default is actMdl.gcad (or actMdl.dxf) in the directory of the commandfile
+# Using command outfile do not add a filetype -
+#   - "gcad" or "dxf" will be added according to the cad-format
+outfile <filename-meshfile>
+
+# The commands setenv logfile and outfile have to be defined with the Editor.
+# These commands must be before the following commands set by GUI.
+
+# Optional: set cad-format of output: "gcad" (the default) or "dxf"
+outfmt <cad-format>
+
+# do not display faces (default is to display faces)
+no_disp_fac
+
+# display face-centerpoints
+disp_fce
+
+# display points
+disp_pt
+
+# display breaklines
+disp_bl
+
+# display input-breaklines
+disp_blIn
+
+# display outer-boundary and inner-boundaries
+disp_bd
+
+# display input-boundaries (outer-boundary and inner-boundaries)
+disp_bdIn
+
+
+# The default-input- and output-directory for all files is the directory of
+#   this commandfile.
+# Symbolic diretctory must be used with preceding '$'-character. See setenv above.
+
+
+# pointfile
+ms_pt <filename-pointfile>
+
+# file breaklines
+ms_bl <filename-breaklines>
+
+# inner-boundaries
+ms_ib <filename-inner-boundary>
+
+# outer-boundary
+ms_ob <filename-outer-boundary>
+
+# Optional: define name of pointset (identification of section points)
+pt_def_id <pointSetName>
+
+# Optional: define name of mesh (identification of section mesh)
+ms_def_id <meshName>
+
+
+
+========================================================
+Exe_GUI_gMsh1
+  - executable exists for Linux and MS-Windows
+  - displays menu for file-selection, creates controlfile
+  - default directory for all files is Data/gMsh/
+    - Data is a symbolic directory, default is $HOME/gCAD3D/dat/
+  - filetype of controlfiles is ?
+
+
+========================================================
+Exe_gcad3d_gMsh
+  - executable exists for Linux and MS-Windows
+  - input is a controlfile (see File_format_controlfile)
+  - creates meshfile, format gcad or dxf
+    - default-filename - Linux: /tmp/actMdl.gcad or /tmp/actMdl.dxf
+    - see File_format_meshfile-gcad or File_format_meshfile-dxf 
+
+
+
+# eof

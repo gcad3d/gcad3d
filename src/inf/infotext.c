@@ -76,7 +76,7 @@ INF_EDMPT           move points                                    ../xa/edmpt.c
 INF_Search          Search/Name
 
 INF_GCAD_format__   Gcad-Format-native
-INF_FMTB__          Gcad-Format-binary tess-format
+INF_obj_types       Gcad-binary-objects   INF_FMTB__
 INF_symDir          symbolic-directory modelfilename
 
 INF_files__         list of all source-files ../inf/files.c
@@ -283,7 +283,7 @@ void INF_DEV_GC__ (){        /*! \code
 INF_DEV_GC__    workflow events select subModels
 
 INF_workflow__              sequence functions  main-startup  CAD
-INF_workflow_events         main-events
+INF_workflow_events         init, main-events,
 INF_workflow_select         select-process
 INF_workflow_Hide_View
 INF_workflow_display        display obj; GR - GL
@@ -540,6 +540,7 @@ INF_C_types     [U]INT_[8|16|32]                            ../ut/ut_types.h
 INF_debug       errormessages     ../../doc/gcad_doxygen/Debugging.dox
 INF_MSG_new     create new message
 
+INF_IntTab      group of integer-tables
 INF_TxtTab      Textstrings:     TxtTab   UtxTab_NEW UtxTab_add
 
 
@@ -637,6 +638,7 @@ ln                  Line      Typ_LN
                     CurvBSpl  Typ_CVBSP                              INF_Typ_CVBSP
                     CurvRBSpl Typ_CVRBSP                             INF_Typ_CVRBSP
                     CurvClot  Typ_CVCLOT    ClothoidCurve
+psp    CVPSP_       CurvPsp3  Typ_CVPSP3    Polynom.Spline           INF_Typ_CVPSP3
        CVTRM_       CurvCCV   Typ_CVTRM     TrimmedCurve             INF_Typ_CVTRM
 ....................................................................................
 stp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf (SurTP)  INF_SUTP
@@ -644,7 +646,7 @@ stp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf (SurTP)  INF_S
 ....................................................................................
                     Refsys    Typ_Refsys    (back)plane,tra.matrix   INF_Typ_Refsys
                     GText     Typ_GTXT
-                    AText     Typ_ATXT, Typ_Tag
+                    AText     Typ_ATXT, Typ_Tag                      INF_Typ_?
 ....................................................................................
        UTcol_       ColRGB    Typ_Color     color                    INF_Typ_Color
 ox     OGX_         ObjGX     Typ_ObjGX     complex-object           INF_Typ_ObjGX
@@ -661,6 +663,7 @@ odl    DL_          DL_Att    - undef !     DisplayListRecord
                     int[]                   table of ints            ut_iTab.c
 sr                                          sense-of-rotation;       INF_sr
 ....................................................................................
+itb    ITAB_        IntTab                  group of integer-tables  INF_IntTab
 mtb    MemTab_      MemTab                  fixed-length-records     INF_MemTab
 msp    UME_         Memspc                  Variable-Length-Records  INF_Memspc
 otb    OXMT_        OgxTab                  ObjGX + var-len-record   INF_OgxTab
@@ -909,9 +912,10 @@ Files:
 
 ================================================================== \endcode */}
 void INF_Typ_CVPOL (){        /*! \code
+INF_FMTB_Curve_Polygon
 
 Functions:
-UT3D_plg_pta
+UT3D_plg_pta          create PolygonCurve from n-points
 
 
 Files:
@@ -1076,6 +1080,21 @@ struct ObjGX
 Functions:
 
 ../../doc/gcad_doxygen/ObjectFormatConversions.dox DB-Objects
+
+
+
+================================================================== \endcode */}
+void INF_Typ_CVPSP3 (){        /*! \code
+
+CurvPsp3 Typ_CVPSP3
+
+TODO:
+- get parameter for point near/on curve   - UT3D_par_pt__pt_prj_cv E001 22
+- get point on curve from parameter
+
+Functions:
+APT_decode_psp3
+CVPSP_pol_oPsp3
 
 
 
@@ -1408,6 +1427,10 @@ Functions:
   MSG_pri_0            // message without parameters
   MSG_err_1            // message with 1 parameter
 
+  MSG_Tip              // disp tooltip
+    MSG_read             // read msg from ../../doc/msg/msg_en.txt
+      GUI_Tip
+
 
 Files:
 ../xa/xa_msg.c
@@ -1428,23 +1451,24 @@ Tools for manipulating Messagefiles:
 
 Howto find keyWd or messageText from code: grep 'text' ../../doc/msg/msg_en.txt
 
-Howto create new message:
-  add new message:     ./lang_ins.csh keyWd_before 'newKeywd=new line words ..'
-
+  delete Line          ./lang_del.csh keyWd
+  insert Line          ./lang_ins.csh keyWd_before 'newKeywd=new line words ..'
   find a keyword:      ./lang_find.csh keyWd 
   modify keyword       /mnt/serv2/Linux/bin/changeall old new files
-  modify line          ./lang_line keyWd 'line words ..'
   modify lineText      ./lang_mod.csh keyWd 'new text without keyWd'
-  delete Line          ./lang_del.csh keyWd
-  insert Line          ./lang_ins.csh keyWd_before 'new line words ..'
   save the lang.files: ./lang_save.csh
   restore              ./lang_rest.csh
 
 Examples:
+./lang_del.csh "S_Polygon___Rectangle"
 ./lang_ins.csh "E_PRJ_1" "E_INT_1=no result from intersection"
 
 
 kompare ../../doc/msg/msg_en.txt /usr/share/gcad3d/doc/msg/msg_en.txt
+
+DO_NOT_USE:
+  modify line          ./lang_line keyWd 'line words ..'
+
 
 
 ================================================================== \endcode */}
@@ -1719,6 +1743,8 @@ void INF_BitTab (){        /*! \code
 
 BitTab            Bit-arrays                   BitTab_       ../ut/ut_BitTab.h
 
+for setting bits see also BIT_SET BIT_GET ..
+
 
 
 ================================================================== \endcode */}
@@ -1762,7 +1788,7 @@ INF_workflow_models         load model in temp.dir at startup
 
 ------ main-startup:
 main                      ../xa/xa_main.c
-  AP_get_dir__    // set OS_get_tmp_dir OS_get_cfg_dir OS_get_doc_dir OS_get_ico_dir
+  AP_get_dir__    // set AP_get_tmp_dir AP_get_cfg_dir AP_get_doc_dir AP_get_ico_dir
   // if cfg_<os>/gCAD3D.rc does not exist:
   //   UX: extract examples.gz and rename dir. /cfg/ /cfg_Linux/ or /cfg_MS/
   //   MS: copy config-files from \cfg\ -> \cfg_MS\.
@@ -1770,6 +1796,8 @@ main                      ../xa/xa_main.c
   //   dirLocal is base of tmp, dat, cfg_<os>, ctlg, prg
     AP_defaults_write  create cfg_<os>/xa.rc
     AP_defaults_dir    create file cfg_<os>/dir.lst = symDirs Data, CATALOG, APPLI
+
+  AP_defaults_read        // read Defaults from <base>/cfg/xa.rc
   UI_win_main             create main-window
     UI_GL_draw__            callback OpenGL-startup
       AP_init__                 startup (UI_GL_draw__
@@ -1802,6 +1830,8 @@ WC_Work1                      execute codeline
       APT_decode_pt
       APT_decode_bsp_
       APT_decode_ccv__
+      APT_decode_sur
+        APT_decode_spl        decode planar surf
     APT_Draw__                display
       APT_DrawCurv
   APT_work_AppCodTab          do eg HIDE VIEW MODSIZ DEFTX EXECM ..
@@ -1821,6 +1851,16 @@ select-process                INF_workflow_select
 ================================================================== \endcode */}
 void INF_workflow_events (){        /*! \code
   main-events
+
+------------------- init:
+UI_GL_draw__        | AP_stat.sysStat < 3
+MDL_load_main       |
+UI_men__ ("new")    |
+UI_men__ ("open")   |
+UI_open_last        |
+GR_mdMock_imp
+  AP_mdl_init (0);    init all, kill all files in <tmpDir>
+
 
 ------------------- OpenGL-Events:
 UI_GL_draw__          Redraw whole scene
@@ -2239,11 +2279,11 @@ CAD-GUI:
 
 ../gui/gui_base.c          interface-functions
 
-
 ../gui_gtk2/               Gtk2-sources
 ../gui_gtk2_MS             MS-Win-Gtk2-sources
 ../gui_gtk3/               Gtk3-sources
 
+INF_MSG_new                messages, tooltips
 
 
 ---------------------------------------------
@@ -2343,38 +2383,25 @@ cscope              /usr/bin/cscope, source-file admin program
 void INF_debug (){        /*! \code
  \code
 
+MSG_ERR__                 see INF_DEB_MSG_ERR
 
 see below:
-DEB_dump_obj__            DEB_dump_ox_0 ..
-MSG_ERR__
-DEB_stop                  (conditional) stop in gdb;
-                          see also  UI_wait_time UI_wait_Esc__ ERR_raise
-DEB_exit                  exit prog; disp func and lineNr
+DEB_dump_obj__            dump binary obj; DEB_dump_ox_0 ..
+
 printd                    DEB_prt_init ..
-LOG_A__                   LOG_A_init LOG_A_exit ..
 
+LOG_A__                   write Logfile; LOG_A_init LOG_A_exit ..
 
+DEB_stop                  (conditional) stop in gdb;
 
--------------- Errormessages: ../xa/xa_msg.h ../xa/xa_msg.c
-MSG_ERR__         errormessage (key, additional_text)      see INF_DEB_MSG_ERR
-MSG_ERR_*
+DEB_exit                  exit prog; disp func and lineNr
 
+DEB_STAT                  int in ../ut/ut_deb.h; 0=skip-debug-writes; 1=write
 
--------------- dump objects:
-DEB_dump_obj__                dump geom. element (2D or 3D) (../ut/ut_dump.c)
-
-DEB_dump_ox_0                 dump object
-DEB_dump_ox_s_                dump obj - structured display
-
-DEB_dump_ox__
-DEB_dump_nobj_1
-DEB_dump_obj_1                dump stru and its pointers, do not resolve.
-
+DEB_std_file              redirect stdout -> file or console
 
 
 -------------- auxFuncs:
-AP_debug__ ("func xy");        stop in debugger and display message
-
 UI_wait_time                   wait <msTim> millisecs or stop with Esc
 
 UI_wait_Esc__                  wait for pressing the Esc-Key
@@ -2383,10 +2410,54 @@ ERR_raise                      exit plugin immediate
 
 
 
+-------------- using MSG_ERR__
+  return MSG_ERR__ (ERR_TEST, "MSH2D_tess__-S3");  // returns with retCode -99
+
+
+
+-------------- using DEB_STAT:
+  DEB_STAT = 1;  // print test-data
+  DEB_STAT = 0;  // skip printing test-data
+
+  // in function printing testdata use:
+  if(!DEB_STAT) return 0;
+
+
+
+-------------- using DEB_std_file:
+DEB_std_file ("/tmp/t1");      direct all printf-text into file /tmp/t1
+printf(..);
+DEB_std_file (NULL);           close file /tmp/t1, direct all printf-text to console
+
+
+-------------- stop:
+if(x==2) DEB_stop ();          stop in debugger; display fnction-name and lineNr
+                               gdb-initfile must contain: "break DEB_halt"
+
+DEB_exit();                    exit prog; disp func and lineNr
+
+AP_debug__ ("func xy");        stop in debugger and display message
+
+
+
+-------------- dump objects:
+DEB_dump_obj__                dump geom. element (2D or 3D) (../ut/ut_dump.c)
+  DEB_dump_obj__ (Typ_CVBSP, (CurvBSpl*)bs1, "B-Spline-Curve");
+
+DEB_dump_ox_0                 dump object
+DEB_dump_ox_s_                dump obj - structured display
+
+DEB_dump_ox__
+DEB_dump_nobj_1
+DEB_dump_obj_1                dump stru and its pointers, do not resolve.
+DEB_dump_pTab
+
+
+
 -------------- debugging-output:
 // Write into file <tempDir>/debug.dat (not active if -DDEB is not ON):
 DEB_prt_init (1);           // open debugfile
-  printd (...);             // print into debugfile
+  printd (...);             // print into debugfile /tmp/
 DEB_prt_init (0);           // close debugfile
 
 
@@ -2400,11 +2471,9 @@ DEB_prt_init (0);           // close debugfile
 vi <tmpdir>/tmp/debug.dat
 
 
-DEB_std_file                   redirect stdout -> file or back
-
 
 --------------------------------------------
-Debug-file for applications:
+Log-file:
 
   LOG_A_init ("appNam");
 
@@ -2434,6 +2503,8 @@ void INF_DEB_MSG_ERR (){        /*! \code
 
 Errormessages: ../xa/xa_msg.h ../xa/xa_msg.c
 
+MSG_ERR__         errormessage (key, additional_text)
+
 MSG_ERR__                      errormessage (key, additional_text)
 MSG_ERR_out                    internal; MSG_ERR__ -> TX_Error ..
 
@@ -2448,12 +2519,15 @@ AP_err_hide_set                enable/disable errormessages
 
 #include "../xa/xa_msg.h"              // MSG_*
 
-return MSG_ERR__ (ERR_func_not_impl, "COFF2-sharp-edges");
-return MSG_ERR__ (ERR_EOM, "COFF2-sharp-edges");
-return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
-return MSG_ERR__ (ERR_EOM, "varnam");            // out of mem
-return MSG_ERR__ (ERR_TEST, "label");            // testExit
-
+Example:
+  MSG_ERR__ (ERR_file_open, "'%s'", ofid);
+  return MSG_ERR__ (ERR_func_not_impl, "/ MOD %d cvTyp %d", iMod, cvTyp);
+  // returns -94
+  return MSG_ERR__ (ERR_func_not_impl, "COFF2-sharp-edges");
+  return MSG_ERR__ (ERR_EOM, "COFF2-sharp-edges");
+  return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
+  return MSG_ERR__ (ERR_EOM, "varnam");            // out of mem
+  return MSG_ERR__ (ERR_TEST, "label");            // testExit
 
 
 

@@ -462,7 +462,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 
   // save active line into <tmpDir>/selection.txt
-  sprintf(cbuf,"%sselection.txt",OS_get_tmp_dir());
+  sprintf(cbuf,"%sselection.txt",AP_get_tmp_dir());
   UTF_wrf_line (actlNr, cbuf);
 
 
@@ -1495,8 +1495,8 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   char   f1[160], f2[160];
 
-  sprintf(f1,"%sselection.txt",OS_get_tmp_dir());
-  sprintf(f2,"%sselection1.txt",OS_get_tmp_dir());
+  sprintf(f1,"%sselection.txt",AP_get_tmp_dir());
+  sprintf(f2,"%sselection1.txt",AP_get_tmp_dir());
 
   if(!mode) OS_file_copy (f1, f2);
   else      OS_file_copy (f2, f1);
@@ -2312,7 +2312,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
   // printf("EDMPT_wri_src |%s|\n",cBuf);
 
-  sprintf(fnam,"%sselection.txt",OS_get_tmp_dir());
+  sprintf(fnam,"%sselection.txt",AP_get_tmp_dir());
   UTX_wrf_str (fnam, cBuf);
 
   return 0;
@@ -2330,7 +2330,7 @@ static FILE      *EDMPT_fp_dep = NULL;
   char    fnam[160];
 
 
-  sprintf(fnam,"%sselection.txt",OS_get_tmp_dir());
+  sprintf(fnam,"%sselection.txt",AP_get_tmp_dir());
 
   l1 = 0;
   irc = UTX_fget_add_MS (cBuf, &l1, bufSiz, fnam);
@@ -2865,7 +2865,7 @@ static FILE      *EDMPT_fp_dep = NULL;
 
 
 
-  sprintf(fnam,"%ssrc_dep.txt",OS_get_tmp_dir());
+  sprintf(fnam,"%ssrc_dep.txt",AP_get_tmp_dir());
   if(depTab->rNr < 2) {
     OS_file_delete (fnam);
     return 0;

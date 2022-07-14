@@ -75,7 +75,7 @@ _ipatch  indexed fan or stripe;                GL_set_ipatch
 _fac     n faces (Fac3 = indexed triangle);    GL_set_nfac_V1
 
 //----------------------------------------------------------------
-- ifac   n indexed faces with vectors;         GL_set_nifac_V1
+_nifac   n indexed faces with vectors;         GL_set_nifac_V1
 
 
 

@@ -60,12 +60,13 @@ MDL_typInf               infoText from modeltype
 ================================================================== \endcode */}
 void INF_sourceObjects (){        /*! code
 INF_sourceObjects   text;expressions            eg "P12" "DZ" "L(P10 D(0 0 1))"
+see 
 
 L(P10 D(0 0 1))    is a dynamic object  osrc
 
 AP_stru_2_txt
 AP_obj_add_vc
-
+GSRC_gsc_gsrc_ln   Geometric-Source-Relocatable-Code to Geometric-Source-Code
 
 ================================================================== \endcode */}
 void INF_objectIDs (){        /*! code

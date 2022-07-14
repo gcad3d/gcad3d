@@ -178,7 +178,7 @@ extern MemObj UIw_Box_TB;    // toolbarBox
 //================================================================
 // LOCAL DATA
 
-#define VERSION "1.1"
+#define VERSION "prc_cut1__ V1.1"
 
 #define iAtt_rp      20     // rapid; without tool
 #define iAtt_cut     21     // cut  (with tool)
@@ -250,7 +250,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
 
   // printf("------------- prc_cut1 V-%s ----------------------------- \n",VERSION);
-  if(iFnc>=0)printf("PRCE__ |%s|%s| iFnc=%d\n",NCCmdTab[iFnc],data,iFnc);
+  // if(iFnc>=0)printf("PRCE__ |%s|%s| iFnc=%d\n",NCCmdTab[iFnc],data,iFnc);
   // else printf("PRCE__ %d |%s|\n",iFnc,data);
   // printf("  PRCE_mode=%d\n",PRCE_mode);
   // printf("  rapid=%d tlActNr=%d\n",rapid,tlActNr);
@@ -920,11 +920,11 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   int   i1;
 
 
-  printf("PRCE_func__ |%s|\n",data);
 
 
   //----------------------------------------------------------------
   if(!strncmp(data, "INIT__", 6)) {
+    TX_Print(".. start %s",VERSION);
 
     // report cmdTab
     PRC_set_CmdTab (NCCmdTab);
@@ -959,6 +959,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   } else if(!strncmp(data, "EXIT__", 6)) {
     // VWR needs no CmdTab ..
     PRC_set_CmdTab (NULL);
+    TX_Print(".. close %s",VERSION);
 
 
   //----------------------------------------------------------------
@@ -1395,7 +1396,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
   char    s1[64]="", s2[64]="", s3[64]="";
 
-  printf("PRCE_Out_write_ln |%s| %f %f %f\n",wTyp,actPos.x,actPos.y,actPos.z);
+  // printf("PRCE_Out_write_ln |%s| %f %f %f\n",wTyp,actPos.x,actPos.y,actPos.z);
 
 
   // strcpy (outBuf, wTyp);
@@ -1637,9 +1638,9 @@ static int pp_id=0;
 
   // list files -> postprocessors -> file
   // dir to search
-  sprintf(s1, "%splugins%c%s",OS_get_bin_dir(),fnam_del,&sproc[4]);
+  sprintf(s1, "%splugins%c%s",AP_get_bin_dir(),fnam_del,&sproc[4]);
   // outfilnam
-  sprintf(s2, "%spostproc.lst",OS_get_tmp_dir());
+  sprintf(s2, "%spostproc.lst",AP_get_tmp_dir());
   i1 = UTX_dir_listf (s2, s1, NULL, NULL);
     // printf(" nrFiles=%d\n",i1);
 
@@ -1675,7 +1676,7 @@ static int pp_id=0;
     // APT_Init, Pock_Init__
     // open outfile nc.apt
     if(PRCE_fpo == NULL) { 
-      sprintf(outBuf,"%snc.apt",OS_get_tmp_dir());
+      sprintf(outBuf,"%snc.apt",AP_get_tmp_dir());
       if ((PRCE_fpo = fopen (outBuf, "w")) == NULL) {
         TX_Error ("PRCE_pp__ open file %s ****",outBuf);
         return -1;
@@ -1693,7 +1694,7 @@ static int pp_id=0;
     // close outfile nc.apt
     // // WC_PP_open (0);
     if(PRCE_fpo != NULL) {
-      sprintf(outBuf,"%snc.apt",OS_get_tmp_dir());
+      sprintf(outBuf,"%snc.apt",AP_get_tmp_dir());
       TX_Print ("NC-APT exported into file %s",outBuf);
 
       fprintf(PRCE_fpo,"%s\n","FINI");
@@ -1713,9 +1714,9 @@ static int pp_id=0;
 
   // delete logfile
 #ifdef _MSC_VER
-  sprintf(fnLog,"\"%snc.log\"",OS_get_tmp_dir());
+  sprintf(fnLog,"\"%snc.log\"",AP_get_tmp_dir());
 #else
-  sprintf(fnLog,"%snc.log",OS_get_tmp_dir());
+  sprintf(fnLog,"%snc.log",AP_get_tmp_dir());
 #endif
     printf("delete %s ..\n",fnLog);
   OS_file_delete (fnLog);
@@ -1723,12 +1724,12 @@ static int pp_id=0;
 
   // system "<pp> <infilnam>"
 #ifdef _MSC_VER
-    sprintf(memspc011, "cd \"%splugins%c%s\" && %s \"%s\"",
-      OS_get_bin_dir(),fnam_del,&APP_act_proc[4], spprc, outBuf);
+    sprintf(memspc011, "CMD /C \"cd \"%splugins%c%s\" && %s \"%s\"\"",
+      AP_get_bin_dir(),fnam_del,&APP_act_proc[4], spprc, outBuf);
     
 #else
     sprintf(memspc011, "%splugins%c%s%c%s %s",
-      OS_get_bin_dir(),fnam_del,&APP_act_proc[4],fnam_del,spprc,outBuf);
+      AP_get_bin_dir(),fnam_del,&APP_act_proc[4],fnam_del,spprc,outBuf);
 #endif
       printf("%s\n",memspc011);
     OS_system (memspc011);
@@ -1737,7 +1738,7 @@ static int pp_id=0;
 
   //----------------------------------------------------------------
   // display pp-output <temp>/nc.log
-  sprintf(fnLog,"%snc.log",OS_get_tmp_dir());
+  sprintf(fnLog,"%snc.log",AP_get_tmp_dir());
   TX_file_Print (fnLog);
 
 

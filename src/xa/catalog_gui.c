@@ -131,7 +131,7 @@ APT_work_PrgCmd   :4217
 #include "../xa/xa_msg.h"              // MSG_cancel,
 #include "../xa/mdl__.h"               // SIZMF*
 
-#include "../ut/ut_os.h"               // OS_get_bas_dir
+#include "../ut/ut_os.h"               // AP_get_bas_dir
 #include "../db/ut_DB.h"               // DB_get_ModRef
 
 
@@ -200,7 +200,7 @@ APT_work_PrgCmd   :4217
 
 
   // copy <cfg>/Default.ctlg <CATALOG>/<cNam>.ctlg
-  sprintf(s1,"%sDefault.ctlg",OS_get_cfg_dir());
+  sprintf(s1,"%sDefault.ctlg",AP_get_cfg_dir());
   OS_file_copy (s1, cbuf0);    // copy from to
   TX_Print("create catalog-File %s",cbuf1);
 
@@ -254,7 +254,7 @@ APT_work_PrgCmd   :4217
 
   CTLG_Lst_write (); // create tmp/Catalog.lst
   // display Liste of <symDir-CATALOG>/*.ctlg for userSelection
-  sprintf(fnam,"%sCatalog.lst",OS_get_tmp_dir());
+  sprintf(fnam,"%sCatalog.lst",AP_get_tmp_dir());
 
   // GUI_List1 (" select Catalog", fnam, (void*)CTLG_Mod_CB);
 
@@ -338,7 +338,7 @@ APT_work_PrgCmd   :4217
   CTLG_Lst_write (); // create tmp/Catalog.lst
 
   // let user select from list of <symDir-CATALOG>/*.ctlg
-  sprintf(fnam,"%sCatalog.lst",OS_get_tmp_dir());
+  sprintf(fnam,"%sCatalog.lst",AP_get_tmp_dir());
   i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"delete Catalog\"", "\"x40,y30\"");
   if(i1 < 0) return -1;
 

@@ -101,13 +101,13 @@ void TX_Print (char* txt, ...) { printf("%s\n",txt); }
 
 
 //================================================================
-  char* OS_get_tmp_dir () {
+  char* AP_get_tmp_dir () {
 //================================================================
 /// returns tempDir (with closing '/')  <gcad_dir_local>tmp/
 
-static char* os_tmp_dir = "/tmp/";
+static char* AP_tmp_dir = "/tmp/";
 
-  return os_tmp_dir;
+  return AP_tmp_dir;
 
 }
 

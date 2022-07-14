@@ -39,8 +39,9 @@ NEEDS:
 =====================================================
 List_functions_start:
 
-UtxTab_NEW         setup of a new StringList
+UtxTab_NEW         setup of a new StringList (= _UTXTAB_NUL)
 UtxTab_IS_NEW      check if UtxTab is new or already has memspc
+UtxTab_null        primary init TxtTab (= UtxTab_NEW)
 
 UtxTab_init__      init / clear all words; automatic alloc/realloc
 UtxTab_init_Memspc init / clear all words; fixed space in Memspc; no reallocate
@@ -282,7 +283,7 @@ TxtTab txTab1 = _UTXTAB_NUL;
   va_list va;
   char    TX_buf1[1024];
 
-
+  printf("TX_Print-ut_txTab |%s|\n",txt);
 
   va_start(va,txt);
   vsprintf(TX_buf1,txt,va);
@@ -712,7 +713,7 @@ int DEB_dump_ox_s_ (void *oxi, char *txt) { return 0; }
   tab->ind[0] = 0;
   tab->tab[0] = '\0';  // erstes Wort terminieren
 
-    UtxTab_dump (tab, "ex-UtxTab_init_spc");
+    // UtxTab_dump (tab, "ex-UtxTab_init_spc");
 
   return 0;
 
@@ -921,7 +922,7 @@ int DEB_dump_ox_s_ (void *oxi, char *txt) { return 0; }
 //================================================================
 
   int        i1, i2, ii;
-  char       s1[256], s2[16];
+  char       s1[256], s2[16], *p1;
   UtxTab_NEW (ttb);
 
 
@@ -950,6 +951,20 @@ int DEB_dump_ox_s_ (void *oxi, char *txt) { return 0; }
 
 
   UtxTab_dump (&ttb, "");
+
+  // loop tru list
+  i1 = 0;
+  for(;;) {
+    p1 = UtxTab__(i1, &ttb);
+    if(!p1) break;
+    printf(" s[%d]=|%s|\n",i1,p1);
+    ++i1;
+  }
+
+
+
+
+
   UtxTab_free (&ttb);              // free mem
   return 0;
 

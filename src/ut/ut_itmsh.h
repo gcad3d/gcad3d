@@ -76,23 +76,26 @@ typedef struct {int ipt[2];}                                        Edge;
 typedef struct {int i1, i2;}                                        Edg3;
 
 
-/// \brief Typ_EdgeLine
-/// \code
-///  iNr    nr of objects in ia
-///  ia     Indexes into pointTable
-///  typ    MSHIG_EDGLN_*    see ../ut/ut_face.h
-///  aux    for MSH_PATCH: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
-/// \endcode
-typedef struct {int *ia, iNr; char typ, aux, stat;}                 EdgeLine;
+// replaced by IntTab
+// /// \brief Typ_IntTab
+// // better use struct IndTab
+// /// \code
+// ///  iNr    nr of objects in ia
+// ///  ia     Indexes into pointTable
+// ///  typ    MSHIG_EDGLN_*    see ../ut/ut_face.h
+// ///  aux    for MSH_PATCH: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
+// //   stat   0=default; 1=overlapped; 2=overlapping
+// /// \endcode
+// typedef struct {int *ia, iNr; char typ, aux, stat;}                 IntTab;
 
 
 /// \code
 /// eTyp[eNr]: NULL=undefined
 ///            0=internalEdge       (Edge*)
 ///            1=boundaryEdge       (Edge*)
-///            2=EdgeLine           (EdgeLine*)
-///            3=InnerBound         (EdgeLine*)
-///            4=OuterBound         (EdgeLine*)
+///            2=IntTab           (IntTab*)
+///            3=InnerBound         (IntTab*)
+///            4=OuterBound         (IntTab*)
 /// \endcode
 typedef struct {Edge *eTab; int eNr; char *eTyp;}                   Edges;
 
@@ -119,7 +122,7 @@ typedef struct {int ipt, nbsid;}                                    SegBnd;
 /// vxSt    index to startPoint
 /// vxNr    nr of points following startPoint
 /// surNb   surfaceIndex of neighbourSurface (surf-record in BODY)
-/// see also EdgeLine
+/// see also IntTab
 /// \endcode
 typedef struct {int vxSt, vxNr, vxMax, surNb;}                      EdgSur;
 */
@@ -129,7 +132,7 @@ typedef struct {int vxSt, vxNr, vxMax, surNb;}                      EdgSur;
 /// \code
 /// suID    surface-ID (DB-index A)
 /// contNr  contour-nr; first1=1, ..
-/// typb    MSH_EDGLN_BL   2 EdgeLine (BreakLine)
+/// typb    MSH_EDGLN_BL   2 IntTab (BreakLine)
 ///         MSH_EDGLN_IB   3 InnerBound
 ///         MSH_EDGLN_OB   4 OuterBound
 ///         MSHIG_EDGLN_AB   5 OuterBound - automatic created
@@ -198,7 +201,13 @@ void   UT3D_tria_fac(Triang*, Fac3*, Point*);
 
 
 //----------------------------------------------------------------
-// struct for nifac
+// struct for nifac (indexed-faces)
+// init MshFac with _MSHFAC_NUL
+// oTyp    type of surface; 
+// ipa     indexarray paralle fac; can be NULL - use only indexes of Fac3
+// vca     normalVectors; one for every point; if (oTyp==Typ_SURPLN) only one vector
+// mSpc    memSpc for fac,pa3,ipa,vc3; must be freed if(mSpc) UME_free
+
 typedef struct {int     fNr,       // nr of faces
                         ptNr,      // nr of points
                         oTyp;      // type of surface
@@ -206,7 +215,7 @@ typedef struct {int     fNr,       // nr of faces
                 Point   *pa3;      // 3D-points
                 int     *ipa;      // index to points
                 Vec3f   *vc3;      // normalVectors; one for every point
-                Memspc   mSpc;     // memSpc for fac,pa3,ipa,vc3
+                Memspc   mSpc;     // memSpc for fac,pa3,ipa,vc3;
                }                                          MshFac;
 
 // see also struct MshDat MshSur
@@ -225,7 +234,7 @@ typedef_MemTab(Vec3f);
 typedef_MemTab(Line2);
 typedef_MemTab(Line);
 typedef_MemTab(Fac3);
-typedef_MemTab(EdgeLine);
+typedef_MemTab(IntTab);
 typedef_MemTab(IndTab);
 typedef_MemTab(IgaTab);
 typedef_MemTab(ObjDB);
@@ -240,6 +249,6 @@ typedef_MemTab(ObjGX);
 // #define MemTab_Vec3f MemTab
 // #define MemTab_Line MemTab
 // #define MemTab_Fac3 MemTab
-// #define MemTab_EdgeLine MemTab
+// #define MemTab_IntTab MemTab
 // #define MemTab_IndTab MemTab
 // EOF

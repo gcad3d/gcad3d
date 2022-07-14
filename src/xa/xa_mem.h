@@ -6,7 +6,6 @@ extern char memspc011[1024];   // 1-K-Bloecke
 extern char memspc012[1024];
 
 extern char memspc251[25000];   // 25-K-Block-1
-// extern MemTab MemTab_spc251;    // memspc251
 
 extern char memspc50[50000];   // 50-K-Bloecke
 extern char memspc51[50000];

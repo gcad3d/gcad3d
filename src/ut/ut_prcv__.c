@@ -174,6 +174,8 @@ PRCV0 is used for:
 #include "../ut/ut_memTab.h"              // MemTab
 #include "../ut/ut_prcv__.h"              // 
 #include "../ut/ut_os.h"                  // OS_ ..
+#include "../ut/ut_deb.h"                 // DEB_*
+
 #include "../db/ut_DB.h"                  // UTO__dbo
 #include "../gr/ut_gr.h"               // GR_tDyn_pcv
 #include "../xa/xa_mem.h"                 // memspc*
@@ -721,6 +723,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
     // DEB_dump_obj__ (Typ_PRCV, prc1, " ex-PRCV_get_dbo_add_tc-prc1 ");
     // PRCV_dump__ (2, prc1, " prc1");
     // printf("ex PRCV_get_dbo_add_tc    ccccccccccccccccccccccccccc\n\n");
+    // DEB_exit();
     // END TESTBLOCK
 
 
@@ -749,7 +752,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   int     irc, ii, i1, i2, siz;
 
 
-  // printf("PRCV_get_tc_add_prc ptNr=%d ips=%d idir=%d\n",ptNr,ips,idir);
+  // printf("\nPRCV_get_tc_add_prc ptNr=%d ips=%d idir=%d\n",ptNr,ips,idir);
   // DEB_dump_obj__ (Typ_PRCV, prc1, "tc_add_prc-prc1");
   // DEB_dump_obj__ (Typ_PRCV, prc2, "tc_add_prc-prc2");
   // PRCV_dump__ (2, prc2, " prc2");
@@ -847,13 +850,16 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 /// \endcode
 
   int      ii, i1;
-  double   vx1, vx2, tol = UT_TOL_min0;
+  double   vx1, vx2;
+  double   tol = UT_TOL_Ang1;  // tolerance parameter
+  // UT_TOL_min0 problem with STP/Binstest_reiter.stp - vx=1.000092 for 1.0 at ellipse
 
 
 
-  // printf("PRCV_get_tc_find vx=%lf ipdb=%ld\n",vx,ipdb);
+  // printf("\nPRCV_get_tc_find vx=%lf ipdb=%ld\n",vx,ipdb);
   // DEB_dump_obj__ (Typ_PRCV, prc, " _tc_find");
   // PRCV_dump__ (2, prc, " _tc_find");
+  // printf(" tol=%f\n",tol);
 
 
   ii = -1;
@@ -1375,7 +1381,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   //----------------------------------------------------------------
   L_basCv:
     // set PRCV of basecurve
-    irc =  PRCV_set_basCv (form, obj, dbi, mdli);
+    irc =  PRCV_set_basCv (form, obj, oNr, dbi, mdli);
     if(irc < 0) return irc;
     
 
@@ -1830,9 +1836,9 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 }
 
  
-//================================================================
-  int PRCV_set_basCv (int form, void *cvBas, long dbi, int mdli) {
-//================================================================
+//=========================================================================
+  int PRCV_set_basCv (int form, void *cvBas, int oNr, long dbi, int mdli) {
+//=========================================================================
 // create PRCV for basicCurve
 
   int       irc, i1, ptNr, tabSiz, siz;
@@ -1841,8 +1847,9 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   // CurvPrcv  prc;
 
 
-  // printf("PRCV_set_basCv form=%d dbi=%ld mdli=%d\n",form,dbi,mdli);
-  // DEB_dump_obj__ (form, cvBas, " PRCV_set_basCv ");
+  // printf("PRCV_set_basCv form=%d oNr=%d dbi=%ld mdli=%d\n",form,oNr,dbi,mdli);
+  // DEB_dump_obj__ (form, cvBas, "PRCV_set_basCv-in");
+  // DEB_dump_nobj__ (form, oNr, cvBas, " PRCV_set_basCv ");
 
 
   //----------------------------------------------------------------
@@ -1896,7 +1903,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
   //----------------------------------------------------------------
   // get points -> PRCV0.npt
   ptNr = 0;
-  irc = UT3D_npt_obj (&ptNr, PRCV0.npt, tabSiz, form, cvBas, 1, UT_DISP_cv, 0);
+  irc = UT3D_npt_obj (&ptNr, PRCV0.npt, tabSiz, form, cvBas, oNr, UT_DISP_cv, 0);
   PRCV0.ptNr = ptNr;
   if(irc < 0) return -1;
     // printf(" npt_cvCut irc=%d ptNr=%d\n",irc,ptNr);
@@ -2194,7 +2201,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 //================================================================
 //================================================================
 
-#ifdef DEB
+// #ifdef DEB
 
 
 
@@ -2306,6 +2313,7 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 }
 
 
-#endif
+// #endif
+
 
 // EOF

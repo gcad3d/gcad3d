@@ -164,7 +164,7 @@ cc  ut_txfil.c -Wall ../gCAT/TX.o ../gCAT/ut_txt.o ../gCAT/ut_geo.o\
 #include "../ut/ut_TX.h"       // TX_Print
 #include "../ut/ut_txfil.h"
 #include "../ut/ut_memTab.h"           // MemTab
-#include "../ut/ut_os.h"                // OS_get_tmp_dir
+#include "../ut/ut_os.h"                // AP_get_tmp_dir
 
 #include "../xa/xa_mem.h"               // mem_cbuf1
 #include "../xa/xa_msg.h"               // DEB_mcheck__
@@ -282,7 +282,7 @@ int UTF_ut_dispDat () {
 
   char   fn[320];
 
-  sprintf(fn, "%sMod_.tmp_utf", OS_get_tmp_dir());
+  sprintf(fn, "%sMod_.tmp_utf", AP_get_tmp_dir());
   UTF_wri_file (fn, NULL);
   UTF_clear_ ();
 
@@ -297,7 +297,7 @@ int UTF_ut_dispDat () {
 
   char   fn[320];
 
-  sprintf(fn, "%sMod_.tmp_utf", OS_get_tmp_dir());
+  sprintf(fn, "%sMod_.tmp_utf", AP_get_tmp_dir());
   UTF_add_fil_0 (fn);
 
   return 0;
@@ -470,7 +470,7 @@ int UTF_ut_dispDat () {
   // printf("UTF_file_Buf1_att |%s| %d\n",modNam,modSiz);
 
 
-  sprintf(fNam,"%sModel_%s",OS_get_tmp_dir(),modNam);
+  sprintf(fNam,"%sModel_%s",AP_get_tmp_dir(),modNam);
     // printf(" fNam=|%s|\n",fNam);
 
   // write Line -> File
@@ -935,13 +935,16 @@ int UTF_ut_dispDat () {
 //============================================================================
   int UTF_dump__ (char *txt) {
 //============================================================================
-/// UTF_dump__          display memInhalt
+// UTF_dump__          display memInhalt
+// ATTENTION: CRASH in MS !
 
 
+#ifndef _MSC_VER
   printf("UTF_dump__ %s Len=%ld Siz=%ld ==================================\n",
          txt, UTF_FilBuf0Len, UTF_FilBuf0Siz);
   printf("%s\n",UTF_FilBuf0);
   printf("UTF_dump__ End ========================================\n");
+#endif
   return 0;
 
 }
@@ -950,13 +953,16 @@ int UTF_ut_dispDat () {
 //============================================================================
   int UTF_dump1__ () {
 //============================================================================
-/// UTF_dump1__          display memInhalt of Buffer1
+// UTF_dump1__          display memInhalt of Buffer1
+// ATTENTION: CRASH in MS !
 
 
+#ifndef _MSC_VER
   printf("UTF_dump1__ %ld %ld ==================================\n",
          UTF_FilBuf1Len,UTF_FilBuf1Siz);
   if(UTF_FilBuf1) printf("%s\n",UTF_FilBuf1);
   printf("UTF_dump1__ End ========================================\n");
+#endif
   return 0;
 
 }
@@ -1950,8 +1956,8 @@ int UTF_ut_dispDat () {
   newLen = UTF_FilBuf1Len + strlen(txt);
 
 
-  // printf("UTF_add1_line newLen=%ld actLen=%ld\n",newLen,UTF_FilBuf1Len);
   // printf("UTF_add1_line |%s| l=%d Len=%ld\n",txt,strlen(txt),UTF_FilBuf1Len);
+  // printf("UTF_add1_line newLen=%ld actLen=%ld\n",newLen,UTF_FilBuf1Len);
   // printf(" %d %d\n",strlen(term_buf),term_anz);
 
 

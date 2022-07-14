@@ -1,3 +1,30 @@
+Version 2.48.00 / 2022-07-15
+
+- Iges-import: Parametric Spline Curve typ 112 added
+- Iges-import: bugfix "supporting Rational B-Spline Surface 128"
+- Dxf-Import:  bugfix "MS-Win - scale CIRCLE"
+- Application: bugfix "Start Application - initial directory not set"
+- Remote: Testprogram for remote-control added (menu Remote/Select ..)
+- CAD-subModels-internal: bugfix "save after subModels/move main"
+- CAD-S-Polygon-rectangle changed to Polygon-4-side-quadrilateral;
+    trapezium, rhombus, kite added.
+- new gcad3d-background-processing; ../BG/gcadBG_test1.mak, ../BG/bggro.c
+- new plugin gMsh1 (GIS-Meshes from files with point- and boundary-coordinates)
+    see http://www.gcad3d.org/doc/gMsh1.txt
+- LandXML-Import added (import PntList3D, Faces)
+- option screencast ON for Gtk2 added
+- bugfix "Process create - no processname in browser"
+- bugfixes Win10
+- new section "HowtoVideos" in gcad3d.org
+
+Release-Notes:
+- primary GUI-Version changed to Gtk2; Gtk3 does not support OpenGL-legacy-mode.
+
+Programlines (C)  503150
+Functions           5055
+
+
+===========================================================================
 Version 2.46.26 / 2022-03-04
 
 - new code ATTL - definition of new linetypes (doc. see Codes and Formats/Attributes)

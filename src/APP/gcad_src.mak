@@ -64,6 +64,7 @@ SRCB = \
 
 # sourcen; bei denen keine abhaengigkeit erforderlich ist.
 # ../gtk/ut_gtk1.c  ../gtk/ut_gtked.c ../gtk/ut_gtktx.c
+# for BG gcad3d_src_core.mak
 #
 SRC1 =\
   ../xa/xa.c\
@@ -92,8 +93,8 @@ SRC1 =\
   ../ut/ut_obj.c     ../ut/ut_txfil.c   ../ut/ut_txt.c     ../ut/ut_umb.c\
   ../ut/ut_math.c    ../ut/ut_umem.c    ../ut/ut_mem.c     ../ut/ut_box.c\
   ../ut/ut_txTab.c   ../ut/ut_int.c     ../ut/ut_uti.c     ../ut/byteorder.c\
-  ../ut/ut_memTab.c  ../ut/ut_memTab1.c ../ut/ut_os__.c    ../ut/ut_BitTab.c\
-  ../ut/deb_prt.c    ../ut/tstf__.c
+  ../ut/ut_memTab.c  ../ut/ut_memTab1.c ../ut/itab.c       ../ut/ut_BitTab.c\
+  ../ut/deb_prt.c    ../ut/tstf__.c     ../ut/ut_os__.c
 
 # ../xa/xa_mod_gui.c
 # ../xa/xa_mod.c      replaced by ../xa/mdl__.c
@@ -111,11 +112,12 @@ SRCA =\
   ../exp/csv_ut.c    ../exp/print_pdf.c\
   ../exp/ds3_r.c     ../exp/ige_w.c     ../exp/prt_w.c\
   ../exp/lwo_r.c\
-  ../exp/lxml.c\
   ../gr/ut_gr.c      ../gr/ut_GL.c      ../gr/ut_DL.c      ../gr/ut_gtx.c\
   ../gr/gru.c        ../gr/ut_dim.c\
   ../gr/gr_sSym.c    ../gr/gl_solids.c
 
+
+# ../exp/lxml.c\
 # ../wc/wcut.c      ../wc/wc_pock.c    ../wc/ut_nc.c\
 # ../ci/NC_drill.c\
 # ../xa/nct.c\

@@ -1955,7 +1955,7 @@ char  *ObjCodTab[] = {
   static int lG1[] = {Typ_LN, Typ_CI, Typ_CV, Typ_PLN, Typ_SUR, Typ_SOL, 0};
 
   // Typ_go_PD       PT|VC
-  static int lPD[] = {Typ_PT, Typ_CV, 0};
+  static int lPD[] = {Typ_PT, Typ_VC, 0};
 
   // Typ_goGeo5      C|Ell|Plg|Bsp|CCV         NOT D,P,L,A,B
   static int lG5[] = {Typ_CI, Typ_CV, 0};
@@ -2094,6 +2094,7 @@ char  *ObjCodTab[] = {
   L_ok:
 
     // printf("ex-AP_typ__ck_ato__ %d\n",typ);
+
   return typ;
 
 }

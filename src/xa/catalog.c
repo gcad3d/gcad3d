@@ -161,7 +161,7 @@ APT_work_PrgCodTab
 #include "../ut/ut_cast.h"             // INT_PTR
 
 #include "../ut/func_types.h"              // UI_FuncSet
-#include "../ut/ut_os.h"              // OS_get_bas_dir
+#include "../ut/ut_os.h"              // AP_get_bas_dir
 #include "../db/ut_DB.h"              // DB_get_ModRef
 
 #include "../ut/ut_memTab.h"           // MemTab
@@ -203,7 +203,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
 
   // check if file tmp/Catalog.lst exists; no: create it.
-  sprintf(cfn,"%sCatalog.lst",OS_get_tmp_dir());
+  sprintf(cfn,"%sCatalog.lst",AP_get_tmp_dir());
   if(!OS_checkFilExist(cfn, 1)) {
     CTLG_Lst_write ();         // create <tmp>/Catalog.lst
     CTLG_catParts__ (NULL);    // create empty CatParts.lst
@@ -215,7 +215,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   L_start:
 
   // check if file CatParts.lst, exists; if not - goto select catalog
-  sprintf(cpn,"%sCatParts.lst",OS_get_tmp_dir());
+  sprintf(cpn,"%sCatParts.lst",AP_get_tmp_dir());
   if(!OS_checkFilExist(cpn, 1)) goto L_sel_ctlg;
 
   // let user select catPart or other catalog
@@ -230,7 +230,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   //================================================================
   // catalog selected - change
   L_sel_ctlg:
-  sprintf(cfn,"%sCatalog.lst",OS_get_tmp_dir());
+  sprintf(cfn,"%sCatalog.lst",AP_get_tmp_dir());
   i1 = GUI_listf1__ (s1, sizeof(s1), cfn,
                      "\"- select catalogpart -\"", "\"x40,y40,a\"");
   if(i1 < 0) return -1;  // cancel or error
@@ -252,7 +252,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
     // printf(" ctlg-part-select-part |%s|\n",s1);
 
   // get active catalogName
-  sprintf(cfn,"%sCatalog.act",OS_get_tmp_dir());
+  sprintf(cfn,"%sCatalog.act",AP_get_tmp_dir());
   l1 = OS_FilSiz(cfn);
   UTX_str_file (ctlg, &l1, cfn);
 
@@ -306,7 +306,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   //----------------------------------------------------------------
   // write file Catalog.act
   if(ctlgNam) {
-    sprintf(cfn,"%sCatalog.act",OS_get_tmp_dir());
+    sprintf(cfn,"%sCatalog.act",AP_get_tmp_dir());
       printf(" cfn=|%s|\n",cfn);
     UTX_wrf_str (cfn, ctlgNam);
   }
@@ -315,7 +315,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   //----------------------------------------------------------------
   // write parts-file CatParts.lst
   // get oufilename
-  sprintf(pfn,"%sCatParts.lst",OS_get_tmp_dir());
+  sprintf(pfn,"%sCatParts.lst",AP_get_tmp_dir());
     // printf(" _catParts__-pfn=|%s|\n",pfn);
 
 
@@ -371,7 +371,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 }
 
 
-// OBSOLETE
+/* UU
 //================================================================
   int CTLG_fnWrite_modelnam (char *fnam, char *modelnam) {
 //================================================================
@@ -392,14 +392,14 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   strcpy (safNam, modelnam);
   UTX_safeName (safNam, 3);   // keep .
 
-  sprintf(fnam, "%s%s_dat",OS_get_tmp_dir(),safNam);
+  sprintf(fnam, "%s%s_dat",AP_get_tmp_dir(),safNam);
 
     // printf("ex-CTLG_fnWrite_modelnam |%s|%s|\n",fnam,modelnam);
 
   return 0;
 
 }
-
+*/
  
 //================================================================
   int CTLG_fnMdl_safPartNam (char *mdlNam, char *safPartNam) {
@@ -414,7 +414,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
 
   // create filename tmp/<catPart>.dat - eg "Profile_6x4_150_ctlg.dat"
-  sprintf(mdlNam, "%sModel_%s",OS_get_tmp_dir(),safPartNam);
+  sprintf(mdlNam, "%sModel_%s",AP_get_tmp_dir(),safPartNam);
 
     // printf("ex-CTLG_fnMdl_safPartNam |%s|\n",mdlNam);
 
@@ -628,7 +628,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   // create file parameter-data
 
 //   // create filename for parameterfile - tmp/<catalog>_<part>.ctlg_dat
-//   sprintf(fnDat,"%s%s_%s.%s",OS_get_tmp_dir(),ctlgNam,partNam,CATLG_DATFIL_TYP);
+//   sprintf(fnDat,"%s%s_%s.%s",AP_get_tmp_dir(),ctlgNam,partNam,CATLG_DATFIL_TYP);
 //     printf(" fnDat=|%s|\n",fnDat);
 
   // open parameterfile
@@ -702,7 +702,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
 
   // catalog-parameterfiles
-  sprintf(cbuf, "%s*.%s",OS_get_tmp_dir(),CATLG_DATFIL_TYP);
+  sprintf(cbuf, "%s*.%s",AP_get_tmp_dir(),CATLG_DATFIL_TYP);
   OS_file_delGrp (cbuf);
 
   return 0;
@@ -721,7 +721,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
 
   // outfilename
-  sprintf(fnam,"%sCatalog.lst",OS_get_tmp_dir());
+  sprintf(fnam,"%sCatalog.lst",AP_get_tmp_dir());
     // printf(" list=|%s|\n",fnam);
 
 

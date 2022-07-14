@@ -44,6 +44,8 @@ List_functions_end:
 
 #ifdef _MSC_VER
 #include "../xa/MS_Def1.h"
+// necessary for the import of eg UT2D_VECTOR_X (../ut/ut_geo_const.h)
+#define extern __declspec(dllimport)
 #endif
 
 #include <math.h>
@@ -54,6 +56,8 @@ List_functions_end:
 
 
 #include "../ut/ut_geo.h"
+
+
 
 
 
@@ -372,14 +376,16 @@ List_functions_end:
   irc = 0;
   // JA: Kreuzprod. von Haupt-Y-Vektor und Z-Vektor = neue X-Achse;
   UT3D_vc_perp2vc (&vx, (Vector*)&UT3D_VECTOR_Y, vz);
+    // DEB_dump_obj__ (Typ_VC, &vx, " load_mat-vx:");
   UT3D_vc_perp2vc (&vy, vz, &vx);
-    // DEB_dump_obj__ (Typ_VC, &vx, " vx:");
+    // DEB_dump_obj__ (Typ_VC, &vy, " load_mat-vy:");
   goto Load_Matrix;
 
 
   //----------------------------------------------------------------
   // NOT PARALLEL
   Nicht_Z_Parallel:
+    // printf(" load_mat-Nicht_Z_Parallel:\n");
   // cross the world Z axis with the given Z axis to arrive at the arbitrary X axis.
   // Kreuzprod. von Z-Vektor und Haupt-Z-Vektor = neue X-Achse;
     // printf(" _load_mat - NOT Z-parallel %lf\n",d1);
@@ -398,9 +404,10 @@ List_functions_end:
 
 
     // TESTBLOCK
+    // printf(" ex-dxfr_load_mat\n");
     // DEB_dump_obj__ (Typ_VC, &vx, " vx:");
     // DEB_dump_obj__ (Typ_VC, &vy, " vy:");
-    // DEB_dump_obj__ (Typ_M4x3, m1, " irc=%d m1:",irc);
+    // DEB_dump_obj__ (Typ_M4x3, m1, " ex-dxfr_load_mat-irc=%d m1:",irc);
     // END TESTBLOCK
 
   return  irc;

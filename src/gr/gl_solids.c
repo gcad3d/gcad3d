@@ -292,8 +292,8 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
       pa4[ih].z  = dz - z1r;
      
     }
-    GL_set_strip2 (pa1, pa3, hNr, 0);
-    GL_set_strip2 (pa2, pa4, hNr, 0);
+    GL_set_strip_v (pa1, pa3, hNr, 0);
+    GL_set_strip_v (pa2, pa4, hNr, 0);
 
     // Adressen vertauschen ..
     MEM_swap__ (&pa1, &pa3, sizeof(void*));
@@ -492,7 +492,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
 
     GLT_stor_rec (6, NULL, NULL, Typ_SURCON);
-    GL_set_strip2 (pa1, pa2, hNr, 1);
+    GL_set_strip_v (pa1, pa2, hNr, 1);
 
 
 
@@ -668,7 +668,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
     pa1 = pa2;
     pa2 = &pTab[i1];
     i1 += hNr;
-    GL_set_strip2 (pa1, pa2, hNr, 0);
+    GL_set_strip_v (pa1, pa2, hNr, 0);
   }
 
 
@@ -744,6 +744,8 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   //================================================================
   // disp Solid
   L_sol:
+    // printf(" disp_prism-side-surfaces\n");
+
 
 
   //----------------------------------------------------------------
@@ -761,17 +763,19 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   }
 
 
-
   //----------------------------------------------------------------
+
   // check if is contour convex or concave
   iCon = UT3D_isConvx_ptTab (p1Nr, pa1);    // 1=Konvex; -1=Konkav
     // printf(" iCon=%d\n",iCon);
 
   // generieren Basisflaeche
   // MODIFIES pa1;
+    // printf(" disp_prism-bottom-surface\n");
   GR_DrawSup (p1Nr, pa1, iCon);
 
   // generieren Deckflaeche
+    // printf(" disp_prism-top-surface\n");
   GR_DrawSup (p2Nr, pa2, iCon);
 
 

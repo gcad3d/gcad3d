@@ -95,7 +95,7 @@ AP_APT_*
 // #include "../ut/ut_umem.h"                // Memspc MemObj UME_*
 #include "../ut/ut_cast.h"                // INT_PTR
 #include "../ut/ut_txfil.h"               // UTF_*
-#include "../ut/ut_os.h"          // OS_get_tmp_dir
+#include "../ut/ut_os.h"          // AP_get_tmp_dir
 
 #include "../gui/gui__.h"         // GUI_ UI_Func..
 
@@ -177,7 +177,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
   s1 = mem_cbuf1;
   s1Siz = mem_cbuf1_SIZ;
   lNr = ED_lnr_act;
-  sprintf(fnam, "%sselection.txt", OS_get_tmp_dir());
+  sprintf(fnam, "%sselection.txt", AP_get_tmp_dir());
 
   // get line into buffer
   s1Siz = GUI_edi_RdLn (s1, s1Siz, lNr, &winED);
@@ -305,7 +305,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
 
 
     // fix filename for selected text
-    sprintf(s1,"%sselection.txt",OS_get_tmp_dir());
+    sprintf(s1,"%sselection.txt",AP_get_tmp_dir());
       printf(" ED_Del_-fnam:|%s|\n",s1);
 
     if(ctrlOn == 0) {
@@ -325,7 +325,7 @@ extern int       APT_mac_fil; // 1=InputFromMemory; 0=InputFromFile.
     xa_fl_TxMem = 1;   // src modified merken
 
     // fix filename for selected text
-    sprintf(cbuf,"%sselection.txt",OS_get_tmp_dir());
+    sprintf(cbuf,"%sselection.txt",AP_get_tmp_dir());
       // printf(" fnam:|%s|\n",cbuf);
 
     if(KeyStatCtrl == ON) {
@@ -468,7 +468,7 @@ static long cPos;
           // UI_undo_work (0, 0);  // undo last entry .. changed to Ctrl-Z
 
         // } else if(i1 == 2) {  // last was "delete Text"; undelete it.
-          // sprintf(cbuf,"%stmp%cselection.txt",OS_get_bas_dir(),fnam_del);
+          // sprintf(cbuf,"%stmp%cselection.txt",AP_get_bas_dir(),fnam_del);
           // GUI_edi_InsFile (&winED, cbuf);
         // }
         xa_fl_TxMem = 1;         // src modified merken
@@ -1149,7 +1149,7 @@ static long cPos;
   if(PRC_IS_ACTIVE) {
       // printf(" _unload__ - write ed -> file\n");
     // save active process: copy editor -> file
-    sprintf(s1, "%s%s", OS_get_tmp_dir(), APP_act_nam);
+    sprintf(s1, "%s%s", AP_get_tmp_dir(), APP_act_nam);
     ED_save_file (s1);
 
     goto L_exit;

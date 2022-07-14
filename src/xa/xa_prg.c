@@ -42,6 +42,7 @@ PRG_Ed                 Edit active program
 PRG_Loa                make List of all available programs
 PRG_start              (re)run program
 
+PRG_get_prgDir         get symDir "APPLI"
 PRG_win__              main-DLG-Window
 PRG_ButtonPress
 PRG_CB                 CB from List-selection
@@ -114,7 +115,7 @@ APP_act_nam
 // #include "../ut/ut_umem.h"             // UME_save
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../ut/ut_obj.h"              // UTO_stru_2_obj UTO_obj_save
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txfil.h"            // UTF_GetnextLnPos
@@ -207,12 +208,35 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
 //================================================================
+  char* PRG_get_prgDir () {
+//================================================================
+// PRG_get_prgDir         get symDir "APPLI"
+// returns pointer to extern char AP_dir_prg[SIZMFTot]
+//   = full path of prgDir (symDir "APPLI")
+
+  char   *spd;
+
+
+  MDLFN_fDir_syDir (AP_dir_prg, "APPLI");
+
+    // printf(" ex-PRG_get_prgDir |%s|\n",AP_dir_prg);
+
+  return AP_dir_prg;
+
+}
+
+
+//================================================================
   int PRG_Cre__ () {
 //================================================================
 
   int    irc;
   char   s1[SIZFNam], fnam[SIZFNam];
 
+
+  PRG_get_prgDir ();
+
+  printf("PRG_Cre__ |%s|\n",AP_dir_prg);
 
   if(IE_cad_exitFunc()) return -1;
 
@@ -317,15 +341,18 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 // AP_dir_prg
 
   int    i1;
-  char   fnam[SIZFNam+SIZMFNam], s1[256], s2[320];
+  char   fnam[SIZFNam+SIZMFNam], s1[256], s2[320], *p1;
 
-  // printf("PRG_Del |%s|\n",AP_dir_prg);
+
+  PRG_get_prgDir ();
+
+  printf("PRG_Del |%s|\n",AP_dir_prg);
 
 
   if(IE_cad_exitFunc()) return -1;
 
   // create List of all programs ...
-  sprintf(fnam,"%sProgram.lst",OS_get_tmp_dir());
+  sprintf(fnam,"%sProgram.lst",AP_get_tmp_dir());
 
   // list dir/*.typ
   if(UTX_dir_listf (fnam, AP_dir_prg, NULL, ".gcap") < 0) {
@@ -352,6 +379,19 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   OS_file_delete (fnam);
 
 
+  // if deleted file is active: unload.
+  p1 = strchr (s1, '.');
+  if(p1) {
+    i1 = p1 - s1;
+      // printf(" PRG_Del__-i1 %d\n",i1);
+    if(strncmp(APP_act_nam, s1, i1)) goto L_exit;
+  }
+
+  // unload active prg, clear
+  PLU_clear ();
+
+
+  L_exit:
   return 0;
 
 }
@@ -370,6 +410,8 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
   iFunc = GUI_DATA_I1;
+
+  PRG_get_prgDir ();
 
   // printf("PRG_win__ %d %d\n",iFunc,PRG_stat);
 
@@ -462,7 +504,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
     // clear DL (remove all output from macro) 
     GL_Delete (dlAct);
     // fix filename
-    sprintf(cbuf, "%sPRG_ACT.gcad",OS_get_tmp_dir());
+    sprintf(cbuf, "%sPRG_ACT.gcad",AP_get_tmp_dir());
     // add macroSource to mem
     UTF_add_file (cbuf);
     // if MAN is active: update (editor -> mem)
@@ -1228,7 +1270,9 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
   // printf("================================= \n");
-  printf("PRG_start stat=%d |%s|%s|\n",PRG_stat,AP_dir_prg,APP_act_nam);
+  PRG_get_prgDir ();
+
+  // printf("PRG_start stat=%d |%s|%s|\n",PRG_stat,AP_dir_prg,APP_act_nam);
 
   if(IE_cad_exitFunc()) return -1;
 
@@ -1290,7 +1334,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   strcat(cbuf, APP_act_nam);
   strcat(cbuf, ".gcap");
   // sprintf(cbuf, "%s%s.gcap",AP_dir_prg,APP_act_nam);
-    printf(" PRG_start-L1-|%s|\n",cbuf);
+    // printf(" PRG_start-L1-|%s|\n",cbuf);
 
 
   // check if prg exists
@@ -1359,7 +1403,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
   // open outfile PRG_fp
-  sprintf(cbuf, "%sPRG_ACT.gcad",OS_get_tmp_dir());
+  sprintf(cbuf, "%sPRG_ACT.gcad",AP_get_tmp_dir());
     // printf(" outfile |%s|\n",cbuf);
   if((PRG_fp=fopen(cbuf,"w")) == NULL) {
     TX_Print("PRG_start E001 %s",cbuf);
@@ -1573,7 +1617,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
 //================================================================
-  int PRG_CB (char *fnam, char *dirNam) {
+  int PRG_CB (char *fnam) {
 //================================================================
 // CB from List-selection
 // OFFEN:
@@ -1582,7 +1626,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   char cbuf[128];
 
 
-  printf("PRG_CB |%s|%s|\n",fnam,dirNam);
+  // printf("PRG_CB |%s|%s|\n",fnam,AP_dir_prg);
 
 
   if(fnam == NULL) return 0;  // cancel
@@ -1593,11 +1637,6 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
     TX_Print ("***** disactivate active application / plugin ..");
     return -1;
   }
-
-
-  // printf("PRG_CB |%s|%s|\n",fnam,dirNam);
-
-  strcpy(AP_dir_prg, dirNam);
 
 
   // set APP_act_nam, disp prgNam
@@ -1613,7 +1652,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
   PRG_start ();
 
-    printf("ex PRG_CB |%s|%s|\n",AP_dir_prg,APP_act_nam);
+    // printf("ex PRG_CB |%s|%s|\n",AP_dir_prg,APP_act_nam);
 
   return 0;
 
@@ -1629,8 +1668,8 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 // see APP_Open
 
-  int    i1;
-  char   cbuf1[256], cbuf2[256];
+  int    irc, i1;
+  char   cbuf1[256];
 
   // printf("PRG_Loa \n");
   // printf(" AP_dir_prg=|%s|\n",AP_dir_prg);
@@ -1644,8 +1683,9 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
   if(IE_cad_exitFunc()) return -1;
 
+
 /*
-  sprintf(cbuf,"%sprgdir.lst",OS_get_tmp_dir());
+  sprintf(cbuf,"%sprgdir.lst",AP_get_tmp_dir());
   GUI_List2 ("select program",
            AP_dir_prg,           // Pfadname des activeDirectory
            cbuf,                 // Liste der directories
@@ -1654,15 +1694,28 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   // appNam
   cbuf1[0] = '\0';
 
-  // get cbuf2 = ffNam of AP_dir_prg
-  MDLFN_ffNam_fNam (cbuf2, AP_dir_prg);
-  // strcpy(cbuf2, AP_dir_prg);
+//   // get cbuf2 = ffNam of AP_dir_prg
+//   MDLFN_ffNam_fNam (cbuf2, AP_dir_prg);
+//   // strcpy(cbuf2, AP_dir_prg);
+
+  // get absolute-directory for symbol APPLI
+  irc = MDLFN_fDir_syFn (AP_dir_prg, "APPLI");
+  if(irc < 0) {
+    irc = MDLFN_fDir_syFn (AP_dir_prg, "Data");
+    if(irc < 0) {TX_Error("PRG_Loa E1"); return -1;}
+#ifdef _MSC_VER
+    strcat(AP_dir_prg, "prg\\");
+#else
+    strcat(AP_dir_prg, "prg/");
+#endif
+  }
+
 
   // Liste mit Dir-Auswahl
-  i1 = AP_fnam_get_user_1 (2, cbuf1, cbuf2, "select program", "\"*.gcap\"");
+  i1 = AP_fnam_get_user_1 (2, cbuf1, AP_dir_prg, "select program", "\"*.gcap\"");
   if(i1 < 0) return -1;
 
-  return PRG_CB (cbuf1, cbuf2);
+  return PRG_CB (cbuf1);
 
 }
 
@@ -2254,6 +2307,8 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   char   cbuf[SIZFNam], s1[SIZMFSym];
 
 
+  PRG_get_prgDir ();
+
   // printf("PRG_Ed %d\n",APP_act_typ);
 
   if(IE_cad_exitFunc()) return -1;
@@ -2265,9 +2320,9 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
   // sprintf(s1, "%sgcap",AP_dir_prg,fnam_del,APP_act_nam);
-  irc = MDLFN_fDir_syDir (s1, AP_dir_prg);
-  if(irc < 0) return -1;
-  sprintf(cbuf, "%s%c%s.gcap",s1,fnam_del,APP_act_nam);
+  // irc = MDLFN_fDir_syDir (s1, AP_dir_prg);
+  // if(irc < 0) return -1;
+  sprintf(cbuf, "%s%c%s.gcap",AP_dir_prg,fnam_del,APP_act_nam);
   return APP_edit (cbuf, 1);  // do not wait
 
 

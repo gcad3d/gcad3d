@@ -16,6 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
+InSpiral /Spiral spiType="clothoid"   MntnRoad.xml
   ..
 
 -----------------------------------------------------
@@ -94,23 +95,47 @@ Format LandXML:
 #include <string.h>
 #include <math.h>
 
+// die folgenden Funktionen exportieren (werden vom Main gerufen):
+#ifdef _MSC_VER
+__declspec(dllexport) int LXML_r__ (void*);
+// nachfolgende externals werden aus dem Main-Exe imported:
+#define extern __declspec(dllimport)
+#endif
 
 
-// #include "../ut/ut_umem.h"        // UME_reserve
-#include "../ut/ut_geo.h"         // OFF, ON ..
+// #include "../ut/ut_umem.h"             // UME_reserve
+#include "../ut/ut_geo.h"              // OFF, ON ..
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
-#include "../ut/ut_txt.h"         // fnam_del
+#include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/func_types.h"          // SYM_..
-#include "../xa/xa_mem.h"         // memspc..
+#include "../ut/ut_os.h"               // OS_..
+
+#include "../xa/xa_mem.h"              // memspc..
+#include "../xa/mdl__.h"               // SIZMF
+#include "../xa/ap_dir.h"              // AP_get_*_dir
 
 
 
+
+//===========================================================================
+// ex ../xa/xa.c:
+extern char AP_modact_nam[SIZMFNam];
+
+// ex ../ci/NC_Main.c:
+extern double    APT_ModSiz;
+extern double UT_TOL_cv;
+extern double UT_DISP_cv;
+
+
+
+//===========================================================================
+// Local:
 
 // typedef_MemTab(int);
 // typedef_MemTab(Point);
 // typedef_MemTab(Fac3);
-// typedef_MemTab(EdgeLine);
+// typedef_MemTab(IntTab);
 
 
 
@@ -124,7 +149,7 @@ static  MemTab(Point) LM_pTab = _MEMTAB_NUL;
   // int    siz_fTab, nr_fTab;
 static  MemTab(Fac3) LM_fTab = _MEMTAB_NUL;
 
-static  MemTab(EdgeLine) LM_eTab = _MEMTAB_NUL;
+static  MemTab(IntTab) LM_eTab = _MEMTAB_NUL;
 static  MemTab(int) LM_eDat = _MEMTAB_NUL; 
 
 
@@ -134,26 +159,66 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
 
 
 
+//===========================================================================
+  int LXML_r__ (void *pa[2])  {
+//===========================================================================
+// LXML_r__               import LandXML-File
+//   write native gcad-code into <tmpDir>
+// Input:
+//   pa[0]    filename of dxf-file to import
+//   pa[1]    modelname for outputFile of mainModel; for primary model ""
+// Output:
+//   - export mainModel -> file <tmpDir>Model_<modelname>
+//   - export subModels -> files <tmpDir>Model_<smNam>
+// 
+
+  int    irc;
+  long   is;
+  char   *fnIn, *fnOut;
+
+  fnIn = (char*)pa[0];
+  fnOut = (char*)pa[1];
+
+  printf("LXML_r__ |%s|%s|\n",fnIn,fnOut);
+  printf("  AP_modact_nam=|%s|\n",AP_modact_nam);
+
+
+
+  is = DB_dbo_get_free (Typ_SUR);   // A
+  ++is;
+
+  // LandXML-File einlesen; ../exp/lxml.c
+  irc = lxml_read (fnIn, fnOut, is);
+
+
+  return 0;
+
+}
 
 
 //================================================================
-  int lxml_read (char *fNam, char *mdlNam, int surNr) {
+  int lxml_read (char *fNam, char *fnOut, int surNr) {
 //================================================================
 // Load LandXML-File
+// Input:
+//   fNam       full filename input
+//   surNr
 
-  int     lNr, ii, i1, i2, lSiz;
+
+
+  int     irc, lNr, ii, i1, i2, lSiz;
   double  d1;
-  char    *lBuf, *cp1;
-  FILE    *fp1;
-  Vector2 vc1;
-  Point2  p1, p2, p3;
+  char    *lBuf, *cp1, s1[SIZFNam], fnPtab[80], fnMsh[80];
+  FILE    *fp1, *fpo;
+  Vector  vc1;
+  Point   p1, p2, p3;
 
 
-  printf("lxml_read |%s|\n",fNam);
+  printf("lxml_read |%s|%s| %d\n",fNam,fnOut,surNr);
 
   MemTab_ini__ (&LM_pTab, sizeof(Point), Typ_PT, inc_pTab);
   MemTab_ini__ (&LM_fTab, sizeof(Fac3), Typ_Fac3, inc_fTab);
-  MemTab_ini__ (&LM_eTab, sizeof(EdgeLine), Typ_EdgeLine, 5);
+  MemTab_ini__ (&LM_eTab, sizeof(IntTab), Typ_IntTab, 5);
   MemTab_ini__ (&LM_eDat, sizeof(int), Typ_Int4, 5);
 
 
@@ -189,7 +254,7 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
 
 
   //----------------------------------------------------------------
-  // Alle Points (<Pnts>) einlesen und (binaer) in eine Datei ausgeben.
+  // read all points into LM_pTab
 
 
   // proceed until "<Pnts>"
@@ -224,7 +289,7 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
 
 
   //----------------------------------------------------------------
-  // Alle Faces (<Faces>) einlesen und (binaer) in eine Datei ausgeben.
+  // read all faces into LM_fTab
 
   // proceed until "<Faces>"
   L_f1:
@@ -282,45 +347,76 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
   printf("  %d undefined points deleted\n",i2);
 
 
+
+  //================================================================
+  // write points and faces into file
+
+
+
   //----------------------------------------------------------------
   // write OutFile M#A#.ptab
-  // MSH_bsav_pTab (&LM_pTab, mdlNr, surNr);
-  MSH_bsav_pTab (&LM_pTab, mdlNam, surNr);
-
+  sprintf(fnPtab, "_A%d",surNr);
+  MSH_bsav_pTab (&LM_pTab, "", surNr);
+  // MSH_asav_pTabf (LM_pTab.data, LM_pTab.rNr, fnPtab, fpo);
 
 
   //----------------------------------------------------------------
   // write OutFile M#A#.msh
   ++surNr;
-  // MSH_bsav_fTab (&LM_fTab, &LM_eTab, &LM_eDat, mdlNr, surNr);
-  MSH_bsav_fTab (&LM_fTab, &LM_eTab, &LM_eDat, mdlNam, surNr);
-
+  // sprintf(fnMsh, "_A%d",surNr);
+  MSH_bsav_fTab (&LM_fTab, &LM_eTab, &LM_eDat, "", surNr);
+  // MSH_asav_fTabf (&LM_fTab, &LM_eTab, &LM_eDat, fnMsh, fpo);
 
 
   //----------------------------------------------------------------
   // fix modelsize from points
-  UT2D_rect_pta3 (&p1, &p2, LM_pTab.data, LM_pTab.rNr);
-  UT2D_vc_2pt (&vc1, &p1, &p2);
-  d1 = UT2D_len_vc (&vc1);
+  UT3D_box_pts (&p1, &p2, LM_pTab.rNr, LM_pTab.data);
 
-  UT2D_pt_mid2pt (&p3, &p1, &p2);
-  if(p3.x > d1) d1 = p3.x;
-  if(p3.y > d1) d1 = p3.y;
+  // get modelsize
+  d1 = UT3D_len_2pt (&p1, &p2);
+  APT_ModSiz = UTP_db_rnd2sig (d1);
+    printf(" lxml-ModSiz=%f\n",APT_ModSiz);
 
-  d1 = UTP_db_rnd5 (d1);
-  if(d1 > 50000.) {
-    d1 = 50000.;
-    TX_Print ("Modeloffset high; offset should be reduced ..");
+  WC_Init_Tol ();
+
+
+  //----------------------------------------------------------------
+  // write mainModel into file
+  // open outfile
+
+  // sprintf(s1, "%sModel_import.gcad",AP_get_tmp_dir());
+  if((fpo=fopen(fnOut,"w")) == NULL) {
+    TX_Error("****** OPEN ERROR FILE %s **********\n",fnOut);
+    irc = -1;
+    goto L_exit;
   }
 
-  NC_setModSiz (d1);                 // was 10000.;
+  fprintf(fpo, "MODSIZ %f %f %f\n",APT_ModSiz,UT_TOL_cv,UT_DISP_cv);
+  s1[0] = '\0';
+  AP_obj_add_pt (s1, &p1);
+  AP_obj_add_pt (s1, &p2);
+  fprintf(fpo, "MODBOX %s\n",s1);
+  fprintf(fpo, ":DYNAMIC_DATA\n");
+  fprintf(fpo,"# %s\n",OS_date1());
+  fprintf(fpo,"# Import %s\n",fNam);
+  fprintf(fpo, "A%d=PTAB\n",surNr - 1);
+  fprintf(fpo, "A%d=MSH A%d\n",surNr,surNr - 1);
+  fprintf(fpo, "# EOI\n");
+
+  // close file
+  fclose(fpo);
 
 
 
   //----------------------------------------------------------------
-  // fertig.
+
   TX_Print ("%d points, %d faces imported ..",LM_pTab.rNr,LM_fTab.rNr);
 
+  irc = 0;
+
+
+  //----------------------------------------------------------------
+  L_exit:
 
   // free(pTab);
   MemTab_free (&LM_fTab);
@@ -329,10 +425,7 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
   MemTab_free (&LM_eDat);
 
 
-
-
-
-  return 0;
+  return irc;
 
 
   L_err1:
@@ -348,8 +441,8 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
 
   L_err99:
   fclose(fp1);
-  return -1;
-
+  irc = -1;
+  goto L_exit;
 }
 
 

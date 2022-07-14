@@ -62,7 +62,7 @@ The joints of all models are in one file: <temp>/joints.
 
 
 #include "../ut/ut_geo.h"           // OFF, ON ..
-#include "../ut/ut_os.h"            // OS_get_bas_dir
+#include "../ut/ut_os.h"            // AP_get_bas_dir
 #include "../xa/xa.h"               // AP_STAT
 
 
@@ -197,7 +197,7 @@ extern AP_STAT   AP_stat;
   // open / init DBFile "<tmp>/joints"
   if(!AP_stat.jntStat) {
     // open DBFile "<tmp>/joints"
-    sprintf(key, "%sjoints", OS_get_tmp_dir());
+    sprintf(key, "%sjoints", AP_get_tmp_dir());
     if(DBF_init (key) < 0) {
       TX_Error ("JNT_exp__ E000");
       return -1;

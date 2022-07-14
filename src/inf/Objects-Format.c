@@ -1147,7 +1147,7 @@ SourceObj:
 Functions:
   TSU_DrawSurBsp
   UT3D_box_surBsp
-
+  UT3D_sbsp_ncv            bslpl-surf from table-of-curves
 
 
 ================================================================== \endcode */}
@@ -1317,8 +1317,8 @@ Files: see INF_FMTB_Surface_PTAB
 <tmp>_A<dbi>.msh (binary)      see INF_FMTB_Surface_PTAB - PointTable (SECTION MESH)
   (int)fNr = nr of faces
   (Fac3)indexes_faces[fNr]
-  (int)eNr = nr of EdgeLines
-  (EdgeLine)EdgeLines[eNr]
+  (int)eNr = nr of IntTabs
+  (IntTab)IntTabs[eNr]
   (int)EdgeData[eNr]
 
 

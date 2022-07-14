@@ -1,4 +1,4 @@
-// ut_dump.c   
+// ../ut/deb_prt.c
 /*
  *
  * Copyright (C) 2020 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
@@ -29,6 +29,8 @@ void DEB_prt(){}
 
 /*!
 \file  ../ut/ut_dump.c
+
+
 \brief dump structs, objects 
 \code
 =====================================================
@@ -39,8 +41,9 @@ DEB_prt_print        printd = print-formatted in debug-mode                INTER
 
 List_functions_end:
 =====================================================
-
-see also DEB_std_file
+DO NOT USE; replaced by DEB_std_file + printf
+DEB_std_file         redirect stdout -> file or back to console
+see also
 
 \endcode *//*----------------------------------------
 
@@ -53,6 +56,10 @@ Use with
   DEB_prt_init
   printd (..);
 
+printd with -DDEB    calls DEB_prt_print
+  else is skipped
+
+
 
 
 =========================================================
@@ -63,16 +70,58 @@ Use with
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>              // for ...
+#include "../ut/deb_prt.h"          // printd
 
 
-int  DEB_prt_stat = 0;
+int  DEB_prt_stat = 0;           // 0=closed; 1=active
 char *debDir;
 
 
 #ifdef _MSC_VER
 #endif
 
+/*
+DO NOT USE - does not work with OS_sys1
+//================================================================
+  int DEB_std_file (int mode) {
+//================================================================
+// DEB_std_file                    redirect stdout -> file or back to console
+// see INF_debug
+// Input:
+//   mode      1 = direct stdout into "/tmp/debug.dat" (MS: %TEMP%\debug.dat")
+//             0 = redirect stdout to console
 
+
+
+
+#ifdef _MSC_VER
+  char fNam[400], *p1;
+  p1 = getenv ("TEMP");           // %TEMP%
+  sprintf(fn, "%s\\debug.dat",p1);
+
+#else
+  static char fNam[] = "/tmp/debug.dat";
+#endif
+
+
+  if(mode) {
+    // redirect stdout -> file
+    // fflush (stdout);
+    // freopen (fNam, "w", stdout);
+    OS_stdout__ (0, fNam);
+    OS_stdout__ (1, NULL);
+
+  } else {
+    // redirect stdout -> console
+    // fflush (stdout);
+    // freopen ("/dev/tty", "w", stdout);
+    OS_stdout__ (2, NULL);
+  }
+
+  return 0;
+
+}
+*/
 
 
 //================================================================
@@ -83,26 +132,27 @@ char *debDir;
   va_list va;
   char    s1[1024], s2[1200], *p;
 
-  // printf("DEB_prt_print |%s|\n",format);
+  // printf("## DEB_prt_print |%s|\n",format);
 
   va_start(va, format);
 
 
   if(DEB_prt_stat) {
-//     vfprintf (DEB_prt_fp, format, va);
-//     fflush (DEB_prt_fp);                       // 2020-01-22
-   
     vsprintf(s1,format,va);
     UTX_CleanCR (s1);
 
 #ifdef _MSC_VER
-    sprintf(s2, "echo \"%s\" >> %s\\debug.dat", s1, debDir);
+    sprintf(s2, "CMD /C \"echo \"%s\" >> \"%sdebug.dat\"\"", s1, OS_get_tmp_dir());
+    OS_system(s2);
 #else
     sprintf(s2, "echo \"%s\" >> /tmp/debug.dat",s1);
+    system (s2);
 #endif
 
-      // printf(" - DEB_prt_print |%s|\n",s2);
-    system(s2);
+      // TESTBLOCK
+      // printf("## - DEB_prt_print |%s|\n",s2);
+      // END TESTBLOCK
+
 
 //   } else {      // this 
 //     vprintf (format, va);
@@ -115,40 +165,56 @@ char *debDir;
 
 }
 
+
 //================================================================
   void DEB_prt_init (int mode) {
 //================================================================
-/// \code
-/// mode  1   start debug; open debugfile;
-///       0   end debug;   close debugfile
-/// print into debugfile with "printd"
-/// debugfile = <tmpdir>debug.dat = ~/gCAD3D/tmp/debug.dat
-/// \endcode
+// mode  1   start debug; open debugfile;
+//       0   end debug;   close debugfile
+// print into debugfile with "printd"
+// debugfile = <tmpdir>debug.dat = /tmp/debug.dat
+//
+// if debugfile is not enabled, printd is replaced by "if(0) printf"
 
-  char  s1[200];
+  char  s1[256];
 
 
+  printf("## DEB_prt_init %d\n",mode);
 
+
+    // TESTBLOCK
+    if(mode==1) {
+#ifdef _MSC_VER
+      sprintf(s1, "%s\\debug.dat", OS_get_tmp_dir());
+      remove(s1);
+#else
+      remove("/tmp/debug.dat");
+#endif
+      DEB_prt_stat=1;
+    }
+
+    if(mode==0) {fflush(stdout); DEB_prt_stat=0;}
+
+    return;
+    // END TESTBLOCK
+ 
+
+/*
 #ifdef DEB
   //----------------------------------------------------------------
   if(mode) goto L_start;
-    // end debug; close debugfile
-    if(DEB_prt_stat > 1) --DEB_prt_stat;
-    
-    // if(!DEB_prt_stat) {
-//       // if(DEB_prt_fp) {
-//         // fprintf(DEB_prt_fp, "================ EOF ==============\n");
-//         // fclose (DEB_prt_fp);
-//         // DEB_prt_fp = NULL;
-//       // }
-//       // printf("++++++ file %sdebug.dat closed +++++\n",OS_get_tmp_dir());
-    // }
+    // 1= disable debug-print; close the file
+    if(DEB_prt_stat > 0) --DEB_prt_stat;
+    fflush(stdout);
+    fclose (stdout);
     return;
 
 
   //----------------------------------------------------------------
   L_start:
+    // 0 = enable debug-print
     if(!DEB_prt_stat) {
+      // init debugfile
 
 #ifdef _MSC_VER
       debDir = getenv("TMP");
@@ -161,10 +227,13 @@ char *debDir;
 #endif
 
     }
-    // fprintf(DEB_prt_fp, "++++++ file %s opened +++++ level %d\n",s1,level);
     ++DEB_prt_stat;
-    // printf("++++++ file %s opened +++++\n",s1);
 #endif
+*/
+
+  // for OS_sys1 (popen) start debug-text with "##"
+  printf("## ex-DEB_prt_init %d\n",DEB_prt_stat);
+
 
 }
 

@@ -86,6 +86,7 @@ ${debDir}/install_deb.sh ${instDir}
 /usr/bin/strip ${instDir}/usr/lib/gcad3d/${hTyp}/gCAD3D
 /usr/bin/strip ${instDir}/usr/lib/gcad3d/${hTyp}/*.so
 /usr/bin/strip ${instDir}/usr/lib/gcad3d/${hTyp}/GUI_*
+/usr/bin/strip ${instDir}/usr/lib/gcad3d/${hTyp}/gcad3d_gMsh
 /usr/bin/strip ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/*.so
 /usr/bin/strip ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/cut1/*
 

@@ -61,20 +61,64 @@ List_functions_end:
 - ../ut/tstf__.c
 - Example see Demo_tstf_1.c Demo_tstf1.dat Demo_tstf_1.mak
 
-
-- remotecommands start with ":: "; see ../../doc/html/RemoteControl_de.htm
-
-  do remotecommand (CTRL_CB_do__())      Docu.: ../../doc/html/RemoteControl_en.htm
+- execute remoteCommand - ":: <remoteCommand>"; see ../../doc/html/RemoteControl_en.htm
+- copy modelCodes into CAD-madel and process
 
 
 Commands:
-# commentline  (first char must be '#')
+:# internal commentline - is skipped
 :<label>:                  # label; processing starts here and ends at next label;
 :: LOAD(modelfilename)     # load model
 :: WAIT_ESC                # in TSTF_do__ extra implement.
 ::: test_disp__ (A1 A2)    # call user-function test_disp__ with parameter "A1 A2"
 :: WAIT_ESC                # stop; wait for Esc-key
-A20=S29 # CW
+# commentline  (first char '#') - is copied into model
+A20=S29 # CW               # modelCode - is copied into model and processed
+
+
+//----------------------------------------------------------------
+// for the function test_disp__ the plugin must provide function TSTF_cb like this:
+
+
+//================================================================
+  int TSTF_cb (char * cmd) {
+//================================================================
+// callback from TSTF-mudule (see TSTF_load INF_tstf__)
+// execute private testfunctions - must start with "::: " in <cmdfile>
+// MS-Win: function must be exported.
+
+
+  char    *p2, s1[80];
+
+
+  printf("TSTF_cb |%s|\n",cmd);
+
+  // get s1 = functionname
+  p2 = UTX_cp_word__ (s1, cmd);
+     // printf(" _do_tstCmd-0 |%s|%s|%s|\n",cmd,s1,p2);
+
+  // remove brackets
+  p2 = UTX_CleanBracks (p2, '(', ')');
+
+
+  // call
+  if(!strcmp (s1, "test_disp__")) {
+    test_disp__ (p2);
+
+  } else if(!strcmp (s1, "test_hide_last")) {
+    test_hide_last (p2);
+
+  } else {
+    TX_Error("function %s not found",s1);
+  }
+
+  return 0;
+
+}
+
+
+int test_disp__ (char *txt) { printf("test_disp__ %s\n",txt); return 0; }
+int test_hide_last (char *txt) { printf("test_hide_last\n"); return 0; }
 
 
 
@@ -122,7 +166,7 @@ A20=S29 # CW
   printf("TSTF_load |%s|%s|\n",fNam,lbs);
 
   if((fpi = fopen (fNam, "r")) == NULL) {
-    printf ("Fehler open Datei %s\n", fNam);
+    TX_Error ("TSTF_load - open file %s\n", fNam);
     return -1;
   }
 
@@ -158,8 +202,9 @@ A20=S29 # CW
     UTX_CleanCR (s1);
     if(!strlen(s1)) continue;
       // printf(" in1 |%s|\n",s1);
-    if(s1[0] == '#') continue;
+//     if(s1[0] == '#') continue;
     if(s1[0] == ':') {
+      if(s1[1] == '#') continue;     // skip commentlines ":#<comment>"
       if(s1[1] == ':') {
         if(s1[2] == ':') goto L_tstCmd;
         goto L_remCmd;
@@ -221,113 +266,5 @@ A20=S29 # CW
 
 }
 
-
-
-/*
-//================================================================
-  int TSTF_cb (char * cmd) {
-//================================================================
-// callback from TSTF-mudule (see TSTF_load INF_tstf__)
-// execute private testfunctions - must start with "::: " in <cmdfile>
-
-
-  char    *p2, s1[80];
-
-
-  printf("TSTF_cb-main |%s|\n",cmd);
-
-  return 0;
-
-}
-
-
-//================================================================
-  int TSTF_do__ (char *cmdLn) {
-//================================================================
-// TSTF_do__          work line - store obj in DB
-
-  int      irc, typ;
-  long     dbi;
-  char     *p1;
-
-  printf("TSTF_do__ |%s|\n",cmdLn);
-  // return MSG_ERR__ (ERR_TEST, "TSTF_do__-in");
-
-
-  // get definition-header "A20="
-  p1 = strchr(cmdLn, '=');
-  if(!p1) {
-    printf("**** ERROR no definition-src: |%s|\n",cmdLn);
-    return -1;
-  }
-
-  // *p1 = '\0';
-  ++p1;
-
-  // get def.header typ,dbi
-  irc = APED_dbo_oid (&typ, &dbi, cmdLn);
-    printf(" _mshi_do__ typ=%d dbi=%ld\n",typ,dbi);
-
-  if(irc < 0) {
-    printf("**** ERROR definition-header: |%s|\n",cmdLn);
-    return -1;
-  }
-    printf(" typ=%d dbi=%ld\n",typ,dbi);
-
-  //----------------------------------------------------------------
-  if(typ == Typ_SUR) {
-    // test load surface from SRC and store in DB
-    irc = test_mshi_do_sur (&dbi, p1);
-    if(irc < 0) return irc;
-      // MSHI_disp_sur_dbi_1 (dbi, "sbv"); // disp A<dbi>
-
-  //----------------------------------------------------------------
-  } else if(typ == Typ_SOL) {
-    // test load solid from SRC and store in DB
-    irc = test_mshi_do_sol (&dbi, p1);
-    if(irc < 0) return irc;
-
-  //----------------------------------------------------------------
-  } else {
-    ED_srcLn_add (cmdLn, 0);
-  }
-
-
-  return 0;
-
-}
-
-
-//================================================================
-  int TSTF_do_tstCmd (char* cmd) {
-//================================================================
-// TSTF_do_tstCmd             call locally implemented testfunctions
-
-  char    *p2;
-
-
-  printf("TSTF_do_tstCmd |%s|\n",cmd);
-
-
-  // cut off functionname
-  p2 = strchr (cmd, ' ');
-  if(!p2) {TX_Print("***** ERR TSTF_do_tstCmd |%s|",cmd); return -1;}
-  *p2 = '\0';
-  ++p2;
-
-  // remove brackets
-  p2 = UTX_CleanBracks (p2, '(', ')');
-     printf(" _do_tstCmd |%s|%s|\n",cmd,p2);
-
-
-  // call
-  if(!strcmp (cmd, "test_disp__")) test_disp__ (p2);
-  if(!strcmp (cmd, "test_hide_last")) test_hide_last ();
-
-
-  return 0;
-
-}
-*/
 
 // EOF

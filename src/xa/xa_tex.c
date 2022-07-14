@@ -549,7 +549,7 @@ static TexBas *actTexBas;
 // see Tex_getBitmap
 
   int    irc;
-  char   fNam[256], safNam[128], fTyp[16], cbuf[512];
+  char   fNam[256], safNam[128], fTyp[16], cbuf[1024];
 
 
   // printf("Tex_getBitmap |%s|\n",symNam);
@@ -564,7 +564,7 @@ static TexBas *actTexBas;
 
 
   // create Bitmapfilename from safe-name
-  sprintf(bNam, "%s%s.bmp", OS_get_tmp_dir(), safNam);
+  sprintf(bNam, "%s%s.bmp", AP_get_tmp_dir(), safNam);
     // printf(" getBitmap-bNam |%s|\n",bNam);
 
 
@@ -618,7 +618,12 @@ static TexBas *actTexBas;
 
 
   // djpeg -bmp fnIn.jpg > fnOut.bmp
+#ifdef _MSC_VER
+  sprintf(cbuf, "CMD /C \"%s -bmp \"%s\" > \"%s\"\"",
+          OS_get_imgConv1(), fNam, bNam);
+#else
   sprintf(cbuf, "%s -bmp \"%s\" > \"%s\"",OS_get_imgConv1(),fNam,bNam);
+#endif
     // printf(" |%s|\n",cbuf);
   OS_system(cbuf);
 

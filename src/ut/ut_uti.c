@@ -126,6 +126,7 @@ UTP_2db_ck_in4db          die beiden inneren Werte aus 4 Zahlen finden
 UTP_2db_ck_in2db          test if range2 overlaps range1
 UTP_2db_ck_db_near        test if dx is near d0 or near d1                   INLINE
 
+UTP_CK                    test if parameter is between 0 - 1; 0=no, 1=yes
 UTP_db_comp_0             if fabs(d1) < UT_TOL_min1) d1 = 0.;
 UTP_comp_0                compare double (double == 0.0 + - UT_TOL_min1) INLINE
 UTP_compdb0               compare double mit 0.0 mit Tol.

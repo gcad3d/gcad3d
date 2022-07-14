@@ -810,12 +810,12 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
 
 
   // del Model_<>
-  sprintf(fNam, "%sModel_%s", OS_get_tmp_dir(), fns);
+  sprintf(fNam, "%sModel_%s", AP_get_tmp_dir(), fns);
   OS_file_delete (fNam);
 
 
   // del DB_<>
-  sprintf(fNam, "%sDB__%s.dat", OS_get_tmp_dir(), fns);
+  sprintf(fNam, "%sDB__%s.dat", AP_get_tmp_dir(), fns);
   OS_file_delete (fNam);
 
 

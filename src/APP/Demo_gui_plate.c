@@ -222,7 +222,7 @@ extern  char      AP_mod_dir[SIZMFTot];  // Verzeichnis f Open, ..
     //---------------------------------------------------------
     case UI_FuncUCB3:
       printf("UI_FuncUCB3 - Export Iges\n");
-      // sprintf(cbuf, "%s.igs",OS_get_bas_dir(),AP_mod_fnam);
+      // sprintf(cbuf, "%s.igs",AP_get_bas_dir(),AP_mod_fnam);
       sprintf(cbuf, "%s%s.igs",AP_mod_dir,AP_mod_fnam);
       TX_Print("export -> file %s",cbuf);
       AP_ExportIges__ (cbuf);

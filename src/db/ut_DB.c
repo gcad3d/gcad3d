@@ -341,6 +341,8 @@ DB_allocModBas     mdb_dyn   ModelBas  mnam  DYN_MB_INC
 // #include "../ut/ut_mem.h"              // MEM_*
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_gtypes.h"             // AP_src_typ__
+#include "../ut/ut_deb.h"              // DEB_*
+
 
 
 // #include "../ut/ut_crv.h"
@@ -711,6 +713,7 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
   if(mode == 0) {
     DYN_MB_IND = 0;          // clear all baseModels
     MDL_reset (0);            // reset loadmap and mdl_tab
+    // APT_MR_IND=-1;
     goto L_DB;
   }
 
@@ -856,7 +859,7 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
   // change all '/' of mNam into '_' - else no correct filename possible
   UTX_safeName (s1, 2);
 
-  sprintf(fnam, "%sDB__%s.dat",OS_get_tmp_dir(),s1);
+  sprintf(fnam, "%sDB__%s.dat",AP_get_tmp_dir(),s1);
     // printf("DB_save__ |%s|\n",fnam);
 
 
@@ -1034,7 +1037,7 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
   UTX_safeName (s1, 2);
 
 
-  sprintf(fnam, "%sDB__%s.dat",OS_get_tmp_dir(),mNam);
+  sprintf(fnam, "%sDB__%s.dat",AP_get_tmp_dir(),mNam);
 
   // printf("----------------- DB_load__ |%s|\n",fnam);
 
@@ -4101,7 +4104,7 @@ int DB_del_Mod__ () {
   printf("DB_list_ModBas   %ld\n",DYN_MB_IND);
 
 
-  sprintf(cbuf,"%sMod.lst",OS_get_tmp_dir());
+  sprintf(cbuf,"%sMod.lst",AP_get_tmp_dir());
   if((fp1=fopen(cbuf,"w+")) == NULL) {
     TX_Print("DB_list_ModBas E001 %s",cbuf);
     return -1;
@@ -6840,6 +6843,59 @@ long DB_StoreCvPl2 (long Ind, CurvPol2 *cvplg, int iNew) {
 
 }
 
+//====================================================================
+long DB_StoreCvPsp (long Ind, CurvPsp3 *cvpsp, int iNew) {
+//====================================================================
+// save data cvplg -> DB and write parent-ox
+//   iNew = 0; new data; save curve & Dataspace
+//          1; Derived (copied) curve; do not save lvTab,cpTab
+
+// iNew unused - UTO_CUT__ uses UTO_copy_stru !
+
+
+  long      l1;
+  void      *cPos1, *cPos2, *cPos3;
+  ObjGX     *cvo;
+  CurvPsp3  cv1;
+
+
+  // printf("DB_StoreCvPsp %ld iNew=%d\n",Ind,iNew);
+  // DEB_dump_obj__ (Typ_CVPOL, cvplg, "plg");
+
+  // cv1 = *cvpsp;   // copy
+
+  // get DB-index (for dynam.obj's only) and get pointer to parent-ox-record
+  Ind = DB_Store_hdr_cv (&cvo, Ind);
+
+
+  cPos1 = DB_cPos ();
+
+  // save polynome at cPos1
+  l1 = sizeof(polynom_d3) * cvpsp->plyNr;
+  cPos2 = DB_cSav(l1, (void*)cvpsp->plyTab);
+
+
+  // save CurvPsp3 at cPos2
+  l1 = sizeof(CurvPoly);
+  cPos3 = DB_cSav (l1, cvpsp);
+  if(cPos3 == NULL) return -2;
+
+
+  // fix pos
+  ((CurvPsp3*)cPos2)->plyTab = cPos1;
+
+
+  cvo->typ  = Typ_CVPSP3;
+  cvo->form = Typ_CVPSP3;
+  cvo->siz  = 1;
+  cvo->data = cPos2;
+
+  return Ind;
+
+}
+
+
+
 
 //====================================================================
 long DB_StoreCvPlg (long Ind, CurvPoly *cvplg, int iNew) {
@@ -7031,6 +7087,7 @@ long DB_StoreCurv (long Ind, ObjGX *cv1, int iNew) {
  Typ_CVELL
  Typ_CVTRM
  Typ_CVTRM2
+ Typ_CVPSP3
 */
 
 
@@ -7081,16 +7138,16 @@ long DB_StoreCurv (long Ind, ObjGX *cv1, int iNew) {
   L_typ_psp3:
   if(form != Typ_CVPSP3) goto L_typ_pol;
 
-  Ind = DB_Store_hdr_cv (&cvo, Ind);  // get pointer --> cv_tab or cv_dyn
+  Ind = DB_StoreCvPsp (Ind, cv1->data, iNew);
 
-  cvo->typ    = cv1->typ;
-  cvo->form   = cv1->form;
-  cvo->siz    = cv1->siz;
-  cvo->data  = DB_cPos ();
-
-  // save polynome
-  l1 = sizeof(polynom_d3) * cv1->siz;
-  DB_cSav(l1, (void*)cv1->data);
+//   Ind = DB_Store_hdr_cv (&cvo, Ind);  // get pointer --> cv_tab or cv_dyn
+//   cvo->typ    = cv1->typ;
+//   cvo->form   = cv1->form;
+//   cvo->siz    = cv1->siz;
+//   cvo->data  = DB_cPos ();
+//   // save polynome
+//   l1 = sizeof(polynom_d3) * cv1->siz;
+//   DB_cSav(l1, (void*)cv1->data);
 
   goto L_fertig;
 
@@ -7193,39 +7250,40 @@ long DB_StoreCurv (long Ind, ObjGX *cv1, int iNew) {
   ObjGX       *cv_out;
 
 
-  // printf("DB_GetCurv %d\n",Ind);
+  // printf("DB_GetCurv %ld\n",Ind);
 
 
   if(Ind < 0) {
     Ind = -Ind;
-    if (Ind >= DYN_CV_SIZ) goto L_E1;
+    if (Ind >= DYN_CV_SIZ) {
+      printf("******* DB_GetCurv I1 %ld\n",Ind);
+      Ind = DYN_CV_SIZ - 1;
+    }
     cv_out = &cv_dyn[Ind];
 
   } else {
-    if (Ind >= APT_CV_SIZ) goto L_E1;
+    if (Ind >= APT_CV_SIZ) {
+      printf("******* DB_GetCurv I2 %ld\n",Ind);
+      Ind = APT_CV_SIZ - 1; 
+    }
     cv_out = &cv_tab[Ind];
   }
 
-/*
-  if(cv_out->typ == Typ_Error) {
-    TX_Error (" Curve %d undefined",Ind);
-    cv_out = &cv_tab[0];
-  }
-*/
 
-  // printf("ex DB_GetCurv %ld typ=%d form=%d\n",Ind,cv_out->typ,cv_out->form);
-/*
-  if(cv_out->typ != Typ_Error) {
-    DEB_dump_ox_s_ (cv_out, "ex DB_GetCurv\n");
-    DEB_dump_ox_0 (cv_out, "ex DB_GetCurv\n");
-  }
-*/
+  L_exit:
 
+    // TESTBLOCK
+    // printf("ex DB_GetCurv %ld typ=%d form=%d\n",Ind,cv_out->typ,cv_out->form);
+    // if(cv_out->typ != Typ_Error) {
+      // DEB_dump_ox_0 (cv_out, "ex DB_GetCurv\n");
+      // // DEB_dump_ox_s_ (cv_out, "ex DB_GetCurv\n");
+    // } else {
+      // printf("************* Curve %ld undefined\n",Ind);
+    // }
+    // DEB_exit();
+    // END TESTBLOCK
+ 
   return cv_out;
-
-  L_E1:
-    Ind = APT_CV_SIZ - 1;
-    return &cv_tab[Ind];
 
 }
 
@@ -7909,8 +7967,13 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
   // printf("DB_dbo_get_free %d\n",typ);
 
 
-  if(typ == Typ_VC) {
+  if(typ == Typ_VAR) {
+    return APT_VR_IND;
+
+
+  } else if(typ == Typ_VC) {
     return APT_VC_IND;
+
 
   } else if(typ == Typ_PT) {
     return APT_PT_IND;
@@ -7948,7 +8011,7 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
     return APT_MR_IND;
 
 
-  } else if(typ == Typ_GTXT) {      // N = Text
+  } else if((typ < Typ_Joint)&&(typ >= Typ_Note)) {      // N = Text
     return APT_TX_IND;
 
 
@@ -7958,12 +8021,12 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
 
   } else if(typ == Typ_VAR) {
     return APT_VR_IND;
-
-
   }
 
 
-  TX_Print("DB_dbo_get_free E001 %d",typ);
+  TX_Print("DB_dbo_get_free unknown typ %d",typ);
+
+
   return 0;
 
 }

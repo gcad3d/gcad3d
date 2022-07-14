@@ -142,7 +142,7 @@ int tess_analyz_CB (ObjGX*);
 
   int   i1;
 
-  sprintf(fnam, "%s%s.tess",OS_get_tmp_dir(),mnam);
+  sprintf(fnam, "%s%s.tess",AP_get_tmp_dir(),mnam);
 
   // check if pretesselated file exists for 
   i1 = OS_checkFilExist (fnam, 1);  //0=no, 1=yes.
@@ -189,7 +189,7 @@ int tess_analyz_CB (ObjGX*);
 
   // printf("tess_write__ |%s|\n",fnam);
 
-//   sprintf(cBuf, "%s%s.tess",OS_get_tmp_dir(),fnam);
+//   sprintf(cBuf, "%s%s.tess",AP_get_tmp_dir(),fnam);
 //     // printf("    _write_ |%s|\n",cBuf);
 
   fp = fopen(fnam,"wb");
@@ -689,7 +689,7 @@ int tess_analyz_CB (ObjGX*);
     //----------------------------------------------------------------
     case TYP_FuncInit:        // INIT
       // open outputfile fpo
-      sprintf(s1, "%sanalyz.txt",OS_get_tmp_dir());
+      sprintf(s1, "%sanalyz.txt",AP_get_tmp_dir());
       fpo = NULL;
       if((fpo = fopen(s1, "w")) == NULL) {
         TX_Print("tess_analyz_CB E001");
@@ -770,7 +770,7 @@ int tess_analyz_CB (ObjGX*);
 
 
   // open outputfile fpo
-  sprintf(s1, "%sanalyz.txt",OS_get_tmp_dir());
+  sprintf(s1, "%sanalyz.txt",AP_get_tmp_dir());
   if((fpo = fopen(s1, "w")) == NULL) {
     TX_Print("tess_analyz__ E001");
     return -1;

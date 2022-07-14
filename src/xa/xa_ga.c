@@ -259,7 +259,7 @@ static ObjAtt GA_DefRec = {0L, 0, 0};
   // printf("GA_hide_fil_tmp %d %d\n",mode,GA_recNr);
 
 
-  sprintf(fnam, "%shid.dat",OS_get_tmp_dir());
+  sprintf(fnam, "%shid.dat",AP_get_tmp_dir());
 
   if(mode == 1) strcpy(fmode, "w");
   else          strcpy(fmode, "r");

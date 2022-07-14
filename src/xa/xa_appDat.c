@@ -60,7 +60,7 @@ List_functions_end:
 #include <string.h>
 #include <ctype.h>                    // isdigit
 
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 
 
 
@@ -106,7 +106,7 @@ extern char APP_act_nam[128];    // name of last script- or plugin-program
   char    fNam[256];
 
 
-  sprintf(fNam, "%s%s.appdat",OS_get_tmp_dir(),APP_act_nam);
+  sprintf(fNam, "%s%s.appdat",AP_get_tmp_dir(),APP_act_nam);
     printf(" appdat_open__ |%s|%s|\n",fNam,mode);
 
 
@@ -150,7 +150,7 @@ extern char APP_act_nam[128];    // name of last script- or plugin-program
   //                      0123456789012345
   sscanf (&lBuf[15], "%s %ld", fncNam, &bNr);
     printf(" fncNam=|%s| bNr=%ld\n",fncNam,bNr);
-  sprintf(fNam, "%s%s.appdat",OS_get_tmp_dir(),fncNam);
+  sprintf(fNam, "%s%s.appdat",AP_get_tmp_dir(),fncNam);
     printf(" fNam=|%s|\n",fNam);
 
 

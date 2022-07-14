@@ -157,7 +157,7 @@ int    GL_set_ipatch       (int gTyp, int iNr, int *ia, Point *pa);
 
 void   GL_DrawRSur     (long *ind,int attInd,int ptAnz,Point *pa1,Point *pa2);
 int    GL_set_strip1        (Point *ps, Point *pa1, Point *pa2, int ptAnz);
-int    GL_set_strip2        (Point *pa1, Point *pa2, int ptAnz, int newS);
+int    GL_set_strip_v        (Point *pa1, Point *pa2, int ptAnz, int newS);
 void   GL_set_fan           (Point *pt1,int ptAnz,Point *pa1,int side, int newS);
 
 void   GL_DrawDitto2 (long *ind, Point *p1, double az, char mir, Ditto *di);

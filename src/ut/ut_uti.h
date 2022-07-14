@@ -283,6 +283,11 @@ int DSIGTOL (double, double);
 
 
 //----------------------------------------------------------------
+// UTP_CK                test if parameter is between 0 - 1; 0=no, 1=yes
+int UTP_CK (double par);
+#define UTP_CK(par) (((par >= 0.)&&(par <= 1.)) ? 1 : 0)
+
+
 /// \brief UTP_comp_0             compare double (double == 0.0 + - UT_TOL_min1)
 /// \code
 /// Retcode 0:   db <> 0.0
@@ -299,6 +304,7 @@ int UTP_comp_0 (double);
 /// \code
 /// Retcode 0 = Differenz der Werte > tol   - different
 /// Retcode 1 = Differenz der Werte < tol   - ident
+/// if(UTP_comp2db(d1, 10., 1)) printf("d1 is between d1 +- 1\n");
 /// \endcode
 int UTP_comp2db (double d1, double d2, double tol);
 #define UTP_comp2db(d1,d2,tol) (fabs(d2-d1) < (tol))
@@ -360,23 +366,28 @@ double ACOS (double);
 //----------------------------------------------------------------
 // set/clr/get bits in byte|short|int|long; see also ../ut/ut_BitTab.h
 
-/// BIT_SET                 set bits;    BITSET(data,value)
-/// data:        byte|short|int|long
-/// data,value:  value of bit to set (1|2|4..)
+// BIT_SET                 set bits;    BITSET(data,value)
+// data:        byte|short|int|long
+// data,value:  value of bit to set (1|2|4..)
 int BIT_SET (int, int);
 #define BIT_SET(i,b) (i)|=(b)
 
-/// BIT_CLR                 clear bits;  BITCLR(data,value)
-/// data:        byte|short|int|long
-/// data,value:  value of bit to test (1|2|4..)
-/// Example: BITCLR(i1,3);    // clear bit-0 and bit-1 of i1
+// BIT_CLR                 clear bits;  BITCLR(data,value)
+// data:        byte|short|int|long
+// data,value:  value of bit to test (1|2|4..)
+// Example: BIT_CLR(i1,3);    // clear bit-0 and bit-1 of i1
 int BIT_CLR (int, int);
 #define BIT_CLR(i,b) (i)&=~(b)
 
-/// BIT_GET                 filter bits;  BITGET(data,value)
-/// data:        byte|short|int|long to test
-/// data,value:  value of bit to test (1|2|4..)
-/// RetCod: 0 (not set) or value (set)
+// BIT_GET                 filter bits;  BITGET(data,value)
+// data:        byte|short|int|long to test
+// data,value:  value of bit to test (1|2|4..)
+// RetCod: 0 (not set) or value (set)
+// Example: i1=3; ii = BIT_GET(i1,1); // returns ii = 1
+//          i1=3; ii = BIT_GET(i1,2); // returns ii = 2
+//          i1=3; ii = BIT_GET(i1,3); // returns ii = 3 (test bit 1 and 2, both ON)
+//          i1=3; ii = BIT_GET(i1,4); // returns ii = 0
+//          i1=3; ii = BIT_GET(i1,6); // returns ii = 2 (test bit 4 and 2; only 2 on)
 int BIT_GET (int, int);
 #define BIT_GET(i,b) ((i)&(b))
 

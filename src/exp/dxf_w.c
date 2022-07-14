@@ -219,6 +219,9 @@ Zusatzinfos: Fast fuer jedes Ent. gibts den Layer; 8 / 3  (zwei Zeilen)
   Z-Vektor     210,220,230  Z-Vektor, wenn <> dem Haupt-Z-Vektor.
   Kommentar    999   Kommentarzeile.
 
+               270   ?
+               271   ?
+               280   ?
   -            370   Lineweight enum value; none = -1; (TABLE/LAYER)
 
 
@@ -373,7 +376,7 @@ __declspec(dllexport) int DXFW__ (char*);
 #include "../ut/ut_geo.h"
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
-#include "../ut/ut_os.h"                  // OS_get_bas_dir ..
+#include "../ut/ut_os.h"                  // AP_get_bas_dir ..
 // #include "../ut/ut_txTab.h"               // TxtTab
 #include "../ut/ut_memTab.h"              // MemTab_..
 
@@ -489,7 +492,7 @@ int DXFW_test (char *txt1) {
 
   //----------------------------------------------------------------
   // open file ENTITIES
-  sprintf(s1,"%sdxfw_main",OS_get_tmp_dir());
+  sprintf(s1,"%sdxfw_main",AP_get_tmp_dir());
   if ((fpo1 = fopen (s1, "w+")) == NULL) {
     TX_Error ("open file %s",s1);
     return -1;
@@ -537,7 +540,7 @@ int DXFW_test (char *txt1) {
 
   //----------------------------------------------------------------
   // export subModels as BLOCKS; loop tru dxfw_smTab
-  sprintf(s1,"%sdxfw_blocks",OS_get_tmp_dir());
+  sprintf(s1,"%sdxfw_blocks",AP_get_tmp_dir());
   if ((fpo1 = fopen (s1, "w+")) == NULL) {
     TX_Error ("open file %s",s1);
     return -1;
@@ -620,20 +623,20 @@ int DXFW_test (char *txt1) {
   if(dxfw_subtyp < 90) DXFW_prolog ();
 
   // add BLOCKS
-  sprintf(s1,"%sdxfw_blocks",OS_get_tmp_dir());
+  sprintf(s1,"%sdxfw_blocks",AP_get_tmp_dir());
     printf(" cat_file |%s|\n",s1);
   DXFW_cat_file (fpo1, s1);
 
 
   // add ENTITIES
-  sprintf(s1,"%sdxfw_main",OS_get_tmp_dir());
+  sprintf(s1,"%sdxfw_main",AP_get_tmp_dir());
     printf(" cat_file |%s|\n",s1);
   DXFW_cat_file (fpo1, s1);
   
   fclose (fpo1);
 
 
-  // sprintf(s1,"%sdxfw_*",OS_get_tmp_dir());
+  // sprintf(s1,"%sdxfw_*",AP_get_tmp_dir());
   // OS_file_delGrp (s1);
 
 
@@ -2119,7 +2122,7 @@ usw.
 
   // fix filename for tess-model
   MDL_fnModTess_mNam (fNam, mdlNam);
-  // sprintf(fNam, "%s%s.tess",OS_get_tmp_dir(),mdlNam);
+  // sprintf(fNam, "%s%s.tess",AP_get_tmp_dir(),mdlNam);
     printf(" fTess=|%s|\n",fNam);
 
   // load tess-model from file
@@ -2396,13 +2399,13 @@ usw.
 
 
   // try to open inListe
-  sprintf(s1,"%sMod.lst",OS_get_tmp_dir());
+  sprintf(s1,"%sMod.lst",AP_get_tmp_dir());
   if((fpi=fopen(s1,"r")) == NULL) {
     TX_Print("AP_ExportIges__ E002 %s",s1);
     return;
   }
 
-  sprintf(s1,"%sModel_",OS_get_tmp_dir());
+  sprintf(s1,"%sModel_",AP_get_tmp_dir());
   ipos = strlen(s1);
 
 

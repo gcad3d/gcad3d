@@ -158,7 +158,7 @@ UNDO-Tests:
 #include "../ut/ut_txt.h"
 #include "../ut/ut_txfil.h"
 #include "../ut/ut_memTab.h"           // MemTab
-#include "../ut/ut_os.h"               // OS_get_ico_dir
+#include "../ut/ut_os.h"               // AP_get_ico_dir
 #include "../ut/ut_TX.h"               // TX_Print
 
 #include "../gui/gui__.h"         // incl. /gui/gui_types.h /gui/gui_base.h
@@ -285,12 +285,12 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   // printf("UNDO_init2 \n");
 
 
-  sprintf (fn, "%sArrowl.png", OS_get_ico_dir());
+  sprintf (fn, "%sArrowl.png", AP_get_ico_dir());
   btUndo = GUI_button_img (parent, fn, UI_menCB, (void*)"ObjDelete", "e");
     MSG_Tip ("MMundo");
 
 
-  sprintf (fn, "%sArrowr.png", OS_get_ico_dir());
+  sprintf (fn, "%sArrowr.png", AP_get_ico_dir());
   btRedo = GUI_button_img (parent, fn, UI_menCB, (void*)"ObjRestore", "e");
     MSG_Tip ("MMredo");
 
@@ -314,7 +314,7 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
   long   l1;
   int    grpNr=0;
 
-  printf("UNDO_grp_range_add %ld - %ld\n",lNr1,lNr2);
+  // printf("UNDO_grp_range_add %ld - %ld\n",lNr1,lNr2);
 
   for(l1=lNr1; l1<lNr2; ++l1) {
 // TODO: test if line <l1> is not comment-line or empty

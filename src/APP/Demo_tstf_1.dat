@@ -6,21 +6,22 @@
 
 
 :L1:
-#:: LOAD(Data/test_sur_pln4.gcad)
-#:: WAIT_ESC
 :: clear
+:: LOAD(Data/test_sur_pln4.gcad)
+#:: WAIT_ESC
 :: WAIT_ESC
-#:: MODE(BAR2,off)
+#:: MODE(BAR1,off)
 :: PRI("Test L1")
 ::: test_disp__(A20)
 ::: test_hide_last ()
 #:: ADD(P20=100 100 0)
 #:: ADD(C20=P20 100)
+
 P20=100 100 0
 C20=P20 60
 DUMP C20               # direct command or remote-control-command:
 :: DUMP (C20)
-#:: system (pluma /tmp/t1)
+:: system (pluma /tmp/t1)
 
 
 :L2:

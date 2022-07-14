@@ -67,9 +67,11 @@ GR_temp_*       display temporary;
 
 
 //----------------------------------------------------------------
+// this file is without extern used only in ../gr/ut_gr.c
 extern float LN_WIDTH_ADJUST;     // adjust linewidth to total screensize (multiply)
 extern float LN_WIDTH_DEF;        // default linewidth (1.)
 extern float LN_WIDTH_FAT;        // linewidth (4.)
+extern char  MODE_DISP_ONAM_NT;   // 0=do not displayobjNames for notes, 1=display
 
 
 //----------------------------------------------------------------
@@ -275,6 +277,10 @@ void GR_temp_sur (long dbi, int att);
 void GR_tDyn_sur (long dbi, int att);
 #define GR_tDyn_sur(dbi,att)\
  GR_set_sur(OPERS_TDYN+OPERS_CLOSE,dbi,att);
+
+void GR_tDyn_osu (ObjGX *oxi, long dbi, long att);
+#define GR_tDyn_osu(oxi,dbi,att)\
+ GR_set_osu(OPERS_PERM+OPERS_CLOSE,oxi,dbi,att);
 
 void GR_perm_sur (long dbi, long att);
 #define GR_perm_sur(dbi,att)\

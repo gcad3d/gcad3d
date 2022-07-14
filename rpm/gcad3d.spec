@@ -86,6 +86,7 @@ mkdir -p -m 755 %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1
 install -m 755 %{gcad_dir_bin}gCAD3D %{outDir}/usr/lib/gcad3d/%{hTyp}/.
 install -m 755 %{gcad_dir_bin}GUI_* %{outDir}/usr/lib/gcad3d/%{hTyp}/.
 install -m 755 %{gcad_dir_bin}*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/.
+install -m 755 %{gcad_dir_bin}gcad3d_gMsh %{outDir}/usr/lib/gcad3d/%{hTyp}/.
 install -m 755 %{gcad_dir_bin}plugins/*.so %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/.
 install -m 755 %{gcad_dir_bin}plugins/cut1/* %{outDir}/usr/lib/gcad3d/%{hTyp}/plugins/cut1/.
 
@@ -101,6 +102,7 @@ install -m 644 %{gcad_dir_dev}packages/examples.gz %{outDir}/usr/share/gcad3d/.
 install -m 644 %{icoDir}/*.png        %{outDir}/usr/share/gcad3d/icons/.
 install -m 644 %{icoDir}/*.xpm        %{outDir}/usr/share/gcad3d/icons/.
 install -m 644 %{icoDir}/*.bmp        %{outDir}/usr/share/gcad3d/icons/.
+install -m 644 %{docDir}/*.txt        %{outDir}/usr/share/gcad3d/doc/.
 install -m 644 %{docDir}/html/*.htm   %{outDir}/usr/share/gcad3d/doc/html/.
 install -m 644 %{docDir}/html/*.png   %{outDir}/usr/share/gcad3d/doc/html/.
 install -m 644 %{docDir}/html/*.js    %{outDir}/usr/share/gcad3d/doc/html/.
@@ -145,11 +147,11 @@ install -m 644 %{gcad_dir_dev}doc/gCAD3D_log.txt %{outDir}/usr/share/doc/gcad3d/
 %post
 # create link for active gui-dll
 # back to gtk2 (problems with NV cards)
-libInf=`ldconfig -p | grep "libgtk-3"`
-if [ ! -z "$libInf" ]; then
-  echo "gtk3-libs: $libInf"
-  ln -fs ${gcad_dir_bin}/xa_gui_gtk3.so ${gcad_dir_bin}/xa_gui.so
-fi
+#libInf=`ldconfig -p | grep "libgtk-3"`
+#if [ ! -z "$libInf" ]; then
+#  echo "gtk3-libs: $libInf"
+#  ln -fs ${gcad_dir_bin}/xa_gui_gtk3.so ${gcad_dir_bin}/xa_gui.so
+#fi
 libInf=`ldconfig -p | grep "libgtk-x11-2"`
 if [ ! -z "$libInf" ]; then
   echo "gtk2-libs: $libInf"

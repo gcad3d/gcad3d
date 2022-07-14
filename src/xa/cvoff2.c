@@ -116,7 +116,7 @@ Method:
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_geo_const.h"        // UT3D_CCV_NUL
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
 #include "../xa/xa_msg.h"              // MSG_* ERR_*
 #include "../ut/ut_memTab.h"           // MemTab
@@ -562,7 +562,7 @@ static struct {int ifwd, ibwd,
   // printf("CVOFF2_get_lun \n");
 
 
-  sprintf(fnam, "%sCVOFF2_get.dat",OS_get_tmp_dir());
+  sprintf(fnam, "%sCVOFF2_get.dat",AP_get_tmp_dir());
 
   if((CO2DAT.fp_get = fopen(fnam,"rb")) == NULL) {
     TX_Print("CVOFF2_get_lun E1-%s\n",fnam);
@@ -595,7 +595,7 @@ static struct {int ifwd, ibwd,
   // printf("CVOFF2_set_lun \n");
 
 
-  sprintf(fnam, "%sCVOFF2_set.dat",OS_get_tmp_dir());
+  sprintf(fnam, "%sCVOFF2_set.dat",AP_get_tmp_dir());
 
   if((CO2DAT.fp_set_w = fopen(fnam,"wb")) == NULL) {
     TX_Print("CVOFF2_set_lun E1-%s\n",fnam);
@@ -608,7 +608,7 @@ static struct {int ifwd, ibwd,
   }
 
 
-  sprintf(fnam, "%sCVOFF2_get.dat",OS_get_tmp_dir());
+  sprintf(fnam, "%sCVOFF2_get.dat",AP_get_tmp_dir());
 
   if((CO2DAT.fp_get = fopen(fnam,"wb")) == NULL) {
     TX_Print("CVOFF2_set_lun E3-%s\n",fnam);

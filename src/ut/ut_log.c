@@ -62,7 +62,7 @@ Example usage:
 
 #include "../ut/ut_log.h"                  // MSG_ERR_typ_*
 
-  sprintf(fn, "%sLog_xy.txt", OS_get_tmp_dir());
+  sprintf(fn, "%sLog_xy.txt", AP_get_tmp_dir());
   LOG_A_set_fnam (fn);
   LOG_A__ (MSG_ERR_typ_ERR, " err xyz - retCod=%d",irc);
   ..
@@ -103,18 +103,24 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 //================================================================
 // Externals
 // ex ../xa/xa_main.c
-  char*  OS_get_tmp_dir   ();
+  char*  AP_get_tmp_dir   ();
   char*  OS_date1  ();
 
 
 
 //================================================================
-  int LOG_A_set_fnam (char* fnam) {
+  int LOG_A_set_fnam (char* fnam, int iopen) {
 //================================================================
-/// LOG_A_set_fnam   (re)define logfilename
+// LOG_A_set_fnam   (re)define logfilename
+// Input:
+//   fnam     filename logfile
+//   iopen    0 = do not (yet) open file;   1 = open file;
+// Output:
+//   retCode: 0 = OK;   -1 open-error;
 
+  int  irc;
 
-  printf("LOG_A_set_fnam %s\n", fnam);
+  // printf("LOG_A_set_fnam %s\n", fnam);
 
   if(LOG_A_fp) {
     fclose (LOG_A_fp);
@@ -129,9 +135,9 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 
   // if not yet open then open Logfile
   // open log-file
-  LOG_A__ (MSG_ERR_typ_INF, "=========== logfile %s ",fnam);
-
-  return 0;
+  if(iopen) irc = LOG_A__ (MSG_ERR_typ_INF, "=========== logfile %s ",fnam);
+  else      irc = 0;
+  return irc;
 
 }
 
@@ -141,7 +147,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 //================================================================
  
 
-  printf("LOG_A_write |%s|\n",s1);
+  // printf("LOG_A_write |%s|\n",s1);
 
   if(!LOG_A_fp) {
     if ((LOG_A_fp = fopen (LOG_A_fnam, "w")) == NULL) {
@@ -153,7 +159,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
     }
   }
 
-  fprintf(LOG_A_fp, "%s\n",s1);
+    fprintf(LOG_A_fp, "%s\n",s1);
 
   return 0;
 
@@ -163,14 +169,16 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 //================================================================
   int LOG_A__ (int msgTyp, char* txt, ...) {
 //================================================================
-/// LOG                    write message into logfile
-/// Input:
-///   msgTyp     MSG_ERR_typ_INF = 0
-///              MSG_ERR_typ_WNG = 1
-///              MSG_ERR_typ_ERR = 2
-///              MSG_ERR_typ_CON     4        // continuation line
-///
-/// see also gis_msg__
+// LOG                    write message into logfile
+// Input:
+//   msgTyp     MSG_ERR_typ_INF = 0
+//              MSG_ERR_typ_WNG = 1
+//              MSG_ERR_typ_ERR = 2
+//              MSG_ERR_typ_CON     4        // continuation line
+//   txt        must be format (eg "%s" or "%s %d")
+//   ...        parameters appropriate format <txt>
+//
+// see also gis_msg__
 
  
   va_list va;
@@ -183,6 +191,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
   vsprintf(&s1[4], txt, va);
   va_end(va);
 
+    // printf(" LOG_A__ |%s|\n",s1);
 
   return LOG_A_write (s1);
 
@@ -244,6 +253,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
   if(istat) {
     if ((LOG_A_fp = fopen (LOG_A_fnam, "a")) == NULL) {
       TX_Print("***** CANNOT OPEN LOG-FILE");
+      return -1;
     }
   }
 
@@ -256,15 +266,16 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 //================================================================
   int LOG_A_init (char *appNam) {
 //================================================================
-/// set automatic logfilename
+// set automatic logfilename and open logfile
 
   char   s1[256];
 
 
   // open log-file
-  sprintf (s1, "%s%s.log",OS_get_tmp_dir(),appNam);
+  sprintf (s1, "%s%s.log",AP_get_tmp_dir(),appNam);
 
-  LOG_A_set_fnam (s1);
+  // set logfilename and open
+  LOG_A_set_fnam (s1, 1);
 
   return 0;
 
@@ -278,13 +289,12 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 
   // close logfile
   if(LOG_A_fp) {
+    fprintf (LOG_A_fp, "ENR %d errors\n",errNr);
     fprintf (LOG_A_fp, "INF =========== Logend %s\n",OS_date1());
     fclose (LOG_A_fp);
     LOG_A_fp = NULL;
-    TX_Print ("  Logfile %s written",LOG_A_fnam);
 
-    if(errNr >= 0) TX_Print ("**** Logfile reports %d errors",errNr);
-
+    if(errNr > 0) TX_Print ("**** Logfile reports %d errors",errNr);
   }
 
   return 0;

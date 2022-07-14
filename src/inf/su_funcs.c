@@ -96,7 +96,7 @@ GL_set_fan            display TriangFan from points
 GL_set_strip1         stripe from startpt and 2 pointArrays
   GR_Disp_fan / GR_Disp_su3p2 GR_Disp_su3pt GR_Disp_tris 
 
-GL_set_strip2         stripe from 2 pointArrays
+GL_set_strip_v         stripe from 2 pointArrays
   - disp stripe of 2 pointArrays
   - can add to GLT_stor_rec (if TSU_mode==1)
   - can disp boundary (if WC_stat_bound==ON)
@@ -126,18 +126,18 @@ GL_set_sur_tess       GL_Tex_set1 + GL_set_bMsh
 GL_disp_sph
   - adds into open GL
   - can create symbolic-boundary|faces for sph
-  - use GL_set_fan|GL_set_strip2
+  - use GL_set_fan|GL_set_strip_v
 
 GL_disp_cone          
   - adds into open GL
   - can disp parts of cone (bottom-face,top-face,mantel)
   - can create symbolic-boundary|faces for cone (bottom-face,top-face,mantel)
-  - use GL_set_fan|GL_set_strip2
+  - use GL_set_fan|GL_set_strip_v
 
 GL_disp_tor
   - adds into open GL
   - can create symbolic-boundary|faces for torus
-  - use GL_set_strip2
+  - use GL_set_strip_v
 
 GR_DrawFan           disp fan - planar or not planar
   - adds into open GL
@@ -153,13 +153,13 @@ GR_DrawTriaStrip
   - input dli, att, 2 pointArrays (in single pointarray)
   - adds into open GL
   - can add to GLT_stor_rec (if TSU_mode==1)
-  - use GL_set_strip2
+  - use GL_set_strip_v
 
 GR_DrawStrip
   - input: 2 pointArrays, flag open-new-surface
   - adds into open GL, sets color GL_actCol
   - can add to GLT_stor_rec (if TSU_mode==1)
-  - use GL_set_strip2
+  - use GL_set_strip_v
 
 GL_disp_prism
   - input: 2 pointArrays, flag symbolic;
@@ -255,17 +255,17 @@ TSU_DrawSurTess        display bMesh
 GR_DrawTorSeg          disp torus (2 (limited) circs)
   - input 2 (limited) circs
   - Open/close GL-list, set color;
-  - use GL_set_strip2
+  - use GL_set_strip_v
 
 GR_DrawDisk            (Kreisring)
   - Open/close GL-list, set color;
-  - use GL_set_fan|GL_set_strip2
+  - use GL_set_fan|GL_set_strip_v
 
 GR_DrawPrism                                                             
   - input dli att 2 pointArrays
   - Open/close GL-list, set color;
   - can add to GLT_stor_rec (if TSU_mode==1)
-  - use GL_set_strip2
+  - use GL_set_strip_v
 
 GR_CreSolCon
   - input: Conus
@@ -294,7 +294,7 @@ GR_Disp_patch
 GL_DrawRSur           RuledSurf                   UU
   - input  dli, att, 2 pointArrays
   - Open/close GL-list, set color;
-  - use GL_set_strip2
+  - use GL_set_strip_v
 
 GR_draw_mesh         display triangles from Fac3[], Point[], color
   - Open/close GL-list, set color;

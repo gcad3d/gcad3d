@@ -170,7 +170,7 @@ extern GtkWidget *UI_act_wi;
 
 
   // add image to window
-  sprintf (s1, "%sMouseM%d.png", OS_get_ico_dir(),ii);
+  sprintf (s1, "%sMouseM%d.png", AP_get_ico_dir(),ii);
     // printf(" img=|%s|\n",s1);
   img = gtk_image_new_from_file (s1);
   gtk_container_add (GTK_CONTAINER (TUT_win), img);
@@ -333,7 +333,7 @@ extern GtkWidget *UI_act_wi;
   i1 = 0;
   vp1 = (void**)icoNam;
   while (*vp1) {
-    sprintf(cbuf, "%s%s",OS_get_ico_dir(),(char*)*vp1);
+    sprintf(cbuf, "%s%s",AP_get_ico_dir(),(char*)*vp1);
       // printf(" icoNam[%d]=|%s|\n",i1,cbuf);
     if(OS_checkFilExist(cbuf, 0) == 0) {
       // TX_Error (" Imagefile %s does not exist",cbuf);

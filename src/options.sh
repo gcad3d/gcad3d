@@ -23,12 +23,12 @@
 
 
 
-# test if active directory is xx/gcad3d/src/APP
-S2=`expr length ${PWD} - 14`
-if [ `echo ${PWD} | cut -c$S2-` != "/gcad3d/src/APP" ] ; then
-  echo "****** ERROR - not in directory .../gcad3d/src/APP *****"
-  exit 1;
-fi
+## test if active directory is xx/gcad3d/src/APP
+#S2=`expr length ${PWD} - 14`
+#if [ `echo ${PWD} | cut -c$S2-` != "/gcad3d/src/APP" ] ; then
+#  echo "****** ERROR - not in directory .../gcad3d/src/APP *****"
+#  exit 1;
+#fi
 
 
 

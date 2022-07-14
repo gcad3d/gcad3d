@@ -1206,7 +1206,7 @@ extern char  MOpTxtStr[];
   char     *cp1, oNam[32];
 
 
-  printf("APED_find_dbo %d %ld\n",typ,dbi);
+  // printf("APED_find_dbo %d %ld\n",typ,dbi);
 
 
   //----------------------------------------------------------------
@@ -1253,7 +1253,7 @@ extern char  MOpTxtStr[];
   //----------------------------------------------------------------
   L_exit:
 
-    printf("ex APED_find_dbo dli=%ld lNr=%ld\n",*dli,*lNr);
+    // printf("ex APED_find_dbo dli=%ld lNr=%ld\n",*dli,*lNr);
 
   return 0;
 

@@ -102,7 +102,8 @@ Section "Hauptgruppe" SEC01
     "" "$INSTDIR\gCAD3D.ico"
 
   CreateShortCut "$DESKTOP\gCAD3D.lnk" "$INSTDIR\gCAD3D.bat"\
-    "" "$INSTDIR\gCAD3D.ico" 0 SW_SHOWMINIMIZED
+    "" "$INSTDIR\gCAD3D.ico"
+  ;0 SW_SHOWMINIMIZED   2022-07-01 removed
 
 SectionEnd
 

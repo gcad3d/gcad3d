@@ -24,6 +24,9 @@ Modifications:
 
 -----------------------------------------------------
 */
+#ifdef globTag
+void CVPSP(){}
+#endif
 /*!
 \file  ../ut/ut_pspl.c
 \brief polynom. splines
@@ -31,11 +34,13 @@ Modifications:
 =====================================================
 List_functions_start:
 
-psp_psp3_tra_m3  transform Polynom.Spline with matrix
-pspl_pol_psp     Polynom.Spline -> Polygon
-psp_dist1        normalSist pt - line
-psp_ioff_psp     get segmentoffset & segmentNr
-psp_pt_psp       get pt from dist
+CVPSP_psp3_tra_m3  transform Polynom.Spline with matrix
+CVPSP_pol_oPsp3    get polygon from Polynom.Spline-obj (CurvPsp3)
+CVPSP_pol_nPsp3    get polygon from Polynom.Spline (polynom_d3[])
+CVPSP_ioff_psp     get offset for Polynom.Spline
+CVPSP_pt_psp       compute point from offset on Polynom.Spline
+CVPSP_ptNr_oPsp3   get nr of points for polygon for Polynom.Spline
+CVPSP_box_oPsp3    extend box for Polynom.Spline
 
 List_functions_end:
 =====================================================
@@ -60,6 +65,7 @@ List_functions_end:
 #include "../ut/ut_txt.h"
 
 #include "../ut/func_types.h"               // SYM_..
+#include "../ut/ut_deb.h"              // DEB_*
 
 
 #include "../xa/xa.h"
@@ -68,22 +74,36 @@ List_functions_end:
 
 
 
-  double psp_dist1(Point *pts, Point *pt1, Point *pte);
+// externals:
+// ../ci/NC_Main.c:
+extern double    APT_ModSiz;
+
+
+// prototypes:
+  double UT3D_nlen_3pt (Point *pts, Point *pt1, Point *pte);
 
 
 
 //================================================================
-  int psp_psp3_tra_m3 (ObjGX *cvo, ObjGX *cvi, Mat_4x3 trmat) {
+  int CVPSP_psp3_tra_m3 (ObjGX *cvo, ObjGX *cvi, Mat_4x3 trmat) {
 //================================================================
-/// psp_psp3_tra_m3  transform Polynom.Spline with matrix
+/// CVPSP_psp3_tra_m3  transform Polynom.Spline with matrix
 /// cvo must have enough size for complete curve (ox + polynoms)
+
+/// TODO: change to new struct CurvPsp3
+/// muss man ganz neu machen, braucht Memspc (UME_init)
 
 
   int        i1;
   char       *pe;
   Point      pt0, pt1;
   polynom_d3 *pola, pol1;
+  // CurvPsp3   *pspi, *pspo;
   ObjGX      *ox1;
+
+
+  TX_Print("********** TODO - CVPSP_psp3_tra_m3 **************");
+  // DEB_dump_ox_0 (cvi, "CVPSP_psp3_tra_m3-in");
 
 
   if(cvi->form != Typ_CVPSP3) return -1;
@@ -91,10 +111,10 @@ List_functions_end:
   // pointer to outputfield
   ox1 = cvo;
 
-  // copy primary ObjGX
+  // copy primary ObjGX (cvo = cvi)
   memcpy(ox1, cvi, sizeof(ObjGX));
 
-  // set startAdress of Data to space behind primary ObjGX
+  // set startAdress of Data to space behind primary ObjGX (following cvo)
   pe = (char*)ox1 + sizeof(ObjGX);
 
   // correct the data-position
@@ -150,10 +170,58 @@ List_functions_end:
 }
 
 
+//================================================================
+  int CVPSP_ptNr_oPsp3 (int *ptNr, CurvPsp3 *cv1, double tol) {
+//================================================================
+// CVPSP_ptNr_oPsp3         get nr of points for polygon for Polynom.Spline
+// estimation ..
+
+  *ptNr = (cv1->plyNr * (200./APT_ModSiz)) + 100;
+
+    // printf(" ex-CVPSP_ptNr_oPsp3 %d\n",*ptNr);
+
+  return 0;
+
+}
+
+
 //=====================================================================
-  int pspl_pol_psp (int *ptNr, Point *pTab,
-                    ObjGX *cv1, int ptMax, double tol) {
+  int CVPSP_pol_oPsp3 (int *ptNr, Point *pTab,
+                      CurvPsp3 *cv1, int ptMax, double tol) {
 //=====================================================================
+// CVPSP_pol_oPsp3        get polygon from Polynom.Spline-obj (CurvPsp3)
+// Polynom.Spline -> Polygon. Nur durch Generieren Mittelpunkte und 
+// Abweichung messen.
+// See also  bspl_pol_bsp UT3D_cv_rbsp
+
+// ACHTUNG: pTab=memspc55
+
+// #define STACKSIZ 30
+// 
+//   int        i1, is, ptIn, ptOut, ptStackNr, pTab1Max, PolCoNr;
+//   double     us, ue, ps, pu, dist, uStack[STACKSIZ];
+//   Point      pt1, pts, pte, ptStack[STACKSIZ];
+//   polynom_d3 *PolCo;
+
+
+  // CurvPsp3  *cvPsp;
+
+  // printf("CVPSP_pol_oPsp3 ptMax=%d tol=%f\n",ptMax,tol);
+  // DEB_dump_obj__ (Typ_CVPSP3, cv1, "CVPSP_pol_psp");
+  // DEB_dump_ox_0 (cv1, "CVPSP_pol_psp");
+  
+  // cvPsp = cv1->data;
+
+  return CVPSP_pol_nPsp3 (ptNr, pTab, cv1->plyTab, cv1->plyNr, ptMax, tol);
+
+}
+
+
+//============================================================================
+  int CVPSP_pol_nPsp3 (int *ptNr, Point *pTab,
+                      polynom_d3 *PolCo, int PolCoNr, int ptMax, double tol) {
+//============================================================================
+// CVPSP_pol_nPsp3        get polygon from Polynom.Spline (polynom_d3[])
 // Polynom.Spline -> Polygon. Nur durch Generieren Mittelpunkte und 
 // Abweichung messen.
 // See also  bspl_pol_bsp UT3D_cv_rbsp
@@ -162,23 +230,15 @@ List_functions_end:
 
 #define STACKSIZ 30
 
-  int        i1, is, ptIn, ptOut, ptStackNr, pTab1Max, PolCoNr;
+  int        irc, i1, is, ptIn, ptOut, ptStackNr, pTab1Max;
   double     us, ue, ps, pu, dist, uStack[STACKSIZ];
   Point      pt1, pts, pte, ptStack[STACKSIZ];
-  polynom_d3 *PolCo;
 
 
-  // printf("pspl_pol_psp ptMax=%d tol=%f\n",ptMax,tol);
-  // DEB_dump_ox_0 (cv1, "pspl_pol_psp");
-  
+  // printf("CVPSP_pol_nPsp3 PolCoNr=%d ptMax=%d tol=%f\n",PolCoNr,ptMax,tol);
+  // DEB_dump_nobj__ (Typ_polynom_d3, PolCoNr, PolCo, "CV:\n");
 
-
-  PolCoNr = cv1->siz;
-  PolCo   = cv1->data;
-
-  // printf("PolCoNr=%d\n",PolCoNr);
   // printf("Startpkt=%f,%f,%f\n",PolCo[0].x.a,PolCo[0].y.a,PolCo[0].z.a);
-
 
 
   // den ersten Pt sofort raus
@@ -188,16 +248,18 @@ List_functions_end:
   pTab[ptOut].y = PolCo[i1].y.a;
   pTab[ptOut].z = PolCo[i1].z.a;
   ++ptOut;          // der aktuelle Punkt ist immer pTab[ptOut-1].
+  if(ptOut >= ptMax) goto L_eom1;
 
 
   // den letzen Punkt auf den Stack.
   ptStackNr = 0;
-  i1 = cv1->siz-1;
+  i1 = PolCoNr - 1;
   uStack[ptStackNr] = 1.0;
   ptStack[ptStackNr].x = PolCo[i1].x.a;
   ptStack[ptStackNr].y = PolCo[i1].y.a;
   ptStack[ptStackNr].z = PolCo[i1].z.a;
   ++ptStackNr;
+  if(ptStackNr >= STACKSIZ) goto L_eom2;
 
   pts = pTab[0];  // Startpunkt
   us = 0.;
@@ -218,14 +280,14 @@ List_functions_end:
   // printf("next pu=%f ue=%f\n",pu,ue);
 
   // den Segmentindex und den Segmentoffset holen
-  psp_ioff_psp (&is, &ps, pu, PolCo, PolCoNr);
+  CVPSP_ioff_psp (&is, &ps, pu, PolCo, PolCoNr);
 
   // den Punkt dazu holen (Zwischenpunkt)
-  psp_pt_psp (&pt1, ps, &PolCo[is]);
+  CVPSP_pt_psp (&pt1, ps, &PolCo[is]);
 
 
   // die Abweichung feststellen
-  dist = psp_dist1(&pts, &pt1, &pte);
+  dist = UT3D_nlen_3pt (&pts, &pt1, &pte);
   // if(ptStackNr > 1) {dist = 0.001;} else {dist = 10.0;} // TEST
   // see also UT2D_nlenq_3pt UT2D_len_ptln UT2D_slen_nor3pt
 
@@ -234,36 +296,57 @@ List_functions_end:
     ptStack[ptStackNr] = pt1;
     uStack[ptStackNr]  = pu;
     ++ptStackNr;
-    if(ptStackNr >= STACKSIZ) return -1;
+    if(ptStackNr >= STACKSIZ) goto L_eom2;
     goto L_next_inPoint;
   }
 
   // Abweichung tolerierbar. pte raus.
   pTab[ptOut] = pte; // copy Point
   ++ptOut;
+  if(ptOut >= ptMax) goto L_eom1;
   --ptStackNr;
   pts = pte;
   us = ue;
   if(ptStackNr > 0) goto L_next_inPoint;
 
+  irc = 0;
 
   //-------------------------------------------
   L_fertig:
 
   *ptNr = ptOut;
 
-    // printf("ex pspl_pol_psp ptNr=%d\n",*ptNr);
-    // GR_tDyn_npt__ (ptOut, pTab, SYM_STAR_S, 2);
+    // TESTBLOCK
+    // printf("ex CVPSP_pol_psp ptNr=%d\n",*ptNr);
+    // for(i1=0;i1<*ptNr;++i1) printf(" pTab[%d] %12.3f %12.3f %12.3f\n",i1,
+        // pTab[i1].x,pTab[i1].y,pTab[i1].z);
+    // GR_tDyn_npt__ (pTab, *ptNr, 0);
     // GL_set_pcv (ptOut, pTab);
+    // DEB_exit();
+    // END TESTBLOCK
 
-  return 0;
+  return irc;
+
+
+  //-------------------------------------------
+  L_eom1:
+    irc = -1;
+    TX_Error("CVPSP_pol_nPsp3 EOM-1");
+    goto L_fertig;
+
+  L_eom2:
+    irc = -1;
+    TX_Error("CVPSP_pol_nPsp3 EOM-2");
+    goto L_fertig;
 
 }
 
 
+/*
 //=====================================================================
-  double psp_dist1(Point *pts, Point *pt1, Point *pte) {
+  double CVPSP_dist1 (Point *pts, Point *pt1, Point *pte) {
 //=====================================================================
+// CVPSP_dist1      normal-distance point  line
 // Normalabst von pt1 von Linie pts-pte
 
   double d1;
@@ -271,7 +354,7 @@ List_functions_end:
   Vector vc1;
 
 
-  // printf("psp_dist1\n");
+  // printf("CVPSP_dist1\n");
 
 
   UT3D_vc_2pt (&vc1, pts, pte);
@@ -281,13 +364,12 @@ List_functions_end:
   // d1 = UT3D_len_2pt (&pti, pt1);
 
 
-  // printf(" ex psp_dist1 %f\n",d1);
+  // printf(" ex CVPSP_dist1 %f\n",d1);
 
   return d1;
 
 }
 
-/*
 //=====================================================================
   int IGE_r_decpol2_112 (polynom_d3 *PolCo, int PolCoNr) {
 //=====================================================================
@@ -311,10 +393,10 @@ List_functions_end:
   for(i1=0; i1<ianz; ++i1) {
 
     // den Segmentindex und den Segmentoffset holen
-    psp_ioff_psp (&is, &ps, pu, PolCo, PolCoNr);
+    CVPSP_ioff_psp (&is, &ps, pu, PolCo, PolCoNr);
 
     // den Punkt dazu holen
-    psp_pt_psp (&pt1, ps, &PolCo[is]);
+    CVPSP_pt_psp (&pt1, ps, &PolCo[is]);
 
     // Binaer schreiben (3 doubles)
     // fwrite (&pt1, sizeof(pt1), 1, IG_auxFilLun);
@@ -338,9 +420,10 @@ List_functions_end:
 */
 
 //===========================================================================
-  int psp_ioff_psp (int *is, double *dus, double du,
+  int CVPSP_ioff_psp (int *is, double *dus, double du,
                        polynom_d3 *polTab, int polNr) {
 //===========================================================================
+// CVPSP_ioff_psp      get offset for Polynom.Spline
 // Berechnen des Segmentoffsets dus und zu welchem Teilsegment er gehoert.
 // Input: der absolute Offset du und die absoluten Offsets der einzelnen
 //   Teilsegmente in polTab[0].u bis polTab[polNr].u.
@@ -358,7 +441,7 @@ List_functions_end:
   // das multiplizerte_u
   d_m = (du * d_tot) + polTab[0].u;
 
-  // printf("psp_ioff_psp du=%f d_tot=%f d_m=%f\n",du,d_tot,d_m);
+  // printf("CVPSP_ioff_psp du=%f d_tot=%f d_m=%f\n",du,d_tot,d_m);
 
 
 /*
@@ -388,7 +471,7 @@ List_functions_end:
   *dus = (du - ds) * d_tot;
 
 
-  // printf("ex psp_ioff_psp is=%d du1=%f du=%f %f-%f\n",*is,*dus,du,
+  // printf("ex CVPSP_ioff_psp is=%d du1=%f du=%f %f-%f\n",*is,*dus,du,
                             // polTab[*is].u,polTab[(*is)+1].u);
 
   return 0;
@@ -396,28 +479,58 @@ List_functions_end:
 }
 
 
+//================================================================
+  int CVPSP_box_oPsp3 (Point *pb1, Point *pb2, CurvPsp3 *cv1) {
+//================================================================
+// CVPSP_box_oPsp3    extend box for Polynom.Spline
+
+  int        i1, iNr;
+  polynom_d3 *plyTab;
+  Point      pt1;
+
+  // printf("CVPSP_box_oPsp3 \n");
+  // DEB_dump_obj__ (Typ_CVPSP3, cv1, "CVPSP_box_psp");
+
+
+  plyTab = cv1->plyTab;
+  iNr  = cv1->plyNr; // + 1;
+
+  for(i1=0;i1<iNr; ++i1) {
+    pt1.x = plyTab[i1].x.a;
+    pt1.y = plyTab[i1].y.a;
+    pt1.z = plyTab[i1].z.a;
+    UT3D_box_extend (pb1, pb2, &pt1);
+      // printf(" seg %d %f %f %f\n",i1,pt1.x,pt1.y,pt1.z);
+  }
+
+  // printf("ex-CVPSP_box_oPsp3 \n");
+
+  return 0;
+
+}
+
 
 //===========================================================================
-  int psp_pt_psp (Point *pt1, double du, polynom_d3 *pc) {
+  int CVPSP_pt_psp (Point *pt1, double du, polynom_d3 *pc) {
 //===========================================================================
-/*
+// CVPSP_pt_psp           compute point from offset on Polynom.Spline
+// 
+// IN:
+//   du          ... der Abstand (0. - 1.)
+//   pc          ... polynomCoefficient for a degree-3 polynom.
+//     pc.x      ... coefficients of the X-polynomial (a-d)
+//     pc.y      ... coefficients of the Y-polynomial (a-d)
+//     pc.z      ... coefficients of the Z-polynomial (a-d)
+// 
+// OUT:
+//   der 3D-Punkt pt1
+// 
 
-IN:
-  du          ... der Abstand (0. - 1.)
-  pc          ... polynomCoefficient for a degree-3 polynom.
-    pc.x      ... coefficients of the X-polynomial (a-d)
-    pc.y      ... coefficients of the Y-polynomial (a-d)
-    pc.z      ... coefficients of the Z-polynomial (a-d)
-
-OUT:
-  der 3D-Punkt pt1
-
------------------------------------------------------*/
 
   double s, ss, sss;
 
 
-  // printf("psp_pt_psp du=%f uSeg=%f\n",du,pc->u);
+  // printf("CVPSP_pt_psp du=%f uSeg=%f\n",du,pc->u);
   // printf("          %f %f %f %f\n",pc->x.a,pc->x.b,pc->x.c,pc->x.d);
 
   s   = du;
@@ -428,7 +541,7 @@ OUT:
   pt1->y = pc->y.a + pc->y.b*s + pc->y.c*ss + pc->y.d*sss;
   pt1->z = pc->z.a + pc->z.b*s + pc->z.c*ss + pc->z.d*sss;
 
-  // printf("ex psp_pt_psp %f,%f,%f du=%f\n",pt1->x,pt1->y,pt1->z,du);
+  // printf("ex CVPSP_pt_psp %f,%f,%f du=%f\n",pt1->x,pt1->y,pt1->z,du);
 
   return 0;
 }

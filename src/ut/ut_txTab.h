@@ -14,7 +14,7 @@
 /// tabSiz  size of tab (chars)
 /// ind     integerTable; charNr (Startpostion) of string in tab
 /// indSiz  size of ind
-/// iNr     next free position in ind (= nr of strings in tab
+/// iNr     next free position in tab (= nr of strings in tab)
 /// stat    0=fixed size(cannot reallocate); 1=automatic reallocting
 /// \endcode
 typedef struct {int tabSiz, indSiz; char *tab;
@@ -22,6 +22,10 @@ typedef struct {int tabSiz, indSiz; char *tab;
 
 
 #define _UTXTAB_NUL {0,0, NULL, 0,0, NULL}
+
+void UtxTab_null (TxtTab xTab);
+#define UtxTab_null(xTab)\
+  xTab.tab = NULL;
 
 // setup of a new StringList.
 // creates: TxtTab xTab = {0,0, NULL, 0,0, NULL};

@@ -124,8 +124,6 @@ STP_r_PT_CARTPT        Point from s_tab-index of CARTESIAN_POINT
 STP_r_PT_VERT          Point from s_tab-index of VERTEX_POINT
 STP_r_PT_sInd          Point from s_tab-index of VERTEX_POINT or CARTESIAN_POINT
 
-STP_r_decModel4
-
 STP_r_savInit          init next s-obj-Record
 STP_r_savInt           save 1 int
 STP_r_savLDL           fixe Anzahl Links/doubles/Logical decodieren & speichern
@@ -182,6 +180,7 @@ STP_r_dispSym1         display Symbol at Position (star, triang ..)
 
 List_functions_end:
 =====================================================
+// STP_r_mdl_sm           create a mainModel if not exists ?
 
 \endcode *//*----------------------------------------
 
@@ -258,7 +257,7 @@ STP_r__               mainentry
   .. activate objects
   STP_r_mdl2geo       find all geometries for mdlTab
   STP_r_mdl2ref       find all modelReferences for mdlTab
-  STP_r_mdl_export (modelID im)
+  STP_r_mdl_export    (modelID im)
     // loop tru geoTab; export all geomObj's of model <im>
     STP_r_cre2 (sInd)
       // export geomObj s_tab[sInd]; eg GEOMETRIC_CURVE_SET, TRIMMED_CURVE ..
@@ -344,6 +343,10 @@ STYLED_ITEM SURFACE_STYLE_USAGE
 
 #ifdef _MSC_VER
 #include "../xa/MS_Def0.h"
+// die folgenden Funktionen exportieren (werden vom Main gerufen):
+__declspec(dllexport) int STP_r__ (void*);
+// nachfolgende externals werden aus dem Main-Exe imported:
+#define extern __declspec(dllimport)
 #endif
 
 #include <math.h>
@@ -354,12 +357,8 @@ STYLED_ITEM SURFACE_STYLE_USAGE
 #include <ctype.h>               // isalpha
 
 
-#ifdef _MSC_VER
-// die folgenden Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int STP_r__ (void*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
+// #ifdef _MSC_VER
+// #endif
 
 
 #include "../ut/ut_geo.h"              // Point ...
@@ -367,7 +366,7 @@ __declspec(dllexport) int STP_r__ (void*);
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../ut/ut_obj.h"              // UTO_stru_2_obj
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
 #include "../ut/ut_memTab.h"           // MemTab_..
@@ -724,7 +723,7 @@ void STP_r_skipTer0 (char *sBuf);
 
 
   printf("==================================\n");
-  printf("STP_r__ 2021-02-19 |%s|%s|\n",fnam,fmod);
+  printf("STP_r__ 2022-06-01 |%s|%s|\n",fnam,fmod);
 
 
   // // prepare: remove all existing submodels ..
@@ -855,14 +854,14 @@ void STP_r_skipTer0 (char *sBuf);
   TX_Print(" importing %d STEP-records ...",s_Nr);
 
 
-#ifdef DEB
-    printd("----- s_tab - s_Nr=%d (sInd sTyp) ---------\n",s_Nr);
-    for(i1=1; i1<s_Nr; ++i1) {
-      printd(" %d #%d = %s\n",i1,s_tab[i1].sInd,
-             STP_r_TypTxt_sTyp(s_tab[i1].sTyp));
-      // UME_dump (&s_dat, "sDat");
-    }
-#endif
+// #ifdef DEB
+//     printd("----- s_tab - s_Nr=%d (sInd sTyp) ---------\n",s_Nr);
+//     for(i1=1; i1<s_Nr; ++i1) {
+//       printd(" %d #%d = %s\n",i1,s_tab[i1].sInd,
+//              STP_r_TypTxt_sTyp(s_tab[i1].sTyp));
+//       // UME_dump (&s_dat, "sDat");
+//     }
+// #endif
 
   // AP_debug__ ();
 
@@ -910,12 +909,12 @@ void STP_r_skipTer0 (char *sBuf);
 
 
 
-#ifdef DEB
-  //---------- TESTDISP tables:
-  STP_r_dump_mdlTab("E2");
-  STP_r_dump_geoTab();
-  STP_r_dump_refTab();
-#endif
+// #ifdef DEB
+//   //---------- TESTDISP tables:
+//   STP_r_dump_mdlTab("E2");
+//   STP_r_dump_geoTab();
+//   STP_r_dump_refTab();
+// #endif
 
 
 
@@ -935,12 +934,12 @@ void STP_r_skipTer0 (char *sBuf);
   STP_r_ck_geo_used ();
 
 
-#ifdef DEB
-// TEST ONLY:
-  STP_r_dump_mdlTab("E3");
-  STP_r_dump_geoTab();
-  STP_r_dump_refTab();
-#endif
+// #ifdef DEB
+// // TEST ONLY:
+//   STP_r_dump_mdlTab("E3");
+//   STP_r_dump_geoTab();
+//   STP_r_dump_refTab();
+// #endif
 
 
 
@@ -953,7 +952,7 @@ void STP_r_skipTer0 (char *sBuf);
     for(i2=0; i2 < mdlTab.rNr; ++i2) {
       if(i2 == i1) continue;
       if(!strcmp(p1,mdlTab.data[i2].nam)) {
-        TX_Print("**** modelname %s doubly defined; modified ..\n",p1);
+        TX_Print("**** STP_r__ modelname %s doubly defined; modified ..\n",p1);
         mdlTab.data[i2].nam[0] = '_';
       }
     }
@@ -1223,7 +1222,7 @@ void STP_r_skipTer0 (char *sBuf);
   //----------------------------------------------------------------
   // all PRODUDCT's are exported into files ..
   L_finish:
-    printd("\n============= finish %d =============\n",mdlNr);
+    printf("\n============= finish %d =============\n",mdlNr);
     // UI_men__ ("dump_ga");
 
 // TEST ONLY
@@ -1237,42 +1236,29 @@ void STP_r_skipTer0 (char *sBuf);
     // test if all PRODUCTs are used by NEXT_ASSEMBLY_USAGE_OCCURRENCE;
     // if not: create a mainModel usind this unused models.
     // irc = STP_r_mdl_sm ();  // returns nr of unused models
-    STP_r_mdl_main1 ();
-    // STP_r_mdl_main0 ();
-      // printd(" main = |%s|\n",mdl.nam);
-    // if(irc <= 0) {
-// goto L_exit;
+    STP_r_mdl_main1 (fmod);
 
 
     // rename mainModel -> Model_
     if(mdl.nam) {
-      sprintf(s1,"%sModel_%s",OS_get_tmp_dir(),mdl.nam);
-      sprintf(s2,"%sModel_%s",OS_get_tmp_dir(),fmod);
-        printd(" rename %s -> %s\n",mdl.nam,s2);
+      sprintf(s1,"%sModel_%s",AP_get_tmp_dir(),mdl.nam);
+      sprintf(s2,"%sModel_%s",AP_get_tmp_dir(),fmod);
+        printf(" STP_r__ rename1 %s -> %s\n",mdl.nam,s2);
       OS_file_rename (s1, s2);
     }
 
-//     // join all files tmp/Model_* into file tmp/Model
-//     sprintf(s1,"%sMod.dat",OS_get_tmp_dir());
-//     Mod_sav_i (1);
-// goto L_exit;
-// exit(0);
-
-
   } else {
     // one model only;
-
     // find modelname of topmost (main-) model -> mdl.nam
     // STP_r_mdl_main1 ();
     STP_r_mdl_main0 ();
 
 
     // rename model -> importFileNme
-    sprintf(s1,"%sModel_%s",OS_get_tmp_dir(),mdl.nam);
-    sprintf(s2,"%sModel_%s",OS_get_tmp_dir(),fmod);
-      printd(" rename %s -> %s\n",mdl.nam,s2);
+    sprintf(s1,"%sModel_%s",AP_get_tmp_dir(),mdl.nam);
+    sprintf(s2,"%sModel_%s",AP_get_tmp_dir(),fmod);
+      printf(" STP_r__ rename2 %s -> %s\n",mdl.nam,s2);
     OS_file_rename (s1, s2);
-
 
   }
 
@@ -1302,7 +1288,7 @@ void STP_r_skipTer0 (char *sBuf);
     // load model <tmp>/Model into memory (removes all tmp/Model_*)
     // the following = from AP_Mod_load__
       // printf(" AP_mod_fnam=|%s|\n",AP_mod_fnam);
-    sprintf(s1,"%sModel",OS_get_tmp_dir());
+    sprintf(s1,"%sModel",AP_get_tmp_dir());
     Mod_load__ (0, s1, 1);
     Mod_flst_all (0);       // create ../tmp/Mod.lst
     Brw_init__ ();       // fill browserWin
@@ -1497,7 +1483,7 @@ void STP_r_skipTer0 (char *sBuf);
   int     ii;
   long    i1, i2, l2;
   
-  printd("----- STP_r_dump_mdlTab %d %d (.iPROD Link_of_iPROD .nam) %s ------\n",
+  printf("----- STP_r_dump_mdlTab %d %d (.iPROD Link_of_iPROD .nam) %s ------\n",
          mdlTab.rNr, geoTab.rNr,txt);
   // MemTab_dump (&mdlTab, "STP_r_dump_mdlTab");
   
@@ -1508,9 +1494,9 @@ void STP_r_skipTer0 (char *sBuf);
     // printd(" %d %d #%d\n",i1,i2,l2);
     i2 = mdlTab.data[i1].iPROD;
     if(i_tab) {
-      printd(" %-8ld #%-8ld %-8d |%s|\n",i1,i2,i_tab[i2],mdlTab.data[i1].nam);
+      printf(" %-8ld #%-8ld %-8d |%s|\n",i1,i2,i_tab[i2],mdlTab.data[i1].nam);
     } else {
-      printd(" ???\n");
+      printf(" ???\n");
       // printd(" %-8ld #%-8d |%s|\n",i1,i2,mdlTab.data[i1].nam);
     }
   }
@@ -1567,6 +1553,7 @@ void STP_r_skipTer0 (char *sBuf);
 }
 
 
+/*
 //================================================================
   int STP_r_mdl_sm () {
 //================================================================
@@ -1658,7 +1645,7 @@ void STP_r_skipTer0 (char *sBuf);
   return iaNr;
 
 }
-
+*/
 
 //================================================================
   int STP_r_mdl_reset () {
@@ -2174,7 +2161,7 @@ void STP_r_skipTer0 (char *sBuf);
 
 
 //================================================================
-  int STP_r_mdl_main1 () {
+  int STP_r_mdl_main1 (char *mNam) {
 //================================================================
 // get modelname of the mainModel
 
@@ -2188,10 +2175,10 @@ void STP_r_skipTer0 (char *sBuf);
 
   // parent of first NEXT_ASSEMBLY_USAGE_OCCURRENCE (L1);
 
-  int     i1, i2, im, lm, lc;
+  int     irc, i1, i2, im, lm, lc;
 
 
-  printd("STP_r_mdl_main1 -------------- %d\n",refTab.rNr);
+  // printf("STP_r_mdl_main1 -------------- %d\n",refTab.rNr);
 
   mdl.nam = NULL;
 
@@ -2211,15 +2198,15 @@ void STP_r_skipTer0 (char *sBuf);
     if(lm < 0) {
       // first modelRef; get parentLink
       lm = STP_r_get_L1 (i2);
-        printd("  lm = #%d\n",lm);
+        // printd("  lm = #%d\n",lm);
 
     } else {
       // get childLink
       lc = STP_r_get_L2 (i2);
-        printd("  lc = #%d\n",lc);
+        // printd("  lc = #%d\n",lc);
       if(lc == lm) {
         lm = STP_r_get_L1 (i2);
-          printd("  %d #%d lm = #%d  lc = #%d\n",i1,s_tab[i1].sInd,lm,lc);
+          // printd("  %d #%d lm = #%d  lc = #%d\n",i1,s_tab[i1].sInd,lm,lc);
       }
     }
   }
@@ -2228,50 +2215,50 @@ void STP_r_skipTer0 (char *sBuf);
 
 
   im = i_tab[lm];   // PRODUCT_DEFINITION from NEXT_ASSEMBLY_USAGE_OCCURRENCE
-    printd(" mainModel = %d #%d\n",im,lm);
+    printf(" mainModel = %d #%d\n",im,lm);
 
 
   // get modelname for this modelRef
   // mdl.nam = STP_r_mdl_nam2 (im);
   mdl.nam = STP_r_mdl_nam__ (im);
-
-    printd(" ex STP_r_mdl_main1 |%s|\n",mdl.nam);
-
-  return 0;
-
+  irc = 0;
+  goto L_exit;
 
 
   //----------------------------------------------------------------
   L_autoMain:
+    // no NEXT_ASSEMBLY_USAGE_OCCURRENCE; make automatic main ..
+    STP_r_mdl_main2 (mNam);
+    mdl.nam = NULL;
+    irc = 1;
+
+
+//   //----------------------------------------------------------------
+//     // get first model ..
+//     i1 = i_tab[mdlTab.data[0].iPROD];
+//     mdl.nam = STP_r_mdl_nam__ (i1);
+// 
+//     return 2;
+
+
+  L_exit:
+      // printf(" ex-STP_r_mdl_main1 %d |%s|\n",irc,mdl.nam);
+    return irc;
+
+}
+
+
+//================================================================
+  int STP_r_mdl_main2 (char *mNam) {
+//================================================================
+// no NEXT_ASSEMBLY_USAGE_OCCURRENCE; make automatic main ..
+
     // test for unused models
     // for(i1=0; i1 < mdlTab.rNr; ++i1) {
       // i2 = i_tab[mdlTab.data[i1].iPROD];
         // printd(" %d #%d %d stat=%d\n",i1,i2,s_tab[i2].sInd,s_tab[i2].stat);
     // }
 
-
-    // no NEXT_ASSEMBLY_USAGE_OCCURRENCE; make automatic main ..
-    STP_r_mdl_main2 ();
-
-    mdl.nam = NULL;
-    return 1;
-
-
-  //----------------------------------------------------------------
-    // get first model ..
-    i1 = i_tab[mdlTab.data[0].iPROD];
-    mdl.nam = STP_r_mdl_nam__ (i1);
-
-
-    return 2;
-
-}
-
-
-//================================================================
-  int STP_r_mdl_main2 () {
-//================================================================
-// no NEXT_ASSEMBLY_USAGE_OCCURRENCE; make automatic main ..
 
 
   // static char *mNam="main";
@@ -2280,9 +2267,10 @@ void STP_r_skipTer0 (char *sBuf);
   char      *p1;
 
 
-  // mdl.nam = mNam;
 
-  printd("STP_r_mdl_main2 ---------------- %d\n",mdlTab.rNr);
+  printf("STP_r_mdl_main2 ---------------- %d\n",mdlTab.rNr);
+  // STP_r_dump_mdlTab("mdl_main2");
+  
 
   // reset Startindizes
   AP_obj_2_txt (NULL, 0L, NULL, 0L);
@@ -2293,7 +2281,7 @@ void STP_r_skipTer0 (char *sBuf);
   // clear Hidelist
   GA_hide__ (-1, 0L, 0);
 
-  sprintf(gTxt,"### Step-Model %s",mdl.nam);
+  sprintf(gTxt,"### Step-Model %s",mNam); // mdl.nam);
   UTF_add1_line (gTxt);
 
 
@@ -2316,13 +2304,16 @@ void STP_r_skipTer0 (char *sBuf);
   UTF_add1_line (gTxt);
 
   // Buffer + Hidelist in die Datei schreiben,
-  UTF_file_Buf1_att ("", modSiz);
+  UTF_file_Buf1_att (mNam, modSiz);
 
   // den Buffer zuruecksetzen.
   UTF_clear1 ();
 
   // clear 
   GA_clear ();   // delete all GA_ObjTab-records
+
+
+    printf(" ex-STP_r_mdl_main2 |%s|\n",mNam); // mdl.nam);
 
   return 0;
 
@@ -2337,11 +2328,12 @@ void STP_r_skipTer0 (char *sBuf);
 
 // see also STP_r_mdl_geo STP_r_cre2 STP_r_mdl_res__
 
-  int  *ia, ii;
+  int   *ia, ii;
+  char  *mNam;
 
   if(is < 0) goto L_err1;
 
-  printd("STP_r_mdl_nam__ %d #%d\n",is,s_tab[is].sInd);
+  // printf("STP_r_mdl_nam__ %d #%d\n",is,s_tab[is].sInd);
 
   switch (s_tab[is].sTyp) {
 
@@ -2352,23 +2344,28 @@ void STP_r_skipTer0 (char *sBuf);
       // get modelname from PRODUCT
       ia = s_tab[is].sDat;     // get data of s_tab-record i4
         printd(" ex STP_r_mdl_nam__ |%s|\n",(char*) &ia[1]);
-      return (char*) &ia[1];
+      mNam = (char*) &ia[1];
+      goto L_exit;
 
 
     //----------------------------------------------------------------
     default:
       ii = STP_r_mdl_res__ (is);
-      return STP_r_mdl_nam__ (ii);
-
+      mNam = STP_r_mdl_nam__ (ii);
+      goto L_exit;
   }
-
-
-  return (NULL);
 
 
   L_err1:
     TX_Print("****** STP_r_mdl_nam__ E001 %d #%d",is,s_tab[is].sInd);
-    return NULL;
+    mNam = NULL;
+    // goto L_exit;
+
+
+  L_exit:
+      // printf(" ex-STP_r_mdl_nam__ |%s|\n",mNam);
+    return (mNam);
+
 
 }
 
@@ -3506,12 +3503,13 @@ void STP_r_skipTer0 (char *sBuf);
           s_tab[s_Nr].sTyp = SC_PRODUCT;
           irc = STP_r_decTx1 (&p1, 1, &p2);  // decode & save Modelname in s_dat
           if(irc < 0) return irc;
-          // MemTab_sav (&mdlTab, &ld, &s_Ind, 1);   // add 1 record
           actMdl.iPROD = s_Ind;
+          // UTX_chg_chr1 ('_', '.', p1);
+          UTX_safeName (p1, 3); // change all '.' ' ' '(' ')' -> '_'  2022-06-02
           actMdl.nam   = p1;
-            printd("	add PROD %d |%s|\n",actMdl.iPROD,actMdl.nam);
+            // printf("	add PROD %d |%s|\n",actMdl.iPROD,actMdl.nam);
           MemTab_sav (&mdlTab, &ld, &actMdl, 1);   // add 1 record
-            STP_r_dump_mdlTab ("STP_r_dec1-1");
+            // STP_r_dump_mdlTab ("STP_r_dec1-1");
           break;
 
         // PRODUCT_CATEGORY_RELATIONSHIP
@@ -4102,7 +4100,7 @@ static Point  p1, p2;
   Mod_savSubBuf1 (ModNam, modSiz);
 /
   // UTF_add1_line ("# End Submodel\n");
-  // sprintf(gTxt,"%stmp%cModel_%s",OS_get_bas_dir(),fnam_del,ModNam);
+  // sprintf(gTxt,"%stmp%cModel_%s",AP_get_bas_dir(),fnam_del,ModNam);
   // UTF_file_Buf1 (gTxt);
 /
 
@@ -4591,7 +4589,7 @@ static Point  p1, p2;
   ObjGX  ox1;
 
 
-  printd("STP_r_creObj1 %d %d %d\n",sInd,typ,form);
+  // printd("STP_r_creObj1 %d %d %d\n",sInd,typ,form);
   // if(form == Typ_Txt) printd(" txt=|%s|\n",(char*)data);
 
 
@@ -4621,8 +4619,8 @@ static Point  p1, p2;
          // STP_r_TypTxt_sTyp(s_tab[sInd].sTyp));
   // if(s_tab[sInd].sInd == 3809) {TX_Error("TESTEX1"); exit(0);}
     APED_oid_dbo__ (s1, i1, l1);
-    printd("%s= STP_r_creObj1 .gTyp=%d .gInd=%ld |%s|\n",
-           s1,i1,l1,mem_cbuf1);
+    // printd("%s= STP_r_creObj1 .gTyp=%d .gInd=%ld |%s|\n",
+           // s1,i1,l1,mem_cbuf1);
  
 
 

@@ -92,7 +92,7 @@ List_functions_end:
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // UTX_CleanCR
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../ut/ut_TX.h"               // TX_Print
 #include "../ut/ut_memTab.h"           // MemTab
 
@@ -184,7 +184,7 @@ static char* txBuf=NULL;
 
 
   // open outputfile
-  sprintf(cbuf,"%sprint.tmp",OS_get_tmp_dir ());
+  sprintf(cbuf,"%sprint.tmp",AP_get_tmp_dir ());
   if ((fpo = fopen (cbuf, "w+")) == NULL) {
     TX_Error ("AP_print_work2 E001");
     return -1;
@@ -366,7 +366,7 @@ static char* txBuf=NULL;
 
 
   // open outputfile
-  sprintf(cbuf,"%sprint.tmp",OS_get_tmp_dir ());
+  sprintf(cbuf,"%sprint.tmp",AP_get_tmp_dir ());
   if ((fpo = fopen (cbuf, "w+")) == NULL) {
     TX_Error ("AP_print_work2 E001");
     return -1;
@@ -596,9 +596,9 @@ X-Coord Y-Coord Z-Coord R G B A
 
   // ps2pdf -sPAPERSIZE=a4 print.ps print.pdf
   sprintf(s1, "ps2pdf -sPAPERSIZE=a%c \"%sprint.eps\" \"%sprint.pdf\"",
-          pgTyp[1], OS_get_tmp_dir(), OS_get_tmp_dir());
+          pgTyp[1], AP_get_tmp_dir(), AP_get_tmp_dir());
     printf("%s\n", s1);
-  system (s1);
+  OS_system (s1);
 
   return 0;
 
@@ -688,7 +688,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
 
 
-  sprintf(cbuf,"%sprint.eps",OS_get_tmp_dir ());
+  sprintf(cbuf,"%sprint.eps",AP_get_tmp_dir ());
   if ((fp1 = fopen (cbuf, "w+")) == NULL) {
     TX_Error ("AP_print_psv2 E001");
     return -1;
@@ -720,7 +720,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
 
   // add setup-File psv.setup via mem_cbuf1
-  sprintf(cbuf,"%spsv.setup",OS_get_cfg_dir ());
+  sprintf(cbuf,"%spsv.setup",AP_get_cfg_dir ());
   l1 = OS_FilSiz (cbuf);
   if ((fp2 = fopen (cbuf, "r")) == NULL) {
     TX_Error ("AP_print_psv2 file: Error open %s",cbuf);
@@ -755,7 +755,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
   //======================================================================
   // data
-  sprintf(cbuf,"%sprint.tmp",OS_get_tmp_dir ());
+  sprintf(cbuf,"%sprint.tmp",AP_get_tmp_dir ());
   if ((fp2 = fopen (cbuf, "r")) == NULL) {
     TX_Error ("AP_print_pvs file: Error open print.tmp");
     return -1;
@@ -935,7 +935,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
 
 
-  sprintf(cbuf,"%sprint.eps",OS_get_tmp_dir ());
+  sprintf(cbuf,"%sprint.eps",AP_get_tmp_dir ());
   if ((fp1 = fopen (cbuf, "w+")) == NULL) {
     TX_Error ("AP_print_psv3 E001");
     return -1;
@@ -964,7 +964,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
 
   // add setup-File psv.setup via mem_cbuf1
-  sprintf(cbuf,"%spsv.setup",OS_get_cfg_dir ());
+  sprintf(cbuf,"%spsv.setup",AP_get_cfg_dir ());
   l1 = OS_FilSiz (cbuf);
   if ((fp2 = fopen (cbuf, "r")) == NULL) {
     TX_Error ("AP_print_psv3 file: Error open %s",cbuf);
@@ -996,7 +996,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
   //======================================================================
   // data
-  sprintf(cbuf,"%sprint.tmp",OS_get_tmp_dir ());
+  sprintf(cbuf,"%sprint.tmp",AP_get_tmp_dir ());
   if ((fp2 = fopen (cbuf, "r")) == NULL) {
     TX_Error ("AP_print_pvs file: Error open print.tmp");
     return -1;
@@ -1195,8 +1195,8 @@ X-Coord Y-Coord Z-Coord R G B A
   wy += yOff;
 
 
-  if(mode == 2) sprintf(cbuf,"%sprint.pcl",OS_get_tmp_dir ());
-  else          sprintf(cbuf,"%sprint.hpgl",OS_get_tmp_dir ());
+  if(mode == 2) sprintf(cbuf,"%sprint.pcl",AP_get_tmp_dir ());
+  else          sprintf(cbuf,"%sprint.hpgl",AP_get_tmp_dir ());
   if ((fp1 = fopen (cbuf, "w+")) == NULL) {
     TX_Error ("AP_print_gl1 E001");
     return -1;
@@ -1219,7 +1219,7 @@ X-Coord Y-Coord Z-Coord R G B A
 
   //======================================================================
   // data
-  sprintf(cbuf,"%sprint.tmp",OS_get_tmp_dir ());
+  sprintf(cbuf,"%sprint.tmp",AP_get_tmp_dir ());
   if ((fp2 = fopen (cbuf, "r")) == NULL) {
     TX_Error ("AP_print_gl1  Error open print.tmp");
     return -1;
@@ -1430,7 +1430,7 @@ PS - Bitmap; unused.
 
 
   //============== create fileheader ===============================
-  strcpy(txbuf, OS_get_bas_dir ());
+  strcpy(txbuf, AP_get_bas_dir ());
   strcat(txbuf, "/tmp/print.eps");
 
   if ((fp1 = fopen (txbuf, "w+")) == NULL) {
@@ -1482,7 +1482,7 @@ PS - Bitmap; unused.
 
   // out into file
   strcpy(txbuf, "cp ");
-  strcat(txbuf, OS_get_bas_dir ());
+  strcat(txbuf, AP_get_bas_dir ());
   strcat(txbuf, "/tmp/print.eps ");
   strcat(txbuf, cmd);
   goto L_execute;
@@ -1494,7 +1494,7 @@ PS - Bitmap; unused.
   strcat(txbuf, " ");
 
   // add filename
-  strcat(txbuf, OS_get_bas_dir ());
+  strcat(txbuf, AP_get_bas_dir ());
   strcat(txbuf, "/tmp/print.eps");
 
 

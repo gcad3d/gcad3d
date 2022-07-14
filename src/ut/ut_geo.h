@@ -223,6 +223,17 @@ typedef struct {double dx, dy, dz;}                                 Vector;
 
 //....................... containerobjects: ................................
 
+
+//  iNr    nr of objects in ia
+//  ia     array integers
+//  typ    type of data;
+//  aux    aux-info, 0=default ..
+//  stat   status, 0=default ..
+typedef struct {int *ia, iNr; char typ, aux, stat;}                 IntTab;
+// see functions ITAB
+
+
+
 /// \brief Index-table; Typ_IndTab; _INDTAB_NUL
 /// \code
 ///  ibeg   begin-index; points to first object of index-list
@@ -291,6 +302,7 @@ typedef struct {void **oDat, *xDat; Memspc oSpc;
 /// dlInd DispListIndex; 0=undefined
 /// \endcode
 typedef struct {long dbInd, dlInd; short typ, stat;}                ObjDB;
+// size = 24
 
 
 /// \brief Typ_ObjSRC sourceObject
@@ -544,6 +556,18 @@ typedef struct {int ptNr; double v0, v1, *lvTab; Point *cpTab;
 // v0,v1 (parameters of startpoint, endPoint) of Circ, CurvElli are normalized (0-1)
 //       CurvPoly has length, CurvBSpl has knotvalues;
 // size = 28
+
+
+// Curve: Polynom.Spline (curve from polynominal points) Typ_CVPSP3
+// plyNr       nr of polynominal points
+// plyTab      table of polynominal points (polynom_d3 Typ_polynom_d3)
+// v0      ... start parameter (len-offset; see INF_struct_par
+// v1      ... end parameter (len-offset)
+// dir         direction; 0=fwd, 1=bwd. See INF_struct_dir.
+// clo         closed; 0=yes, 1=not_closed; -1=undefined; -2=degen
+// trm         trimmed; 0=yes, 1=not_trimmed, -1=undef; see INF_struct_closed
+typedef struct {int plyNr; double v0, v1; polynom_d3 *plyTab;
+                char dir, clo, trm, uu4;}                           CurvPsp3;
 
 
 /// \brief Curve: B-spline   Typ_CVBSP2
@@ -1183,27 +1207,27 @@ typedef struct {int ipt[2];}                                        Edge;
 typedef struct {int i1, i2;}                                        Edg3;
 
 
-/// \brief Typ_EdgeLine
+/// \brief Typ_IntTab
 /// \code
 ///  iNr    nr of objects in ia
 ///  ia     Indexes into pointTable
-///  typ    MSH_EDGLN_BL   2 EdgeLine (BreakLine)
+///  typ    MSH_EDGLN_BL   2 IntTab (BreakLine)
 ///         MSH_EDGLN_IB   3 InnerBound
 ///         MSH_EDGLN_OB   4 OuterBound
 ///         MSHIG_EDGLN_AB   5 OuterBound - automatic created
 ///         MSH_PATCH  6 faces (eg from GLU)
 ///  aux    for MSH_PATCH: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
 /// \endcode
-typedef struct {int *ia, iNr; char typ, aux, stat;}                 EdgeLine;
+typedef struct {int *ia, iNr; char typ, aux, stat;}                 IntTab;
 
 
 /// \code
 /// eTyp[eNr]: NULL=undefined
 ///            0=internalEdge       (Edge*)
 ///            1=boundaryEdge       (Edge*)
-///            2=EdgeLine           (EdgeLine*)
-///            3=InnerBound         (EdgeLine*)
-///            4=OuterBound         (EdgeLine*)
+///            2=IntTab           (IntTab*)
+///            3=InnerBound         (IntTab*)
+///            4=OuterBound         (IntTab*)
 /// \endcode
 typedef struct {Edge *eTab; int eNr; char *eTyp;}                   Edges;
 
@@ -1230,7 +1254,7 @@ typedef struct {int ipt, nbsid;}                                    SegBnd;
 // /// vxSt    index to startPoint
 // /// vxNr    nr of points following startPoint
 // /// surNb   surfaceIndex of neighbourSurface (surf-record in BODY)
-// /// see also EdgeLine
+// /// see also IntTab
 // /// \endcode
 // typedef struct {int vxSt, vxNr, vxMax, surNb;}                      EdgSur;
 
@@ -1240,7 +1264,7 @@ typedef struct {int ipt, nbsid;}                                    SegBnd;
 /// \code
 /// suID    surface-ID (DB-index A)
 /// contNr  contour-nr; first1=1, ..
-/// typb    MSH_EDGLN_BL   2 EdgeLine (BreakLine)
+/// typb    MSH_EDGLN_BL   2 IntTab (BreakLine)
 ///         MSH_EDGLN_IB   3 InnerBound
 ///         MSH_EDGLN_OB   4 OuterBound
 ///         MSHIG_EDGLN_AB   5 OuterBound - automatic created

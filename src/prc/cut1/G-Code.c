@@ -7,8 +7,11 @@ Modifications:
 
 
 Build:
-make -f ../prc/cut1/G-Code.mak
+Linux: in src/APP:
+. ../options.sh && make -f ../prc/cut1/G-Code.mak
 
+MS: in src/APP:
+cd ..\prc\cut1 && nmake -f G-Code.nmak
 
 -----------------------------------------------------
 */
@@ -96,7 +99,7 @@ make -f ../prc/cut1/G-Code.mak
     return -1;
   }
 
-  TX_Print("G-Code: outfile is %s",outFilnam);
+  // TX_Print("G-Code: outfile is %s",outFilnam);
 
 
   while (!feof (fpi)) {
@@ -188,12 +191,13 @@ make -f ../prc/cut1/G-Code.mak
   //================================================================
   printf("===================================== \n");
 #ifdef _MSC_VER
-  sprintf(cbuf, "type \"%s\"",outFilnam);
+  sprintf(cbuf, "CMD /C \"TYPE \"%s\"\"",outFilnam);
+  OS_system (cbuf);
 #else
   sprintf(cbuf, "cat %s",outFilnam);
+  system (cbuf);
 #endif
 
-  system (cbuf);
 
   return 0;
 

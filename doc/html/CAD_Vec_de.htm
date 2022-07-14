@@ -32,15 +32,21 @@ Vektor erzeugen.
 
 
   <B>Definition Basisvektor:</B>
-  - Eingabe eines Vektors mit der Tastatur:
+  - Eingabe eines Vektors mit der Tastatur - 
     - Kartesisch (X/Y/Z-Komponenten): zB "0 0 1" (ein Z-Vektor)
+
+  - Eingabe eines Standardvektor mit der Tastatur -
+    Standardvektoren sinf DX DY DZ DIX DIY DIZ - des absoluten Koordinaten-Systems,
+    - oder Selektion einer Achse des Achsensymbols unten links;
 
   - Selektion von Linie oder Polygonsegment oder Polygonsegment aus CCV
     oder Ebene oder planaren Fläche.
 
   - Auswahl eines Standardvektors
     - aus den rechts unten dargestellten Vektoren
-    - Eingabe mit der Tastatur (DX oder DY oder DZ oder invers dazu DIX DIY DIZ)
+    - Eingabe eines Standardvectors mit der Tastatur (DX oder DY oder DZ
+      oder invers dazu DIX DIY DIZ) des absoluten Koordinatensystems;
+      DX ergibt 1,0,0; DY ergibt 0,1,0 ..
 
   - Auswahl eines definierten Vektors
     - durch die PageUp/PageDown(Bild)-Tasten;
@@ -125,6 +131,15 @@ Parallel- oder Normalvektor zu existierenden Objekten.
 
 
 
+<b>Vektor von Ebene / Referenz-System (R):</b>
+
+   Obj1              Ebene auswählen
+   [PT or VC]        DX or DY or DZ eingeben
+
+   - Ergebnis ist "D#=R# DX" or "D#=R# DY" or "D#=R# DZ"
+
+
+
 Beispiele:
 
 # Normalvektor von Kreis C20
@@ -140,11 +155,9 @@ D5=P1 P2 VAL(100)
 D20=L20 DZ
 
 # Vektoren der Ebene R20
-D20=R20         # Z-axis-Vector of plane R20
-D20=R20 PARL    # X-axis-Vector of plane R20    or eg "D(R20 PARL)"
-D20=R20 CX      # Y-axis-Vector of plane R20
-
-D20=R20 PARL
+D20=R20 DX      # X-axis-Vector of plane R20 or D20=R20 PARL or "D(R20 PARL)"
+D20=R20 DY      # Y-axis-Vector of plane R20 or D20=R20 CX
+D20=R20         # Z-axis-Vector of plane R20 or D20=R20 DZ
 
 
 

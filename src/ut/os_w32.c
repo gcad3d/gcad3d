@@ -16,6 +16,24 @@
 -----------------------------------------------------
 ../ut/os_w32.c       basic OS-functions MS-Windows
 
+=====================================================
+List_functions_start:
+
+OS_system                Perform OS-Command; wait for completion (system)
+OS_exec                  Perform OS-Command; do not wait for completion.
+OS_stdout__              direct console-output into file
+OS_checkFilExist         check if File or Directory exists
+OS_sys1                  get systemCommand (popen); skip if starting with "##"
+OS_osVar_eval        expand shell variables in string
+OS_get_tmp_dir                get directory for temporary files
+OS_edit__                 edit file with system-editor
+OS_get_edi                get system-editor
+
+
+List_functions_end:
+=====================================================
+// OS_filnam_eval    DO-NOT-USE  - replaced by OS_osVar_eval
+
 see also
 ../ut/ut_os_w32.c    APP-specif. OS-functions
 ../ut/ut_os__.c      OS-independant functions
@@ -33,6 +51,11 @@ see also
 
 #include <errno.h>
 
+// #include <io.h>        // f. _access
+// #include <direct.h>    // f. _mkdir
+// #include <time.h>      // f. time
+// 
+// #include <sys/stat.h>      // f. _stat
 
 // #define LOCAL_DEF_VAR      // damit wird "extern" im Includefile geloescht !
 // #include "../ut/ut_os.h"
@@ -49,25 +72,312 @@ extern int errno;
 
 
 
+//======================================================================
+  int OS_file_copy (char *oldNam, char *newNam) {
+//======================================================================
+// OS_file_copy             copy file (rename, remove)
+
+  // char cbuf[512];
+
+  //printf("OS_file_copy |%s|%s|\n",newNam,oldNam);
+
+
+  // auf NT gibts die Option /Y nicht !!
+  // sprintf(cbuf,"COPY /Y %s %s",oldNam,newNam);
+  // printf("OS_file_copy |%s|\n",cbuf);
+  // system(cbuf);
+
+/*
+  if(OS_checkFilExist(newNam,1) == 1) {
+    printf(" overwrite file |%s|\n",newNam);
+    remove (newNam);
+  }
+  rename (oldNam,newNam);
+*/
+
+
+  // sprintf(cBuf, "copy /y %s %s",oldNam, newNam);
+  // system(cBuf);
+
+
+  CopyFile (oldNam, newNam, FALSE); // FALSE=overWriteYes
+
+  // exit(0);
+
+  return 0;
+
+}
+
+
+//========================================================================
+  int OS_file_rename (char *fnOld, char *fnNew) {
+//========================================================================
+// rename File; keine Wildcards !
+// MS u Unix gleich.
+
+  // printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
+
+  remove (fnNew);    // delete File (sonst get das rename ned ..)
+                     // ACHTUNG: keine Wildcards mit remove !
+
+  rename (fnOld, fnNew);
+
+  return 0;
+
+}
+
+
+//========================================================================
+  int OS_file_delete (char *fNam) {
+//========================================================================
+// delete File; keine Wildcards !
+// MS u Unix gleich.
+
+
+  // printf("OS_file_delete |%s|\n",fNam);
+
+  remove (fNam);    // delete File (sonst get das rename ned ..)
+                    // ACHTUNG: keine Wildcards mit remove !
+  return 0;
+
+}
 
 
 //================================================================
-  void OS_get_scrRes (int *xRes, int *yRes) {
+  int OS_system (char *syscmd) {
 //================================================================
-// OS_get_scrRes                    get total screensize
+// OS_system                  Perform OS-Command; wait for completion (system)
+// - enclose all parameters with pathname with ""
+// - enclose complete command also with ""
+// os-function "system" CANNOT handle exename with blanks (does not accept
+//   exename enclosed with "")
 
-  // int  irc;
-  // char s1[80];
+// returns 0=OK; -1=Error
 
 
-  // TX_Error ("OS_get_scrRes - MS-win - TODO");
-  // exit (-1);
+  int     irc, i1;
+  // char  sDir[256];
+  BOOL    fExit;
+  DWORD   dwExitCode, dw;
+  HANDLE  hProcess,   hThread;
+  PROCESS_INFORMATION    pi;
+  STARTUPINFO sui;
 
 
-  *xRes = GetSystemMetrics (0);
-  *yRes = GetSystemMetrics (1);
+  // printf("OS_system |%s|\n",syscmd);
 
-    printf(" ex-OS_get_scrRes %d %d\n",*xRes,*yRes);
+
+  memset(&sui, 0, sizeof(sui));
+  sui.cb = sizeof(sui);
+  // sui.dwFlags     = STARTF_FORCEONFEEDBACK | STARTF_USESHOWWINDOW;
+  // sui.wShowWindow = SW_SHOWNORMAL;
+
+  if(!CreateProcess(
+                NULL,                 // zu startende Appli (mit Pfad)
+                syscmd,               // oder Commandline (appli=NULL)
+                NULL,                 // Proc.Security
+                NULL,                 // Thread security
+                TRUE,                 // handle inheritance flag
+                0, //HIGH_PRIORITY_CLASS,  // creation flags
+                NULL,                 // pointer to new environment block
+                NULL,   // sDir       // pointer to current directory name
+                &sui,                 // pointer to STARTUPINFO
+                &pi))  {              // pointer to PROCESS_INFORMATION
+
+    irc = -1;
+    goto L_exit;
+  }
+   
+
+
+  // aufs beenden warten
+  dw = WaitForSingleObject (pi.hProcess, INFINITE) ;
+
+
+  irc = 0;
+
+  if(dw != 0xFFFFFFFF) {
+    // den Exitcode abfragen
+    i1 = GetExitCodeProcess (pi.hProcess, &dwExitCode) ;
+      // printf(" GetExitCodeProcess %d %d\n",i1,dwExitCode);
+    if(dwExitCode) irc = -1;
+  }
+
+  // close the process and thread object handles 
+  CloseHandle(pi.hThread);
+  CloseHandle(pi.hProcess);
+
+
+    // printf(" GetLastError = %d\n",GetLastError());
+
+  
+  L_exit:
+
+    // printf(" ex-OS_system %d\n",irc);
+
+  return irc;
+
+}
+
+
+
+/*
+//================================================================
+  int OS_system (char *buf) {
+//================================================================
+// OS_system                  Perform OS-Command; wait for completion (system)
+// os-function "system" CANNOT handle exename with blanks (does not accept
+//   exename enclosed with "")
+
+  int  i1, ret;
+
+
+  // ret=0;
+  // for(i1=0; i1<strlen(buf); ++i1) {
+    // // skip 1.word (hat oft Options mit /; zB dir/b - nicht aendern!)
+    // if(ret == 0) {
+      // if(buf[i1] == ' ') ret = 1;
+    // } else {
+      // if(buf[i1] == '/') buf[i1] = '\\';
+    // }
+  // }
+
+    printf("OS_system |%s|\n",buf);
+
+  ret = system(buf);
+
+  return (ret);
+}
+*/
+
+
+//================================================================
+  int OS_exec (char* syscmd) {
+//================================================================
+// OS_exec                  Perform OS-Command; do not wait for completion.
+// WinExec(txt, SW_NORMAL);  cannot handle exename with blanks, also not with "";
+// CreateProcess nur mit CREATE_NEW_PROCESS_GROUP geht ned ..
+
+
+  int     irc;
+  // char  sDir[256];
+  BOOL    fSuccess,   fExit;
+  DWORD   dwExitCode, dw;
+  HANDLE  hProcess,   hThread;
+  PROCESS_INFORMATION    pi;
+  STARTUPINFO sui;
+
+
+  // printf("OS_exec |%s|\n",syscmd);
+
+
+  memset(&sui, 0, sizeof(sui));
+  sui.cb = sizeof(sui);
+  // sui.dwFlags     = STARTF_FORCEONFEEDBACK | STARTF_USESHOWWINDOW;
+  // sui.wShowWindow = SW_SHOWNORMAL;
+
+  fSuccess = CreateProcess(
+                NULL,                 // zu startende Appli (mit Pfad)
+                syscmd,               // oder Commandline (appli=NULL)
+                NULL,                 // Proc.Security
+                NULL,                 // Thread security
+                FALSE,                // handle inheritance flag
+                HIGH_PRIORITY_CLASS|         // creation flags
+                CREATE_NEW_PROCESS_GROUP,    // creation flags
+                NULL,                 // pointer to new environment block
+                NULL,   // sDir       // pointer to current directory name
+                &sui,                 // pointer to STARTUPINFO
+                &pi);                 // pointer to PROCESS_INFORMATION
+
+
+  if (fSuccess) {
+    // close the process and thread object handles 
+    CloseHandle(pi.hThread);
+    CloseHandle(pi.hProcess);
+    irc = 0;
+
+
+  }  else  {
+    irc = -1;
+  }
+
+    // printf(" ex-OS_exec %d\n",irc);
+
+  return irc;
+
+}
+
+
+//================================================================
+  char* OS_get_edi  () {
+//================================================================
+//  liefert bei Linux "gedit "
+//  strcpy(txbuf, OS_get_edi());
+
+
+  // static char os_edi[]="gedit ";
+
+  // XP: geht, wartet aber nicht auf Ende !
+  // static char os_edi[]="start notepad ";
+
+
+  static char os_edi[]="notepad ";
+
+  return os_edi;
+
+}
+
+
+//================================================================
+  int OS_edit__ (char *filnam) {
+//================================================================
+// <edit> <filnam>     - wait for end of process
+// aufs Ende warten !
+
+  char  cbuf[512];
+
+  // printf("OS_edit__ |%s|%s|",OS_get_edi(),filnam);
+
+  sprintf(cbuf,"CMD /C \"%s \"%s\"\"",OS_get_edi(),filnam);
+  OS_system(cbuf);
+
+  return 0;
+
+}
+
+
+//================================================================
+  char* OS_get_tmp_dir() {
+//================================================================
+// OS_get_tmp_dir                get directory for temporary files
+// - must end with "/" or (MS-Win) "\"
+
+
+
+// #ifdef _MSC_VER
+  static  char os_tmp_dir[256] = "\0\0", *p1;
+
+
+  if(!os_tmp_dir[0]) {
+    p1 = getenv ("TEMP");           // %TEMP%
+    strcpy(os_tmp_dir, p1);
+
+    // add closing  "\\" to string (filename-delimiter)
+    p1 = &os_tmp_dir[strlen(os_tmp_dir)-1];
+    if(*p1 != '\\') strcat(os_tmp_dir, "\\");
+
+      // TESTBLOCK
+      // printf("## OS_get_tmp_dir |%s|\n",os_tmp_dir);
+      // END TESTBLOCK
+  }
+
+  return os_tmp_dir;
+
+// #else
+//   static  char u_tmp_dir[] = "/tmp/";
+// #endif
+// 
+  // return u_tmp_dir;
 
 }
 
@@ -129,33 +439,40 @@ extern int errno;
 //================================================================
   int OS_sys1 (char *sOut, int sSiz, char *cmd) {
 //================================================================
-/// \code
-/// OS_sys1                  get systemCommand (popen); skip if starting with "##"
-/// RetCod:
-///     >0      OK, nr of chars returned in sOut
-///    -1       cannot open pipe
-///    -2       sOut too small
-///    -3       execution-error
-/// \endcode
+// OS_sys1                  get systemCommand (popen); 
+//   skip all lines of output starting with "##"
+// Input:
+//   cmd       command + parameters;
+//             eg "START \"\" /WAIT /B \"cmd\" parameters"
+//             command and parameters with ' ' must be enclosed with ""
+//             a parameter ending with '\' must have an additional ' ' or '\'
+// Output:
+//   sOut      output of command
+//   RetCod:
+//     >0      OK, nr of chars returned in sOut
+//    -1       cannot open pipe
+//    -2       sOut too small
+//    -3       execution-error
 
   int   irc=0, ii=0, i1;
   FILE  *fPip1;
-  char  s1[256], *p1;
+  char  s1[512], *p1;
 
 
-  // printf("OS_sys1 |%s| %d\n",cmd,sSiz);
+  // printf("## OS_sys1 MS |%s| %d\n",cmd,sSiz);
 
   sOut[0] = '\0';
   fflush(stdout);
   errno = 0;
   // dup2(STDOUT_FILENO, STDERR_FILENO);
 
+
   fPip1 = _popen (cmd, "r");
   if (fPip1 == NULL) {irc = -1; goto L_exit;}
     // fprintf(stderr, "_sys1-1 errno = %d\n", errno);
 
   while (1 == 1) {
-    if (fgets (s1, 255, fPip1) == NULL) break;
+    if (fgets (s1, 510, fPip1) == NULL) break;
     if((s1[0] == '#')&&(s1[1] == '#')) continue;
     i1 = strlen(s1);
     ii += i1 + 1;
@@ -207,11 +524,13 @@ extern int errno;
   s1 = _alloca (fnSiz + 32);
   strcpy(s1, fn);
 
-  ii = ExpandEnvironmentStrings (fn, s1, fnSiz);
+  ii = ExpandEnvironmentStrings (s1, fn, fnSiz);
+  if(!ii) ii = -1;
+  else    ii = 0;
 
-    printf(" ex-OS_filnam_eval %d |%s|%s|\n",ii,fn,s1);
+    // printf(" ex-OS_osVar_eval %d |%s|%s|\n",ii,s1,fn);
 
-  return 0;
+  return ii;
 
 }
 

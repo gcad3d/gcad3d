@@ -72,6 +72,7 @@ AP_mdlbox_invalid_ck  check if modelbox is valid
 AP_mdlbox_invalid_set set modelbox not valid
 AP_mdlbox_invalid_reset set modelbox = valid
 
+AP_Mod_load_init      load Model from file <fn> and create <tmp>/Mod_.mod_in
 AP_Mod_load_fn        load Model from file <fn>
 AP_mod_sym            get get symbol-name for new directory from user
 AP_iftyp_ftyp         integer-filetyp from string-filetyp
@@ -273,15 +274,17 @@ DL_GetTrInd
 #include "../ut/ut_txt.h"         // fnam_del
 #include "../ut/ut_txfil.h"       // UTF_add1_file
 #include "../ut/ut_err.h"         // ERR_SET1
-#include "../ut/ut_os.h"          // OS_get_bas_dir
+#include "../ut/ut_os.h"          // AP_get_bas_dir
 #include "../ut/ut_memTab.h"           // MemTab
-#include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
-#include "../ut/func_types.h"         // SYM_CROSS
-#include "../ut/ut_txTab.h"              // TxtTab
+#include "../ut/gr_types.h"            // SYM_* ATT_* LTYP_*
+#include "../ut/func_types.h"          // SYM_CROSS
+#include "../ut/ut_txTab.h"            // TxtTab
+#include "../ut/ut_deb.h"              // DEB_*
 
-#include "../gui/gui__.h"         // GUI_SETDAT_EI ..
-#include "../gr/ut_gr.h"       // GR_TMP_I0
-#include "../db/ut_DB.h"             // DB_PLX_IND
+
+#include "../gui/gui__.h"              // GUI_SETDAT_EI ..
+#include "../gr/ut_gr.h"               // GR_TMP_I0
+#include "../db/ut_DB.h"               // DB_PLX_IND
 
 #include "../xa/xa_uid.h"              // UI_MODE_CAD
 #include "../xa/xa_ui.h"               // UI_men__
@@ -501,11 +504,15 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 #define siz_sPar 1600
 
   int      irc, ii;
-  char     sPar[siz_sPar], sEnam[SIZFNam], sCmd[siz_sPar+siz_sPar], s1[256], *sx;
+  char     sPar[siz_sPar], sEnam[SIZFNam], sCmd[siz_sPar+siz_sPar],
+           fnTmp[400], s1[256], *sx;
   va_list  va;
 
 
   // printf("AP_GUI__ |%s|%s| %d\n",guiOut,exenam,outSiz);
+  // printf("AP_GUI__ |%s| %d\n",exenam,outSiz);
+
+
 
   // get full filename for GUI_executable
   irc = AP_GUI_get (sEnam, exenam);
@@ -535,31 +542,43 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
       // strcat(sPar, " ");     // delimit with a blank
       goto L_s_nxt;
     }
-    // strcat(sPar, "\"");
 
-  // vsprintf (s1, txt, va);
   va_end (va);
 
-    // printf(" AP_GUI__-sPar |%s|\n",sPar);
+  // filename outputFile
+  sprintf (fnTmp, "%stemp_%d",AP_get_tmp_dir(),rand());
+
+    // printf(" AP_GUI__-sEnam |%s|\n",sEnam);   // exenam
+    // printf(" AP_GUI__-sPar  |%s|\n",sPar);    // parameters
+    // printf(" AP_GUI__-fnTmp |%s|\n",fnTmp);   // outputFile
+
 
 
   // set s1 = command (exefilnam parameters)
   // parameters: save outDir symDirFilnam filter title
 #ifdef _MSC_VER
-  sprintf(sCmd,"START /B /WAIT \"\" \"%s\" %s", sEnam, sPar);
+  sprintf(sCmd,"CMD /C \"\"%s\" %s \"%s\"", sEnam, sPar, fnTmp);
 #else
-  sprintf(sCmd,"%s %s", sEnam, sPar);
+  sprintf(sCmd,"%s %s %s", sEnam, sPar, fnTmp);
 #endif
     printf(" AP_GUI__ do |%s|\n",sCmd);
 
-
   // execute
-  irc = OS_sys1 (guiOut, outSiz, sCmd);
-  if(irc < 0) {printf("***** AP_GUI__ - E1 OS_sys1 %d\n",irc); return -2;}
-  UTX_CleanCR (guiOut);
+  irc = OS_system (sCmd);
+  if(irc) {printf("***** AP_GUI__ - E1\n"); return -2;}
 
+  // info does not have outFile
+  if(!strncmp (sPar, "info", 4)) goto L_exit;
+
+  // read file <tmp>/tmp_<iRnd>, delete file, return filecontent:
+  irc = UTX_fgetLine (guiOut, outSiz, fnTmp, 1);
+  if(irc) {printf("***** AP_GUI__ - E2-%d\n",irc); return -3;}
+  OS_file_delete (fnTmp);
+
+  // UTX_CleanCR (guiOut);
+
+  L_exit:
     // printf("ex-AP_GUI__ |%s|\n",guiOut);
-
   return 0;
 
 }
@@ -584,9 +603,9 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
   // sEnam = exeFilename
 #ifdef _MSC_VER
-  sprintf(sEnam,"%s%s_%s%d_MS.exe", OS_get_bin_dir(), sNam, sGui, vGtk);
+  sprintf(sEnam,"%s%s_%s%d_MS.exe", AP_get_bin_dir(), sNam, sGui, vGtk);
 #else
-  sprintf(sEnam,"%s%s_%s%d", OS_get_bin_dir(), sNam, sGui, vGtk);
+  sprintf(sEnam,"%s%s_%s%d", AP_get_bin_dir(), sNam, sGui, vGtk);
 #endif
 
     // printf(" ex-AP_GUI_get |%s|\n",sEnam);
@@ -608,13 +627,16 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   TxtTab fnLst = _UTXTAB_NUL;
 
 
-  printf("AP_symDirSel \n");
+  // printf("AP_symDirSel \n");
 
 
   // - list all dir*.lst but exclude dir.lst
   UtxTab_init__ (&fnLst);
-  fNr = UTX_dir_list__ (&fnLst, OS_get_cfg_dir(), "dir", ".lst", 0);
-    UtxTab_dump (&fnLst, " _lst_mshi-fnLst1");
+  fNr = UTX_dir_list__ (&fnLst, AP_get_cfg_dir(), "dir", ".lst", 0);
+
+    // TESTBLOCK
+    // UtxTab_dump (&fnLst, " _lst_mshi-fnLst1");
+    // END TESTBLOCK
 
 //   if(fNr > 0) {
 //     // remove dir.lst
@@ -623,32 +645,36 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //   }
 
   if(fNr < 1) {
-    TX_Print("***** no additional file with symbolic directories exist.");
-    sprintf(fn1, "%sdir_test.lst",OS_get_cfg_dir());
+    TX_Print("***** no file with symbolic directories exist.");
+    sprintf(fn1, "%sdir_test.lst",AP_get_cfg_dir());
     TX_Print("***** you can create eg %s ..",fn1);
     goto L_exit;
   }
 
-    UtxTab_dump (&fnLst, " _lst_mshi-fnLst2");
+    // TESTBLOCK
+    // UtxTab_dump (&fnLst, " _lst_mshi-fnLst2");
+    // END TESTBLOCK
+
 
   // write list -> file
-  sprintf(fn1, "%stemp.lst",OS_get_tmp_dir());
+  sprintf(fn1, "%stemp.lst",AP_get_tmp_dir());
   UTX_wrf_lst (fn1, &fnLst);
+
 
   // - provide this list for selection
   irc = GUI_listf1__ (s1, sizeof(s1), fn1, "\"select file\"", "\"x40,y10\"");
   if(irc < 0) goto L_exit;
-    printf(" _lst_mshi-sel |%s|\n",s1);
+    // printf(" _lst_mshi-sel |%s|\n",s1);
 
 //   // - copy file -> cfg/dir.lst
-//   sprintf(fn1, "%s%s",OS_get_cfg_dir(),s1);
-//   sprintf(fn2, "%sdir.lst",OS_get_cfg_dir());
+//   sprintf(fn1, "%s%s",AP_get_cfg_dir(),s1);
+//   sprintf(fn2, "%sdir.lst",AP_get_cfg_dir());
 //   OS_file_copy (fn1, fn2);
 
   // set AP_symDir_fnam = filename active SymbolDirFile
   if(strlen(s1) < 128) {
     strcpy(AP_symDir_fnam, s1);
-    TX_Print("***** SymbolDirFile %s is active ..",AP_symDir_fnam);
+    TX_Print("***** SymbolDirFile |%s| is active ..",AP_symDir_fnam);
   } else {
     TX_Print("***** Error AP_symDirSel filename too long ..");
   }
@@ -656,7 +682,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
   L_exit:
     UtxTab_free (&fnLst);
-      printf(" ex-AP_symDirSel\n");
+      // printf(" ex-AP_symDirSel |%s|\n",AP_symDir_fnam);
     return 0;
 
 }
@@ -980,7 +1006,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
       fprintf(AP_deb_fp, "================ EOF ==============\n");
       fclose (AP_deb_fp);
       AP_deb_fp = NULL;
-      printf("++++++ file %sdebug.dat closed +++++\n",OS_get_tmp_dir());
+      printf("++++++ file %sdebug.dat closed +++++\n",AP_get_tmp_dir());
     }
     return;
 
@@ -988,7 +1014,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   //----------------------------------------------------------------
   L_start:
     // start debug; open debugfile
-    sprintf(s1, "%sdebug.dat",OS_get_tmp_dir());
+    sprintf(s1, "%sdebug.dat",AP_get_tmp_dir());
     AP_deb_fp = fopen(s1, "w");
     printf("++++++ file %s opened +++++\n",s1);
     fprintf(AP_deb_fp, "++++++ file %s opened +++++\n",s1);
@@ -1310,7 +1336,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
   // get filenNameObj from filename
   irc = MDLFN_oFn_fNam (&ofn, so);
-//   irc = MDLFN_fNam_resolv (s1, s2, s3, s4, so, OS_get_bas_dir());
+//   irc = MDLFN_fNam_resolv (s1, s2, s3, s4, so, AP_get_bas_dir());
 
 
   if(mode < 2) {
@@ -1565,7 +1591,7 @@ static stru_FN  fnLast;
   stru_FN  ofm;
 
 
-  // printf("AP_save__ %d %d %d |%s|\n",mode,iOver,uuSav,fTyp);
+  printf("AP_save__ %d %d %d |%s|\n",mode,iOver,uuSav,fTyp);
 
   //----------------------------------------------------------------
   // clear Undo-List (sonst wilde gtk-Fehlermeldungen beim exit)
@@ -1893,7 +1919,7 @@ static stru_FN  fnLast;
 
     // TESTBLOCK
     printf("------------- _del_smuu- used-models-Mod.lst:\n");
-    sprintf(s1,"cat %sMod.lst",OS_get_tmp_dir()); OS_system (s1);
+    sprintf(s1,"cat %sMod.lst",AP_get_tmp_dir()); OS_system (s1);
     // goto L_exit;
     // END TESTBLOCK
  
@@ -1906,7 +1932,7 @@ static stru_FN  fnLast;
 
 
   // loop tru list of all used subModelFiles
-  sprintf(s1,"%sMod.lst",OS_get_tmp_dir());
+  sprintf(s1,"%sMod.lst",AP_get_tmp_dir());
   if((fp1=fopen(s1,"r")) == NULL) goto L_uuList;  // no sm is used
 
   p1 = &s1[6];          // skip "Model_"
@@ -1992,7 +2018,7 @@ static stru_FN  fnLast;
 //     //----------------------------------------------------------------
 //     // '2' = ok = delete subModel
 //     L_del_sm:
-//       sprintf(s2, "%sModel_%s",OS_get_tmp_dir(), s1);
+//       sprintf(s2, "%sModel_%s",AP_get_tmp_dir(), s1);
 //         // printf(" del file |%s|\n",s2);
 //       OS_file_delete (s2);
 //       continue;
@@ -2193,7 +2219,8 @@ static stru_FN  fnLast;
   UNDO_clear ();
 
   // reset HideList
-  GA_hide__ (-1, 0L, 0);
+  GA_clear ();
+  // GA_hide__ (-1, 0L, 0);
 
   // init View-Plane and ConstrPlane
   AP_Init_planes ();
@@ -2201,6 +2228,9 @@ static stru_FN  fnLast;
 
   // clear modelname
   AP_mod_fnam[0] = '\0';
+
+  // init GR_selTab, GR_Siz_selTab, GR_nr_selTab
+  GL_selTab_init ();
 
   // only first start
   sele_set__ (Typ_goGeom);       // enable selection of all types
@@ -2231,7 +2261,7 @@ static stru_FN  fnLast;
 //     Brw_init__ ();
 // 
 //     // load file tmp/Model_unknown into mem UTF_FilBuf0
-//     sprintf (cbuf , "%sModel_unknown",OS_get_tmp_dir());
+//     sprintf (cbuf , "%sModel_unknown",AP_get_tmp_dir());
 //     UTF_add_fil_init (cbuf);
 // 
 //     // MAN: clear Edi  UI_ask_mode  if(AP_src == AP_SRC_MEM/AP_SRC_EDI)
@@ -2284,7 +2314,7 @@ static long old_lNr = -2;
   }
 
 
-  sprintf(cbuf,"%sselection.txt",OS_get_tmp_dir());
+  sprintf(cbuf,"%sselection.txt",AP_get_tmp_dir());
 
 
   // Zeile in ein File rausschreiben
@@ -2293,7 +2323,7 @@ static long old_lNr = -2;
 
 
   // modify File m. Editor
-  sprintf(fn2,"%sselection1.txt",OS_get_tmp_dir());
+  sprintf(fn2,"%sselection1.txt",AP_get_tmp_dir());
   OS_file_copy (cbuf, fn2);
   APP_edit (cbuf, 0);    // edit - wait
   // printf(" NNNNNNNNNNNNNNNNNNNach OS_edit_\n");
@@ -2603,7 +2633,7 @@ ED_Run
   if(AP_src == AP_SRC_EDI) ED_unload__ ();
 
   // Mem -> Datei raus (filtern)
-  sprintf(txbuf,"%sxa.tmp",OS_get_tmp_dir());
+  sprintf(txbuf,"%sxa.tmp",AP_get_tmp_dir());
   UTF_wri_file (txbuf, NULL);
 
   // Datei -> Mem einlesen
@@ -3044,7 +3074,7 @@ ED_Run
 
   //----------------------------------------------------------------
   L_load:
-  // sprintf(cBuf, "%s%s",OS_get_bin_dir(),dllNam);
+  // sprintf(cBuf, "%s%s",AP_get_bin_dir(),dllNam);
     // printf("   _dll_load |%s|\n",cBuf);
   // exit if dll does not exist;  else load DLL
   // if(OS_checkFilExist(cBuf, 1) == 0) return 0;
@@ -3136,7 +3166,7 @@ remote control nur in VWR, nicht MAN, CAD;
 // 
 //   Tex_Init__ ();  // init textures
 // 
-//   sprintf(txbuf,"%sModel",OS_get_tmp_dir());
+//   sprintf(txbuf,"%sModel",AP_get_tmp_dir());
 //   Mod_load__ (mode, txbuf, 0);
 //   // AP_Mod_load__ (0); // load
 // 
@@ -3237,7 +3267,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
   double d1;
 
-  printf("AP_Init_planes \n");
+  // printf("AP_Init_planes \n");
 
 
 //     // reset View-Plane
@@ -3336,13 +3366,13 @@ remote control nur in VWR, nicht MAN, CAD;
   // printf("  AP_mod_defSiz=%f\n",AP_mod_defSiz);
 
 
-  // strcpy(txbuf, OS_get_bas_dir ());
+  // strcpy(txbuf, AP_get_bas_dir ());
   // strcat(txbuf, "tmp/xa.rc");
 
 // #ifdef _MSC_VER
-//   sprintf(txbuf,"\"%sxa.rc\"",OS_get_cfg_dir());
+//   sprintf(txbuf,"\"%sxa.rc\"",AP_get_cfg_dir());
 // #else
-  sprintf(txbuf,"%sxa.rc",OS_get_cfg_dir());
+  sprintf(txbuf,"%sxa.rc",AP_get_cfg_dir());
 // #endif
     printf(" defaults_write |%s|\n",txbuf);
 
@@ -3451,7 +3481,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // MDLFN_syFn_f_name (txbuf);   // get filename of dir.lst (<cfg>/dir.lst)
-  sprintf(txbuf, "%scfg_%s%cdir.lst",OS_get_loc_dir(),OS_get_os__(),fnam_del);
+  sprintf(txbuf, "%scfg_%s%cdir.lst",AP_get_loc_dir(),OS_get_os__(),fnam_del);
 
   printf("AP_defaults_dir %s\n",txbuf);
 
@@ -3467,16 +3497,16 @@ remote control nur in VWR, nicht MAN, CAD;
   fprintf(fp1, "# symbolic_name     path\n");
 
 
-  sprintf(txbuf, "Data     %sdat%c",OS_get_loc_dir(),fnam_del);
+  sprintf(txbuf, "Data     %sdat%c",AP_get_loc_dir(),fnam_del);
   fprintf(fp1, "%s\n", txbuf);
 
-  sprintf(txbuf, "CATALOG  %sctlg%c",OS_get_loc_dir(),fnam_del);
+  sprintf(txbuf, "CATALOG  %sctlg%c",AP_get_loc_dir(),fnam_del);
   fprintf(fp1, "%s\n", txbuf);
 
-  sprintf(txbuf, "APPLI  %sprg%c",OS_get_loc_dir(),fnam_del);
+  sprintf(txbuf, "APPLI  %sprg%c",AP_get_loc_dir(),fnam_del);
   fprintf(fp1, "%s\n", txbuf);
 
-  // sprintf(txbuf, "PLUGIN  %sprg%c",OS_get_loc_dir(),fnam_del);
+  // sprintf(txbuf, "PLUGIN  %sprg%c",AP_get_loc_dir(),fnam_del);
   // fprintf(fp1, "%s\n", txbuf);
 
 
@@ -3621,7 +3651,7 @@ remote control nur in VWR, nicht MAN, CAD;
   
 
   txbuf = memspc011;
-  sprintf(txbuf,"%sxa.rc",OS_get_cfg_dir());
+  sprintf(txbuf,"%sxa.rc",AP_get_cfg_dir());
 
     printf("AP_defaults_read |%s|\n",txbuf);
 
@@ -3639,6 +3669,13 @@ remote control nur in VWR, nicht MAN, CAD;
   UTX_CleanCommC (txbuf);  // ACHTUNG: blanks im Dirnam !
   strcpy (AP_mod_dir, txbuf);
   printf(" AP_mod_dir=|%s|\n",AP_mod_dir);
+
+  // if AP_mod_dir is empty replace with default-dataDir
+  // eg after open model without symDir ?
+  if(strlen(AP_mod_dir) < 2) sprintf(AP_mod_dir, "%sdat%c",AP_get_loc_dir(),fnam_del);
+
+  // // add closing '/' if necessary
+  // UTX_add_slash (sOut);
 
 
   // Zeile 2: Language
@@ -3765,7 +3802,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // try to open outfile
-  sprintf(cbuf1, "%splugins.lst",OS_get_tmp_dir());
+  sprintf(cbuf1, "%splugins.lst",AP_get_tmp_dir());
     // printf(" Dll.lst=|%s|\n",cbuf1);
   if((fpo=fopen(cbuf1,"w")) == NULL) {
     printf("***** AP_DllLst_write E001 %s\n",cbuf1);
@@ -3775,7 +3812,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // Searchpath
-  sprintf(cbuf1, "%splugins%c",OS_get_bin_dir(),fnam_del);
+  sprintf(cbuf1, "%splugins%c",AP_get_bin_dir(),fnam_del);
     // printf(" path-plugins=|%s|\n",cbuf1);
 
 
@@ -4041,7 +4078,10 @@ remote control nur in VWR, nicht MAN, CAD;
 
   //================================================================
   // test if has filetype; if not: start plugin.
-  if(UTX_ftyp_s (s1, cmd, 0) < 0) return AP_exec_dll (cmd);
+  if(UTX_ftyp_s (s1, cmd, 0) < 0) {
+    TX_Print ("*** no filetype - start plugin %s", cmd);
+    return AP_exec_dll (cmd);
+  }
 
 
   //================================================================
@@ -4083,7 +4123,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // copy file <fNam> -> <tmpDir>rcmd.txt
-  sprintf(s1, "%srcmd.txt", OS_get_tmp_dir());
+  sprintf(s1, "%srcmd.txt", AP_get_tmp_dir());
     printf("AP_rcmd-to |%s|\n",s1);
   OS_file_copy (fNam, s1);
 
@@ -4109,7 +4149,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
   // compile_DLL - test Checkbox UID_ckb_comp 
   iComp = ICHG01(AP_stat.comp);
-    printf(" comp=%d\n",iComp);
+    printf(" exec_dll-comp=%d\n",iComp);
 
 
   // if compile is on: test if compiler & Linker exists
@@ -4134,6 +4174,8 @@ remote control nur in VWR, nicht MAN, CAD;
 #else
   strcat(txbuf, ".so");
 #endif
+
+    printf(" exec_dll |%s|\n",txbuf);
 
 
 
@@ -4288,6 +4330,42 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 //================================================================
+  int AP_Mod_load_init (char *fn) {
+//================================================================
+// AP_Mod_load_init           load Model from file <fn> and create <tmp>/Mod_.mod_in
+//   not used for load subModels
+// Input:
+//   fn       full-filename <directory|symbol>/<filename>.<filetyp>
+//
+
+// Output:
+// mode     0 = load neu (do not save active model)
+//          1 = insert; do not write Title & do not rescale
+//          2 = initial load without model; create empty model unknown.gcad
+//   AP_mod_sym, AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, AP_mod_iftyp
+
+
+  int    irc;
+
+  // load Model from file <fn> 
+  irc = AP_Mod_load_fn (fn, 0);
+  if(irc) return irc;
+
+  // create complete model native as <tmp>/Mod_.mod_out
+  irc = MDL_sav_gcad (0, 0);
+  if(irc) return irc;
+
+  // rename <tmp>/Mod_.mod_out -> <tmp>/Mod_.mod_in
+  sprintf(memspc011, "%sMod_.mod_out",AP_get_tmp_dir());
+  sprintf(memspc012, "%sMod_.mod_in",AP_get_tmp_dir());
+  OS_file_rename (memspc011, memspc012);
+
+  return 0;
+
+}
+
+
+//================================================================
   int AP_Mod_load_fn (char *fn, int mode) {
 //================================================================
 // AP_Mod_load_fn           load Model from file <fn>
@@ -4302,7 +4380,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   int      irc, i1;
-  char     ffn[320], syFn[SIZMFTot];
+  char     ffn[SIZMFTot], syFn[SIZMFTot];
   stru_FN  ofNam;
 
 
@@ -4333,13 +4411,18 @@ remote control nur in VWR, nicht MAN, CAD;
   irc = MDLFN_oFn_fNam (&ofNam, fn);
   if(irc < 0) {TX_Print("***** error symbolic filepath"); goto L_noFile;}
 
+    // TESTBLOCK
+    // MDLFN_dump_ofn (&ofNam, "AP_Mod_load_fn-ofNam");
+    // END TESTBLOCK
+ 
+
   // get absolute-directory
   MDLFN_ffNam_oFn (ffn, &ofNam);
-    // printf(" _Mod_load_fn |%s|\n",ffn);
+    // printf("AP_Mod_load_fn-ffn |%s|\n",ffn);
 
   // Test if file exists (modelfile)
   irc = OS_checkFilExist (ffn, 2);  // 1=yes, 0=no
-  if(irc < 1) {TX_Print("***** file does not exist"); goto L_noFile;}
+  if(irc < 1) {TX_Print("***** %s - file does not exist",ffn); goto L_noFile;}
 
   // get symbolic-filename
   MDLFN_syFn_oFn (syFn, &ofNam);
@@ -4347,20 +4430,31 @@ remote control nur in VWR, nicht MAN, CAD;
   // load model - import -> native code; load into editor
   MDL_load_main (syFn);
 
+    // TESTBLOCK
+    // DEB_exit();
+    // END TESTBLOCK
+
+  // add filename to list "last-used" (get filetyp of loaded model, not .gcad)
+  // AP_Mod_lstAdd ();
+  MDLFN_syFn_oFn (ffn, &ofNam);
+    // printf(" _load_fn-ffn-2=|%s|\n",ffn);
+  AP_Mod_lst_fn (ffn);
+
 
   //----------------------------------------------------------------
   // all subModels are loaded; mainModel is in memSpc.
   // Following (UI_butCB "|VWR|CAD|MAN") will work main
   L_start:
-
-  // add filename to list "last-used"
-  AP_Mod_lstAdd ();
-
   AP_stat.mdl_stat = MDLSTAT_loaded;
 
   // set all subModels active for main-model
   Brw_init__ ();        // clear browser - create primary model & all subModels
   // Brw_main_init ();       // ??
+
+    // TESTBLOCK
+    // DEB_exit();
+    // END TESTBLOCK
+ 
 
   // reprocess whole model
   UI_but_END ();
@@ -4385,9 +4479,6 @@ remote control nur in VWR, nicht MAN, CAD;
 //   Brw_Mdl_stat ();
 
 
-
-
-
   irc = 0;
 
 
@@ -4405,6 +4496,7 @@ remote control nur in VWR, nicht MAN, CAD;
       // TESTBLOCK
       // MDL_dump__ ("ex-AP_Mod_load_fn\n");
       // printf("ex-AP_Mod_load_fn %d\n",irc);
+      // DEB_exit();
       // END TESTBLOCK
 
     return irc;
@@ -4516,8 +4608,8 @@ remote control nur in VWR, nicht MAN, CAD;
     dbResiz = 1;                              // DB-resize done
     mode = 2;
     // // rename Model -> Mdl_import.gcad
-    // sprintf(s1, "%sModel", OS_get_tmp_dir());
-    // sprintf(cbuf, "%sMdl_import.gcad", OS_get_tmp_dir());
+    // sprintf(s1, "%sModel", AP_get_tmp_dir());
+    // sprintf(cbuf, "%sMdl_import.gcad", AP_get_tmp_dir());
       // printf(" cbuf = |%s|\n",cbuf);
     // OS_file_rename (s1, cbuf);
     // load Mdl_import.gcad
@@ -4699,7 +4791,7 @@ remote control nur in VWR, nicht MAN, CAD;
   sprintf(fnOld,"%s%s.%s",AP_mod_dir,AP_mod_fnam,AP_mod_ftyp);
     // printf(" fnOld |%s|\n",fnOld);
 
-  sprintf(fnNew, "%stmp.model",OS_get_tmp_dir());
+  sprintf(fnNew, "%stmp.model",AP_get_tmp_dir());
     // printf(" fnNew |%s|\n",fnNew);
 
   OS_file_rename (fnOld, fnNew);
@@ -4743,7 +4835,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // set lfn = filename of list
-  sprintf(lfn, "%sMdlLst.txt", OS_get_tmp_dir());
+  sprintf(lfn, "%sMdlLst.txt", AP_get_tmp_dir());
     // printf("AP_Mod_lst_fn - lfn |%s|\n",lfn);
 
   // add 
@@ -4762,8 +4854,8 @@ remote control nur in VWR, nicht MAN, CAD;
   char     fn1[320], fn2[320];
 
 
-  sprintf(fn1, "%sMod_.mod_out", OS_get_tmp_dir());
-  sprintf(fn2, "%sMod_.mod_in", OS_get_tmp_dir());
+  sprintf(fn1, "%sMod_.mod_out", AP_get_tmp_dir());
+  sprintf(fn2, "%sMod_.mod_in", AP_get_tmp_dir());
   return OS_file_rename (fn1, fn2);
 
 }
@@ -5605,7 +5697,7 @@ return -1;
  
   char      cbuf3[128];
 
-  sprintf(cbuf3,"%sgCAD3D.rc",OS_get_cfg_dir());
+  sprintf(cbuf3,"%sgCAD3D.rc",AP_get_cfg_dir());
 
   printf("AP_Get_Setup %s |%s|\n",cbuf3,ctyps);
 

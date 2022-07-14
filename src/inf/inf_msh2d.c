@@ -2,11 +2,9 @@
 
 see test_MSH2D.mak
 
-================================================================== */
-void INF_MSH2D__ (){        /*! \code
-
 
 What is MSH2D
+- mesh a 2D-contour;
 - tesselate contours - outer-boundary and inner-boundaries (holes)
     (create triangles inside outer-boundary; around inner-boundaries)
 
@@ -21,9 +19,14 @@ Features of MSH2D
 - TODO: add internal breaklines (contours not closed, eg roadsides)
 
 
+Functions:
+MSH2D_tess__
+  in:  grid (x-width, y-width); 2D-boundaries (OB, IB)
+  out: a 2D-mesh - struct ?
+
+
+
 ===================================================================
-
-
 MSH2D_tess__()
 - make gridbox - points covering whole OB (points in rows, columns)
 - mesh gridbox (MSH2D_quad__)
@@ -83,6 +86,77 @@ After tesselation:
 
 
 
+//================================================================
+================================================================== */
+void INF_MSH2D__ (){        /*! \code
+
+ 
+
+
+//----------------------------------------------------------------
+typedef struct { MemTab   tab;      // IndTab boundaries, tesselated patches
+                 MemTab   pst;      // char   boundary-flags
+                 MemTab   ipa;      // int    index to points
+                 MemTab   seg;      // int    nr of points of segments of boundary
+                 MemTab   pa2;      // Point2 2D-points
+                 MemTab   pa3;      // Point  3D-points                   << -> MSH3D ?
+                 MemTab   vc3;      // Vec3f  normalVectors               << -> MSH3D ?
+                 MemTab   fac;      // Fac3   indexed faces
+                 MemTab   fnb;      // Fac3   neighbour-faces
+                 GridBox  gbx;
+                 double   tol; }                                MshDat;
+
+.tab
+  IndTab boundaries (OB and IB's
+  MSH2D_dump__("oi"
+
+.ipa
+  int    index to points (into pa2); data for IndTab's in .tab;
+  MSH2D_dump__("oi"
+
+.pst
+  char   points-status; parallel pa2
+  MSH2D_dump__("p"
+
+.pa2
+  Point2 - all 2D-points
+  MSH2D_dump__("p"
+
+.fac
+  Fac3   indexed faces
+  UFA_fnb_dump__
+
+.fnb
+  Fac3   neighbour-faces
+  UFA_fnb_dump__
+
+.gbx
+  GridBox
+  DEB_dump_obj__ (Typ_GridBox,
+
+
+test_msh2d_1
+  MSH2D_tess__
+    MSH2D_init__
+      MSH2D_init_qbx          // get box around OB
+      MSH2D_iqxMax=0 MSH2D_iqyMax=0            // ???
+
+- dump gbx:
+    DEB_dump_obj__ (Typ_GridBox, &MSH2D_qbx, "ex-MSH2D_init__");
+- dump fac and fnb:
+    UFA_fnb_dump__ (ts1->fac.data, ts1->fnb.data, ts1->fac.rNr, " _tess__-S2");
+
+
+
+//----------------------------------------------------------------
+MSH2D_tess__                            // tesselate DB-surf
+  MSH2D_bnd__                           // tess bounds in basic quad
+    MSH2D_brkl__                        // set OB-segment as breakline
+      MSH2D_brkl_bnd__                  // edges crossing ips-ipe ?
+        MSH2D_brkl_bnd_1_               // find first edge crossing line ips-ipe
+          UT2D_2pt_ck_int_2pt
+
+ 
 
 ================================================================== \endcode */}
 // eof

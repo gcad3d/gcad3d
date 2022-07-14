@@ -2139,7 +2139,7 @@ once again, with U/V changed.
   void    *memPos0, *memPos1;
 
 
-  printf("UT3D_pt_intlnbspl: nxp=%d iUnl=%d\n",*nxp,iUnl);
+  // printf("UT3D_pt_intlnbspl: nxp=%d iUnl=%d\n",*nxp,iUnl);
 
 
   // init

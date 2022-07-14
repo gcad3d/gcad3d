@@ -316,7 +316,7 @@ char *MSG_ERR_tab[]={
 
   // if not yet open: get aplicationName, open its message-file
   if(!APP_MSG_fp) {
-    sprintf(MSG_buf, "%smsg%c%s_%s.txt", OS_get_doc_dir(), fnam_del,
+    sprintf(MSG_buf, "%smsg%c%s_%s.txt", AP_get_doc_dir(), fnam_del,
             APP_act_nam, AP_lang);
       // printf(" msgfile = |%s|\n",MSG_buf);
 
@@ -324,7 +324,7 @@ char *MSG_ERR_tab[]={
     if((APP_MSG_fp=fopen(MSG_buf,"r")) == NULL) {
       // TX_Print("***** MESSAGEFILE %s DOES NOT EXIST *****",MSG_buf);
       printf("***** MESSAGEFILE %s DOES NOT EXIST *****",MSG_buf);
-      sprintf(MSG_buf, "%smsg%cmsg_en.txt",OS_get_doc_dir(),fnam_del);
+      sprintf(MSG_buf, "%smsg%cmsg_en.txt",AP_get_doc_dir(),fnam_del);
       if((APP_MSG_fp=fopen(MSG_buf,"r")) == NULL) return NULL;
     }
 
@@ -597,20 +597,20 @@ char *MSG_ERR_tab[]={
   char     fnam[200];
 
   // printf("MSG_Init |%s|\n",lang);
-  //printf("  bas_dir  = |%s|\n",OS_get_bas_dir());
+  //printf("  bas_dir  = |%s|\n",AP_get_bas_dir());
   //printf("  fnam_del = |%c|\n",fnam_del);
 
 
   if(MSG_fp) fclose (MSG_fp);
 
-  sprintf(fnam, "%smsg%cmsg_%s.txt",OS_get_doc_dir(),fnam_del,lang);
+  sprintf(fnam, "%smsg%cmsg_%s.txt",AP_get_doc_dir(),fnam_del,lang);
     // printf("MSG_Init msgfile = |%s|\n",fnam);
 
 
   if((MSG_fp=fopen(fnam,"r")) == NULL) {
     // TX_Print("***** MESSAGEFILE %s DOES NOT EXIST *****",fnam);
     printf("***** MESSAGEFILE %s DOES NOT EXIST *****",fnam);
-    sprintf(fnam, "%smsg%cmsg_en.txt",OS_get_doc_dir(),fnam_del);
+    sprintf(fnam, "%smsg%cmsg_en.txt",AP_get_doc_dir(),fnam_del);
     if((MSG_fp=fopen(fnam,"r")) == NULL) return -1;
   }
 
@@ -851,7 +851,7 @@ char *MSG_ERR_tab[]={
 //================================================================
   char* MSG_read (char *sbuf, int bufSiz, char *key) {
 //================================================================
-// read msg from ../msg/msg_de.txt -> sbuf
+// read msg from ../../doc/msg/msg_en.txt -> sbuf
   
 // how to add new message: see INF_MSG_new
 
@@ -887,11 +887,11 @@ char *MSG_ERR_tab[]={
   FILE   *fpi;
   
   printf("MSG_const_init |%s|\n",sLang);
-  //printf("  bas_dir  = |%s|\n",OS_get_bas_dir());
+  //printf("  bas_dir  = |%s|\n",AP_get_bas_dir());
   //printf("  fnam_del = |%c|\n",fnam_del);
 
   // (re)open messagefile msg/msg_const_de.txt
-  sprintf(s1, "%smsg%cmsg_const_%s.txt",OS_get_doc_dir(),fnam_del,sLang);
+  sprintf(s1, "%smsg%cmsg_const_%s.txt",AP_get_doc_dir(),fnam_del,sLang);
     // printf(" constmsgfile = |%s|\n",s1);
 
 
@@ -911,7 +911,7 @@ char *MSG_ERR_tab[]={
   if((fpi = fopen (s1, "r")) == NULL) {
     // TX_Print("***** MESSAGEFILE %s DOES NOT EXIST *****",s1);
     printf("***** MESSAGEFILE %s DOES NOT EXIST *****",s1);
-    sprintf(s1, "%smsg%cmsg_const_en.txt",OS_get_doc_dir(),fnam_del);
+    sprintf(s1, "%smsg%cmsg_const_en.txt",AP_get_doc_dir(),fnam_del);
     if((fpi=fopen(s1,"r")) == NULL) return -1;
   }
 
@@ -1068,9 +1068,9 @@ char *MSG_ERR_tab[]={
 }
 
 
-//=======================================================================
-  int MSG_ERR_out (int msgTyp, const char *fnc, int iErr, char *txt, ...) {
-//=======================================================================
+//==================================================================================
+  int MSG_ERR_out (int msgTyp, const char *fnc, int lNr, int iErr, char *txt, ...) {
+//==================================================================================
 /// \code
 /// MSG_ERR_out     error/warning/info; use with MSG_ERR__
 ///   msgTypr       MSG_ERR_typ_ERR|MSG_ERR_typ_WNG|MSG_ERR_typ_INF
@@ -1087,7 +1087,7 @@ char *MSG_ERR_tab[]={
   char    s1[400], s2[256];
 
 
-  printf("MSG_ERR_out %d |%s| %d\n",msgTyp,fnc,iErr);
+  printf("MSG_ERR_out msgTyp=%d fnc=|%s| lNr=%d iErr=%d\n",msgTyp,fnc,lNr,iErr);
   printf("  ERR_internal=%d\n",ERR_internal);
 
 
@@ -1110,15 +1110,15 @@ char *MSG_ERR_tab[]={
   // s2 = "[- SM <subModelname> ]- Line <lineNr>"
   if(AP_get_modact_ind() >= 0) {
     // subModel is active ..
-    sprintf(s2, "- SM %s - Line %d ",DB_mdlNam_iBas(AP_get_modact_ind()),
+    sprintf(s2, "- SM %s - CAD-Line %d ",DB_mdlNam_iBas(AP_get_modact_ind()),
             ED_get_lnr_SM());
   } else {
     // mainModel is active ..
-    sprintf(s2, "- Line %d ",APT_get_line_act());
+    sprintf(s2, "- CAD-Line %d ",APT_get_line_act());
   }
 
-  TX_Print ("%s %s in %s() %s - %s",
-             MSG_ERR_txt[iSev], MSG_ERR_tab[iKey], fnc, s2, s1);
+  TX_Print ("%s %s in func. %s:%d %s - %s",
+             MSG_ERR_txt[iSev], MSG_ERR_tab[iKey], fnc, lNr, s2, s1);
 
   if(iSev > 1) AP_errStat_set (1);
 

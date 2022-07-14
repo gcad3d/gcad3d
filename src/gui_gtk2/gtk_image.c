@@ -74,10 +74,16 @@ see tst_gtk_image.c
 static int       icoNr;
        GdkPixbuf **IcoTab;
 
+static GtkWidget  *TUT_win=NULL;
 
 
 // gtk_core.c:
 extern GtkWidget *UI_act_wi;
+
+
+#define VIEWTIME_T 400
+#define VIEWTIME_M 400
+
 
 
 
@@ -171,7 +177,7 @@ extern GtkWidget *UI_act_wi;
   i1 = 0;
   vp1 = (void**)icoNam;
   while (*vp1) {
-    sprintf(cbuf, "%s%s",OS_get_ico_dir(),(char*)*vp1);
+    sprintf(cbuf, "%s%s",AP_get_ico_dir(),(char*)*vp1);
       // printf(" icoNam[%d]=|%s|\n",i1,cbuf);
     if(OS_checkFilExist(cbuf, 0) == 0) {
       // TX_Error (" Imagefile %s does not exist",cbuf);
@@ -195,16 +201,120 @@ extern GtkWidget *UI_act_wi;
 
 
 //================================================================
+  int GUI_TUT_m_CB (GtkWidget *widget, GdkEventExpose *event, gpointer userdata) {
+//================================================================
+// GUI_TUT_m_CB            draw transp. window-backgnd
+
+  cairo_t *cr;
+
+  // printf("GUI_TUT_m_CB\n");
+
+  //  draw  the  background 
+  cr = gdk_cairo_create (gtk_widget_get_window(TUT_win));
+  cairo_set_source_rgba (cr, 1.0, 1.0, 1.0, 0.0); //  transparent
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+  cairo_paint (cr);
+  cairo_destroy(cr);
+
+  return FALSE;
+
+}
+
+
+//================================================================
+  int GUI_TUT_CB_tmr (void *data) {
+//================================================================
+// GUI_TUT_CB_tmr              timer-callback: destroy.
+
+  // printf("GUI_TUT_CB \n");
+
+  // gtk_widget_destroy (TUT_win);
+  gtk_widget_destroy (data);
+
+  return 0;  // stop timer
+
+}
+
+
+//================================================================
   int GUI_TUT_m__ (int ii) {
 //================================================================
-/// \code
-/// GTK2: NOT IMPLEMENTED; ONLY GTK3.
-/// display image "mousebutton" without decoration for 0.8 secs
-/// Input: ii=mousebutton; 1|2|3
-/// \endcode
+// display image "mousebutton" without decoration for 0.8 secs
+// Input: ii=mousebutton; 1|2|3
 
-  TX_Print ("ScreenCast-Support only Gtk3");
+//   TX_Print ("ScreenCast-Support only Gtk3");
+//   return 0;
+
+
+
+  int        i1;
+  GtkWidget  *img;
+  GdkScreen  *screen;
+  GdkVisual  *visual;
+  char       s1[256];
+  GdkCursor   *cNxt;
+
+  // printf("GUI_TUT_m__ %d\n",ii);
+
+
+  // if(GTK_IS_WINDOW(TUT_win))
+  // i1 = gtk_window_is_active(GTK_WINDOW(TUT_win)); // 0=yes, 1=no
+  // if(i1)
+    // { printf(" GUI_TUT_m__ skip..\n"); return 0;}
+
+
+  TUT_win = gtk_window_new (GTK_WINDOW_POPUP);
+
+
+  g_signal_connect(G_OBJECT(TUT_win), "draw", //"expose-event",
+                   G_CALLBACK(GUI_TUT_m_CB), NULL);
+
+
+  // gtk_window_set_default_size(GTK_WINDOW(TUT_win), 64, 64);
+  // gtk_window_set_position(GTK_WINDOW(TUT_win), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(TUT_win), GTK_WIN_POS_MOUSE);
+  gtk_window_set_decorated (GTK_WINDOW(TUT_win), FALSE);
+
+  // we draw window-background ourself ..
+  gtk_widget_set_app_paintable(TUT_win, TRUE);
+
+
+  // Gtk2:
+  // gtk_widget_set_colormap (TUT_win, gdk_screen_get_rgba_colormap (screen));
+
+
+  // add image to window
+  sprintf (s1, "%sMouseM%d.png", AP_get_ico_dir(),ii);
+    // printf(" img=|%s|\n",s1);
+  img = gtk_image_new_from_file (s1);
+  gtk_container_add (GTK_CONTAINER (TUT_win), img);
+
+
+  // activate transparent background
+  screen = gtk_widget_get_screen (TUT_win);
+  visual = gdk_screen_get_rgba_visual (screen);
+  if(!visual) {
+    printf("***** Screen does not support alpha channels.\n");
+  } else {
+    // gdk_screen_is_composited (screen)
+    gtk_widget_set_visual (TUT_win, visual);
+  }
+
+
+
+  gtk_widget_show_all(TUT_win);
+
+  // cursor off (for this window)
+  cNxt = gdk_cursor_new_for_display (gdk_display_get_default(), GDK_BLANK_CURSOR);
+  gdk_window_set_cursor (gtk_widget_get_window(TUT_win), cNxt);
+
+
+  // start timer for window-removal
+  g_timeout_add (VIEWTIME_M, GUI_TUT_CB_tmr, TUT_win);
+
+
   return 0;
+
 
 }
 
@@ -212,12 +322,41 @@ extern GtkWidget *UI_act_wi;
 //================================================================
   int GUI_TUT_t__ (char *ltxt) {
 //================================================================
-/// \code
-/// GTK2: NOT IMPLEMENTED; ONLY GTK3.
-/// display text without decoration for 0.8 secs
-/// \endcode
+// display text without decoration for 0.8 secs
+// \endcode
 
-  TX_Print ("ScreenCast-Support only Gtk3");
+//   TX_Print ("ScreenCast-Support only Gtk3");
+//   return 0;
+
+  GtkWidget  *w1;
+  GdkCursor   *cNxt;
+
+
+
+  // printf("GUI_TUT_t__ |%s|\n",ltxt);
+
+
+  TUT_win = gtk_window_new (GTK_WINDOW_POPUP);
+
+  // gtk_window_set_default_size(GTK_WINDOW(TUT_win), 64, 64);
+  // gtk_window_set_position(GTK_WINDOW(TUT_win), GTK_WIN_POS_CENTER);
+  gtk_window_set_position(GTK_WINDOW(TUT_win), GTK_WIN_POS_MOUSE);
+  gtk_window_set_decorated (GTK_WINDOW(TUT_win), FALSE);
+
+  // create html-label
+  w1 = gtk_label_new (NULL);
+  gtk_label_set_markup (GTK_LABEL(w1), ltxt);
+  gtk_container_add (GTK_CONTAINER (TUT_win), w1);
+
+  gtk_widget_show_all(TUT_win);
+
+  // cursor off (for this window)
+  cNxt = gdk_cursor_new_for_display (gdk_display_get_default(), GDK_BLANK_CURSOR);
+  gdk_window_set_cursor (gtk_widget_get_window(TUT_win), cNxt);
+
+  // start timer for window-removal
+  g_timeout_add (VIEWTIME_T, GUI_TUT_CB_tmr, TUT_win);
+
   return 0;
 
 }

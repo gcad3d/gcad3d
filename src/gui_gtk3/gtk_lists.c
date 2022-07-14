@@ -1556,7 +1556,7 @@ extern int    UI_umbId;
   // copy parentFileName
   strcpy(GUI_list1_s1, fnamP);
   // create tempfilename chdFilNam
-  sprintf(GUI_list1_s2, "%stmp.lst",OS_get_tmp_dir());
+  sprintf(GUI_list1_s2, "%stmp.lst",AP_get_tmp_dir());
 
 
   // copy active parent

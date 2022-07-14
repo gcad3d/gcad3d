@@ -1,0 +1,12 @@
+# nmake -f gMsh1.nmak
+
+DLLNAM = gMsh1
+
+# die hier befindlichen  Sourcen - recompile!
+SRC1 =\
+ ../APP/gMsh1.c\
+
+
+!include "..\APP\gcad__.nmak"
+
+########################### EOF #######################

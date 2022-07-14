@@ -4186,37 +4186,39 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   int UT2D_pt_int4pt (Point2 *ps, double *dp1, double *dp2, double *tol,
                       Point2 *p1,Point2 *p2,Point2 *p3,Point2 *p4) {
 //=======================================================================
-// intersection of 2 limited lines, tolerance.
-// Info, ob Schnittpunkt ident mit p1 oder p2 (p3,p4 werden nicht getestet)
-// Info, ob p1-p2 und p3-p4 uebereinanderliegen (ueberlappen)
+// UT2D_pt_int4pt            intersection of 2 limited lines, tolerance.
+// Input:
+//   p1-p2     line 1
+//   p3-p4     line 2
+//   tol       distance connected-points, parallel-lines; (pointer !)
 // Output:
-//   dp1       parameter along p1-p2
-//   dp2       parameter along p3-p4
+//   ps        for RC=0|1|2:   intersectionpoint 
+//   dp1       for RC=0|1|2:   parameter of ps along p1-p2
+//             for RC=3|4:     parameter of p3 along p1-p2
+//   dp2       for RC=0|1|2:   parameter of ps along p3-p4
+//             for RC=3|4:     parameter of p4 along p1-p2
 //   RC = -1   NO intersection.
 //   RC =  0   Yes; intersect; ps=p1; dp1=0;
 //   RC =  1   Yes; intersect; ps between p1-p2;
-//             dp1 ist der Abstandswert (0-1) des Schnittpunktes entlang p1-p2
 //   RC =  2   Yes; intersect; ps=p2; dp1=1;
-//   RC =  3   Lines parallel - Endpoints touch (not overlap). ps, dp1, dp2 not set
-//   RC =  4   Lines parallel and overlap; ps, dp1, dp2 not set
-
-//  (war:    Yes; overlap; all 4 point are on the same line; ps not used.
-//           dp1 ist 0 oder 1 (wenn Linien ident = komplett ueberlappen)
-
-// siehe auch UT2D_pt_ck_onLine UT2D_pt_ck_int4pt UT2D_pt_int_4pt
-// see also UT2D_pt_intlnln
-// for RC = 4 (collinear-overlapping) see UT2D_4pt_coll_ck
+//   RC =  3   Lines parallel - Endpoints touch (not overlap); ps not set;
+//   RC =  4   Lines parallel and overlap; ps not set;
+//             identical lines have dp1=0., dp2=1.;
+// 
+// see also UT2D_pt_ck_onLine UT2D_pt_ck_int4pt UT2D_pt_int_4pt UT2D_pt_intlnln
+// - for RC = 4 (collinear-overlapping) see UT2D_4pt_coll_ck
 
 
   int     irc;
   double  q1, q2, qq, d1, d2, hx1,lx1,hy1,ly1, hx2,lx2,hy2,ly2;
-  Vector2 vc1, vc2, vcs;
+  double  s_vc1, s_vcs, s_vce, par;
+  Vector2 vc1, vc2, vcs, vce;
+  Point2  px, *pl2;
 
 
   // printf("UT2D_pt_int4pt tol=%f\n",*tol);
-
-  //printf("    l1=%f,%f  - %f,%f\n",p1->x,p1->y,p2->x,p2->y);
-  //printf("    l2=%f,%f  - %f,%f\n",p3->x,p3->y,p4->x,p4->y);
+  // printf("    l1=%f,%f  - %f,%f\n",p1->x,p1->y,p2->x,p2->y);
+  // printf("    l2=%f,%f  - %f,%f\n",p3->x,p3->y,p4->x,p4->y);
 
 
 
@@ -4267,27 +4269,54 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   q1 = vc1.dy * vc2.dx;
   q2 = vc1.dx * vc2.dy;
   qq = q1 - q2;
-  // printf(" qq=%f q1=%f q2=%f\n",qq,q1,q2);
+    // printf(" L1-qq=%f q1=%f q2=%f\n",qq,q1,q2);
 
 
   // check for parallel
   if (fabs(qq) > 0.0001) goto L_nicht_parall;
 
 
-  q1 = vc1.dy * vcs.dx;
-  q2 = vc1.dx * vcs.dy;
-  qq = q1 - q2;
-  // printf(" qq=%f q1=%f q2=%f\n",qq,q1,q2);
+  //================================================================
+  // parallel, check if collinear (dist. of parallel lines < tol)
 
-  // check for collinear
-  if (fabs(qq) > 0.0001) goto L_nicht_collin;
+  UT2D_vc_2pt (&vce, p1, p4);
+
+  s_vc1 = UT2D_skp_2vc (&vc1, &vc1);
+  s_vcs = UT2D_skp_2vc (&vc1, &vcs);
+  s_vce = UT2D_skp_2vc (&vc1, &vce);
+
+  // get dp1 = parameter of p3 on p1-p2
+  *dp1 = s_vcs / s_vc1;
+    // printf(" *dp1 = %f\n",*dp1);
+
+  // get dp2 = parameter of p4 on p1-p2
+  *dp2 = s_vce / s_vc1;
+    // printf(" *dp2 = %f\n",*dp2);
+
+  // get par = point nearer to midpoint of p1-p2
+  if((fabs(*dp1) -0.5) < (fabs(*dp2) - 0.5)) {
+    par = *dp1;
+    pl2 = p3;
+  } else {
+    par = *dp2;
+    pl2 = p4;
+  }
+    // printf(" par = %f\n",par);
+
+  // get px = point with smaller parameter on l2 (p3-p4)
+  // multiply vec p1-p2 * par
+  UT2D_pt_pt_mult_vc (&px, p1, &vc1, par);
+    // printf(" px  = %f,%f\n",px.x,px.y);
+    // printf(" pl2 = %f,%f\n",pl2->x,pl2->y);
+
+  // check if dist > tol (compare points in x,y)  - NOT EXACT !
+  if(!UT2D_comp2pt(&px,pl2,*tol)) { irc = -1; goto L_fertig;}
 
 
   //==================================================================
-  // lines sind collinear (alle Punkte auf der gleichen Linie)
+  // lines are collinear
   L_collin:
-
-  // die Linien ueberlappen teilweise ..
+     // printf(" L_collin:\n");
 
   // test if lines touch or overlap
   // find direction with longer distances
@@ -4310,29 +4339,8 @@ UT2D_pt_mid2pt                  midpoint between 2 points
   if(fabs(d1 - d2) < *tol) {irc = 3; goto L_fertig;} // 3 = connected lines, no overlap
 
 
-  irc  = 4;   // 4 = overlap; Teilueberdeckung, nicht nur Beruehrung
-  // *dp1 = 1.;
-
+  irc  = 4;   // 4 = overlapping lines 
   goto L_fertig;
-
-
-
-
-  //==================================================================
-  L_nicht_collin:  // parallel, aber nicht auf der gleichen Linie
-
-  // Normalabstand
-  d1 = (vc1.dx*vcs.dy - vc1.dy*vcs.dx) / qq;
-  // printf(" d1=%f\n",d1);
-
-  if (fabs(d1) < *tol) goto L_collin;
-
-  // parallel, aber nicht auf der gleichen Linie
-  // Abstand ist > Tol; also keine Verbindung moeglich
-  irc = -1;
-  goto L_fertig;
-
-
 
 
 
@@ -4514,8 +4522,6 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
 
 
-
-
   //=====================================================
   L_m1:
   irc = -1;
@@ -4527,11 +4533,13 @@ UT2D_pt_mid2pt                  midpoint between 2 points
       // printf("ex UT2D_pt_int4pt %d %f,%f\n",irc,ps->x,ps->y);
       // if(irc > 2) DEB_stop();
     // END TESTBLOCK
- 
+
   return irc;
 
 }
 
+
+// EOF
 
 //=======================================================================
   int UT2D_4pt_coll_ck (int *lmp, int *rmp,
@@ -4572,7 +4580,7 @@ UT2D_pt_mid2pt                  midpoint between 2 points
 
   if((*lmp < 0)||(*rmp < 0)) irc = -1;
   else                       irc = 0;
-    printf(" ex-UT2D_coll_4pt_ck irc=%d lmp=%d rmp=%d\n",irc,*lmp,*rmp);
+    // printf(" ex-UT2D_coll_4pt_ck irc=%d lmp=%d rmp=%d\n",irc,*lmp,*rmp);
 
   return irc;
 
@@ -7666,7 +7674,7 @@ TODO: test intersection (dist=0 !)
 
 //======================================================================
   int UT2D_pt_ck_onLine (Point2 *po,
-                         Point2 *p1,Point2 *p2,Point2 *p3,
+                         Point2 *p1, Point2 *p2, Point2 *p3,
                          double tol) {
 //======================================================================
 /// \code
@@ -13026,7 +13034,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 //================================================================
 
 
-#ifdef DEB
+// #ifdef DEB
 
 //================================================================
   int tst_UT2D_pt_ck_inplg () {
@@ -13061,7 +13069,7 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
 
 } 
 
-#endif
+// #endif
 
 
 //================================================================

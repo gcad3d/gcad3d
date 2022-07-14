@@ -22,14 +22,13 @@ Modifications:
 \code
 
 =====================================================
-Liste_Funktionen_Beginn:
+List_functions_start:
 
 OS_hide_win          nur MS-Windows
 
-see  ../ut/ut_os_aix.c
-
-Liste_Funktionen_Ende:
+List_functions_end:
 =====================================================
+see  ../ut/ut_os_aix.c
 
 
 // Mircosoft-Test: MS-CompilerVersion; 2010=1600
@@ -132,6 +131,27 @@ OS_date_cmp (time_t *tim1, time_t *tim2) {}
 
 
 //================================================================
+  void OS_get_scrRes (int *xRes, int *yRes) {
+//================================================================
+// OS_get_scrRes                    get total screensize
+
+  // int  irc;
+  // char s1[80];
+
+
+  // TX_Error ("OS_get_scrRes - MS-win - TODO");
+  // exit (-1);
+
+
+  *xRes = GetSystemMetrics (0);
+  *yRes = GetSystemMetrics (1);
+
+    // printf(" ex-OS_get_scrRes %d %d\n",*xRes,*yRes);
+
+}
+
+
+//================================================================
   char* OS_get_dir_pwd () {
 //================================================================
 /// OS_get_dir_pwd           get current process-working-directory "PWD"
@@ -148,18 +168,25 @@ OS_date_cmp (time_t *tim1, time_t *tim2) {}
   int OS_file_compare_A (char *fn1, char *fn2) {
 //================================================================
 // OS_file_compare_A                   compare 2 files ascii
-// RetCode: 0=files_not_different, -1=different_files.
+// RetCode: 0=files_not_different, 1=different_files; -1,-2=ERROR;
 // MS-Win: FC
 
+  int    irc;
   char   s1[280];
 
 
-  printf("TODO: ************** OS_file_compare_A \n"); // yet unused
-  sprintf (s1, "FC /B %s %s", fn1, fn2);
-    printf(" |%s|\n",s1);
-  // ??? returns 0 for identical files
+  if(!OS_checkFilExist (fn1, 1)) return -1;
 
-  return OS_system (s1);
+  if(!OS_checkFilExist (fn2, 1)) return -2;
+
+  sprintf (s1, "CMD /C \"FC /B \"%s\" \"%s\" 1>NUL\"", fn1, fn2);
+    printf(" |%s|\n",s1);
+  // returns 0 for identical files; 1 for different files
+
+  irc = OS_system (s1);
+
+  if(irc) irc = 1;
+  return irc;
 
 }
 
@@ -539,24 +566,6 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
 
 //================================================================
-  int OS_edit_ (char *filnam) {
-//================================================================
-// <edit> <filnam>
-// aufs Ende warten !
-
-  char  cbuf[256];
-
-  sprintf(cbuf, "%s %s",OS_get_edi(),filnam);
-
-  printf("OS_edit_ |%s|\n",cbuf);
-  OS_system(cbuf);
-
-  return 0;
-
-}
-
-
-//================================================================
   int OS_get_lang  (char *sLang) {
 //================================================================
 /// returns system-language; eg "de" or "en"
@@ -635,12 +644,11 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 //================================================================
   int OS_browse_htm (char *fNam, char *label) {
 //================================================================
-/// \code
-/// html-browse <filnam>[<label>]; do not wait for end of process.
-/// Input:
-///   fNam        full filename of html-file;  NULL = <temp>/temp.htm
-///   label        html-label starting with '#'; eg "#L1";  NULL = none
-/// \endcode
+// html-browse <filnam>[<label>]; do not wait for end of process.
+// Input:
+//   fNam        full filename of html-file;  NULL = <temp>/temp.htm
+//   label        html-label starting with '#'; eg "#L1";  NULL = none
+// used by eg Help/Docu
 
   char  s1[256], s2[400], *p1, *p2;
 
@@ -658,7 +666,7 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
   //----------------------------------------------------------------
   // test if file given; else use <temp>/temp.htm
   if(fNam == NULL) {
-    sprintf(s1, "%stmp.htm",OS_get_tmp_dir());
+    sprintf(s1, "%stmp.htm",AP_get_tmp_dir());
 
   } else {
     strcpy(s1, fNam);
@@ -692,10 +700,12 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
   if(label) {
     // with label:
     // not for hh:
-    sprintf(s2, "start %s file:%s%s", p1, s1, label);
+    // sprintf(s2, "start %s file:%s%s", p1, s1, label);
+    sprintf(s2, "CMD /C \"%s file:%s%s\"", p1, s1, label);
   } else {
     // without label:
-    sprintf(s2, "start %s %s", p1, s1);
+    // sprintf(s2, "start %s %s", p1, s1);
+    sprintf(s2, "CMD /C \"%s %s\"", p1, s1);
   }
 
   printf("OS_browse_htm |%s|\n",s2);
@@ -959,13 +969,13 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
   //----------------------------------------------------------------
   // done ..
-      printf(" bindir = |%s|\n",OS_get_bin_dir());
-      printf(" basdir = |%s|\n",OS_get_bas_dir());
-      printf(" docdir = |%s|\n",OS_get_doc_dir());
-      printf(" locdir = |%s|\n",OS_get_loc_dir());
-      printf(" tmpdir = |%s|\n",OS_get_tmp_dir());
-      printf(" cfgdir = |%s|\n",OS_get_cfg_dir());
-      printf(" icodir = |%s|\n",OS_get_ico_dir());
+      printf(" bindir = |%s|\n",AP_get_bin_dir());
+      printf(" basdir = |%s|\n",AP_get_bas_dir());
+      printf(" docdir = |%s|\n",AP_get_doc_dir());
+      printf(" locdir = |%s|\n",AP_get_loc_dir());
+      printf(" tmpdir = |%s|\n",AP_get_tmp_dir());
+      printf(" cfgdir = |%s|\n",AP_get_cfg_dir());
+      printf(" icodir = |%s|\n",AP_get_ico_dir());
 
     // exit(0);  // TEST ONLY
 
@@ -978,49 +988,6 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
       printf("%s\n",txbuf);
       GUI_MsgBox (txbuf);
       exit(0);
-
-}
-
-
-/*======================== Perform OS - Command ==========*/
-  int OS_system (char *buf) {
-/*===============
-
-OS_system                  Perform OS-Command; wait for completion (system)
-
-*/
-
-  int  i1, ret;
-
-
-  ret=0;
-  for(i1=0; i1<strlen(buf); ++i1) {
-    // skip 1.word (hat oft Options mit /; zB dir/b - nicht aendern!)
-    if(ret == 0) {
-      if(buf[i1] == ' ') ret = 1;
-    } else {
-      if(buf[i1] == '/') buf[i1] = '\\';
-    }
-  }
-
-    // printf("OS_system |%s|\n",buf);
-
-  ret = system(buf);
-
-  return (ret);
-}
-
-
-///================================================================
-  int OS_exec (char* txt) {
-///================================================================
-/// OS_exec                  Perform OS-Command; do not wait for completion.
-
-  printf("OS_exec |%s|\n",txt);
-
-  WinExec(txt, SW_NORMAL);
-
-  return 0;
 
 }
 
@@ -1038,26 +1005,6 @@ OS_system                  Perform OS-Command; wait for completion (system)
 
 
 //================================================================
-  char* OS_get_edi  () {
-//================================================================
-//  liefert bei Linux "gedit "
-//  strcpy(txbuf, OS_get_edi());
-
-
-  // static char os_edi[]="gedit ";
-
-  // XP: geht, wartet aber nicht auf Ende !
-  // static char os_edi[]="start notepad ";
-
-
-  static char os_edi[]="notepad ";
-
-  return os_edi;
-
-}
-
-
-//================================================================
   char* OS_get_printer  () {
 //================================================================
 //  strcpy(txbuf, "print");
@@ -1070,7 +1017,7 @@ OS_system                  Perform OS-Command; wait for completion (system)
   FILE  *fu1;
 
 
-  sprintf(txbuf, "\"%sfPrint.exe\"",OS_get_bin_dir());
+  sprintf(txbuf, "\"%sfPrint.exe\"",AP_get_bin_dir());
     printf("|%s|\n", txbuf);
 
   fu1 = _popen (txbuf, "r");
@@ -1096,33 +1043,33 @@ OS_system                  Perform OS-Command; wait for completion (system)
 
 /*
 //================================================================
-  char* OS_get_tmp_dir () {
+  char* AP_get_tmp_dir () {
 //================================================================
   return os_tmp_dir;
 }
 //================================================================
-  char* OS_get_loc_dir () {
+  char* AP_get_loc_dir () {
 //================================================================
   return os_loc_dir;
 }
 //================================================================
-  char* OS_get_cfg_dir () {
+  char* AP_get_cfg_dir () {
 //================================================================
   sprintf(txbuf, "%scfg\\", os_loc_dir);
   return txbuf;
 }
 //================================================================
-  char* OS_get_ico_dir () {
+  char* AP_get_ico_dir () {
 //================================================================
   return os_ico_dir;
 }
 //================================================================
-  char* OS_get_bin_dir () {
+  char* AP_get_bin_dir () {
 //================================================================
   return os_bin_dir;
 }
 //================================================================
-  char* OS_get_doc_dir () {
+  char* AP_get_doc_dir () {
 //================================================================
   return os_doc_dir;
 }
@@ -1146,7 +1093,9 @@ OS_system                  Perform OS-Command; wait for completion (system)
 
   // sprintf(osCmd, "%s 1>/dev/null 2>/dev/null",cmd);
     // printf("   |%s|\n",osCmd);
-  system (osCmd);
+  OS_system (osCmd);
+
+  Sleep (iwait * 1000);
 
   // sprintf(osCmd, "ps --no-heading -C %s 1>/dev/null 2>/dev/null",cmd);
     // printf("   |%s|\n",osCmd);
@@ -1547,11 +1496,12 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 // ftext = Filtertext
 // Die InputDatei muss aber erhalten bleiben !
 // RC = -1: kein Inputfile
+//      -2: kein outfile
 
   char cbuf[512];
 
 
-  printf("OS_filterff |%s|%s|%s|\n",fnamO,fnamI,ftext);
+  // printf("OS_filterff |%s|%s|%s|\n",fnamO,fnamI,ftext);
 
 
   if(OS_checkFilExist(fnamI,1) == 0) return -1;
@@ -1559,18 +1509,18 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
   if(strlen(ftext) < 1) {
     // sprintf(cbuf,"cat %s|sort > %s",fnamI,fnamO);
-    sprintf(cbuf,"type \"%s\"|sort > \"%s\"",fnamI,fnamO);
-      printf("  sys |%s|\n",cbuf);
-    system(cbuf);
+    sprintf(cbuf,"CMD /C \"TYPE \"%s\"|SORT > \"%s\"\"",fnamI,fnamO);
+      // printf("  sys |%s|\n",cbuf);
+    OS_system(cbuf);
 
 
   } else {
       // find geht im MSYS nicht !
-    sprintf(cbuf,"type \"%s\"|sort|find/I \"%s\" > \"%s\"",fnamI,ftext,fnamO);
+    sprintf(cbuf,"CMD /C \"TYPE \"%s\"|SORT|FIND/I \"%s\" > \"%s\"\"",fnamI,ftext,fnamO);
     //sprintf(cbuf,"type \"%s\"|sort|find \"%s\" > \"%s\"",fnamI,ftext,fnamO);
     //sprintf(cbuf,"find \"%s\" \"%s\" > \"%s\"",ftext,fnamI,fnamO);
-      printf("  sys |%s|\n",cbuf);
-    system(cbuf);
+      // printf("  sys |%s|\n",cbuf);
+    OS_system(cbuf);
   }
 
   if(OS_checkFilExist(fnamO,1) == 0) return -2;
@@ -1591,81 +1541,11 @@ rc = 0 = ON  = OK; dirnam ist Dir.
   // printf("OS_file_delGrp |%s|\n",fNam);
 
 
-  sprintf(cbuf,"del \"%s\" 1>nul 2>nul",fNam);
-    // printf("OS_file_delGrp |%s|\n",cbuf);
-  system(cbuf);
+  sprintf(cbuf,"CMD /C \"DEL /F /Q \"%s\" 1>NUL 2>NUL\"",fNam);
+  // sprintf(cbuf,"ERASE \"%s\"",fNam);
+  OS_system(cbuf);
+  
 
-  return 0;
-
-}
-
-
-//======================================================================
-  int OS_file_copy (char *oldNam, char *newNam) {
-//======================================================================
-// OS_file_copy             copy file (rename, remove)
-
-  // char cbuf[512];
-
-  //printf("OS_file_copy |%s|%s|\n",newNam,oldNam);
-
-
-  // auf NT gibts die Option /Y nicht !!
-  // sprintf(cbuf,"COPY /Y %s %s",oldNam,newNam);
-  // printf("OS_file_copy |%s|\n",cbuf);
-  // system(cbuf);
-
-/*
-  if(OS_checkFilExist(newNam,1) == 1) {
-    printf(" overwrite file |%s|\n",newNam);
-    remove (newNam);
-  }
-  rename (oldNam,newNam);
-*/
-
-
-  // sprintf(cBuf, "copy /y %s %s",oldNam, newNam);
-  // system(cBuf);
-
-
-  CopyFile (oldNam, newNam, FALSE); // FALSE=overWriteYes
-
-  // exit(0);
-
-  return 0;
-
-}
-
-
-//========================================================================
-  int OS_file_rename (char *fnOld, char *fnNew) {
-//========================================================================
-// rename File; keine Wildcards !
-// MS u Unix gleich.
-
-  printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
-
-  remove (fnNew);    // delete File (sonst get das rename ned ..)
-                     // ACHTUNG: keine Wildcards mit remove !
-
-  rename (fnOld, fnNew);
-
-  return 0;
-
-}
-
-
-//========================================================================
-  int OS_file_delete (char *fNam) {
-//========================================================================
-// delete File; keine Wildcards !
-// MS u Unix gleich.
-
-
-  // printf("OS_file_delete |%s|\n",fNam);
-
-  remove (fNam);    // delete File (sonst get das rename ned ..)
-                    // ACHTUNG: keine Wildcards mit remove !
   return 0;
 
 }
@@ -1726,8 +1606,8 @@ rc = 0 = ON  = OK; dirnam ist Dir.
   if(!sdir) {TX_Print("***** cannot find direcory gcad_dir_dev ..."); return -1;}
 
 
-  // sprintf(cbuf, "%sxa\\%s",OS_get_bas_dir(),dllNam);
-  // sprintf(cbuf, "%s..\\src\\APP\\%s",OS_get_loc_dir(),dllNam);
+  // sprintf(cbuf, "%sxa\\%s",AP_get_bas_dir(),dllNam);
+  // sprintf(cbuf, "%s..\\src\\APP\\%s",AP_get_loc_dir(),dllNam);
   sprintf(cbuf, "%ssrc\\APP\\%s", sdir, dllNam);
 
 
@@ -1740,19 +1620,20 @@ rc = 0 = ON  = OK; dirnam ist Dir.
   TX_Print(".. compile .. link .. %s",dllNam);
 
 
-  // sprintf(cbuf, "cd %sxa&&nmake -f %s",OS_get_bas_dir(),dllNam);
-  // sprintf(cbuf, "cd %s..\\src\\APP&&nmake -f %s",OS_get_loc_dir(),dllNam);
-  sprintf(cbuf, "cd %ssrc\\APP&&nmake -f %s", sdir, dllNam);
-    printf(" OS_dll_build 2 |%s|\n",cbuf);
+  // sprintf(cbuf, "cd %sxa&&nmake -f %s",AP_get_bas_dir(),dllNam);
+  // sprintf(cbuf, "cd %s..\\src\\APP&&nmake -f %s",AP_get_loc_dir(),dllNam);
+  sprintf(cbuf, "CMD /C \"cd \"%ssrc\\APP\" && nmake -f %s\"", sdir, dllNam);
+    // printf(" OS_dll_build 2 |%s|\n",cbuf);
 
 
-  // ".so" -> ".mak"
-  strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
+  // ".dll" -> ".nmak"
+  strcpy(&cbuf[strlen(cbuf)-5], ".nmak OS=");
   strcat(cbuf, OS_get_os_bits());
-    printf("dll_build-3 |%s|\n",cbuf);
+  strcat(cbuf, "\"");
+    printf("OS_dll_build-do |%s|\n",cbuf);
 
 
-  irc = system(cbuf);
+  irc = OS_system(cbuf);
   if(irc != 0) TX_Error("Error build %s",dllNam);
 
   return irc;
@@ -1851,7 +1732,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
     }
 
     // load DLL
-    sprintf(s1, "%s%s.dll",OS_get_bin_dir(),(char*)fDat);
+    sprintf(s1, "%s%s.dll",AP_get_bin_dir(),(char*)fDat);
       printf(" dll=|%s|\n",s1); fflush(stdout);
 
     *dl1 = LoadLibrary (s1);
@@ -1982,7 +1863,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
 
   // fix DLL-FileName
-  sprintf(dlNamAct, "%s%s.dll",OS_get_bin_dir(),dllNam);
+  sprintf(dlNamAct, "%s%s.dll",AP_get_bin_dir(),dllNam);
     printf(" dll_do-fn |%s|\n",dlNamAct);
 
 
@@ -2039,7 +1920,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
 
   // load DLL
-  // sprintf(txbuf, "%sxa%c%s",OS_get_bas_dir(),fnam_del,soNam);
+  // sprintf(txbuf, "%sxa%c%s",AP_get_bas_dir(),fnam_del,soNam);
   // strcpy(txbuf, soNam);
   // printf("  open |%s|\n",txbuf);
   hdl1 = LoadLibrary (dllNam);
@@ -2068,34 +1949,6 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
 }
 */
-
-
-//================================================================
-  int OS_ck_DirAbs (char *fNam) {
-//================================================================
-// check if string is absoluter or relativer Filname ..
-// Returncodes:
-//   0  = yes, absolut
-//   1  = no, relativ ..
-
-// see also OS_dirAbs_fNam
-
-// Varianten:
-// /dir/fn
-// ./fn
-// ../dir/fn
-// dir/fn
-
-
-  UTX_pos_skipLeadBlk (fNam);
-
-  if(fNam[0] == '/') return 0;
-  if(fNam[0] == '\\') return 0;
-  if(fNam[1] == ':') return 0;
-
-  return 1;
-
-}
 
 
 //================================================================
@@ -2182,13 +2035,12 @@ sonst wahrscheinl nur \\ statt / ...
   }
 */
 
-  // use ..\bin\gzip.exe !!!
   if(mode == 0) {
-    sprintf(osCmd, "%sgzip -9qc \"%s\" > \"%s\"",OS_get_bin_dir(),fnFrom,fnTo);
+    sprintf(osCmd, "CMD /C \"%sgzip -9qc \"%s\" > \"%s\"\"",AP_get_bin_dir(),fnFrom,fnTo);
     // sprintf(osCmd, "cd \"%s\"&&gzip -9qc \"%s\" > \"%s\"",os_bas_dir,fnFrom,fnTo);
     // sprintf(osCmd, "zip -9jq %s %s",fnTo,fnFrom);
   } else {
-    sprintf(osCmd, "%sgzip -dqc \"%s\" > \"%s\"",OS_get_bin_dir(),fnFrom,fnTo);
+    sprintf(osCmd, "CMD /C \"%sgzip -dqc \"%s\" > \"%s\"\"",AP_get_bin_dir(),fnFrom,fnTo);
     // sprintf(osCmd, "cd \"%s\"&&gzip -dqc \"%s\" > \"%s\"",os_bas_dir,fnFrom,fnTo);
     // sprintf(osCmd, "unzip -pqq %s > %s",fnFrom,fnTo);
   }
@@ -2199,7 +2051,7 @@ sonst wahrscheinl nur \\ statt / ...
 
 }
 
-
+/* replaced by OS_files_join
 //================================================================
   int OS_file_concat (char *fno, char *fn1, char *fn2) {
 //================================================================
@@ -2232,6 +2084,74 @@ sonst wahrscheinl nur \\ statt / ...
   return 0;
 
 }
+*/
+
+//================================================================
+  int OS_files_join (char *fno, char *fn1, char *fn2, ...) {
+//================================================================
+// OS_files_join  concatenate 2 or more files
+// Input:
+//   fn1, fn2, ...    2 or more filenames; last parameter must be NULL
+// Output:
+//   fno              outfile (all files joined);  filename must be different.
+
+  char    fni[1024], s1[1200], s2[400], *p1;
+  va_list va;
+
+
+  // printf("OS_files_join |%s|%s|%s|\n",fno,fn1,fn2);
+
+  sprintf(fni, "\"%s\" + \"%s\"",fn1, fn2);
+
+  // check if fn1, fn2 exists
+  if(OS_checkFilExist(fn1, 1) == 0) {
+    // TX_Print("OS_file_concat: %s does not exist",fn1);
+    MSG_pri_1 ("NOEX_fil", "%s", fn1);
+    return -1;
+  }
+
+  if(OS_checkFilExist(fn2, 1) == 0) {
+    // TX_Print("OS_file_concat: %s does not exist",fn2);
+    MSG_pri_1 ("NOEX_fil", "%s", fn2);
+    return -1;
+  }
+
+  sprintf(fni,"\"%s\" + \"%s\" ",fn1, fn2);
+    // printf("  _files_join-1 |%s|\n",fn1);
+
+
+  // get fni = list of files
+  va_start(va, fn2);
+  L_nxt_arg:
+    p1 = (void*)va_arg (va, char*);
+    if(p1) {
+      // check if p1 exists
+      if(OS_checkFilExist(p1, 1) == 0) {
+        MSG_pri_1 ("NOEX_fil", "%s", p1);
+        return -1;
+      }
+      sprintf(s2, "+ \"%s\" ",p1);
+      if((strlen(fni) + strlen(s2)) >= sizeof(fni)) goto L_err1;
+      strcat(fni, s2);
+      goto L_nxt_arg;
+    }
+    va_end(va);
+      // printf(" _files_join-2 |%s|\n",fni);
+
+  // sprintf(s1, "cat %s > %s",fni,fno);
+  if((strlen(fni) + strlen(fno) + 16) >= sizeof(s1)) goto L_err1;
+  sprintf(s1, "CMD /C \"COPY /Y %s \"%s\" > nul\"",fni,fno);
+  //sprintf(s1, "CMD /C \"COPY /Y %s\"%s\"\"",fni,fno);
+    // printf(" _files_join-3 |%s|\n",s1);
+  OS_system (s1);
+
+  return 0;
+
+  L_err1:
+    TX_Error("OS_files_join overflow");
+    return -1;
+
+}
 
 
 ///================================================================
@@ -2243,10 +2163,12 @@ sonst wahrscheinl nur \\ statt / ...
   //static int iStat = 0;          // 0=notYetTested; 1=OK; -1=NotOk.
   //return fn1;
 
+  // sprintf(txbuf,"cd %s && djpeg.exe",AP_get_bin_dir());
   // sprintf(txbuf,"cd \"%s\"&&djpeg",os_bin_dir);
   //sprintf(txbuf,"%sdjpeg",os_bin_dir);
   // Problem Win7: blank im Pfadnamen !!
-  sprintf(txbuf,"cd/d \"%s\"&&djpeg.exe",OS_get_bin_dir());
+  // sprintf(txbuf,"cd/d \"%s \" && djpeg.exe",AP_get_bin_dir());
+  sprintf(txbuf,"\"%sdjpeg.exe\"",AP_get_bin_dir());
 
   return txbuf;
 
@@ -2265,7 +2187,8 @@ sonst wahrscheinl nur \\ statt / ...
   // sprintf(txbuf,"cd \"%s\"&&djpeg",os_bin_dir);
   //sprintf(txbuf,"%sdjpeg",os_bin_dir);
   // Problem Win7: blank im Pfadnamen !!
-  sprintf(txbuf,"cd/d \"%s\"&&cjpeg.exe",OS_get_bin_dir());
+  // sprintf(txbuf,"cd/d \"%s \" && cjpeg.exe",AP_get_bin_dir());
+  sprintf(txbuf,"\"%scjpeg.exe\"",AP_get_bin_dir());
 
   return txbuf;
 
@@ -2279,7 +2202,11 @@ sonst wahrscheinl nur \\ statt / ...
 
   char  s1[400];
 
-  sprintf(s1, "%s \"%s\" > \"%s\"",OS_get_imgConv2(),fn_bmp,fn_jpg);
+  printf("OS_jpg_bmp |%s|%s|\n",fn_jpg,fn_bmp);
+
+  // sprintf(s1, "%s \"%s\" > \"%s\"",OS_get_imgConv2(),fn_bmp,fn_jpg);
+  // sprintf(s1, "%s \"%s > %s\"",OS_get_imgConv2(),fn_bmp,fn_jpg);
+  sprintf(s1, "CMD /C \"%s \"%s\" > \"%s\"\"",OS_get_imgConv2(),fn_bmp,fn_jpg);
     printf(" |%s|\n",s1);
 
   return OS_system(s1);
@@ -2337,17 +2264,17 @@ sonst wahrscheinl nur \\ statt / ...
 */
 
 
-  iStat = system("cl/?>null");
+  iStat = OS_system("CMD /C \"cl/?>null\"");
     printf(" cl %d\n",iStat);
   if(iStat != 0) goto L_notOK;
 
-  iStat = system("nmake/?>null");
+  iStat = OS_system("CMD /C \"nmake/?>null\"");
     printf(" nmake %d\n",iStat);
   if(iStat != 0) goto L_notOK;
 
 
   L_exit:
-    printf("OS_dev_ck %d\n",iStat);
+    printf("ex-OS_dev_ck %d\n",iStat);
   return iStat;
 
 
@@ -2555,7 +2482,7 @@ sonst wahrscheinl nur \\ statt / ...
   GUI_get_version (sGui, &vGtk, &irc);
 
   // sEnam = exeFilename
-  sprintf(sEnam,"%sGUI_dlg1_%s%d_MS.exe", OS_get_bin_dir(), sGui, vGtk);
+  sprintf(sEnam,"%sGUI_dlg1_%s%d_MS.exe", AP_get_bin_dir(), sGui, vGtk);
     printf(" OS_get_GUI |%s|\n",sEnam);
 
   // test if exe exists

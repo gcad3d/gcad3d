@@ -244,7 +244,7 @@ Separator {
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../ut/ut_obj.h"              // UTO_stru_2_obj
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
 #include "../ut/ut_iTab.h"             // I4Tab
@@ -358,7 +358,7 @@ static char layNam[] = "0";
 
   // den mnam des .tess ermitteln; in "IGS__0_stl";
   // change to "../tmp/IGS__0.tess
-  sprintf(cBuf, "%s%s",OS_get_tmp_dir(),mnam);
+  sprintf(cBuf, "%s%s",AP_get_tmp_dir(),mnam);
   // cBuf[strlen(cBuf)-4] = '\0';
   // strcat(cBuf, ".tess");
     printf(" fTess=|%s|\n",cBuf);
@@ -2017,7 +2017,7 @@ static FILE *fpo = NULL;
   //----------------------------------------------------------------
   } else if(mode == 1) { // init;
     // open outFile ../tmp/export1.temp  and create Header
-    sprintf(s1, "%sexport1.temp",OS_get_tmp_dir());
+    sprintf(s1, "%sexport1.temp",AP_get_tmp_dir());
     if((fpo = fopen(s1, "w")) == NULL) {
       TX_Print("TSU_exp_wrlInit E002");
       return -1;
@@ -2543,7 +2543,7 @@ static FILE *fpo = NULL;
 
   
   if(TSU_ftyp == Mtyp_WRL2) {
-    sprintf(cbuf, "%sexport2.temp",OS_get_tmp_dir());
+    sprintf(cbuf, "%sexport2.temp",AP_get_tmp_dir());
 
   } else {
     strcpy(cbuf, TSU_fnam);
@@ -2563,13 +2563,13 @@ static FILE *fpo = NULL;
   // STL: explode subModel
   // explode subModel: dazu muss ein .tess ausgegeben werden;
   if(TSU_ftyp == Mtyp_STL) {
-    sprintf(cbuf, "%s%s.tess",OS_get_tmp_dir(),mnam);
+    sprintf(cbuf, "%s%s.tess",AP_get_tmp_dir(),mnam);
 
 
   // WRL: echte subModels exportieren.
   } else {
     // create filename /tmp/Exp_<subModelname>
-    sprintf(cbuf,"%sExp_%s",OS_get_tmp_dir(),mnam);
+    sprintf(cbuf,"%sExp_%s",AP_get_tmp_dir(),mnam);
 
     // geht nicht - es kommt falscher modelName !
     // i1 = strlen(mnam);
@@ -2676,7 +2676,7 @@ static FILE *fpo = NULL;
   if(cp) *cp = '\0';
   UTX_safeName (cbuf, 1); // change '. /\\'
   strcat(cbuf, ".tess");
-  sprintf(cbuf1, "%s%s",OS_get_tmp_dir(),cbuf);
+  sprintf(cbuf1, "%s%s",AP_get_tmp_dir(),cbuf);
   f_tess = OS_checkFilExist (cbuf1, 1);   // 0=does not exist
     printf(" f_tess=%d |%s|\n",f_tess,cbuf1);
 
@@ -2718,7 +2718,7 @@ static FILE *fpo = NULL;
 
       // Add "DEF <modelname>", Include .EXP-File.
       fprintf(TSU_fp," DEF %s\n",mnam);
-      sprintf(cbuf,"%sExp_%s",OS_get_tmp_dir(),mnam);
+      sprintf(cbuf,"%sExp_%s",AP_get_tmp_dir(),mnam);
       i1 = UTX_cat_file (TSU_fp, cbuf);
       if(i1 < 0) goto L_e1;
 
@@ -2766,7 +2766,7 @@ static FILE *fpo = NULL;
       // Add "DEF <modelname>", Include .EXP-File.
       // fprintf(TSU_fp," DEF %s children [\n",mnam);
       fprintf(TSU_fp," children DEF %s Group { children [\n",mnam);
-      sprintf(cbuf,"%sExp_%s",OS_get_tmp_dir(),mnam);
+      sprintf(cbuf,"%sExp_%s",AP_get_tmp_dir(),mnam);
       // fprintf(TSU_fp,"#--------- importfile start\n");
         // printf(" wrl- cat_file |%s|\n",cbuf);
       i1 = UTX_cat_file (TSU_fp, cbuf); // fertige Datei hintanhaengen
@@ -2797,7 +2797,7 @@ static FILE *fpo = NULL;
   // ======== OBJ =====================================
   } else if(TSU_ftyp == Mtyp_OBJ) {            // 11=OBJ
     if(iNr == 0) {                       // 0=first call
-      sprintf(cbuf,"%sExp_%s",OS_get_tmp_dir(),mnam);
+      sprintf(cbuf,"%sExp_%s",AP_get_tmp_dir(),mnam);
       i1 = UTX_cat_file (TSU_fp, cbuf);
       if(i1 < 0) goto L_e1;
     }
@@ -2870,7 +2870,7 @@ static char  mStat[1024];
     if(mode == -1) {
       // printf("TSU_exp_Mod Init\n");  // File not yet open !
       // delete all ../tmp/Exp_*
-      sprintf(cbuf,"%sExp_*",OS_get_tmp_dir());
+      sprintf(cbuf,"%sExp_*",AP_get_tmp_dir());
       OS_file_delGrp (cbuf);
       TSU_exp_Open (NULL);        // actModNam=main (wenns keine UP's gibt ?)
     }
@@ -3077,11 +3077,12 @@ static char  mStat[1024];
     // VRML2: close Headerfile, concatenate files.
     TSU_exp_wrlInit (0, 0);
     // rename fnam -> export2.temp
-    sprintf(memspc011, "%sexport1.temp",OS_get_tmp_dir());
-    sprintf(memspc012, "%sexport2.temp",OS_get_tmp_dir());
+    sprintf(memspc011, "%sexport1.temp",AP_get_tmp_dir());
+    sprintf(memspc012, "%sexport2.temp",AP_get_tmp_dir());
     // OS_file_rename (fnam, memspc012);
     // concatenate: fnam = export1.temp + export2.temp
-    OS_file_concat (fnam, memspc011, memspc012);
+    // OS_file_concat (fnam, memspc011, memspc012);
+    OS_files_join (fnam, memspc011, memspc012);
 
 
   } else if(TSU_ftyp == Mtyp_OBJ) {         // OBJ

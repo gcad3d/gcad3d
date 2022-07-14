@@ -23,7 +23,7 @@ RemoteControl for Linux & Windows with files.
 #include <sys/types.h>                    // va_list
 #include <sys/stat.h>                    // va_list
 
-#include "../ut/ut_os.h"                 // OS_get_bas_dir
+#include "../ut/ut_os.h"                 // AP_get_bas_dir
 #include "../ut/ctrl_os.h"               // OS_CTL_read__
 
 #include "../ut/ut_txTab.h"              // TxtTab
@@ -75,7 +75,7 @@ static char *pnin = NULL, *pnout = NULL;       // pipenames
   remove (pnin);    // delete inputfile
 
   // set name of workingfile
-  sprintf(fnSwap, "%sCTRLfin",OS_get_tmp_dir());
+  sprintf(fnSwap, "%sCTRLfin",AP_get_tmp_dir());
     // printf(" CTRL_CB__ fnSwap=|%s|\n",fnSwap);
 
 

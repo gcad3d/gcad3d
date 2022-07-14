@@ -100,7 +100,7 @@ __declspec(dllexport) int PRI__ (void**);
 
 
 #include "../ut/ut_geo.h"
-#include "../ut/ut_os.h"       // OS_get_tmp_dir
+#include "../ut/ut_os.h"       // AP_get_tmp_dir
 
 #include "../gui/gui__.h"
 #include "../xa/mdl__.h"               // SIZMFNam
@@ -230,7 +230,7 @@ int win1__ (MemObj *mo, void **data);
 
       wtmp4 = GUI_box_h (&wtmp3, "e");
         // w_cmd2 = filename w.o. filetyp
-        sprintf(cbuf1, "%sprint",OS_get_tmp_dir());
+        sprintf(cbuf1, "%sprint",AP_get_tmp_dir());
         w_cmd2=GUI_entry__(&wtmp4, NULL, cbuf1,   NULL,NULL, "e");
 
       // w_cmd3 = printer | printcommand
@@ -376,8 +376,8 @@ int win1__ (MemObj *mo, void **data);
       // if(AP_print__() < 0) break;
 
       // set outfilename - without \"
-      // sprintf(fNam,"\"%sprint.%s\"", OS_get_tmp_dir(), fTyp);
-      sprintf(fNam,"%sprint.%s", OS_get_tmp_dir(), fTyp);
+      // sprintf(fNam,"\"%sprint.%s\"", AP_get_tmp_dir(), fTyp);
+      sprintf(fNam,"%sprint.%s", AP_get_tmp_dir(), fTyp);
         printf(" fNam=|%s|\n",fNam);
 
 
@@ -455,7 +455,7 @@ int win1__ (MemObj *mo, void **data);
 #ifdef _MSC_VER
         // MS: GSview or .. ??; start direkt with "<fNam.ps>"
         // sprintf(cbuf1,"move \"%sprint.dat\" \"%sprint.eps\"",
-                // OS_get_tmp_dir(),OS_get_tmp_dir());
+                // AP_get_tmp_dir(),AP_get_tmp_dir());
           // printf("system %s\n",cbuf1);
         // system(cbuf1);
         sprintf(cbuf1,"%s", fNam);
@@ -464,8 +464,8 @@ int win1__ (MemObj *mo, void **data);
         // Linux: system "evince <fNam.eps>"
         sprintf(cbuf1,"%s %s &", txcmd1, fNam);
 #endif
-          printf("system %s\n",cbuf1);
-        system(cbuf1);
+          printf("OS_system %s\n",cbuf1);
+        OS_system(cbuf1);
         TX_Print("- exported into %s",fNam);
 
 
@@ -478,12 +478,12 @@ int win1__ (MemObj *mo, void **data);
         // get outfilename from txcmd2 = w_cmd2;
 
 #ifdef _MSC_VER
-        sprintf(cbuf1,"copy/Y %s \"%s.%s\"", fNam, txcmd2, fTyp);
+        sprintf(cbuf1,"CMD /C \"COPY /Y \"%s\" \"%s.%s\"\"", fNam, txcmd2, fTyp);
 #else
         sprintf(cbuf1,"cp -f %s %s.%s", fNam, txcmd2, fTyp);
 #endif
           printf("%s\n",cbuf1);
-        system (cbuf1);
+        OS_system (cbuf1);
         TX_Print("- exported into %s",fNam);
 
 
@@ -502,11 +502,11 @@ int win1__ (MemObj *mo, void **data);
         sprintf(cbuf1,"%s", fNam);
 #else
         // Linux: "lpr -PMFC7360N <fNam>"
-        sprintf(cbuf1,"%s %s &", txcmd3, fNam);
+        sprintf(cbuf1,"%s %s", txcmd3, fNam);
 #endif
-          printf("%s\n",cbuf1);
+ 
         TX_Print (cbuf1);
-        system (cbuf1);
+        OS_exec (cbuf1);
         TX_Print("- printing file %s",fNam);
 
       }

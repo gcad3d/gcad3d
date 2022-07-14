@@ -148,7 +148,7 @@ cl -c /I ..\include xa_ui_gr.c
 #include "../ut/ut_txt.h"
 #include "../ut/ut_memTab.h"           // MemTab
 #include "../ut/ut_TX.h"
-#include "../ut/ut_os.h"             // OS_get_bas_dir
+#include "../ut/ut_os.h"             // AP_get_bas_dir
 #include "../ut/ut_cast.h"           // INT_PTR
 #include "../ut/ut_err.h"            // ERR_SET1
 #include "../ut/ut_gtypes.h"         // AP_src_typ__
@@ -474,7 +474,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
       AP_Mod_load_fn ("", 2);
     } else {
       MDLFN_ffNam_AP (s1);
-      AP_Mod_load_fn (s1, 0);
+      // AP_Mod_load_fn (s1, 0);
+      AP_Mod_load_init (s1, 0);
     }
 
     // Title oben auf den Mainwinrahmen
@@ -1527,6 +1528,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
 
   case GUI_KeyEsc:
+     // printf(" UI_GL_keys__-esc-pressed\n");
     KeyStatEscape = ON;   // ON=0
     UI_key_escape (ICHG01(KeyStatCtrl));
     // GUI_obj_focus (&winGR); // after Esc Gtk3 looses focus .. 
@@ -1718,6 +1720,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
 
   L_exit:  // do defaultoperations for this keypress..
+    // printf(" ex-UI_GL_keys__\n");
     // oldEvent = GUI_DATA_EVENT;
   return 0;
 
@@ -1847,7 +1850,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // printf("Ctrl-Y  UI_InpMode=%d\n",UI_InpMode);
     if(UI_InpMode == UI_MODE_MAN) {
       // return FALSE;
-      sprintf(cbuf,"%sselection.txt",OS_get_tmp_dir());
+      sprintf(cbuf,"%sselection.txt",AP_get_tmp_dir());
       GUI_edi_InsFile (&winED, cbuf);
       goto AllDone;
     }
@@ -1863,7 +1866,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     if(UI_InpMode == UI_MODE_MAN) {
       // return FALSE;
       // gtk_signal_emit_by_name (GTK_OBJECT(winED.win),"activate");
-      sprintf(cbuf,"%sselection.txt",OS_get_tmp_dir());
+      sprintf(cbuf,"%sselection.txt",AP_get_tmp_dir());
       GUI_edi_InsFile (&winED, cbuf);
       goto AllDone;
     }
@@ -2045,7 +2048,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     xa_fl_TxMem = 1;   // src modified merken
 
     // fix filename for selected text
-    sprintf(cbuf,"%sselection.txt",OS_get_tmp_dir());
+    sprintf(cbuf,"%sselection.txt",AP_get_tmp_dir());
       // printf(" fnam:|%s|\n",cbuf);
 
     if(KeyStatCtrl == ON) {

@@ -126,7 +126,7 @@ void INF_OTYP (){}
 #define Typ_GL_PP         71  ///< tesselated planar patch
 #define Typ_GL_CV         72  ///< Polygon
 #define Typ_GL_iSur       73  ///< tesselated indexed-surface
-#define Typ_EdgSur        74  ///< EdgSur see also EdgeLine
+#define Typ_EdgSur        74  ///< EdgSur see also IntTab
 #define Typ_Fac3          75  ///< Triang; Form = Fac3
 #define Typ_Tria          76  ///< Triangle form 3 points
 #define Typ_GL_Trias      77  ///< GL_TRIANGLES
@@ -165,7 +165,7 @@ void INF_OTYP (){}
 #define Typ_BBox         110     ///< bounding-box, 3D
 #define Typ_BBox2        111     ///< bounding-box, 2D
 #define Typ_GridBox      112     ///< symbolic box, GridBox
-#define Typ_EdgeLine     113     ///< EdgeLine (../ut/ut_msh.h)
+#define Typ_IntTab       113     ///< IntTab (../ut/ut_msh.h)
 
 /// temp objs
 #define Typ_TmpPT        115     ///< temporary Point
@@ -412,10 +412,10 @@ void INF_OTYP (){}
 #define Mtyp_DXF        1    // native-import; 1 - 9;
 #define Mtyp_Iges       2
 #define Mtyp_Step       3
+#define Mtyp_XML        4
 
-#define Mtyp_3DS        4
-#define Mtyp_LWO        5
-#define Mtyp_XML        6
+#define Mtyp_3DS        5
+#define Mtyp_LWO        6
 #define Mtyp_SVG        7    // only export
 
 #define Mtyp_TESS      10    // gcad-tesselated-data - 10 - 19

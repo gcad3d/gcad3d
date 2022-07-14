@@ -1,0 +1,46 @@
+<HTML>
+<HEAD>
+<META http-equiv="Content-Type" content="text/html; charset=utf-8">
+<TITLE>TSTF_en.htm</TITLE>
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
+</HEAD>
+<BODY LANG="en-US"
+      style="font-family:Helvetica; font-size:12pt; font-weight:normal;">
+<PRE>
+
+<h2>Testtool TSTF</h2>
+
+
+- can process codes and commands read in from a file
+- can execute remote-commands (eg load model ..)
+- can add and process cad-codes
+- can stop / continue program (WAIT_ESC)
+- cam dump data (DUMP (<cad-obj>))
+- can call system-programs (edit (input-)file ..)
+- provides callback for private testfunctions (TSTF_cb())
+
+
+Test_it:
+- set Option/compile DLL ON   (or cadstart with parameter "comp")
+- select Plugin / Demo_tstf_1
+- modify inputfile (eg ../APP/Demo_tstf_1.dat) without stopping gcad;
+  - set appropriate filename in ../APP/Demo_tstf_1.c
+- Ctrl-P will rebuild and restart the plugin 
+
+
+See demoprogram (plugin Demo_tstf_1 - ../APP/Demo_tstf_1.c).
+See inputfile ../APP/Demo_tstf_1.dat for this plugin.
+
+See <a href="RemoteControl_en.htm">RemoteControl</a>
+
+
+
+<HR><!-- ============================================================ -->
+</PRE>
+</BODY>
+</HTML>

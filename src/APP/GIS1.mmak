@@ -1,0 +1,12 @@
+# make -f APP_GIS1.mak
+
+
+DLLNAM = APP_GIS1
+
+OBJ1 =\
+	../myAPPS/APP_GIS1.o ../myAPPS/tst1.o
+
+
+include ../xa/gCAD_DLL.mmak
+
+########################### EOF #######################

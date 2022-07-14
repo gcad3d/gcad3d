@@ -86,13 +86,13 @@ OS_get_imgConv1          returns jpg2bmp-converter; eg /usr/bin/djpeg
 OS_get_imgConv2          returns bmp2jpg-converter-program; eg /usr/bin/cjpeg
 OS_jpg_bmp               convert BMP -> JPG
 
-OS_get_bas_dir
-OS_get_tmp_dir
-OS_get_loc_dir
-OS_get_cfg_dir
-OS_get_ico_dir
-OS_get_bin_dir
-OS_get_doc_dir
+AP_get_bas_dir
+AP_get_tmp_dir           returns "/tmp/"
+AP_get_loc_dir
+AP_get_cfg_dir
+AP_get_ico_dir
+AP_get_bin_dir
+AP_get_doc_dir
 OS_get_dir_pwd           get current process-working-directory "PWD"
 
 OS_ck_DirAbs             check if string is absoluter or relativer Filname
@@ -114,6 +114,7 @@ OS_file_waitExist        wait max <maxTim> secords for existence of file <fn>
 OS_file_readm1           read complete file into memory
 OS_file_zip              compress/uncompress file
 OS_file_concat           concatenate 2 files  (fno = fn1 + fn2)
+OS_files_join            concatenate 2 or more files
 OS_file_compare_A        compare 2 files ascii
 OS_file_date_m           get last modification-date of file
 OS_FilSiz                query filesize
@@ -235,45 +236,6 @@ extern int errno;
 // aus xa.c:
 
 
-
-
-//================================================================
-  int OS_stdout__ (int mode, void *data) {
-//================================================================
-// OS_stdout__              direct console-output into file
-// mode     0   set filename for console-output
-// mode     1   (re-)open file for console-output
-//          2   close console-output into file; continue with output to console ..
-
-  static char    fn[80];
-  static FILE    *fp = NULL;
-
-
-  // printf("OS_stdout__ %d |%s|\n",mode,fn);
-
-
-  if(mode == 0) {
-    if(strlen((char*)data) >= 80) {printf("***** OS_stdout__ E1 \n"); return -1;}
-    strcpy(fn, (char*)data);
-
-
-  } else if(mode == 1) {
-    if(fp) fflush (fp);
-    fp = freopen (fn, "w", stdout);
-    if(!fp) {printf("***** OS_stdout__ E2 \n"); return -1;}
-
-
-  } else {
-    if(fp) fflush (fp);
-    // stdout = fdopen (2, "w");
-    // fclose (fp);
-    freopen ("/dev/tty", "w", stdout);
-    fp = NULL;
-  }
-
-  return 0;
-
-}
 
 
 //================================================================
@@ -676,7 +638,7 @@ extern int errno;
   strcat(os_loc_dir, "gCAD3D");
   UTX_add_fnam_del (os_loc_dir);   // add closing "/"
 
-  sprintf(os_tmp_dir, "%stmp%c",OS_get_loc_dir(),fnam_del);
+  sprintf(os_tmp_dir, "%stmp%c",AP_get_loc_dir(),fnam_del);
 
 
 
@@ -755,13 +717,13 @@ extern int errno;
 
   //----------------------------------------------------------------
     // done ..
-      printf(" bindir = |%s|\n",OS_get_bin_dir());
-      printf(" basdir = |%s|\n",OS_get_bas_dir());
-      printf(" docdir = |%s|\n",OS_get_doc_dir());
-      printf(" locdir = |%s|\n",OS_get_loc_dir());
-      printf(" tmpdir = |%s|\n",OS_get_tmp_dir());
-      printf(" cfgdir = |%s|\n",OS_get_cfg_dir());
-      printf(" icodir = |%s|\n",OS_get_ico_dir());
+      printf(" bindir = |%s|\n",AP_get_bin_dir());
+      printf(" basdir = |%s|\n",AP_get_bas_dir());
+      printf(" docdir = |%s|\n",AP_get_doc_dir());
+      printf(" locdir = |%s|\n",AP_get_loc_dir());
+      printf(" tmpdir = |%s|\n",AP_get_tmp_dir());
+      printf(" cfgdir = |%s|\n",AP_get_cfg_dir());
+      printf(" icodir = |%s|\n",AP_get_ico_dir());
 
       // exit(0);  // TEST ONLY
 
@@ -1006,33 +968,6 @@ extern int errno;
 }
 */
 
-//================================================================
-  char* OS_get_edi  () {
-//================================================================
-///  returns fileEditorProgram; eg "gedit "  or "kedit "
-
-
-  txbuf[0] = '\0';
-
-  if(system("which gedit 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "gedit ");
-  if(system("which kwrite 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "kwrite ");
-  if(system("which kedit 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "kedit ");
-  if(system("which kate 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "kate ");
-  if(system("which dtpad 1>/dev/null 2>/dev/null") == 0)
-    strcpy(txbuf, "dtpad ");
-
-  if(strlen(txbuf) < 2) { 
-    printf(" **** no Editor found\n");
-    return "";
-  }
-
-  return txbuf;
-}
-
 
 //================================================================
   char* OS_get_term  () {
@@ -1122,7 +1057,7 @@ extern int errno;
   //----------------------------------------------------------------
   // test if file given; else use <temp>/temp.htm
   if(fNam == NULL) {
-    sprintf(s1, "%stmp.htm",OS_get_tmp_dir());
+    sprintf(s1, "%stmp.htm",AP_get_tmp_dir());
 
   } else {
     strcpy(s1, fNam);
@@ -1168,29 +1103,6 @@ extern int errno;
 
 
 //================================================================
-  int OS_edit_ (char *filnam) {
-//================================================================
-/// \code
-/// <edit> <filnam>
-/// waits for end of process.
-/// DO NOT USE: use APP_edit
-/// \endcode
-
-  char  cbuf[256];
-
-  sprintf(cbuf, "%s %s",OS_get_edi(),filnam);
-
-  printf("OS_edit_ |%s|\n",cbuf);
-  TX_Print("%s",cbuf);
-
-  OS_system(cbuf);
-
-  return 0;
-
-}
-
-
-//================================================================
   char* OS_get_printer  () {
 //================================================================
 ///  get 1. word of /etc/printcap
@@ -1228,15 +1140,14 @@ extern int errno;
 //================================================================
   int OS_spawn_wait (char *cmd, int iwait) {
 //================================================================
-/// \code
-/// execute command and wait explicit
-/// cmd should be one word without parameters ...
-/// iwait = time to wait in secs
-/// \endcode
+// execute command and wait explicit
+// cmd should be one word without parameters ...
+// iwait = time to wait in secs
 
 
-  int    i1, i2;
+  int    irc, i1, i2;
   char   osCmd[256];
+
 
   // printf("OS_spawn |%s|\n",cmd);
 
@@ -1381,20 +1292,19 @@ extern int errno;
   actt=time(0);
   Tm=localtime(&actt);
 
-  /*
-  Tm->tm_sec, Tm->tm_min, Tm->tm_hour, Tm->tm_mday, Tm->tm_mon,
-  Tm->tm_year, Tm->tm_wday, Tm->tm_yday, Tm->tm_isdst);
-  printf("day =%d\n",Tm->tm_mday);
-  */
+//   /
+//   Tm->tm_sec, Tm->tm_min, Tm->tm_hour, Tm->tm_mday, Tm->tm_mon,
+//   Tm->tm_year, Tm->tm_wday, Tm->tm_yday, Tm->tm_isdst);
+//   printf("day =%d\n",Tm->tm_mday);
+//   /
 
   *i1=Tm->tm_year;
   *i2=Tm->tm_mon+1;
   *i3=Tm->tm_mday;
 
 
- /* Linux: das Jahr 2001 kommt als 101 !!! */
+ // Linux: year 2001 comes as 101
   if(*i1 >= 100) *i1 = *i1 + 1900;
-
 
 
   // printf("OS_date %d %d %d\n",*i1, *i2, *i3);
@@ -1412,7 +1322,7 @@ extern int errno;
 
 
   long        y,mo,d,h,mi,s;
-  static char cdat[24];
+  static char cdat[32];
 
 
   // strcpy(cdat, "2002/09/04-13:30:33");
@@ -1459,6 +1369,7 @@ extern int errno;
 
   time_t actt;
   struct tm *Tm;
+
 
   actt=time(0);
   Tm=localtime(&actt);
@@ -1645,60 +1556,6 @@ extern int errno;
 }
 
 
-//======================== Perform OS - Command =========
-  int OS_system (char *buf) {
-//======================== Perform OS - Command =========
-/// \code
-/// OS_system                  Perform OS-Command; wait for completion (system)
-///   do not wait: use OS_exec
-/// \endcode
-
-// Spezialversion fuer AIX + CATIA.
-
-
-  void *catch;
-  int ret;
-
-  catch = signal(SIGCLD, SIG_DFL);
-  ret = system(buf);
-
-  signal(SIGCLD, catch);
-  if (ret) { perror(buf); }
-
-  return(ret);
-
-}
-
-
-//================================================================
-  int OS_exec (char* txt) {
-//================================================================
-/// \code
-/// OS_exec                  Perform OS-Command; do not wait for completion.
-///   do wait: use OS_system
-/// \endcode
-
-// es geht nur system mit &
-
-// alle exec*: 
-//   timer expired ..
-
-// mit fork:
-//  The program '<unknown>' received an X Window System error.
-//  The error was 'BadAccess (attempt to access private resource denied)'.
-//  Xlib: unexpected async reply (sequence 0x209d)!
-
-  char cbuf[256];
-
-  sprintf(cbuf, "%s&", txt);
-
-  OS_system (cbuf);
-
-  return 0;
-
-}
-
-
 //================================================================
   int OS_ckFileWritable (char *fnam) {
 //================================================================
@@ -1772,35 +1629,6 @@ extern int errno;
 
 }
 
-
-//================================================================
-  int OS_ck_DirAbs (char *fNam) {
-//================================================================
-/// \code
-/// check if string is absolute or relative Filname ..
-///   USE this func for MS-win compatibility
-/// Returncodes:
-///   0  = yes, absolut
-///   1  = no, relativ ..
-/// 
-/// see also OS_dirAbs_fNam
-/// 
-/// Varianten:
-/// /dir/fn
-/// ./fn
-/// ../dir/fn
-/// dir/fn
-/// \endcode
-
-
-  UTX_pos_skipLeadBlk (fNam);
-
-  if(fNam[0] == '/') return 0;
-
-  return 1;
-
-}
- 
 
 //================================================================
   int OS_dirAbs_fNam (char *dirOut, char *fNam) {
@@ -2254,60 +2082,6 @@ extern int errno;
 }
 
 
-//==========================================================================
-  int OS_file_copy (char *oldNam, char *newNam) {
-//==========================================================================
-// OS_file_copy             copy file - force overwrite
-//   retCode      0=OK; else Error
-
-  char cbuf[512];
-
-  printf("OS_file_copy |%s|%s|\n",oldNam,newNam);
-
-  sprintf(cbuf,"/bin/cp -f \"%s\" \"%s\"",oldNam,newNam);
-    // printf(cBuf, "copy /y %s %s",fnOld, fnNew);  // MS
-    // printf("OS_file_copy |%s|\n",cbuf);
-
-  return system (cbuf);
-
-  // return 0;
-
-}
-
-
-//========================================================================
-  int OS_file_rename (char *fnOld, char *fnNew) {
-//========================================================================
-/// rename File; NO Wildcards !
-// MS u Unix gleich.
-
-  // printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
-
-  remove (fnNew);    // delete File (sonst get das rename ned ..)
-                     // ACHTUNG: keine Wildcards mit remove !
-  rename (fnOld, fnNew);
-
-  return 0;
-
-}
-
-
-//========================================================================
-  int OS_file_delete (char *fNam) {
-//========================================================================
-/// \code
-/// delete File; NO Wildcards !
-/// MS u Unix gleich.
-/// retCod: 0=OK; -1=Error.
-/// \endcode
-
-  // printf("OS_file_delete |%s|\n",fNam);
-
-  return remove (fNam);    // ACHTUNG: keine Wildcards mit remove !
-
-}
-
-
 //================================================================
   int OS_file_readm1 (char *cbuf, int cSiz, char *fnam) {
 //================================================================
@@ -2480,8 +2254,8 @@ static int   (*up1)();
   if(!sdir) {TX_Print("***** cannot find direcory gcad_dir_dev ..."); return -1;}
 
 
-  // sprintf(cbuf, "%sxa/%s",OS_get_bas_dir(),dllNam);
-  // sprintf(cbuf, "%s../src/APP/%s",OS_get_loc_dir(),dllNam);
+  // sprintf(cbuf, "%sxa/%s",AP_get_bas_dir(),dllNam);
+  // sprintf(cbuf, "%s../src/APP/%s",AP_get_loc_dir(),dllNam);
   sprintf(cbuf, "%ssrc/APP/%s", sdir, dllNam);
 
 
@@ -2494,8 +2268,8 @@ static int   (*up1)();
   TX_Print(".. compile .. link .. %s",dllNam);
 
 
-  // sprintf(cbuf, "cd %sxa;make -f %s",OS_get_bas_dir(),dllNam);
-  // sprintf(cbuf, "cd %s../src/APP;make -f %s",OS_get_loc_dir(),dllNam);
+  // sprintf(cbuf, "cd %sxa;make -f %s",AP_get_bas_dir(),dllNam);
+  // sprintf(cbuf, "cd %s../src/APP;make -f %s",AP_get_loc_dir(),dllNam);
   sprintf(cbuf, "cd %ssrc/APP;make -f %s", sdir, dllNam);
     printf(" OS_dll_build 2 |%s|\n",cbuf);
 
@@ -2529,7 +2303,7 @@ static int   (*up1)();
   void  *dl1;
   char  s1[256];
 
-  sprintf(s1, "%s%s.so",OS_get_bin_dir(),dllNam);
+  sprintf(s1, "%s%s.so",AP_get_bin_dir(),dllNam);
   // sprintf(s1, "%s.so",dllNam);
 
     printf("OS_dll_close_fn |%s|\n",s1);
@@ -2633,7 +2407,7 @@ static int   (*up1)();
     if(*dl1 != NULL) goto L_e_cl;
 
     // load DLL
-    sprintf(s1, "%s%s.so",OS_get_bin_dir(),(char*)fDat);
+    sprintf(s1, "%s%s.so",AP_get_bin_dir(),(char*)fDat);
 
 
     if(mode == FUNC_LOAD_only) {
@@ -2777,9 +2551,9 @@ static int   (*up1)();
 
   // fix DLL-FileName
 // #ifdef _MSC_VER
-  // sprintf(cBuf, "%s%s.dll",OS_get_bin_dir(),dllNam);
+  // sprintf(cBuf, "%s%s.dll",AP_get_bin_dir(),dllNam);
 // #else
-  sprintf(cBuf, "%s%s.so",OS_get_bin_dir(),dllNam);
+  sprintf(cBuf, "%s%s.so",AP_get_bin_dir(),dllNam);
 // #endif
 
   // printf(" so|dll=|%s|\n",cBuf);
@@ -2826,7 +2600,7 @@ static char  dlNamAct[256];
 
   // fix DLL-FileName
   strcpy(dlNamAct, dllNam);
-  sprintf(s1, "%s%s.so",OS_get_bin_dir(),dllNam);
+  sprintf(s1, "%s%s.so",AP_get_bin_dir(),dllNam);
 
 
   // load DLL
@@ -2852,7 +2626,7 @@ static char  dlNamAct[256];
 
   // start userprog
   (*up1)(fncDat);
-     printf(" foll-dll_do |%s|\n",fncNam);
+     // printf(" foll-dll_do |%s|\n",fncNam);
 
 
 
@@ -2902,6 +2676,7 @@ static char  dlNamAct[256];
 }
 
 
+/* replaced by OS_files_join
 //================================================================
   int OS_file_concat (char *fno, char *fn1, char *fn2) {
 //================================================================
@@ -2926,6 +2701,65 @@ static char  dlNamAct[256];
   }
 
   sprintf(s1, "cat %s %s > %s",fn1,fn2,fno);
+    // printf(" |%s|\n",s1);
+  system (s1);
+
+  return 0;
+
+}
+*/
+
+//================================================================
+  int OS_files_join (char *fno, char *fn1, char *fn2, ...) {
+//================================================================
+// OS_files_join  concatenate 2 or more files
+// Input:
+//   fn1, fn2, ...    2 or more filenames; last parameter must be NULL
+// Output:
+//   fno              outfile (all files joined);  filename must be different.
+
+  char    fni[1024], s1[1200], *p1;
+  va_list va;
+
+
+  // printf("OS_files_join |%s|%s|%s|\n",fno,fn1,fn2);
+
+  sprintf(fni, "%s %s",fn1, fn2);
+
+  // check if fn1, fn2 exists
+  if(OS_checkFilExist(fn1, 1) == 0) {
+    // TX_Print("OS_file_concat: %s does not exist",fn1);
+    MSG_pri_1 ("NOEX_fil", "%s", fn1);
+    return -1;
+  }
+
+  if(OS_checkFilExist(fn2, 1) == 0) {
+    // TX_Print("OS_file_concat: %s does not exist",fn2);
+    MSG_pri_1 ("NOEX_fil", "%s", fn2);
+    return -1;
+  }
+
+  // get fni = list of files
+  va_start(va, fn2);
+  L_nxt_arg:
+    p1 = (void*)va_arg (va, char*);
+    if(p1) {
+      strcat(fni, " ");
+      strcat(fni, p1);
+      // check if p1 exists
+      if(OS_checkFilExist(p1, 1) == 0) {
+        MSG_pri_1 ("NOEX_fil", "%s", p1);
+      }
+      if(strlen(fni) >= sizeof(fni)) {
+        TX_Error("OS_files_join overflow");
+        return -1;
+      }
+      goto L_nxt_arg;
+    }
+    va_end(va);
+      // printf(" OS_file_concat-in |%s|\n",fni);
+
+  sprintf(s1, "cat %s > %s",fni,fno);
     // printf(" |%s|\n",s1);
   system (s1);
 
@@ -3078,7 +2912,7 @@ static char  dlNamAct[256];
   GUI_get_version (sGui, &vGtk, &irc);
 
   // sEnam = exeFilename
-  sprintf(sEnam,"%sGUI_dlg1_%s%d", OS_get_bin_dir(), sGui, vGtk);
+  sprintf(sEnam,"%sGUI_dlg1_%s%d", AP_get_bin_dir(), sGui, vGtk);
     printf(" OS_get_GUI |%s|\n",sEnam);
 
   // test if exe exists

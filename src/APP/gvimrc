@@ -1,148 +1,48 @@
-" VIMRC for MS-Windows (activated from F:\bin\vi.bat)
-" ACHTUNG: Quick-Edit-Modus muss aus sein; EinfuegeModus kann Ein sein.
-" see also /mnt/serv1/Linux/bin/.vimrc
-
-" to activate keyDefs mit <>
-set cpo-=<
-
-
-" Filetyp feststellen
-let fTyp = expand("%:e")
-" vi -t procnam liefert keinen Filetyp !
-if fTyp == '' || fTyp == "h"
-let fTyp = "c"
-endif
+" gvimrc - copy/y gvimrc X:\MSwin\bin\vim\.
+" Nur mit menu: "set Editieren/Auswahl schriftart -> "Lucida Console" 12
+" find fintName with :set gfn?
+" guifont=Lucida_Console:h12:cANSI:qDRAFT
+" in rc-file: set gfn=Lucida_Console:h12:cANSI:qDRAFT
+" in rc-file: set gfn=Fixedsys:h11:cANSI
 
 
-" FUNKTIONSTASTEN
 " F1 = 11; Shift F1 = 23; Ctrl F# geht in Linux nicht !!
 " shift <S-F1> Ctrl <C-F1> und Alt <M-F1> gehen nicht !
 
 
-" F2 = insert // ..  oder c  ACHTUNG: ^^ macht ChangeBuffer!
-" Shift-F2 = remove  oder C
-if fTyp == 'catvbs'
-map <F2> ki' j
-map <S-F2> kxxj
-elseif fTyp == 'vbs'
-map <F2> ki' j
-map <S-F2> kxxj
-elseif fTyp == 'c'
-map <F2> ki// j
-map <S-F2> kxxxj
-endif
+" F1 = add // ..
+map <F1>  ^^i// j
 
-"map <F2> ^^i// j
-"map Î< ^^i// j
-
+" F2 = remove // ..
+"map <F2> ^^xxxj
+map <F2>	^^xxxj
 
 " F3 = Quit
 map <F3> :q
-"map OR :q
-"map [13~ :q
 
 "F9
-"map <F9> /\/\/
+map <F9> /\/\/
 
+"-----------
+" Ctl K = add /* .. */  (Alt faengt WinMan. ab)
+map <C-K> ^^i/* $a */j
+" Ctl U = remove Kommentar
+map <C-U> ^^xxx$xxxj
 
-
-
-"------------------------------
-" normale Keys (ohne shift ..)
-
-
-" h = display vim-Doku
-"map h :!cat /p2/fwork/.vimdoc
-"map h :edit /p2/fwork/.vimdoc
-map h :edit F:\bin\_vimdoc
-
-" < = change // -> /* .. */
+"-----------
+" "<" = change // -> /* .. */
 "map < 0/\/\/xxi/* $a */
-
-" > = change  /* .. */ -> //
-"map > kxxi//$xxxj
-
-" - = Testfunction; kann zur Laufzeit veraendert werden!
-"map - :source ~/.vimTest.vim
-"map - :source F:\bin\Test.vim
-map - :call MyTest ()
-
-
-" q = quit
-"map q :cclose:q
-map q :cclose
-
-" Tab-Key nicht ansprechbar.
-" Tab = goto previous Buffer (Bookmarkbuffer)
-"map <Tab> :winc p
-"map <Char-9> :winc p
-map ^^ :winc p
-
-
-
-"------ Bookmarks: ------------
-
-"source $VIMRUNTIME\Bookmark_init_ms.vim
-
-
-
-"------------------------------
-" keys mit Alt; sollte mit <A-?> und <M-?> gehen
+" ">" = change  /* .. */ -> //
+map > kxxi//$xxxj
 " Alt H = :tag help
-"map è :tag help
+map è :tag help
+
 
 " Alt d = Directory (:vi .)
 map d :vi.
 
-" Alt m = :make
-"map m :execute MAKE1()
-
 " Alt n = next File (:e#)
 map n :e#
-
-" Alt p = Display Prototyp from Includefile
-map p [i
-
-
-
-
-"-----------
-" keys mit Ctl
-
-"map  mA
-"map  :call BMSET()
-"map  BMSET()
-"map b g'A
-
-"Ctl c = Comment
-map ã :call VimComment()
-
-" Ctl f = edit file under cursor
-"map  :call EDFIL1()
-map  :call EDGREP()
-
-" Ctl g = grep Nicht besetzen; defaultfunktion !
-":map  :call EDGREP()
-
-"Ctl P = insert printf ..
-"map  $a  printf("\n");
-" Ctl p = goto Definition (retour m. Ctl o)
-map  [	
-
-" Ctl K = add /* .. */  (Alt faengt WinMan. ab)
-map <C-K> ^^i/* $a */j
-
-" Ctl S - search
-map   :call VimSearch()
-
-" Ctl U = remove Kommentar
-"map <C-U> ^^xxx$xxxj
-" Ctl U = redo
-map  :redo
-
-" Ctl i = edit (gleichnamiges) Includefile
-:map <C-I> :call EDINCFIL()
-
 
 " Ctl R: edit tagobject (Ctrl ])
 map  
@@ -150,38 +50,71 @@ map  
 " Ctl T = return to previous Tag-File (Ctrl T)
 "map t 
 
-" ???
-"let Cmd="A"
+" Ctl b = set Bookmark; b = goto Bookmark
+"map  mA
+map  :call BMSET()
+"map  BMSET()
+"map b g'A
+let Cmd="A"
+"map b g'{Cmd}
+map b :call BMGO()
+map <t_k4> :q!
+
+" Alt p = Display Prototyp from Includefile
+map p [I
+
+" h = display Doku
+map h :!cat /p2/fwork/.vimdoc
+
+" Ctl f = grep; braucht $SRCLST
+:map  :call GREP()
+
+
+" Alt - = Testfunction
+":map - :let bmset = TEST1(bmset)
+":map - :let bmset = TEST1(bmset){bmset}
+let x1 = "iaaa"
 
 " damit kann man F1 (^[OP) abfangen !!
 ":map <Char-27>OP :echo "abc"
 
+" Alt m = :make
+"map m :execute MAKE1()
+
 
 
 "-------------------------------------------------
-" history
-set hi=20
-
-"undolevels
-set ul=100
-set cpoptions-=u      " sonst geht undo nur einmal
-
 " anzahl blanks pro tab
 set ts=2
 
-" set tags
-"let tagfiles = system("ls -m *.tag |sed \"s/ //g\"")
-""echo tagfiles
-"MIST: s/^/..\\tags\\/  geht in MS ned; muesste vorher gemacht, via file eingelesen werden
+" Linux-tags:
+"let tagfiles = system("ls -m *.tag|sed \"s/ //g\"")
+"let &tags = substitute(tagfiles, "\n", "", "g")
+
+" MS-tags:
 let tag1 = "../tags/" . system("dir/b ..\\tags\\*.tag")
 let &tags = substitute(tag1, "\n", ",\.\./tags/", "g")
 
-set ruler
-set timeoutlen=100
-" sonst shift-select notwendig
+
+"set mouse=n
+" Doppelklicktime in ms
+"set mousetime=600
+"set ruler
+"set timeoutlen=100
+"" sonst shift-select notwendig
+"set mousemodel=extend
+
+" Font MS-W10:
+"set gfn=Lucida_Console:h12:cANSI:qDRAFT
+
+" Font MS-W7:
+set gfn=Fixedsys:h11:cANSI
+
+
 
 " enable Filename im Windowtitle
 set title
+
 
 " 16 Colours-fuers xterm notw.
 set t_Co=16
@@ -193,24 +126,18 @@ set t_Co=16
 set noautoindent
 set nosmartindent
 set nocindent
-set ignorecase
 
+" nr of visible lines
+set lines=60
 
-" if Filetyp == catvbs :set syntax=vb
-if fTyp == 'vbs' || fTyp == 'catvbs'
+set bg=dark
 syntax on
-set syntax=vb
-:hi vbMethods term=NONE ctermfg=10
-
-elseif fTyp == 'c'
-syntax on
-set syntax=c
-:hi Normal term=NONE ctermfg=15
+:hi Normal guifg=#ffffff guibg=#000000
 :hi Comment term=NONE ctermfg=14 guifg=#40ff40
 :hi Constant term=NONE ctermfg=3
 :hi PreProc term=NONE ctermfg=11
 :hi Statement term=NONE gui=NONE ctermfg=11
-:hi Type term=NONE gui=NONE ctermfg=13 guifg=#4040ff
+:hi Type term=NONE gui=NONE ctermfg=13 guifg=#a0a0ff
 :hi cStructure term=NONE ctermfg=13
 " fuer :cw ganz wichtig
 :hi Search term=bold cterm=NONE ctermfg=11 ctermbg=0
@@ -218,113 +145,24 @@ set syntax=c
 :hi SpecialKey term=bold cterm=NONE ctermfg=6
 :hi NonText term=bold cterm=NONE ctermfg=6
 :hi Directory term=bold cterm=NONE ctermfg=6
-endif
 
+
+" guioptions fuer gvim:
+" get global selection (Autoselect)
+"set guioptions+=a
+" remove menu
+"set guioptions-=m
+" remove Toolbar
+set guioptions-=T
+" nur f AIX (wenn Cur nicht blinkt)
+"set guioptions+=p
+
+"set guifont=9x15bold
 
 
 
 
 "-------------------------------------------------
-" NUR VIM:
-"else
-"echo "vim"
-" zum positionieren mit Maus:
-" wird von einen Initscript geloescht; bei Start mit +"set mouse=a" geben.
-":set mouse=n             " notwendig
-" Doppelklicktime in ms
-"set mousetime=600
-"set mousemodel=extend
-" MS-Win: geht wegen QuickEditModus nicht!
-"set mousemodel=popup_setpos "damit kein Ctrl-C moeglich !!
-" nur damit ist Ctrl C = copy
-"source $VIMRUNTIME/mswin.vim
-"behave mswin
-
-
-" NUR GVIM
-:colorscheme koehler
-:set lines=57
-
-
-
-"-------------------------------------------------
-" ABBREVIATIONS
-iab pri printf("\n");i
-iab //= //================================================================
-iab //E //========== EOF =================================================
-
-
-
-"-------------------------------------------------
-
-:function MyTest ()
-let ft = expand("%:e")
-if ft == 'catvbs'
-echo "Filetyp=" ft
-endif
-:endfunction
-
-
-
-:function VimComment ()
-let cw = expand("<cfile>")
-let cw = strpart(cw, 0, 2)
-if cw == "//"
-normal ^xxxj
-else
-normal ^i// j^
-endif
-:endfunction
-
-
-
-" ein vom grep erzeugtes Filetag anspringen; zB 'xa.c:737: text'
-:function EDGREP ()
-"let cw = getline(".")
-" word under cursor
-let cw = expand("<cWORD>")
-"echo "word = |" . cw . "|"
-
-" check for ":LineNr"
-let v1 = strpart(cw, 0, 1)
-"echo "v1 = |" . v1 . "|"
-if v1 == ':'
-  " die momentane Posi in der Jumplist speichern.
-  exe "normal ma"
-  exe "normal 'a"
-  " jump -> newPos
-  exe cw
-  "echo " jump -> " . cw
-  return
-endif
-
-" jump to "filename"  oder filename:lNr:"
-let cp1 = match(cw,":")
-if (cp1 < 0)
-"let cmd = ":vi " . expand("<cfile>")
-"let cmd = ":!vim -u F:\\bin\\_vimrc " . expand("<cfile>")
- let cmd = ":e " . expand("<cfile>")
- execute cmd
-else
- let fn = strpart(cw,0,cp1)
- let cp1 = cp1 + 1
- let cp2 = match(cw,":",cp1)
- let lw = cp2 - cp1
- let lNr = strpart(cw,cp1,lw)
-"let cmd =":vi +" . lNr . " " . fn
-"let cmd =":n +" . lNr . " " . fn
-"let cmd =":!vim -u F:\\bin\\_vimrc +" . lNr . " " . fn
- let cmd =":e +" . lNr . " " . fn
- "echo cp1 cp2 lw fn lNr
- "echo cmd
- execute cmd
-"syntax on
-endif
-:endfunction
-
-
-
-
 :function GREP ()
 " der akt. Dateiname
 let fn1 = expand("%")
@@ -346,16 +184,6 @@ cf grep.log
 :endfunction
 
 
-" edit (gleichnamiges) Includefile
-:function EDINCFIL ()
-"let Fn1 = "echo " . expand("%") . "|cut -f1 -d\".\""
-"let Fn2 = system(Fn1)
-"let Fn3 = "e " . substitute(Fn2, "\n", ".h", "g")
-let Fn1 = "e " . expand("%:r") . ".h"
-echo Fn1
-execute Fn1
-:endfunction
-
 
 :function EDFIL1 ()
 "let fn = expand("<cfile>")
@@ -363,41 +191,22 @@ let cmd = ":vi " . expand("<cfile>")
 execute cmd
 :endfunction
 
+" Alt e = edit file under cursor
+:map e :execute EDFIL1()
+
 
 :function MAKE1 ()
 " der akt. Dateiname
 let fn1 = expand("%")
-let cmd = "make > mfake.log 2>&1"
+let cmd = "make > make.log 2>&1"
 let irc = system(cmd)
-cgetfile make.log       "siehe auch cfile
-copen 25
+cw 20
+cf make.log
 "if bufname(1) == "#-"
 "if fn1 == bufname(1)
 "return
 "endif
 "e#
-:endfunction
-
-
-:function VimSearch ()
-echo "Search"
-"let cw = input("Coffee or beer? ")
-"echo "\n" . cw
-let cw = expand("<cword>")
-let cw = inputdialog("Suche in allen Projektfiles:", cw)
-echo cw
-let cmd = "!./xa_find \"" . cw ."\""
-echo cmd
-execute cmd
-"
-cgetfile xa_find.lst
-copen 25
-:endfunction
-
-
-:function TagJump ()
-let cw = "tag " . expand("<cword>")  "das Wort unter dem cursor
-execute cw
 :endfunction
 
 
@@ -429,12 +238,10 @@ mark B
 function BMGO ()
 let bm = g:bmgo
 if bm == 0
-":normal g'A
-:normal 'A
+exe "normal 'A"
 let bm = 1
 elseif bm == 1
-":normal g'B
-:normal 'B
+exe "normal 'B"
 let bm = 0
 endif
 echo 'go Bookmark' bm

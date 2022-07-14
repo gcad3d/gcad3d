@@ -249,7 +249,7 @@ static long oldPos = 0L;
 
 
   //----------------------------------------------------------------
-  if(!strcmp(txt, "END")) {
+  if(!strcmp(txt, "UPDATE")) {
     goto L_view;
   }
 
@@ -376,7 +376,7 @@ static long oldPos = 0L;
   //----------------------------------------------------------------
   if(GUI_DATA_EVENT == TYP_EventEnter) {
     // obj into IE_buf added OR Mouseklick into GroupEditWindow
-    IE_ed1_mod (NULL, GUI_SETDAT_ES(TYP_EventPress,"PREVIEW"));
+//     IE_ed1_mod (NULL, GUI_SETDAT_ES(TYP_EventPress,"PREVIEW"));
     return 0;
   }
 
@@ -524,8 +524,8 @@ static  MemObj   win0, bCW, bCCW;
       // GUI_button__(&box1, "Exit", IE_ed1__, &GUI_FuncKill, "a,a");
         MSG_Tip ("CADexit");
 
-      GUI_button__(&box1, "END", IE_ed1_mod, (void*)"END", "a,a");
-        MSG_Tip ("CADsave");
+      GUI_button__(&box1, "UPDATE", IE_ed1_mod, (void*)"UPDATE", "a,a");
+        MSG_Tip ("CADupd");
 
       GUI_Win_up (NULL, &win0, 0);
       GUI_Win_go (&win0);

@@ -33,6 +33,7 @@ MMdspr=gespeicherte Ansicht wiederherstellen
 
 MMdspon=Bezeichnung aller Objekte der Gruppe anzeigen
 MMdspdir=Richtung aller Kurven der Gruppe anzeigen
+MMdsptn=do not display textnotes (text at specific position)
 MMdsppt=Darstellung Punkte (P) EIN / AUS (nur Modus VWR)
 MMdsppl=Darstellung Ebenen (R) EIN / AUS (nur Modus VWR)
 MMdspso=Darstellung Solids (Sphere/Cone/Torus/Cube) als Solid oder Drahtmodell.
@@ -139,6 +140,7 @@ CADhelpInput=Info über das aktive CAD-Eingabefeld im HTML-Browser anzeigen
 CADexit=Funktion abbrechen. Aktives Obj. wird nicht gespeichert. Edit-Modus: 2-mal Cancel, rechte Maustaste - Editieren.
 CADclear=das aktive CAD-Eingabefeld löschen
 CADsave=aktives Obj. speichern, weiter zum nächsten Obj. Rechte Maustaste, Entertaste.
+CADupd=update display
 
 PT_cartes__offset=Punkt; selektieren od eingeben; [relativ in X/Y/Z]
 PT_polar=Punkt, polar, relativ; Basispunkt, Drehwinkel (Z-Achse), [Kippwinkel (X-Y-Ebene),] Abstand
@@ -188,7 +190,7 @@ V_Angle_2_lines_vectors=angle from 2 lines / vectors
 S_Ellipse_Center_AxisEndPoint_Point=Ellipse aus Mittelpunkt, Endpunkt-Hauptachse, Punkt auf Ellipse
 S_Ellipse_Center_Axes__EndPoints_=Begrenzte Ellipse aus Mittelpunkt, Vektor-Hauptachse, Vektor_Nebenachse, Startpunkt und Endpunkt
 S_Polygon___Points___=Polygon aus Punkten
-S_Polygon___Rectangle=Parallelogram aus einem Eckpunkt und 2 Vektoren
+S_Polygon_4_side_quadrilateral=Parallelogram, trapezium or rhombus from cornerpoint and 2 vectors
 S_BSpline___Points___=B-Spline aus Punkten [CTRL (Kontrollpunkte/Durchganspunkte)]
 S_BSpline___Polygon___=B-Spline aus Polygon [CTRL (Kontrollpunkte/Durchganspunkte)]
 S_BSpline___convert___join_obj_s=Linien,Kreisbögen,B-SplineKurven verbinden. Ergebnis ist B-Spline.

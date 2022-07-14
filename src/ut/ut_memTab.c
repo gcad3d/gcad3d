@@ -455,7 +455,8 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
     // printf(" L_reall:\n");
   // realloc memspace
   tSiz = newRecNrMax * memTab->rSiz;
-  memTab->data = realloc (memTab->data, tSiz);
+  if(memTab->data) memTab->data = realloc (memTab->data, tSiz);
+  else             memTab->data = (void*) malloc (tSiz);
   if(memTab->data == NULL) {
     TX_Error("MemTab_add E1 EOM");
     return -1;

@@ -55,9 +55,6 @@ MSH_pt_prjptmsh1        prj point -> active mesh
 MSH_pta_prjptmsh1       prj points -> active mesh
 MSH_npt_prjcvmsh_       project curve > Mesh
 
-MSH_eTab_fix            recover EdgeLine-pointers ia
-MSH_eTab_bl_ck          check if breakline(s) exist
-
 List_functions_end:
 =====================================================
 - see also:
@@ -127,7 +124,7 @@ List_functions_end:
 
 
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
-  printf("MSH_aload_pTab |%s|\n",lBuf);
+  // printf("MSH_aload_pTab |%s|\n",lBuf);
 
 
   // 1. line: nr of points ("ptnr=%d")
@@ -156,7 +153,7 @@ List_functions_end:
 
   // "SECTION PTAB fNam"
   //  01234567890123
-  sprintf(cbuf, "%s%s.ptab",OS_get_tmp_dir(),&lBuf[13]);
+  sprintf(cbuf, "%s%s.ptab",AP_get_tmp_dir(),&lBuf[13]);
   MSH_bsav_pTabf (&pTab, cbuf);
 
   MemTab_free ((MemTab*)&pTab);
@@ -183,17 +180,17 @@ List_functions_end:
   int      irc, i1, i2, i3, fNr, eNr, pNr;
   long     ld;
   char     *cp1, *cp2, *cbuf;
-  EdgeLine el1;
+  IntTab el1;
 
   MemTab(Fac3) fTab = _MEMTAB_NUL;
-  MemTab(EdgeLine) eTab = _MEMTAB_NUL;
+  MemTab(IntTab) eTab = _MEMTAB_NUL;
   MemTab(int) eDat = _MEMTAB_NUL;
 
 
 
 
   MemTab_ini__ (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
-  MemTab_ini__ (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 10);
+  MemTab_ini__ (&eTab, sizeof(IntTab), Typ_IntTab, 10);
   MemTab_ini__ (&eDat, sizeof(int), Typ_Int4, 50);
 
 
@@ -211,12 +208,12 @@ List_functions_end:
   // 1. line: nr of faces ("faces=%d edgelines=%d")
   // old version was: "facnr=370"
   fgets (cbuf, bufSiz, fpi);
-  fNr = atoi(&cbuf[6]);
+  fNr = atoi(&cbuf[6]);          // get nr of faces
 
   cp1 = strstr(cbuf, "lines=");
   if(cp1) {
     cp1 += 6;
-    eNr = atoi(cp1);
+    eNr = atoi(cp1);             // get nr of egdeLines
   } else eNr = 0;
     // printf(" fNr=%d eNr=%d\n",fNr,eNr);
 
@@ -233,24 +230,31 @@ List_functions_end:
   // }
 
 
+  //----------------------------------------------------------------
+  // load faces
+  if(fNr < 1) goto L_edg;
   i1 = 0;
   while (!feof (fpi)) {
     if (fgets (cbuf, bufSiz, fpi) == NULL) break;
     UTX_CleanCR (cbuf);
     if(!strcmp(cbuf, "SECTIONEND")) goto L_wr;
+      // printf("\nnxt-fac-line |%s|\n",cbuf);
+
 
     fTab.data[i1].i1 = strtol(cbuf, &cp1, 10);
     fTab.data[i1].i2 = strtol(cp1, &cp2, 10);
     fTab.data[i1].i3 = strtol(cp2, &cp1, 10);
-      // printf("fac[%d] %d %d %d\n",i1,
-        // fTab[i1].i1,fTab[i1].i2,fTab[i1].i3);
+      // printf("  fac[%d] %d %d %d\n",i1,
+        // fTab.data[i1].i1,fTab.data[i1].i2,fTab.data[i1].i3);
     ++i1;
     if(i1 >= fNr) break;
   }
     // printf(" i1=%d\n",i1);
 
-  // load egdeLines
 
+  //----------------------------------------------------------------
+  // load egdeLines
+  L_edg:
   i1 = 0;
   while (!feof (fpi)) {
     if (fgets (cbuf, bufSiz, fpi) == NULL) break;
@@ -293,7 +297,7 @@ List_functions_end:
   }
 
 
-  MSH_eTab_fix (&eTab, &eDat);
+  ITAB__upd (&eTab, &eDat);
 
 
   // get "SECTIONEND"
@@ -307,7 +311,7 @@ List_functions_end:
   //  01234567890123        - decode fNam from line
   L_wr:
   // "SECTION MESH fNam"
-  sprintf(cbuf, "%s%s.msh",OS_get_tmp_dir(),&lBuf[13]);
+  sprintf(cbuf, "%s%s.msh",AP_get_tmp_dir(),&lBuf[13]);
   // MSH_bsav_fTabf (fTab, fNr, cbuf);
   MSH_bsav_fTabf (&fTab, &eTab, &eDat, cbuf);
 
@@ -359,14 +363,14 @@ List_functions_end:
 
 //================================================================
   int MSH_asav_fTabf (MemTab(Fac3) *fTab,
-                      MemTab(EdgeLine) *eTab,
+                      MemTab(IntTab) *eTab,
                       MemTab(int) *eDat,
                       char *fNam, FILE *fpo) {
 //================================================================
 /// MSH_asav_fTabf             save faceTable ascii into open file
 
   int       i1, i2;
-  EdgeLine  *el1;
+  IntTab  *el1;
 
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
   // printf("MSH_asav_fTabf |%s|\n",fNam);
@@ -386,6 +390,8 @@ List_functions_end:
 
   for(i1=0; i1<eTab->rNr; ++i1) {
     el1 = &eTab->data[i1];
+    // skip IB-edglines if have intersections
+    if((el1->typ == MSH_EDGLN_IB)&&(el1->stat == -1)) continue;
     fprintf(fpo,"edgeline=%d points=%d edgetyp=%d\n",i1,el1->iNr,el1->typ);
     for(i2=0; i2<el1->iNr; ++i2) fprintf(fpo,"%d ",el1->ia[i2]);
     fprintf(fpo,"\n");
@@ -415,7 +421,7 @@ List_functions_end:
 
   // /temp/_A1.ptab
   // /temp/smNam_A1.ptab
-  sprintf(lBuf, "%s%s_A%d.ptab",OS_get_tmp_dir(),mdlNam,surNr);
+  sprintf(lBuf, "%s%s_A%d.ptab",AP_get_tmp_dir(),mdlNam,surNr);
     // printf(" fNam pt |%s|\n",lBuf);
 
   return MSH_bsav_pTabf (pTab, lBuf);
@@ -431,7 +437,7 @@ List_functions_end:
   FILE *fp2;
 
 
-  printf("MSH_bsav_pTabf |%s|\n",fNam);
+  // printf("MSH_bsav_pTabf |%s|\n",fNam);
 
 
   if((fp2=fopen(fNam,"wb")) == NULL) {
@@ -467,7 +473,7 @@ List_functions_end:
 
   // /temp/_A1.msh
   // /temp/smNam_A1.msh
-  sprintf(lBuf, "%s%s_A%d.msh",OS_get_tmp_dir(),mdlNam,surNr);
+  sprintf(lBuf, "%s%s_A%d.msh",AP_get_tmp_dir(),mdlNam,surNr);
     // printf("MSH_bsav_fTab |%s|\n",lBuf);
 
   return MSH_bsav_fTabf (fTab, eTab, eDat, lBuf);
@@ -479,7 +485,7 @@ List_functions_end:
 //================================================================
   int MSH_bsav_fTabf (MemTab *fTab, MemTab *eTab, MemTab *eDat,
                        char *fNam) {
-                       // EdgeLine *eTab, int eNr,
+                       // IntTab *eTab, int eNr,
 //================================================================
 
   int  iNr, iSiz;
@@ -488,7 +494,7 @@ List_functions_end:
   // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS \n");
   // printf("MSH_bsav_fTabf |%s| fNr=%d eNr=%d eDat=%d\n",fNam,
           // fTab->rNr,eTab->rNr,eDat->rNr);
-  // MSH_dump_eTab (eTab, eDat);
+  // ITAB__dump__ (eTab, eDat);
 
 
   if((fp2=fopen(fNam,"wb")) == NULL) {
@@ -502,13 +508,13 @@ List_functions_end:
   fwrite(&iNr, sizeof(int), 1, fp2);
   fwrite(fTab->data, iSiz, iNr, fp2);
 
-  // save EdgeLines
+  // save IntTabs
   iNr  = eTab->rNr;
   iSiz = eTab->rSiz;
   fwrite(&iNr, sizeof(int), 1, fp2);
   fwrite(eTab->data, iSiz, iNr, fp2);
 
-  // save EdgeLine - data
+  // save IntTab - data
   iNr  = eDat->rNr;
   iSiz = eDat->rSiz;
   fwrite(&iNr, sizeof(int), 1, fp2);
@@ -525,7 +531,7 @@ List_functions_end:
 
 //================================================================
   int MSH_bload_fTab (MemTab(Fac3) *fTab,
-                      MemTab(EdgeLine) *eTab,
+                      MemTab(IntTab) *eTab,
                       MemTab(int) *eDat,
                       char *mdlNam, int surNr) {
 //================================================================
@@ -543,7 +549,7 @@ List_functions_end:
   // load MeshFile
   // /temp/_A1.msh
   // /temp/smNam_A1.msh
-  sprintf(fNam, "%s%s_A%d.msh",OS_get_tmp_dir(),mdlNam,surNr);
+  sprintf(fNam, "%s%s_A%d.msh",AP_get_tmp_dir(),mdlNam,surNr);
     // printf(" fNam fc |%s|\n",fNam);
 
   return MSH_bload_fTabf (fTab, eTab, eDat, fNam);
@@ -602,7 +608,7 @@ List_functions_end:
 
 
   //----------------------------------------------------------------
-  // load EdgeLines
+  // load IntTabs
   fread(&iNr, sizeof(int), 1, fp1);
     // printf(" nr_eTab=%d\n",iNr);
 
@@ -613,7 +619,7 @@ List_functions_end:
       // check space for iNr records
       irc = MemTab_check ((MemTab*)eTab, &ld, iNr);
       if(irc < 0) goto L_EOM;
-      // load EdgeLines
+      // load IntTabs
       iSiz = eTab->rSiz;
       fread(eTab->data, iSiz, iNr, fp1);
       eTab->rNr = iNr;
@@ -655,11 +661,11 @@ List_functions_end:
 
 
   // gis_DatEtab_fix ();
-  if(eTab && eDat) MSH_eTab_fix (eTab, eDat);
+  if(eTab && eDat) ITAB__upd (eTab, eDat);
 
 
     // printf("ex MSH_bload_fTabf %d %d %d\n",fTab->rNr,eTab->rNr,eDat->rNr);
-    // MSH_dump_eTab (eTab, eDat);
+    // ITAB__dump__ (eTab, eDat);
 
   return 0;
 
@@ -685,11 +691,11 @@ List_functions_end:
   // printf("MSH_bload_pTab |%s| %d\n",mdlNam,surNr);
 
   // load PointFile  (write: lxml_read)
-  // sprintf(fNam, "%sM%dA%d.ptab",OS_get_tmp_dir(),mdlNr,surNr);
+  // sprintf(fNam, "%sM%dA%d.ptab",AP_get_tmp_dir(),mdlNr,surNr);
   // /temp/_A1.ptab
   // /temp/smNam_A1.ptab
-//   sprintf(fNam, "%s%s_A%d.ptab",OS_get_tmp_dir(),mdlNam,surNr);
-  sprintf(fNam, "%s_A%d.ptab",OS_get_tmp_dir(),surNr);
+//   sprintf(fNam, "%s%s_A%d.ptab",AP_get_tmp_dir(),mdlNam,surNr);
+  sprintf(fNam, "%s_A%d.ptab",AP_get_tmp_dir(),surNr);
     // printf(" fNam pt |%s|\n",fNam);
 
   return MSH_bload_pTabf (pTab, fNam);
@@ -709,7 +715,7 @@ List_functions_end:
   long  lSiz, l1;
   FILE  *fp1;
 
-  printf("MSH_bload_pTabf |%s| rMax=%d rNr=%d\n",fNam,pTab->rMax,pTab->rNr);
+  // printf("MSH_bload_pTabf |%s| rMax=%d rNr=%d\n",fNam,pTab->rMax,pTab->rNr);
 
   if((fp1=fopen(fNam,"rb")) == NULL) {
     // TX_Print("MSH_bload_pTabf E001\n",fNam);
@@ -1154,16 +1160,16 @@ List_functions_end:
 
   // MemTab(Point) pTab = MemTab_Init(sizeof(Point), Typ_PT, 10000);
   // MemTab(Fac3) fTab = MemTab_Init(sizeof(Fac3), Typ_Fac3, 10000);
-  // MemTab(EdgeLine) eTab = MemTab_Init(sizeof(EdgeLine), Typ_EdgeLine, 10);
+  // MemTab(IntTab) eTab = MemTab_Init(sizeof(IntTab), Typ_IntTab, 10);
   // MemTab(int) eDat = MemTab_Init(sizeof(int), Typ_Int4, 50);
   MemTab(Point) pTab = _MEMTAB_NUL;
   MemTab(Fac3) fTab = _MEMTAB_NUL;
-  MemTab(EdgeLine) eTab = _MEMTAB_NUL;
+  MemTab(IntTab) eTab = _MEMTAB_NUL;
   MemTab(int) eDat = _MEMTAB_NUL;
 
   MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, 10000);
   MemTab_ini__ (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
-  MemTab_ini__ (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 10);
+  MemTab_ini__ (&eTab, sizeof(IntTab), Typ_IntTab, 10);
   MemTab_ini__ (&eDat, sizeof(int), Typ_Int4, 50);
 
 
@@ -1439,7 +1445,7 @@ List_functions_end:
                          Point *pPlg, int plgNr,
                          MemTab(Fac3) *fTab,
                          MemTab(Point) *pTab,
-                         MemTab(EdgeLine) *eTab,
+                         MemTab(IntTab) *eTab,
                          MemTab(int) *eDat,
                          double *tol) {
                          // Vector *vp)
@@ -1472,7 +1478,7 @@ List_functions_end:
   Point      *pf1, *pf2, *pf3, *pe1, *pe2, pss;
   Point2     p21, p22, *p2s1, *p2s2, *p2e1, *p2e2;
   Fac3       *fa;
-  EdgeLine   *ela;
+  IntTab   *ela;
 
 
   // printf("MSH_npt_prjcvmsh_  %d\n",plgNr);
@@ -1790,44 +1796,5 @@ List_functions_end:
 
 }
  
-
-//================================================================
-  int MSH_eTab_fix (MemTab(EdgeLine) *eTab, MemTab(int) *eDat) {
-//================================================================
-/// \code
-/// MSH_eTab_fix      recover EdgeLine-pointers ia
-/// (nach relocation) die pointers neu aufbauen
-/// \endcode
-
-  int    i1, ii;
-
-  // get ii = actual used size of DatEtab
-  ii = 0;
-  for(i1=0; i1<eTab->rNr; ++i1) {
-    eTab->data[i1].ia = &eDat->data[ii];
-      // printf(" _fix eTab[%d] = %d\n",i1,ii);
-    ii += eTab->data[i1].iNr;
-  }
-
-  return 0;
-
-}
-
-
-//================================================================
-   int MSH_eTab_bl_ck (MemTab(EdgeLine) *eTab) {
-//================================================================
-// MSH_eTab_bl_ck          check if breakline(s) exist; 1=yes, 0=no
-
-  int    i1, ii;
-
-  for(i1=0; i1<eTab->rNr; ++i1) {
-    if(eTab->data[i1].typ == MSH_EDGLN_BL) return 1;
-  }
-
-  return 0;
-
-}
-
 
 //================  EOF  ==================================

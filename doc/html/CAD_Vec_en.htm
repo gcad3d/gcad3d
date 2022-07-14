@@ -46,8 +46,11 @@ Create vector.
   <B>Definition basevector:</B>
     Definition by entering the components of the axis (eg "0 0 1", a z-vector)
 
-    Or input of a standard vector (eg "DX")
-      Standardvectors are DX DY DZ DIX DIY DIZ.
+    Or input of a standard vector - eg key in "DX" - 
+      or select X- Y- or Z-axis of symbolic-axis-system in left low corner
+      Standardvectors are DX DY DZ DIX DIY DIZ - of the absolute coordinate-system,
+      DX is 1,0,0; DY is 0,1,0 ..
+      - or select X- Y- or Z-axis of symbolic-axis-system in left low corner
 
     Or a defined vector (eg "D20"; with Page-Up or Down key or select
       from the objectbrowser (left side))
@@ -72,6 +75,9 @@ D22=D21 REV
 <HR><!-- ============================================================ -->
 <a name="F1"></a>
 <h2>VEC from objects</h2>
+
+
+
 Vectors parallel or right-angled to existing objects.
 
    Obj1              Line or curve or surface
@@ -80,6 +86,7 @@ Vectors parallel or right-angled to existing objects.
    [Length]          Definition of vector length
    [REVers]          Reverse Direction ("REV"; with Page Down key)
    [parallel-across] parallel (tangential (PARL)) or normal (rectangular (CX))
+
 
 
 <b>Parallel vector:</b>
@@ -130,6 +137,16 @@ Vectors parallel or right-angled to existing objects.
    [REVers] 
 
 
+
+<b>Vector from plane / reference-system (R):</b>
+
+   Obj1              select user-defined plane
+   [PT or VC]        key DX or DY or DZ
+
+   - gives the corresponding axis;
+   - result is "D#=R# DX" or "D#=R# DY" or "D#=R# DZ"
+
+
 Examples:
 
 # Normal vector to circle
@@ -145,9 +162,9 @@ D5=P1 P2 VAL(100)
 D20=L20 DZ
 
 # Vectors of existing Plane:
-D20=R20         # Z-axis-Vector of plane R20
-D20=R20 PARL    # X-axis-Vector of plane R20    or eg "D(R20 PARL)"
-D20=R20 CX      # Y-axis-Vector of plane R20   
+D20=R20 DX      # X-axis-Vector of plane R20 or D20=R20 PARL or "D(R20 PARL)"
+D20=R20 DY      # Y-axis-Vector of plane R20 or D20=R20 CX
+D20=R20         # Z-axis-Vector of plane R20 or D20=R20 DZ
 
 
 

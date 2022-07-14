@@ -1,5 +1,5 @@
-# Link & run:
-# nmake -f GUI_file_open.nmak
+# Link GUI_file_gtk2.exe
+# nmake -f GUI_file.nmak
 
 
 # get OS VGUI DEB OUTDIR
@@ -11,7 +11,8 @@ EXENAM  = GUI_file_$(VGUI)
 
 # ../gui_gtk2/GUI_file_open.c
 # ../gui_gtk2_MS/GUI_file_open.c
-SRC1 = ../gui_$(VGUI)/GUI_file.c ../ut/deb_prt.c
+#SRC1 = ../gui_$(VGUI)/GUI_file.c ../ut/deb_prt.c
+SRC1 = ../gui_gtk2/GUI_file.c ../ut/deb_prt.c
 OBJ1 = $(SRC1:.c=.obj)
 OBJ1 = $(OBJ1:/=\)
 

@@ -795,11 +795,11 @@ enum Typ_TPCT {
 
 
     // Das Zwischenausgabefile oeffnen
-    // strcpy (WC_outBuf, OS_get_bas_dir ());
+    // strcpy (WC_outBuf, AP_get_bas_dir ());
     // strcat (WC_outBuf, "/tmp/pp.iso");
-    // sprintf(WC_outBuf,"%s%ctmp%cpp.iso",OS_get_bas_dir(),
+    // sprintf(WC_outBuf,"%s%ctmp%cpp.iso",AP_get_bas_dir(),
             // fnam_del,fnam_del);
-    sprintf(WC_outBuf,"%snc.iso",OS_get_tmp_dir());
+    sprintf(WC_outBuf,"%snc.iso",AP_get_tmp_dir());
 
 
     if ((APT_fpOut = fopen (WC_outBuf, "w+")) == NULL) {
@@ -945,6 +945,7 @@ enum Typ_TPCT {
   //---------------------------------------------------------
   // printf (">>>>>>>>>>>>>> WC_Init\n");
 
+  GL_Delete (-1L);
 
   DB_Init  (0);
 
@@ -3090,7 +3091,7 @@ APT_stat_act:
 
 
     // TEST 
-    // ATO_dump__ (&ato1, " _work_def-L1");
+    // ATO_dump__ (&ato1, "APT_work_def-L1");
     // TEST END
 
 
@@ -3720,6 +3721,7 @@ APT_stat_act:
   // Memspc    tSpc1 = UME_NEW;
 
 
+  // printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA \n");
   // printf("APT_Draw__ typ=%d dbi=%ld iAtt=%d\n",typ,dbi,iAtt);
   // printf("  _Draw__-APT_Stat_Draw=%d APT_obj_stat=%d APT_hidd=%d\n",
          // APT_Stat_Draw,APT_obj_stat,APT_hidd);
@@ -4755,8 +4757,7 @@ APT_stat_act:
 
   // get pointers to words -> pa
   UTX_wTab_str (pa, WTAB_SIZ, *data);
-    // while (*pa) { printf(" |%s|\n",*pa); ++pa; }
-
+    // while (*pa) { printf("APT_work_MODE-pa |%s|\n",*pa); ++pa; }  // kills pa !!
 
   UTX_cp_word_2_upper (auxBuf, pa[0]);
     // printf(" auxBuf=|%s|\n",auxBuf);
@@ -4862,6 +4863,22 @@ APT_stat_act:
     } else {
       goto Fehler1;
     }
+
+
+  //----------------------------------------------------------------
+  } else if(!strcmp (pa[0], "DISP_ONAM_NT")) {
+    // do NOT display objNames for notes
+
+    if(!strcmp (pa[1], "ON")) {           // view 
+      UI_upd_tnDisp (1);
+
+    } else if(!strcmp (pa[1], "OFF")) {   // hide
+      UI_upd_tnDisp (0);
+
+    } else {
+      goto Fehler1;
+    }
+
 
 
   //----------------------------------------------------------------
@@ -4977,7 +4994,7 @@ Ablauf Makro:
 //           rc = Mod_fNam_sym (APT_filnam, p1);
           // rc < 0 if p1 has no directory-delimiter ('/')
           if(rc < 0) {
-            sprintf(APT_filnam, "%s%s.write", OS_get_tmp_dir(), p1);
+            sprintf(APT_filnam, "%s%s.write", AP_get_tmp_dir(), p1);
           }
           // Unterprogrammlevel und Ruecksprungaddresse merken
           rc = APT_UP_up ('F');
@@ -5674,7 +5691,7 @@ Ablauf Makro:
 //           // use better APT_str2fnam ...
 //           //if(APT_filnam[0] != "/") {
 //           if(APT_filnam[0] != '/') {
-//             sprintf(WC_outBuf, "%s/%s",OS_get_bas_dir(),APT_filnam);
+//             sprintf(WC_outBuf, "%s/%s",AP_get_bas_dir(),APT_filnam);
 //             strcpy(APT_filnam, WC_outBuf);
 //           }
 //

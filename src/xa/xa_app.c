@@ -75,7 +75,7 @@ UU:
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 
 #include "../ut/func_types.h"               // UI_FuncUCB8
 
@@ -213,7 +213,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
 
   if(filnam == NULL) {
-    sprintf(s1, "%stmp.htm",OS_get_tmp_dir());
+    sprintf(s1, "%stmp.htm",AP_get_tmp_dir());
     fNam = s1;
   } else {
     fNam = filnam;
@@ -281,11 +281,11 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
 
 
-  // test size of file filnam
-  if(OS_FilSiz(filnam) < 3) {
-    TX_Print("***** File %s is empty ..", filnam);
-    return -1;
-  }
+//   // test size of file filnam
+//   if(OS_FilSiz(filnam) < 3) {
+//     TX_Print("***** File %s is empty ..", filnam);
+//     return -1;
+//   }
 
 #ifdef _MSC_VER
   sprintf(cbuf, "%s \"%s\"",AP_editor,filnam);
@@ -293,7 +293,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   sprintf(cbuf, "%s %s",AP_editor,filnam);
 #endif
 
-  printf("APP_edit |%s|\n",cbuf);
+    printf("APP_edit |%s|\n",cbuf);
   TX_Print("%s",cbuf);
 
   if(mode) {
@@ -301,7 +301,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
     OS_exec (cbuf);
 
   } else {
-    // wait until completion.
+    // wait until completion.  TODO: use OS_edit__
     irc = OS_system (cbuf);
       // printf(" _edit-irc = %d\n",irc);
     if(irc) { TX_Print("**** editor not available ??"); }
@@ -333,7 +333,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
   // cbuf1 = "<docdir>/<app>_<lang>.htm"
   sprintf(cbuf1, "%shtml%c%s_%s.htm",
-          OS_get_doc_dir(), fnam_del, appNam, AP_lang);
+          AP_get_doc_dir(), fnam_del, appNam, AP_lang);
 
 
   // test if File exists;
@@ -344,7 +344,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
     // check if engl.version exists
     sprintf(cbuf1, "%shtml%c%s_en.htm",
-            OS_get_doc_dir(), fnam_del, appNam);
+            AP_get_doc_dir(), fnam_del, appNam);
 
     if(OS_checkFilExist(cbuf1,1) == 0) {
       TX_Print(" - English version %s does not exist.",cbuf1);
@@ -378,7 +378,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
 
 //   MDLFN_syFn_f_name (cbuf1);   // get filename of dir.lst
-//   // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+//   // sprintf(cbuf1,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
 // 
 //   GUI_List2 (wTit,              // titletext
 //             AP_mod_dir,        // Pfadname des activeDirectory
@@ -408,7 +408,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
   printf("APP_Save |%s|%s|\n",wTit,defNam);
 
   MDLFN_syFn_f_name (dirLst);   // get filename of dir.lst
-  // sprintf(cbuf1,"%sxa%cdir.lst",OS_get_bas_dir(),fnam_del);
+  // sprintf(cbuf1,"%sxa%cdir.lst",AP_get_bas_dir(),fnam_del);
 
 /*
     GMDL_exp__ (wTit,              // titletext
@@ -459,7 +459,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
 
   // open temp. html-File
-  sprintf(cbuf1, "%stmp.htm",OS_get_tmp_dir());
+  sprintf(cbuf1, "%stmp.htm",AP_get_tmp_dir());
   printf("APP_htm_fop |%s|\n",cbuf1);
 
 

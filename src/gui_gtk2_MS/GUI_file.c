@@ -108,13 +108,13 @@ void TX_Print (char* txt, ...) { printf("%s\n",txt); }
 
 
 //================================================================
-  char* OS_get_tmp_dir () {
+  char* AP_get_tmp_dir () {
 //================================================================
 /// returns tempDir (with closing '/')  <gcad_dir_local>tmp/
 
-static char* os_tmp_dir = "/tmp/";
+static char* AP_tmp_dir = "/tmp/";
 
-  return os_tmp_dir;
+  return AP_tmp_dir;
 
 }
 
@@ -275,26 +275,32 @@ static char* os_tmp_dir = "/tmp/";
 //================================================================
   int GUI_file_symdir__ (char *sDir, int sSiz) {
 //================================================================
-// get symbilic-directory
+// get symbolic-directory from user
 
   int    irc, il;
   char   s2[2048], s3[512], *binDir, *p1;
   FILE   *fpi;
 
+
+  // printd("## GUI_file_symdir__ \n");
+
+
   // get binDir
   binDir = getenv("gcad_dir_bin");
-    printd(" GUI_file_symdir__-binDir |%s|\n",binDir);
+    // printd("## GUI_file_symdir__-binDir |%s|\n",binDir);
 
   // call GUI_dlg1_gtk2 list1
   // <binDir>/GUI_dlg1_gtk2 list1 <symListfile> title
-  sprintf(s2,"%sGUI_dlg1_%s list1 %s \"symbolic directory\" \"x40,y20\"",
+  // sprintf(s2,"%sGUI_dlg1_%s list1 %s \"symbolic directory\" \"x40,y20\"",
+  sprintf(s2,
+"START \"\" /WAIT /B \"%sGUI_dlg1_%s\" list1 \"%s\" \"symbolic directory\" \"x40,y20\"",
           binDir, sGui, fnSymDir);
-    printd(" GUI_file_symdir__ |%s|\n",s2);
+    // printd("## GUI_file_symdir__ |%s|\n",s2);
 
   irc = OS_sys1 (sDir, sSiz, s2);
   if(irc < 0) {printf("***** symdir__ - Error OS_sys1 %d\n",irc); return -1;}
   UTX_CleanCR (sDir);
-    printd("## GUI_file_symdir__-in %d |%s|\n",irc,sDir);
+    // printd("## GUI_file_symdir__-in %d |%s|\n",irc,sDir);
 
 
   //----------------------------------------------------------------
@@ -315,10 +321,10 @@ static char* os_tmp_dir = "/tmp/";
         // printf("##  symdir__-2 |%s|\n",p1);
       if(strlen(p1) < sizeof(s3)) {
         strcpy (s3, p1);
-          printd("##  symdir__-2 |%s|\n",s3);
+          // printd("##  symdir__-2 |%s|\n",s3);
         break;
       } else {
-        printf("***** symdir__ - Error Open E004\n");
+        printf("***** GUI_file_symdir__ - Error Open E004\n");
         fclose(fpi);
         return -4;
       }
@@ -341,7 +347,9 @@ static char* os_tmp_dir = "/tmp/";
     // directory sDir does not exist;
       printd("##  dir__ |%s| does not exist\n",sDir);
 
-    sprintf(s2,"%sGUI_dlg1_%s info \"ERROR - Directory %s does not exist\"",
+    // sprintf(s2,"%sGUI_dlg1_%s info \"ERROR - Directory %s does not exist\"",
+    sprintf(s2,
+"START \"\" /WAIT /B \"%sGUI_dlg1_%s\" info \"ERROR - Directory %s does not exist\"",
             binDir, sGui, sDir);
       printd("##  symdir__-4 |%s|\n",s2);
 
@@ -350,7 +358,7 @@ static char* os_tmp_dir = "/tmp/";
     return -5;
   }
 
-    printd("##  ex-symdir__ |%s|\n",sDir);
+    printd("##  ex-GUI_file_symdir__ |%s|\n",sDir);
 
 
   return 0;
@@ -369,7 +377,7 @@ static char* os_tmp_dir = "/tmp/";
 
   // GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
   filename = gtk_file_chooser_get_filename (parent);
-  printd("##  fn |%s|\n",filename);
+    printd("##  fn |%s|\n",filename);
 
   if(strlen(filename) < sizeof(fnOut)) strcpy(fnOut,filename);
   g_free (filename);
@@ -631,7 +639,7 @@ static char* os_tmp_dir = "/tmp/";
   // wait for user-select
   L_wait:
   res = gtk_dialog_run (GTK_DIALOG (wfl1));
-    printd(" f-dialog_run %d\n",res);
+    printd("## f-dialog_run %d\n",res);
 
 
   if (res == 0) {
@@ -757,7 +765,7 @@ static char* os_tmp_dir = "/tmp/";
   fflush(stdout);
 
 #ifdef DEB
-  printd("exit-GUI_file_exit |%s|\n",sOut);
+  printd("## exit-GUI_file_exit |%s|\n",sOut);
   DEB_prt_init (0); // close "printd"-file
 #endif
 

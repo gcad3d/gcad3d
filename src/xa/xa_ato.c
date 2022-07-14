@@ -1256,7 +1256,7 @@ extern long      GLT_cta_SIZ;
 
 
   // printf("GGGGGGGGGGG  ATO_ato_eval_geom iif=%d typ=%d\n",iif,typ);
-  // ATO_dump__ (ato, " before clean");
+  // ATO_dump__ (ato, "ATO_ato_eval_geom-in");
   // printf(" ato->typ[iif+1] = %d\n",ato->typ[iif+1]);
 
 
@@ -1411,7 +1411,7 @@ extern long      GLT_cta_SIZ;
   double  d1;
 
 
-  // ATO_dump__ (ato, " start ATO_ato_eval__");
+  // ATO_dump__ (ato, "ATO_ato_eval__-in");
   // printf(" ilev=%p\n",ato->ilev);
 
 
@@ -1483,17 +1483,18 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   // output of Typ_ConstOG (fixed vectors and planes DX ..)
-  if(ato->nr == 2) {
-    if(ato->typ[0] == Typ_FncNam) {
-      if((ato->typ[1] == Typ_VC)||(ato->typ[1] == Typ_PLN)) {
-        // out typ=ato->typ[1] val=dbi=ato->val[1]
-        ato->typ[0] = ato->typ[1];
-        ato->val[0] = ato->val[1];
-        ato->nr = 1;
-        goto L_exit;
-      }
-    }
-  }
+//   if(ato->nr == 2) {
+//     if(ato->typ[0] == Typ_FncNam) {
+//       // if((ato->typ[1] == Typ_VC)||(ato->typ[1] == Typ_PLN)) {   2022-06-10
+//       if(ato->typ[1] == Typ_PLN) {
+//         // out typ=ato->typ[1] val=dbi=ato->val[1]
+//         ato->typ[0] = ato->typ[1];
+//         ato->val[0] = ato->val[1];
+//         ato->nr = 1;
+//         goto L_exit;
+//       }
+//     }
+//   }
 
 
   //----------------------------------------------------------------
@@ -1543,8 +1544,10 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   L_exit:
+    // TESTBLOCK
     // printf(" ex-ATO_ato_eval__\n");
     // ATO_dump__ (ato, "ex-ATO_ato_eval__");
+    // END TESTBLOCK
 
   // test for unknown types
 /* removed for processCommand "TEC val val val .."
@@ -1674,7 +1677,7 @@ extern long      GLT_cta_SIZ;
   double   d1;
 
 
-  // ATO_dump__ (ato, "ATO_eval_fnc1__ start");
+  // ATO_dump__ (ato, "ATO_eval_fnc1__-in");
 
     
   imod = 0;
@@ -1825,6 +1828,7 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   L_exit:
+    // ATO_dump__ (ato, "ex-ATO_eval_fnc1__");
   return imod;
 
 }

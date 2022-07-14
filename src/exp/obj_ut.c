@@ -168,7 +168,7 @@ __declspec(dllexport) int obj_read__ (char*);
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txTab.h"            // TxtTab
-#include "../ut/ut_os.h"                 // OS_get_tmp_dir
+#include "../ut/ut_os.h"                 // AP_get_tmp_dir
 
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 #include "../xa/mdl__.h"               // SIZMFTot

@@ -72,7 +72,7 @@ List_functions_end:
 #include "../ut/ut_geo_const.h"        // UT3D_CCV_NUL
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_prcv__.h"           // 
-#include "../ut/ut_os.h"               // OS_get_bas_dir ..
+#include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../xa/xa_msg.h"              // MSG_* ERR_*
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 #include "../xa/mdl__.h"               // SIZMF*
@@ -518,7 +518,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
   // change all '/' of mNam into '_' - else no correct filename possible
   UTX_safeName (s1, 2);
 
-  sprintf(fnam, "%sPRCV__%s.dat",OS_get_tmp_dir(),s1);
+  sprintf(fnam, "%sPRCV__%s.dat",AP_get_tmp_dir(),s1);
     // printf("PRCV_DB_fwrite-fnam |%s|\n",fnam);
 
 
@@ -578,7 +578,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
   // change all '/' of mNam into '_' - else no correct filename possible
   UTX_safeName (s1, 2);
 
-  sprintf(fnam, "%sPRCV__%s.dat",OS_get_tmp_dir(),s1);
+  sprintf(fnam, "%sPRCV__%s.dat",AP_get_tmp_dir(),s1);
     // printf("PRCV_DB_fread-fnam |%s|\n",fnam);
 
 

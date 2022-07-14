@@ -149,10 +149,11 @@ MDL_mNam_safe           make safeName from symbolic-name, test length
 MDL_safename            make safeName from symbolic-name, test length
 MDL_mNam_usr            get new subModelname from user (safe)
 
-MDL_MNAM_MAIN           get modelname of mainModel
+MDL_mNam_main           get modelname of mainModel
 MDL_mNam_prim           get name of active model (main or subModel)
 MDL_mNam_imb            get modelName from index baseModel
 MDL_mNam_imr            get modelName from index refModel
+MDL_mNam_iNam           get modelname from name-index
 MDL_MNAM_INAM           get modelname from name-index                        INLINE
 MDL_mNam_cmp_sNam       compare symbolic-Mdlnam - safe-Mdlnam
 
@@ -319,9 +320,10 @@ see INF_basModels__
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txTab.h"              // TxtTab
 #include "../ut/AP_types.h"              // Mtyp_*
-#include "../ut/ut_os.h"                 // OS_get_tmp_dir
+#include "../ut/ut_os.h"                 // AP_get_tmp_dir
 #include "../ut/ut_txt.h"              // UTX_*
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
+#include "../ut/ut_deb.h"              // DEB_*
 
 #include "../xa/xa_msg.h"              // MSG_* ERR_*
 #include "../xa/xa.h"                  // AP_modact_nam AP_modact_tmp
@@ -441,11 +443,12 @@ static char       sSecEnd[]="SECTIONEND";
 // MDL_MBI_SET_INAM        set baseModelIndexe from name-index
 #define MDL_MBI_SET_INAM(inm, indMb) (mdl_tab.data[inm].mbi = indMb)
 
-// MDL_MNAM_MAIN           get modelname of mainModel
-char* MDL_MNAM_MAIN ();
-#define MDL_MNAM_MAIN() (UtxTab__(0, &mdl_names))
+// // MDL_MNAM_MAIN           get modelname of mainModel
+// char* MDL_MNAM_MAIN ();
+// #define MDL_MNAM_MAIN() (UtxTab__(0, &mdl_names))
 
 // MDL_MNAM_INAM           get modelname from name-index
+// see also MDL_mNam_iNam
 char* MDL_MNAM_INAM (int);
 #define MDL_MNAM_INAM(inm) (UtxTab__(inm, &mdl_names))
 
@@ -490,7 +493,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
 // Input:  mNam - safe name
 // Output: fNam - size 320, 
 #define MDL_fnModLst_mNam(fNam,mNam)\
- (sprintf(fNam,"%sMod_%s.lst",OS_get_tmp_dir(),mNam))
+ (sprintf(fNam,"%sMod_%s.lst",AP_get_tmp_dir(),mNam))
 
 
 
@@ -511,7 +514,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
 
   strcpy(mNam, UtxTab__(iNam, &mdl_names));
   UTX_safeName (mNam, 1);
-  sprintf(lNam, "%sMod_%s.lst", OS_get_tmp_dir(), mNam);
+  sprintf(lNam, "%sMod_%s.lst", AP_get_tmp_dir(), mNam);
 
     // printf(" ex-MDL_fnModLst_iNam %d |%s|\n",iNam,lNam);
 
@@ -534,7 +537,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
 //   // make mnam safe
   // strcpy (safNam, mmNam);
   // UTX_safeName (safNam, 1);
-  sprintf(fn, "%sModel_%s_%s_%s", OS_get_tmp_dir(),AP_mod_sym,AP_mod_fnam,AP_mod_ftyp);
+  sprintf(fn, "%sModel_%s_%s_%s", AP_get_tmp_dir(),AP_mod_sym,AP_mod_fnam,AP_mod_ftyp);
 
     printf("ex-MDL_fnModel_main |%s|\n",fn);
 
@@ -565,7 +568,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
 
   strcpy(safNam, mm);
   UTX_safeName (safNam, 1);
-  sprintf(fn, "%sModel_%s",OS_get_tmp_dir(), safNam);
+  sprintf(fn, "%sModel_%s",AP_get_tmp_dir(), safNam);
 
   irc = 0;
 
@@ -632,6 +635,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
   // printf("MDL_mNam_imb imdb=%ld siz=%d\n",imdb,*sSiz);
 
   mb1 = DB_get_ModBas (imdb);
+  if(!mb1) {TX_Error("MDL_mNam_imb E1-%d",imdb); return -1;}
     // printf(" mnam=|%s| typ=%d\n",mb1->mnam,mb1->typ);
 
   strcpy (mNam, mb1->mnam);
@@ -986,20 +990,20 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
     UTX_safeName (mn, 1);
 
     // del. tmp/Model_<mnam>
-    sprintf(s1, "%sModel_%s",OS_get_tmp_dir(), mn);
+    sprintf(s1, "%sModel_%s",AP_get_tmp_dir(), mn);
     OS_file_delete (s1);
 
     // del. tmp/DB__<mnam>.dat
-    sprintf(s1, "%sDB__%s.dat",OS_get_tmp_dir(), mn);
+    sprintf(s1, "%sDB__%s.dat",AP_get_tmp_dir(), mn);
     OS_file_delete (s1);
 
     // del. tmp/Mod_<mnam>.lst
-    sprintf(s1, "%sMod_%s.lst",OS_get_tmp_dir(), mn);
+    sprintf(s1, "%sMod_%s.lst",AP_get_tmp_dir(), mn);
     OS_file_delete (s1);
 
     // catalog-file: del tmp/<partName>.dat
     if(MDL_MTYP_INAM(i1) == MBTYP_CATALOG) {
-      sprintf(s1, "%s%s.dat",OS_get_tmp_dir(), mn);
+      sprintf(s1, "%s%s.dat",AP_get_tmp_dir(), mn);
       OS_file_delete (s1);
 
     }
@@ -1094,10 +1098,11 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
       TX_Print ("***** wrong filetyp - must be .stp or .dxf  ..");
       goto L_err1;
 
-    } else if(mTyp >= Mtyp_BMP) {
-      // cannot use images
-      TX_Print ("***** use images with \"Text / N-image\"");
-      goto L_err1;
+//     } else if(mTyp >= Mtyp_BMP) {
+// makes bug with N#=IMG P# "xx.bmp" (CAD, " Image, ..", filename, LIST, sel. x.jpg)
+//       // cannot use images
+//       TX_Print ("***** use images with \"Text / N-image\"");
+//       goto L_err1;
     }
     sprintf(fn, "%s%s.%s", ofn.fDir, ofn.fNam, ofn.fTyp);
     goto L_ck_exist;
@@ -1169,7 +1174,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
   // printf("MDL_file_lst__ \n");
   // MDL_dump__ ("MDL_file_lst__");
 
-  sprintf(fnam,"%sMod.lst",OS_get_tmp_dir());
+  sprintf(fnam,"%sMod.lst",AP_get_tmp_dir());
     // printf(" listfile=|%s|\n",fnam);
 
   // open outfile
@@ -1218,7 +1223,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
   irc = MDL_file_lst__ (0);
 
   // let user select from list of Submodelnames
-  sprintf(fn,"%sMod.lst",OS_get_tmp_dir());
+  sprintf(fn,"%sMod.lst",AP_get_tmp_dir());
   irc = GUI_listf1__ (s1, sizeof(s1), fn, "\"select model\"", "\"x40,y40\"");
   if(irc < 0) goto L_exit;
 
@@ -1313,7 +1318,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
   irc = MDL_mNam_usr (mNam);
   if(irc < 0) goto L_exit;
   // make safename  (internal!)
-  UTX_safeName (mNam, 1);
+  UTX_safeName (mNam, 3);
 
 
   // get modelname of active-model
@@ -1337,18 +1342,18 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
 
   //----------------------------------------------------------------
   // rename active-model -> new-model
-  sprintf(fn1,"%sModel_%s",OS_get_tmp_dir(),safMnAct);
-  sprintf(fn2,"%sModel_%s",OS_get_tmp_dir(),mNam);
+  sprintf(fn1,"%sModel_%s",AP_get_tmp_dir(),safMnAct);
+  sprintf(fn2,"%sModel_%s",AP_get_tmp_dir(),mNam);
   rename (fn1, fn2);
 
   // rename active-modelList -> new-modelList
-  sprintf(fn1,"%sMod_%s.lst",OS_get_tmp_dir(),safMnAct);
-  sprintf(fn2,"%sMod_%s.lst",OS_get_tmp_dir(),mNam);
+  sprintf(fn1,"%sMod_%s.lst",AP_get_tmp_dir(),safMnAct);
+  sprintf(fn2,"%sMod_%s.lst",AP_get_tmp_dir(),mNam);
   rename (fn1, fn2);
 
   // rename DB__
-  sprintf(fn1,"%sDB__%s.lst",OS_get_tmp_dir(),safMnAct);
-  sprintf(fn2,"%sDB__%s.lst",OS_get_tmp_dir(),mNam);
+  sprintf(fn1,"%sDB__%s.lst",AP_get_tmp_dir(),safMnAct);
+  sprintf(fn2,"%sDB__%s.lst",AP_get_tmp_dir(),mNam);
   rename (fn1, fn2);
 
 
@@ -1360,7 +1365,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
   Brw_Mod_add (mNam, ICO_natM0);
 
   // must load new file into memspc (for following MDL_sav_tmp ())
-  // sprintf(fn1,"%sModel_%s",OS_get_tmp_dir(),safMnAct);
+  // sprintf(fn1,"%sModel_%s",AP_get_tmp_dir(),safMnAct);
   // UTF_add_fil_0 (fn1);
   UTF_clear_ ();
   sprintf(s1, "# %s",OS_date1());
@@ -1455,7 +1460,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
 
 
   // rename /<tmpDir>/selection1.gcad /<tmpDir>/"Model_<subModelname>"
-  sprintf(s1, "%sModel_%s", OS_get_tmp_dir(), mNam);
+  sprintf(s1, "%sModel_%s", AP_get_tmp_dir(), mNam);
     // printf(" Mod_SM_add_file |%s|%s|\n",fNam,s1);
   OS_file_copy (fNam, s1);
 
@@ -1712,7 +1717,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   // get file mainModel into memory (find, work, remove DYNAMIC_DATA-block)
   UTF_clear_ ();
-  sprintf(fn1, "%sModel_%s", OS_get_tmp_dir(), safNam);
+  sprintf(fn1, "%sModel_%s", AP_get_tmp_dir(), safNam);
   irc = UTF_add_fil_init (fn1);
 
   // RUN (abarbeiten)
@@ -1919,51 +1924,53 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   // printf("MDL_clean_f \n");
 
-  // sprintf(cbuf,"%sMod.lst",OS_get_tmp_dir());
+  // sprintf(cbuf,"%sMod.lst",AP_get_tmp_dir());
   // OS_file_delete (cbuf);
 
-  sprintf(cbuf,"%sMod_*",OS_get_tmp_dir());
+  sprintf(cbuf,"%sMod_*",AP_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
-  sprintf(cbuf, "%sModel_*",OS_get_tmp_dir());
+  sprintf(cbuf, "%sModel_*",AP_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
-//   sprintf(cbuf,"%sDB__*.dat",OS_get_tmp_dir());
+//   sprintf(cbuf,"%sDB__*.dat",AP_get_tmp_dir());
   // DB__*.dat  and catalog-data *.dat
-  sprintf(cbuf,"%s*.dat",OS_get_tmp_dir());
+  sprintf(cbuf,"%s*.dat",AP_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
-  sprintf(cbuf,"%sjoints",OS_get_tmp_dir());
+  sprintf(cbuf,"%sjoints",AP_get_tmp_dir());
   OS_file_delete (cbuf);
 
   // del process_* and processes.lst
-  sprintf(cbuf, "%sprocess*",OS_get_tmp_dir());
+  sprintf(cbuf, "%sprocess*",AP_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
-  sprintf(cbuf, "%s*.tess",OS_get_tmp_dir());
+  sprintf(cbuf, "%s*.tess",AP_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
   // catalog-parameterfiles
   CTLG_dat_del ();
 
-  sprintf(cbuf, "%s*.ptab",OS_get_tmp_dir());
+  sprintf(cbuf, "%s*.ptab",AP_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
-  sprintf(cbuf, "%s*.msh",OS_get_tmp_dir());
+  sprintf(cbuf, "%s*.msh",AP_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
-  sprintf(cbuf, "%s*.dlg",OS_get_tmp_dir());
+  sprintf(cbuf, "%s*.dlg",AP_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
-  sprintf(cbuf, "%s*.appdat",OS_get_tmp_dir());
+  sprintf(cbuf, "%s*.appdat",AP_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
-  sprintf(cbuf, "%s*.bmp",OS_get_tmp_dir());
+  sprintf(cbuf, "%s*.bmp",AP_get_tmp_dir());
   OS_file_delGrp (cbuf);
 
   Tex_DelAll ();  // delete all OpenGL-textures
 
-
+    // TESTBLOCK
+    // DEB_exit();
+    // END TESTBLOCK
 
   return 0;
 
@@ -2075,7 +2082,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     MDL_file_lst__ (0); // make list of all Submodels -> <baseDir>/tmp/Mod.lst
 
     // let user select from list of Submodelnames
-    sprintf(s1,"%sMod.lst",OS_get_tmp_dir());
+    sprintf(s1,"%sMod.lst",AP_get_tmp_dir());
     irc = GUI_listf1__ (fNam,sizeof(fNam),s1,"\"select model\"","\"x40,y40\"");
     if(irc < 0) return -1;
 
@@ -2136,7 +2143,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   // load mainModel into memSpc (UTF_FilBuf0)
   UTX_safeName (sfn, 1);
-  sprintf(s1, "%sModel_%s",OS_get_tmp_dir(), sfn);
+  sprintf(s1, "%sModel_%s",AP_get_tmp_dir(), sfn);
   irc = UTF_add_fil_init (s1);
 
 
@@ -2220,8 +2227,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   strcpy (safNam, mmNam);
   UTX_safeName (safNam, 1);
 
-  // sprintf(s1, "%sMod_Empty.dat", OS_get_tmp_dir());
-  sprintf(fn, "%sModel_%s", OS_get_tmp_dir(),safNam);
+  // sprintf(s1, "%sMod_Empty.dat", AP_get_tmp_dir());
+  sprintf(fn, "%sModel_%s", AP_get_tmp_dir(),safNam);
 
   if(!src) return -1;
 
@@ -2244,7 +2251,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   fclose(fpo);
 
   // copy new model -> tmp/Mod_.mod_in
-  sprintf(s1, "%sMod_.mod_in", OS_get_tmp_dir());
+  sprintf(s1, "%sMod_.mod_in", AP_get_tmp_dir());
   OS_file_copy (fn, s1);
 
   return 0;
@@ -2274,7 +2281,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS \n");
-  // printf("MDL_sav__ |%s| %d AP_stat.zip=%d\n",fnOut,uuSav,AP_stat.zip);
+  printf("MDL_sav__ |%s| %d AP_stat.zip=%d\n",fnOut,uuSav,AP_stat.zip);
 
 
   // save Model+Submodels into tempDir as tmp/Mod_.mod_out native
@@ -2288,7 +2295,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   //----------------------------------------------------------------
   // copy out
 
-  sprintf(fnTmp, "%sMod_.mod_out", OS_get_tmp_dir());
+  sprintf(fnTmp, "%sMod_.mod_out", AP_get_tmp_dir());
 
   // compress ?
   if(AP_stat.zip) {
@@ -2339,7 +2346,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   MemTab(Point) pTab = _MEMTAB_NUL;
   MemTab(Fac3) fTab = _MEMTAB_NUL;
-  MemTab(EdgeLine) eTab = _MEMTAB_NUL;
+  MemTab(IntTab) eTab = _MEMTAB_NUL;
   MemTab(int) eDat = _MEMTAB_NUL;
 
 
@@ -2348,6 +2355,10 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // if(mode) printf("  AP_modact_nam=|%s|\n",AP_modact_nam);    // sm
   // else     printf("  AP_mod_fnam=|%s|\n",AP_mod_fnam);        // main
   // MDL_dump__ ("MDL_sav_gcad");
+
+
+  // update list of used submodels         2022-06-01
+  MDL_lst_sm_upd ();
 
 
   irc = -1;
@@ -2396,7 +2407,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   // set temp.outfilename <tmp>/Mod_.mod_out
-  sprintf(fnam0,"%sMod_.mod_out",OS_get_tmp_dir());
+  sprintf(fnam0,"%sMod_.mod_out",AP_get_tmp_dir());
 
 
   // try to open outfile
@@ -2420,7 +2431,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   for(ii = 0; ii < sTab1.iNr; ++ii) {
     p1 = UtxTab__ (ii, &sTab1);      // get word from index
-      // printf(" _sav_gcad-sm1-%d %s\n",ii,p1);
+      // printf(" _sav_gcad-sm1-%d |%s| .....................\n",ii,p1);
 
     // get mtyp and stat
     inm = MDL_imn_mNam__sNam (symNam, &p1[6]);  // skip "Model_"
@@ -2450,7 +2461,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
     // check if modelfile exists
     L_sm_out:
-      sprintf(fnam1,"%s%s",OS_get_tmp_dir(),p1);
+      sprintf(fnam1,"%s%s",AP_get_tmp_dir(),p1);
       if(OS_checkFilExist(fnam1, 1) == 0) {
         TX_Print("***** MDL_sav_gcad submodel %s not found ..",p1);
         continue;
@@ -2483,7 +2494,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   for(ii = 0; ii < sTab1.iNr; ++ii) {
     p1 = UtxTab__ (ii, &sTab1);      // get word from index
 
-    sprintf(fnam1,"%s%s",OS_get_tmp_dir(),p1);
+    sprintf(fnam1,"%s%s",AP_get_tmp_dir(),p1);
       // printf(" PTAB[%d] |%s|%s|\n",ii,p1,fnam1);
 
     MSH_bload_pTabf (&pTab, fnam1);
@@ -2507,13 +2518,13 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   if(sTab1.iNr < 1) goto L_procs;
 
   MemTab_ini__ (&fTab, sizeof(Fac3), Typ_Fac3, 10000);
-  MemTab_ini__ (&eTab, sizeof(EdgeLine), Typ_EdgeLine, 10);
+  MemTab_ini__ (&eTab, sizeof(IntTab), Typ_IntTab, 10);
   MemTab_ini__ (&eDat, sizeof(int), Typ_Int4, 50);
 
   for(ii = 0; ii < sTab1.iNr; ++ii) {
     p1 = UtxTab__ (ii, &sTab1);      // get word from index
 
-    sprintf(fnam1,"%s%s",OS_get_tmp_dir(),p1);
+    sprintf(fnam1,"%s%s",AP_get_tmp_dir(),p1);
       // printf(" MSH[%d] |%s|%s|\n",ii,p1,fnam1);
     MSH_bload_fTabf (&fTab, &eTab, &eDat, fnam1);
 
@@ -2540,7 +2551,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   UtxTab_init__ (&sTab1);
 
   // add file to stringTab
-  sprintf(fnam1, "%sprocesses.lst",OS_get_tmp_dir());
+  sprintf(fnam1, "%sprocesses.lst",AP_get_tmp_dir());
   i1 = UtxTab_add_file (&sTab1, fnam1);
   if(i1 < 0) goto L_appDat;
     // UtxTab_dump (&sTab1);
@@ -2548,7 +2559,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // loop tru sTab1; cat file tmp/Model_<mdlnam>
   for(i1=0; i1 < UtxTab_nr(&sTab1); ++i1) {
     fprintf(fpo, "SECTION PROCESS %s\n",UtxTab__(i1, &sTab1));
-    sprintf(fnam1, "%s%s",OS_get_tmp_dir(),UtxTab__(i1, &sTab1));
+    sprintf(fnam1, "%s%s",AP_get_tmp_dir(),UtxTab__(i1, &sTab1));
     if(UTX_cat_file (fpo, fnam1) < 0) {
       TX_Print("***** MDL_sav_gcad E-prc-1 %s",fnam1);
     }
@@ -2562,8 +2573,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 // TODO: skip objects not belonging to model if mode==2
 
   // get a list of files "<temp>/*.appdat" -> sTab
-  sprintf(cbuf, "%slst.dat", OS_get_tmp_dir());
-  ii = UTX_dir_listf (cbuf, OS_get_tmp_dir(), NULL, ".appdat");
+  sprintf(cbuf, "%slst.dat", AP_get_tmp_dir());
+  ii = UTX_dir_listf (cbuf, AP_get_tmp_dir(), NULL, ".appdat");
   if(ii < 1) goto L_main;
     // printf("add -appDat-\n");
 
@@ -2578,7 +2589,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     UTX_ftyp_cut (cbuf);      // remove filetype
 
     // skip file if size = 0
-    sprintf(fnam1,"%s%s.appdat",OS_get_tmp_dir(),cbuf);
+    sprintf(fnam1,"%s%s.appdat",AP_get_tmp_dir(),cbuf);
     l1 = OS_FilSiz (fnam1);
     if(l1 < 3) continue;
 
@@ -2598,8 +2609,9 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   //================================================================
   // add primary model
   L_main:
+      // printf(" sav_gcad-L_main:\n");
     MDL_safNam_prim (cbuf);
-    sprintf(fnam1,"%sModel_%s",OS_get_tmp_dir(),cbuf);
+    sprintf(fnam1,"%sModel_%s",AP_get_tmp_dir(),cbuf);
     if(UTX_cat_file (fpo, fnam1) < 0) {
       TX_Print("***** MDL_sav_gcad E006 %s",fnam1);
       goto L_err1;
@@ -2656,6 +2668,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n");
   // printf("MDL_sav_tmp %d\n",AP_modact_inm);
 
+  if(!mdl_tab.rNr) return -1;
 
   // if active model is image or mockup (see MDL_load_mNam_tmp) skip
   if(MDL_MTYP_IS_IMG_MOCK(MDL_MTYP_INAM(AP_modact_inm))) return 0;
@@ -2770,8 +2783,9 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   char   fnlCk[SIZFNam], *mnSm, fnSm;
 
 
-  // get name from index iNam
+  // printf("MDL_sav_ck_sm_1 iCk=%d iSm=%d\n",iCk,iSm);
 
+  // get name from index iNam
 
   // skip own record
   if(iCk == iSm) return 0;
@@ -2779,17 +2793,19 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 //   // ignore if not intern
 //   if(mdl_tab.data[iSm].mTyp != MBTYP_INTERN) continue;
 
-  // printf("MDL_sav_ck_sm_1 iCk=%d iSm=%d\n",iCk,iSm);
 
   // test if submodel iSm is used by submodel iCk
 
   // get mnSm = safe modelname of iSm
   mnSm = UtxTab__(iSm, &mdl_names);
+    // printf(" sav_ck_sm_1-mnSm |%s|\n",mnSm);
+
 
   // get fnlCk = filename modelList for iCk
   MDL_fnModLst_iNam (fnlCk, iCk);
+    // printf(" sav_ck_sm_1-fnlCk |%s|\n",fnlCk);
 
-  // find word (line) mnSm in file fnlCk
+  // find word (line) mnSm in file fnlCk (a list of all used subModels)
   irc = UTX_fget_lnTxt (mnSm, fnlCk);
 
     // printf(" ex-MDL_sav_ck_sm_1 irc=%d iCk=%d iSm=%d\n",irc,iCk,iSm);
@@ -2862,7 +2878,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   // test if Mod_.mod_in exists
-  sprintf(fn, "%sMod_.mod_in", OS_get_tmp_dir());
+  sprintf(fn, "%sMod_.mod_in", AP_get_tmp_dir());
   i1 = OS_checkFilExist (fn, 1);  // 0=exists-not; else yes
   if(i1) return 0;
 
@@ -2999,8 +3015,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   // printf("MDL_sav_cmp__\n");
 
-  sprintf(fnM1, "%sMod_.mod_in",  OS_get_tmp_dir());
-  sprintf(fnM2, "%sMod_.mod_out", OS_get_tmp_dir());
+  sprintf(fnM1, "%sMod_.mod_in",  AP_get_tmp_dir());
+  sprintf(fnM2, "%sMod_.mod_out", AP_get_tmp_dir());
 
 
   //----------------------------------------------------------------
@@ -3031,6 +3047,33 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   lnM2 = memspc201;
 
 
+
+  //----------------------------------------------------------------
+//   // test if Mod_.mod_in has :DYNAMIC_DATA-section;
+//   // if not: skip :DYNAMIC_DATA-section in Mod_.mod_out
+//   // (import files (dxf ..) do not have :DYNAMIC_DATA-section)
+//   L_nxtck0:
+//     if(fgets (lnM1, APED_SRCLN_BUFSIZ, fpM1) == NULL) goto L_nxtck2;   // not found
+// 
+//     if(!strncmp (lnM1, ":DYNAMIC_DATA", 13)) {
+//       // :DYNAMIC_DATA-section is in Mod_.mod_in; rewind Mod_.mod_in.
+//       rewind (fpM1);
+//       goto L_nxtM1;
+//     }
+//     goto L_nxtck0;
+// 
+// 
+//   L_nxtck2: // NO :DYNAMIC_DATA-section in Mod_.mod_in;
+//     // rewind Mod_.mod_in; find ":DYNAMIC_DATA" in Mod_.mod_out
+//     rewind (fpM1);
+//     L_nxtck3:
+//       if(fgets (lnM2, APED_SRCLN_BUFSIZ, fpM2) == NULL) {
+//         printf("***** MDL_sav_cmp__ E1\n");
+//         return 1;
+//       }
+//       if(strncmp (lnM2, ":DYNAMIC_DATA", 13)) goto L_nxtck3;
+
+
   //----------------------------------------------------------------
   // get next line of model1
   L_nxtM1:
@@ -3040,7 +3083,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   if(llM1 <= 1) goto L_nxtM1;
   UTX_endDel_crlf (lnM1, &llM1);   // remove closing cr,lf 
   if(llM1 <= 1) goto L_nxtM1;
-    // printf(" M1 %ld |%s|",llM1,lnM1);
+    // printf(" M1 %d |%s|",llM1,lnM1);
   // test if line can be ignored
   if(MDL_sav_cmp_i(lnM1)) goto L_nxtM1;
 
@@ -3054,7 +3097,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   if(llM2 <= 1) goto L_nxtM2;
   UTX_endDel_crlf (lnM2, &llM2);   // remove closing cr,lf 
   if(llM2 <= 1) goto L_nxtM2;
-    // printf(" M2 %ld |%s|",llM2,lnM2);
+    // printf(" M2 %d |%s|",llM2,lnM2);
   // test if line can be ignored
   if(MDL_sav_cmp_i (lnM2)) goto L_nxtM2;
 
@@ -3101,14 +3144,17 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 // retCode:   1=ignore_line;  0=test_line
 // ignore also DEFTX DEFCOL CONST_PL (will be added to subModel when activated)
 
-  if(!strncmp(ln1, "MODBOX ", 7))   return 1;
-  if(!strncmp(ln1, "MODSIZ ", 7))   return 1;
-  if(!strncmp(ln1, "VIEW ", 5))     return 1;
+  if(!strncmp(ln1, "MODSIZ ", 7))         return 1;
+  if(!strncmp(ln1, "MODBOX ", 7))         return 1;
+  if(!strncmp(ln1, "VIEW ", 5))           return 1;
 
-  if(!strncmp(ln1, "DEFCOL ", 7))   return 1;
-  if(!strncmp(ln1, "DEFTX ", 6))    return 1;
-  if(!strncmp(ln1, "CONST_PL ", 9)) return 1;
-  if(!strncmp(ln1, "MODE ", 5))     return 1;
+  if(!strncmp(ln1, "DEFCOL ", 7))         return 1;
+  if(!strncmp(ln1, "DEFTX ", 6))          return 1;
+  if(!strncmp(ln1, "CONST_PL ", 9))       return 1;
+  if(!strncmp(ln1, "MODE ", 5))           return 1;
+
+  if(!strncmp(ln1, ":DYNAMIC_DATA ", 13)) return 1;
+
 
 
   return 0;
@@ -3142,7 +3188,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
          // AP_mod_fnam,ofm->fTyp,ofm->iTyp,AP_stat.subtyp);
 
   // save the active model
-  MDL_sav_tmp ();
+  MDL_sav_tmp ();  // already done in AP_save__ ?
 
 //   // check if outDir AP_mod_dir exists
 //   if(OS_checkFilExist(AP_mod_dir,1) ==  0) {
@@ -3174,7 +3220,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // printf(" Export VRML1 |%s|\n",AP_mod_fnam);
     OS_dll_do ("xa_vr2_exp", "VR2_exp__", fno, 0);
     // cp <tmpDir>export.exp AP_mod_dir.AP_mod_fnam.ofm->fTyp
-    sprintf(s1, "%sexport.exp",OS_get_tmp_dir());
+    sprintf(s1, "%sexport.exp",AP_get_tmp_dir());
     irc = OS_file_copy (s1, fno);
     if(irc) { TX_Error("MDL_exp__ cannot copy to %s",s2); return -1; }
     TX_Print ("%s exported ..",fno);
@@ -3205,7 +3251,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   } else if(ofm->iTyp == Mtyp_JPG) {
-    sprintf(s1, "%swin.bmp",OS_get_tmp_dir());
+    sprintf(s1, "%swin.bmp",AP_get_tmp_dir());
     // create BMP-file of active OpenGL-window
     bmp_save__ (s1);
     // create JPG-file from BMP-file
@@ -3325,7 +3371,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // get fni = filename-absolute
   MDLFN_ffNam_oFn (fni, ofn);
 
-  sprintf(fno, "%sModel_%s",OS_get_tmp_dir(),ofn->fNam);
+  sprintf(fno, "%sModel_%s",AP_get_tmp_dir(),ofn->fNam);
 
   switch(ofn->iTyp) {
 
@@ -3516,7 +3562,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   // symbolic-filename from filenameObject
   MDLFN_syFn_oFn (symNam, &ofn);
-     // printf(" load_init-symNam |%s|\n",symNam);
+    // printf(" load_init-symNam |%s|\n",symNam);
 
   // get safe name
   irc = MDL_mNam_safe (safNam, symNam);
@@ -3569,7 +3615,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   // load mainModel into memSpc (UTF_FilBuf0)
-  sprintf(fn1, "%sModel_%s",OS_get_tmp_dir(), safNam);
+  sprintf(fn1, "%sModel_%s",AP_get_tmp_dir(), safNam);
   irc = UTF_add_fil_init (fn1);
   if(irc < 0) goto L_exit;
 
@@ -3577,9 +3623,11 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   //================================================================
   L_exit:
 
-    // UtxTab_dump (&mdNames, "ex-MDL_load_init");
-    // MDL_dump__ ("ex-MDL_load_init");
+    // TESTBLOCK
+    // MDL_dump__ ("ex-MDL_load_main");
     // printf("ex-MDL_load_main %d\n\n",irc);
+    // DEB_exit();
+    // END TESTBLOCK
 
   return irc;
 
@@ -3630,7 +3678,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     UTX_safeName (safNam, 1);
 
     // test if modelfile already exists (unused, splitted from extern model)
-    sprintf(fn, "%sModel_%s", OS_get_tmp_dir(), safNam);
+    sprintf(fn, "%sModel_%s", AP_get_tmp_dir(), safNam);
     if(OS_checkFilExist(fn, 1)) goto L_imp_ok; // model exists = done
 
     // import,  create file tmp/Model_<safMnam>
@@ -3706,6 +3754,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
       // TESTBLOCK
       // MDL_dump__ (" ex-MDL_load_1");
       // printf(" ex-MDL_load_1 irc=%d\n",irc);
+      // DEB_exit();
       // END TESTBLOCK
 
     return irc;
@@ -3763,7 +3812,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   if(irc < 0) goto L_exit;
 
   // open outfile
-  sprintf(fnam,"%sMod.lst",OS_get_tmp_dir());
+  sprintf(fnam,"%sMod.lst",AP_get_tmp_dir());
   if((fpo=fopen(fnam,"w")) == NULL) {
     TX_Print("***** MDL_ldm_f E2 %s",fnam);
     irc = -2;
@@ -3934,7 +3983,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   //----------------------------------------------------------------
   // copy model -> tmp/Mod_tmp_in
   sprintf(fni,"%s%s.%s",fDir,fNam,fTyp);
-  sprintf(fno,"%sMod_.tmp_in",OS_get_tmp_dir());
+  sprintf(fno,"%sMod_.tmp_in",AP_get_tmp_dir());
     printf(" load_file_gcad-fni |%s|\n",fni);
     printf(" load_file_gcad-fno |%s|\n",fno);
 
@@ -4075,7 +4124,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
     // open Mainmodel
     if(fpo == NULL) {
-      sprintf(cbuf, "%sModel_%s",OS_get_tmp_dir(),mdlNam);
+      sprintf(cbuf, "%sModel_%s",AP_get_tmp_dir(),mdlNam);
         // printf(" mainmodel=|%s|\n",cbuf);
       if((fpo=fopen(cbuf,"w")) == NULL) {
         TX_Error("MDL_load_file_split E004 %s",cbuf);
@@ -4143,7 +4192,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // get safe modelname
   strcpy(safNam, &lBuf[namPos]);
   UTX_safeName (safNam, 1);
-  sprintf(fNam, "%sModel_%s", OS_get_tmp_dir(), safNam);
+  sprintf(fNam, "%sModel_%s", AP_get_tmp_dir(), safNam);
     // printf("Mod_aload_sm |%s|\n",fNam);
 
   if((fpo=fopen(fNam,"w")) == NULL) {
@@ -4194,8 +4243,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // if(p1) *p1 = '\0';
   // else {TX_Error("MDL_load_file_prc E001\n"); return -1;}
 
-  // sprintf(s2, "%sprocess_%s", OS_get_tmp_dir(), s1);
-  sprintf(s2, "%s%s", OS_get_tmp_dir(), s1);
+  // sprintf(s2, "%sprocess_%s", AP_get_tmp_dir(), s1);
+  sprintf(s2, "%s%s", AP_get_tmp_dir(), s1);
     // printf(" extract proc |%s|\n",s2);
 
 
@@ -4207,7 +4256,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   // add process to file  processes.lst
-  sprintf(s2, "%sprocesses.lst", OS_get_tmp_dir());
+  sprintf(s2, "%sprocesses.lst", AP_get_tmp_dir());
   UTX_fsavLine (s1, s2, 80, -1);
 
 
@@ -4392,7 +4441,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS \n");
-  // printf("MDL_load_scan__ |%s|\n",symNam);
+  // printf("MDL_load_scan__ |%s| %d\n",symNam,reScan);
   // MDL_dump__ ("MDL_load_scan__");
 
   lBuf = mem_cbuf1;
@@ -4433,14 +4482,14 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   if(irc) {irc = -1; goto L_exit;}
 
   // open infile
-  sprintf(lBuf, "%sModel_%s", OS_get_tmp_dir(),safNam);
+  sprintf(lBuf, "%sModel_%s", AP_get_tmp_dir(),safNam);
     // printf(" _load_scan__-fopen1 %s\n",lBuf);
   if(fpi=fopen(lBuf, "r")) goto L_scan;
 
+  // no modelfile exists yet - must import
+
   // MBTYP_INTERN - exist from split main - 
   // if(mTyp == MBTYP_INTERN) goto L_scan;
-
-  // no modelfile exists yet - must import
 
   // images and mockups
   if(mTyp >= Mtyp_TESS) goto L_done;
@@ -4453,16 +4502,16 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // model import
   irc = MDL_load_import__ (mTyp, symNam);
   if(irc < 0) {
-    TX_Print("***** MDL_load_scan__ E1 %s",symNam);
+    TX_Error("***** MDL_load_scan__ E1 %s",symNam);
     irc = -3;
     goto L_exit;
   }
 
-  sprintf(lBuf, "%sModel_%s", OS_get_tmp_dir(),safNam);
+  sprintf(lBuf, "%sModel_%s", AP_get_tmp_dir(),safNam);
     // printf(" _load_scan__-fopen2 %s\n",lBuf);
 
   if((fpi=fopen(lBuf, "r")) == NULL) {
-    TX_Print("***** MDL_load_scan__ E2 %s",symNam);
+    TX_Error("***** MDL_load_scan__ E2 %s",symNam);
     irc = -3;
     goto L_exit;
   }
@@ -4544,7 +4593,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   //----------------------------------------------------------------
   // write all subModels into file tmp/Mod_<actMdl>.lst
   if(smNames->iNr < 1) goto L_done;
-  sprintf(s1, "%sMod_%s.lst", OS_get_tmp_dir(),safNam);
+  sprintf(s1, "%sMod_%s.lst", AP_get_tmp_dir(),safNam);
   if((fpo=fopen(s1, "w")) == NULL) {
     TX_Print("***** MDL_load_scan__ E7 %s",s1);
     irc = -4;
@@ -4568,6 +4617,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // UtxTab_dump (&mdl_names, "ex-MDL_load_scan__-mdl_names");
     // MDL_dump__ ("ex-MDL_load_scan__");
     // printf("ex-MDL_load_scan__ %d\n",irc);
+    // DEB_exit();
   return irc;
 
 }
@@ -4645,7 +4695,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   MDL_safename (safNam, symNam);      // get safNam
 
   // open list of submodels, add all lines to loadmap
-  sprintf (s1, "%sMod_%s.lst", OS_get_tmp_dir(),safNam);
+  sprintf (s1, "%sMod_%s.lst", AP_get_tmp_dir(),safNam);
   if((fp1=fopen(s1,"r")) == NULL) {
     // model symNam does not have subModels; continue ..
     irc = 0;
@@ -4957,7 +5007,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // intern model
   if(mTyp == MBTYP_INTERN) {
     // check file existence tmp/Model_<mNam>
-    sprintf(fn, "%sModel_%s", OS_get_tmp_dir(), symNam);
+    sprintf(fn, "%sModel_%s", AP_get_tmp_dir(), symNam);
     if(OS_checkFilExist(fn, 1)) {irc = 0; goto L_exit;}
     irc = -1;
     goto L_exit;
@@ -4991,6 +5041,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   //----------------------------------------------------------------
   L_exit:
     // printf("ex-MDL_load_import__ %d\n",irc);
+    // DEB_exit();
   return irc;
 
 }
@@ -5021,7 +5072,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // catalog-part; create parametric-data-file tmp/<catPart>.ctlg_dat
 
     // create filename tmp/<catPart>.dat - eg "Profile_6x4_150_ctlg.dat"
-    sprintf(fnDat, "%s%s.dat",OS_get_tmp_dir(),safNam);
+    sprintf(fnDat, "%s%s.dat",AP_get_tmp_dir(),safNam);
       // printf(" _import_ctlg-fnDat=|%s|\n",fnDat);
 
     // check if exists; else create
@@ -5122,12 +5173,12 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   int        irc, dbResiz;
   long       lTab[8];
-  char       fnSub[SIZMFTot], fNam[320], fno[320];
+  char       fnSub[SIZMFTot], fNam[SIZFNam], fno[SIZFNam];
   void       *pa[2];
   stru_FN    ofn;
 
 
-  // printf("MDL_load_import_ext %d |%s|\n",mTyp,mnam);
+  printf("MDL_load_import_ext %d |%s|\n",mTyp,mnam);
 
   // resolv fileName
   irc = MDLFN_oFn_fNam (&ofn, mnam);
@@ -5145,7 +5196,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   irc = MDL_mNam_safe (fnSub, mnam);
   if(irc) goto L_exit;
 
-  sprintf(fno, "%sModel_%s",OS_get_tmp_dir(),fnSub);
+  sprintf(fno, "%sModel_%s",AP_get_tmp_dir(),fnSub);
     // printf(" _load_import_ext-fno=|%s|\n",fno);
 
 
@@ -5155,9 +5206,9 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   if(mTyp != MBTYP_EXTERN) goto L_Mtyp_DXF;
 
     // test if mainModel is beeing loaded
-    if(!strcmp(mnam, MDL_MNAM_INAM(0))) {
+    if(!strcmp(mnam, MDL_mNam_iNam(0))) {
       // load mainmodel: copy modelfile into tmp as file tmp/Mod_.mod_in
-      sprintf(fno, "%sMod_.mod_in", OS_get_tmp_dir());
+      sprintf(fno, "%sMod_.mod_in", AP_get_tmp_dir());
       OS_file_copy (fNam, fno);
       strcpy(fNam, fno);
     }
@@ -5221,9 +5272,29 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
     //----------------------------------------------------------------
   L_Mtyp_LWO:
-    if(mTyp != Mtyp_LWO) goto L_unSupp;
+    if(mTyp != Mtyp_LWO) goto L_Mtyp_LXML;
       AP_ImportLwo (0, "0,0,0", 1., fNam);
       goto L_mem2file;
+
+
+    //----------------------------------------------------------------
+  L_Mtyp_LXML:
+    if(mTyp != Mtyp_XML) goto L_unSupp;
+    // sprintf(fno, "%s%s.gcad",AP_get_tmp_dir(),fnSub);
+    // sprintf(fno, "%simport.gcad",AP_get_tmp_dir());
+    // printf(" _load_import_ext-lxml-fno=|%s|\n",fno);
+    pa[0] = fNam;
+    pa[1] = fno;
+    irc = OS_dll_do ("xa_lxml_r", "LXML_r__", pa, 0);
+      // printf(" f.OS_dll_do %d |%s|\n",irc,fNam);
+    if(irc < 0) {irc = -3; goto L_exit;}
+    // AP_mdl_init (0);
+    // AP_stru_2_txt (NULL, 0, (void*)lTab, 1L); // ask last index
+    // DB_size_set (lTab);                       // increase DB-size
+    // dbResiz = 1;                              // DB-resize done
+// set mTyp -> Mtyp_Gcad
+    goto L_exit;
+
 
 /*
     //----------------------------------------------------------------
@@ -5481,7 +5552,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   } else {
     // intern-, extern-subModel
     // irc = Mod_get_path (fNam, mnam);
-    sprintf(fNam, "%sModel_%s",OS_get_tmp_dir(),safNam);
+    sprintf(fNam, "%sModel_%s",AP_get_tmp_dir(),safNam);
   }
     // printf(" _load_sbm-fNam=|%s|\n",fNam);
 
@@ -5613,10 +5684,12 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 // - get subModels from files tmp/Mod-<sNam>.lst
 // - list is symbolic
 // Input:
-//   mode    0=list-main, else list active primary
+//   mode      0=list-main, else list active primary
+// Output:
+//   retCode   0=ok; -1=no-main
 
 
-  int         i1, ii;
+  int         irc, i1, ii;
   char        mNam[SIZMFTot], safNam[SIZMFTot], fn[320];
   UtxTab_NEW  (smtb);
 
@@ -5626,18 +5699,21 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   if(!mode) {
     // get main
-    strcpy(mNam, MDL_MNAM_MAIN ());
+    strcpy(mNam, MDL_mNam_main ());
 
   } else {
     // get mNam = name of primary model
     strcpy(mNam, MDL_mNam_prim ());
   }
 
+  // "-" no main
+  if(!strcmp (mNam, "-")) {irc = -1; goto L_exit;}
+
 
   // init ttb with modelname of primary model
   UtxTab_init__ (ttb);
   UtxTab_add (ttb, mNam);
-    // UtxTab_dump (ttb, "_lst_sm_prim-init");
+    // UtxTab_dump (ttb, "  _lst_sm_prim-init");
 
   ii = 0;
 
@@ -5648,7 +5724,9 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // get fn = filename of list of submodels of model ttb[ii]
     strcpy(safNam, UtxTab__(ii, ttb));
     UTX_safeName (safNam, 1);
-    sprintf(fn, "%sMod_%s.lst",OS_get_tmp_dir(), safNam);
+    sprintf(fn, "%sMod_%s.lst",AP_get_tmp_dir(), safNam);
+      // printf("  _lst_sm_prim-fn=|%s|\n",fn);
+
     if(!OS_checkFilExist (fn, 1)) goto L_cont;  // may have no subModels
 
     // get all submodels of model ttb[ii] into smtb
@@ -5662,11 +5740,13 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
       ++ii;
       if(ii < ttb->iNr) goto L_nxt;
 
+  irc = 0;
+
 
   //----------------------------------------------------------------
   L_exit:
     // UtxTab_dump (ttb, "ex-MDL_lst_sm_prim");
-  return 0;
+  return irc;
 
 }
 
@@ -5729,7 +5809,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
       strcpy(subNam, MDL_mNam_prim());
       UTX_safeName (subNam, 1);
       // write smName -> file tmp/Mod_<mPrim>.lst
-      sprintf(fn, "%sMod_%s.lst", OS_get_tmp_dir(), subNam);
+      sprintf(fn, "%sMod_%s.lst", AP_get_tmp_dir(), subNam);
       // write list
       UTX_wrf_lst (fn, &smNames);
     }
@@ -5835,7 +5915,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   UtxTab_init__ (ttb);
-  strcpy(s1, OS_get_tmp_dir());
+  strcpy(s1, AP_get_tmp_dir());
   fNr = UTX_dir_list__ (ttb, s1, "Model_", "", 0);
   
     // UtxTab_dump (ttb, "ex-MDL_lst_all");
@@ -5973,7 +6053,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 // was MDL_smuu_lst
 
-  int        i1, ii, imn, mRegNr, mtyp, mstat, pstat, iused;
+  int        irc, i1, ii, imn, mRegNr, mtyp, mstat, pstat, iused;
   char       *smNam, *safNam, syNam[SIZMFTot];
   stru_tab   *mAct;
   UtxTab_NEW (mdlAll);
@@ -5993,7 +6073,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   MDL_lst_all (&mdlAll);
 
   // get (symb.) list of all used Submodels of main
-  MDL_lst_sm_prim (&mdlUseM, 0);
+  irc = MDL_lst_sm_prim (&mdlUseM, 0);
+  if(irc < 0) goto L_exit;
 
 
   // loop tru mdl_tab - set unused;
@@ -6069,6 +6150,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     mdl_tab.data[0].mUsed = mdlStat_primary;
   }
 
+  irc = 0;
+
 
   //----------------------------------------------------------------
   L_exit:
@@ -6078,7 +6161,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
       // MDL_dump__ ("ex-MDL_used_set__");
 
-    return 0;
+    return irc;
 
 }
 
@@ -6101,7 +6184,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   // remove obj-rows of active primary-model-row
-  Brw_close_typeRows (NULL);
+  // BUT NOT after remove subModel - else crash !
+  if(Brw_mdl_is_active()) Brw_close_typeRows (NULL);
 
 
   // update Brw-Icons of models
@@ -6217,7 +6301,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 //   if((mNr + 1) == mdlTab.iNr) goto L_exit;
 
     // TESTBLOCK
-    sprintf(s1,"%sMod.lst",OS_get_tmp_dir());
+    sprintf(s1,"%sMod.lst",AP_get_tmp_dir());
     DEB_dump_file (s1, "MDL_smuu_lst-Mod.lst");
     // END TESTBLOCK
 
@@ -6366,7 +6450,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   char   s1[256];
 
   UtxTab_init__ (surPtab);
-  strcpy(s1, OS_get_tmp_dir());
+  strcpy(s1, AP_get_tmp_dir());
   fNr = UTX_dir_list__ (surPtab, s1, "_A", ".ptab", 0);
 
     // UtxTab_dump (surPtab, "ex-MDL_lst_ptab");
@@ -6387,7 +6471,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   char   s1[256];
 
   UtxTab_init__ (surMsh);
-  strcpy(s1, OS_get_tmp_dir());
+  strcpy(s1, AP_get_tmp_dir());
   fNr = UTX_dir_list__ (surMsh, s1, "_A", ".msh", 0);
 
     // UtxTab_dump (surMsh, "ex-MDL_lst_msh");
@@ -6465,7 +6549,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
     // remove tmp/Mod_<safNam>.tess
     MDL_fnModTess_mNam (fn, safNam);
-    // sprintf(fn, "%sMod_%s.tess", OS_get_tmp_dir(), safNam);
+    // sprintf(fn, "%sMod_%s.tess", AP_get_tmp_dir(), safNam);
     OS_file_delete (fn);
   
 
@@ -6605,7 +6689,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   // get lstFnam = list of all Mod_*.lst
   UtxTab_init__ (&lstFnam);
-  fNr = UTX_dir_list__ (&lstFnam, OS_get_tmp_dir(), "Mod_", ".lst", 1);
+  fNr = UTX_dir_list__ (&lstFnam, AP_get_tmp_dir(), "Mod_", ".lst", 1);
   if(!fNr) {irc = 0; goto L_exit;}
 
   // add all modelnames in files lstFnam into list lstMnam
@@ -6707,17 +6791,17 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // printf("MDL_rem_mNam_f |%s|\n",mNam);
 
   // del <tmp/Model_<safNam>>
-  sprintf(s1,"%sModel_%s",OS_get_tmp_dir(),mNam);
+  sprintf(s1,"%sModel_%s",AP_get_tmp_dir(),mNam);
     // printf(" _rem_1-delFil %s\n",s1);
   OS_file_delete (s1);
 
   // del Mod_<safNam>.lst
-  sprintf(s1,"%sMod_%s.lst",OS_get_tmp_dir(),mNam);
+  sprintf(s1,"%sMod_%s.lst",AP_get_tmp_dir(),mNam);
     // printf(" _rem_mNam_f-delFil %s\n",s1);
   OS_file_delete (s1);
 
   // del DB__<safNam>.dat
-  sprintf(s1,"%sDB__%s.dat",OS_get_tmp_dir(),mNam);
+  sprintf(s1,"%sDB__%s.dat",AP_get_tmp_dir(),mNam);
     // printf(" _rem_mNam_f-delFil %s\n",s1);
   OS_file_delete (s1);
 
@@ -6752,7 +6836,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   MDL_file_lst__ (1);
 
   // try to open inListe
-  sprintf(cbuf1,"%sMod.lst",OS_get_tmp_dir());
+  sprintf(cbuf1,"%sMod.lst",AP_get_tmp_dir());
   if((fp1=fopen(cbuf1,"r")) == NULL) {
     TX_Print("Mod_allmod_MS E002 %s",cbuf1);
     return -1;
@@ -6762,7 +6846,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // loop tru subModels
     if (fgets (cbuf1, 256, fp1) == NULL) break;
     UTX_CleanCR (cbuf1);
-    sprintf(fNam,"%sModel_%s",OS_get_tmp_dir(),cbuf1);
+    sprintf(fNam,"%sModel_%s",AP_get_tmp_dir(),cbuf1);
       // printf(" allmod_MS-nxt sM=|%s|\n",fNam);
 
     // gets first line of file fNam
@@ -6774,7 +6858,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
     } else {
       // first Line != MODSIZ - insert line
-      sprintf(cbuf1, "%stempFile1",OS_get_tmp_dir());
+      sprintf(cbuf1, "%stempFile1",AP_get_tmp_dir());
       strcat(newLn, term_buf);    // add LF
       UTX_wrf_str (cbuf1, newLn);
       // join file fNam=cbuf1+fNam
@@ -6901,10 +6985,10 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
    (pointers into mdlnames) - should be updated; also if mdlnames reallocs !)
 
   MDL_dump__ ("MDL_ren_sav");
-  printf(" MDL_MNAM_MAIN-1 = |%s|\n",MDL_MNAM_MAIN());
+  printf(" MDL_mNam_main-1 = |%s|\n",MDL_mNam_main());
 
 
-  // get actNam = active mainModelfilename; MDL_MNAM_MAIN is old mainModelName
+  // get actNam = active mainModelfilename; MDL_mNam_main is old mainModelName
   strcpy(actNam, UtxTab__(0, &mdl_names));
   UTX_safeName (actNam, 1);
 
@@ -6914,7 +6998,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // new name is AP_mod_fnam; change mdl_names[0]                        <<<<<
   sprintf(newNam, "%s/%s.%s",AP_mod_sym,AP_mod_fnam,AP_mod_ftyp);
   UtxTab_change (&mdl_names, 0, newNam);
-    printf(" MDL_MNAM_MAIN-2 = |%s|\n",MDL_MNAM_MAIN());
+    printf(" MDL_mNam_main-2 = |%s|\n",MDL_mNam_main());
   
 
 
@@ -6923,20 +7007,20 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 // SEE ALSO MDL_ren_1
 
   // rename <tmp>/Model_<actNam>    -> <tmp>/Model_<newNam>>
-  sprintf(fn1,"%sModel_%s", OS_get_tmp_dir(), actNam);
-  sprintf(fn2,"%sModel_%s", OS_get_tmp_dir(), newNam);
+  sprintf(fn1,"%sModel_%s", AP_get_tmp_dir(), actNam);
+  sprintf(fn2,"%sModel_%s", AP_get_tmp_dir(), newNam);
   OS_file_rename (fn1, fn2);
 
   // rename <tmp>/Mod_<actNam>.lst  -> <tmp>/Mod_<newNam>.lst
-  sprintf(fn1,"%sMod_%s.lst", OS_get_tmp_dir(), actNam);
+  sprintf(fn1,"%sMod_%s.lst", AP_get_tmp_dir(), actNam);
   if(OS_checkFilExist (fn1, 1)) {
-    sprintf(fn2,"%sMod_%s.lst", OS_get_tmp_dir(), newNam);
+    sprintf(fn2,"%sMod_%s.lst", AP_get_tmp_dir(), newNam);
     OS_file_rename (fn1, fn2);
   }
 
   // rename <tmp>/DB__<actNam>.dat  -> <tmp>/DB__<newNam>.dat
-  sprintf(fn1,"%sDB__%s.dat", OS_get_tmp_dir(), actNam);
-  sprintf(fn2,"%sDB__%s.dat", OS_get_tmp_dir(), newNam);
+  sprintf(fn1,"%sDB__%s.dat", AP_get_tmp_dir(), actNam);
+  sprintf(fn2,"%sDB__%s.dat", AP_get_tmp_dir(), newNam);
   OS_file_rename (fn1, fn2);
 
 
@@ -6948,7 +7032,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   }
 */
 
-    MDL_dump__ ("ex-MDL_ren_sav");
+    // MDL_dump__ ("ex-MDL_ren_sav");
 
   return 0;
 
@@ -7101,20 +7185,20 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   //----------------------------------------------------------------
   // rename <tmp>/Model_<actNam>    -> <tmp>/Model_<newNam>>
-  sprintf(fn1,"%sModel_%s", OS_get_tmp_dir(), actNam);
-  sprintf(fn2,"%sModel_%s", OS_get_tmp_dir(), newNam);
+  sprintf(fn1,"%sModel_%s", AP_get_tmp_dir(), actNam);
+  sprintf(fn2,"%sModel_%s", AP_get_tmp_dir(), newNam);
   OS_file_rename (fn1, fn2);
 
   // rename <tmp>/Mod_<actNam>.lst  -> <tmp>/Mod_<newNam>.lst
-  sprintf(fn1,"%sMod_%s.lst", OS_get_tmp_dir(), actNam);
+  sprintf(fn1,"%sMod_%s.lst", AP_get_tmp_dir(), actNam);
   if(OS_checkFilExist (fn1, 1)) {
-    sprintf(fn2,"%sMod_%s.lst", OS_get_tmp_dir(), newNam);
+    sprintf(fn2,"%sMod_%s.lst", AP_get_tmp_dir(), newNam);
     OS_file_rename (fn1, fn2);
   }
 
   // rename <tmp>/DB__<actNam>.dat  -> <tmp>/DB__<newNam>.dat
-  sprintf(fn1,"%sDB__%s.dat", OS_get_tmp_dir(), actNam);
-  sprintf(fn2,"%sDB__%s.dat", OS_get_tmp_dir(), newNam);
+  sprintf(fn1,"%sDB__%s.dat", AP_get_tmp_dir(), actNam);
+  sprintf(fn2,"%sDB__%s.dat", AP_get_tmp_dir(), newNam);
   OS_file_rename (fn1, fn2);
 
 
@@ -7167,12 +7251,12 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   // get fnLst = list of files tmp/Model_*
   UtxTab_init__ (&fnLst);
-  strcpy(s1, OS_get_tmp_dir());
+  strcpy(s1, AP_get_tmp_dir());
   fNr = UTX_dir_list__ (&fnLst, s1, "Model_", "", 1);
   if(fNr < 1) goto L_exit;
 
 
-  sprintf(fnOut,"%sModel.tmp",OS_get_tmp_dir());
+  sprintf(fnOut,"%sModel.tmp",AP_get_tmp_dir());
 
   if(fn2) l2 = strlen(fn2);
 
@@ -7281,7 +7365,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   // get fnLst = list of files tmp/Mod_*.lst
   UtxTab_init__ (&fnLst);
-  fNr = UTX_dir_list__ (&fnLst, OS_get_tmp_dir(), "Mod_", ".lst", 1);
+  fNr = UTX_dir_list__ (&fnLst, AP_get_tmp_dir(), "Mod_", ".lst", 1);
   if(fNr < 1) goto L_exit;
 
 
@@ -7301,7 +7385,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
         TX_Print("***** Error MDL_ren_flst %s",s1);
       } else { 
         // model(s) modified; but not main
-        if(!MDL_mNam_cmp_sNam(MDL_MNAM_MAIN(), s1)) {
+        if(!MDL_mNam_cmp_sNam(MDL_mNam_main(), s1)) {
           TX_Print("***** change Model %s to internal !",s1);
           MDL_mTyp_set_sNam (s1, MBTYP_INTERN);
         }
@@ -7389,6 +7473,55 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 */
 
 
+
+//================================================================
+  char* MDL_mNam_main () {
+//================================================================
+// MDL_mNam_main           get modelname of mainModel
+// Output:
+//   retCode      pointer to AP_mod_fnam | AP_modact_nam
+//                "-" if mainModel undefined
+//
+
+  char  *mdlNam;
+static char noNam[] = "-";
+
+
+  if(mdl_names.iNr >0) mdlNam = UtxTab__(0, &mdl_names);
+  else mdlNam = noNam;
+
+
+  L_exit:
+    // printf("ex-MDL_mNam_prim |%s|\n",mdlNam);
+  return mdlNam;
+
+}
+
+
+//================================================================
+  char* MDL_mNam_iNam (int inm) {
+//================================================================
+// MDL_mNam_iNam           get modelname from name-index
+// Output:
+//   retCode      pointer to modelname
+//                "-" if undefined
+//
+
+  char  *mdlNam;
+static char noNam[] = "-";
+
+  
+  if(mdl_names.iNr >0) mdlNam = UtxTab__(inm, &mdl_names);
+  else mdlNam = noNam;
+    
+
+  L_exit:
+    // printf("ex-MDL_mNam_prim |%s|\n",mdlNam);
+  return mdlNam;
+    
+} 
+
+
 //================================================================
   char* MDL_mNam_prim () {
 //================================================================
@@ -7401,7 +7534,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   char  *mdlNam;
 
   if(MDL_IS_MAIN)  {
-    mdlNam = MDL_MNAM_MAIN ();
+    mdlNam = MDL_mNam_main ();
   } else {
     mdlNam = &AP_modact_nam[0];
   }
@@ -7529,6 +7662,9 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   int    irc, mTyp;
   long   dbi;
   char   ftyp[32], *cp1;
+
+
+  // printf("MDL_mTyp_mNam |%s|\n",mNam);
 
 
   // check MBTYP_DUP; check if name is a refModelID
@@ -7794,7 +7930,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   // test if subModel mNam already exists 
-  sprintf(newNam,"%sModel_%s",OS_get_tmp_dir(),smNam);
+  sprintf(newNam,"%sModel_%s",AP_get_tmp_dir(),smNam);
   if(OS_checkFilExist(newNam,1) == 1) {
     // sprintf(newNam,"  overwrite submodel %s ?  ",mNam);
     MSG_get_1 (newNam, 256, "OVER_mdl", "%s", smNam);

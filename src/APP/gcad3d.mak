@@ -138,7 +138,6 @@ allDemos:
 	done < makeFiles.lst
 
 
-
 #=============================================================
 # Alle processes xa_XX.so linken
 processes:
@@ -175,6 +174,15 @@ processes:
 #	make -f ../prc/cut1/G-Code.mak
 ##	$(MK) -f 3Dfrom2D.mak "OS=${OS}"
 
+
+
+#=============================================================
+# Link all extra-plugins
+extras:
+	@echo "link extras .."
+	make -f gMsh1.mak
+	if [ $$? -ne 0 ]; then exit 1; fi
+	@echo "link extras done OK"
 
 
 #=============================================================
@@ -216,7 +224,6 @@ objlst:
 # write list of all sourcefiles into file files; see gcad_src.mak
 # used for cscope, DocuDevel (doxygen)
 srclst:
-	@echo $(MK)
 	@echo $(SRC1) > srcFiles
 	@echo $(SRCG) >> srcFiles
 	@echo $(SRCB) >> srcFiles
@@ -227,8 +234,22 @@ srclst:
 	@echo ../APP/*.c ../APP/*.h >> srcFiles
 	@echo ../myAPPS/*.c ../myAPPS/*.h >> srcFiles
 	@echo ../prc/*.c ../prc/*.h >> srcFiles
+	@echo ../prc/cut1/*.c ../prc/cut1/*.h >> srcFiles
 	@echo ../inf/*.c >> srcFiles
 	find . -maxdepth 1 -name "xa_*.mak" -exec make -f {} "add_srclst" \;
+
+
+
+#=============================================================
+# write list of all sourcefiles - without APPS,prc - into file srcFiles;
+# used for cscope, DocuDevel (doxygen)
+prjlst:
+	@echo $(SRC1) > srcFiles
+	@echo $(SRCG) >> srcFiles
+	@echo $(SRCA) >> srcFiles
+	@echo $(SRCOS) >> srcFiles
+	@echo ../xa/*.h ../db/*h ../ci/*h ../ut/*h ../gr/*h ../exp/*.h >> srcFiles
+	@echo ../inf/*.c >> srcFiles
 
 
 

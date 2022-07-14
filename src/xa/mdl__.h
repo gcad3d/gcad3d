@@ -12,11 +12,14 @@
 
 // stru_FN                decoded filename of cad-model
 // symDir     symbolic name of directory;                               AP_mod_sym
-// fDir       if symDir exists: the path of the symbolic-pathname;      AP_mod_dir
-//            else the path without filename
+//            may NOT have ending '/'; can be empty
+//            can have extrapath; ed "Data/symEl1" . "symEl1" is extrapath;
+// fDir       the full path without filename and filetyp;               AP_mod_dir
+//            must have ending '/'
 // fNam       the filename (no filetype); eg "unknown"                  AP_mod_fnam
-//            if symDir exists: fNam can start with subDirectories
+//            can be empty; does not end with '.'
 // fTyp       filetyp, eg "dxf" or "gcad"                               AP_mod_ftyp
+//            can be empty;
 // iTyp       integer-filetyp; eg Mtyp_DXF                              AP_mod_iftyp
 typedef struct {char symDir[SIZMFSym],
                      fDir[SIZMFTot],
@@ -24,17 +27,20 @@ typedef struct {char symDir[SIZMFSym],
                      fTyp[SIZMFTyp],
                      iTyp;
                 }                                 stru_FN;
-//
-// see also AP_mod_sym, AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, AP_mod_iftyp
+// see MDLFN_oFn_fNam
+// see AP_mod_sym, AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, AP_mod_iftyp
 // TODO: add also AP_stat.subtyp into stru_FN
 
 
 //================================================================
+char* MDL_mNam_main ();
 char* MDL_mNam_prim ();
+char* MDL_mNam_iNam (int inm);
 char* MDL_mNamf_prim ();
 char* MDL_mNam_imr (int imr);
 char* MDL_safNam_mnam (char *safNam, char *mnam);
 char* MDL_typInf (int mTyp);
+
 
 
 //================================================================
@@ -48,6 +54,6 @@ char* MDL_typInf (int mTyp);
 
 // modelname .tess-file  <tmpDir>/Mod_<model>.tess
 #define MDL_fnModTess_mNam(fNam,mdlNam)\
- sprintf(fNam,"%sMod_%s.tess",OS_get_tmp_dir(),mdlNam)
+ sprintf(fNam,"%sMod_%s.tess",AP_get_tmp_dir(),mdlNam)
 
 // EOF

@@ -182,6 +182,7 @@ cl -c ut_geo.c
 #include "../ut/ut_math.h"             // UTM_scale_4db
 #include "../ut/func_types.h"          // SYM_TRI_S ..
 #include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_elli.h"
 
 #include "../gr/ut_gr.h"               // GR_tDyn_*

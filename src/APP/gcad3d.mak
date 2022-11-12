@@ -232,11 +232,15 @@ srclst:
 	@echo $(SRC_MS_OS) >> srcFiles
 	@echo ../xa/*.h ../db/*h ../ci/*h ../ut/*h ../gr/*h ../exp/*.h >> srcFiles
 	@echo ../APP/*.c ../APP/*.h >> srcFiles
-	@echo ../myAPPS/*.c ../myAPPS/*.h >> srcFiles
 	@echo ../prc/*.c ../prc/*.h >> srcFiles
 	@echo ../prc/cut1/*.c ../prc/cut1/*.h >> srcFiles
 	@echo ../inf/*.c >> srcFiles
 	find . -maxdepth 1 -name "xa_*.mak" -exec make -f {} "add_srclst" \;
+	# testprogs
+	@echo ../myAPPS/*.c ../myAPPS/*.h >> srcFiles
+	@echo ../msh3d/*.c ../msh3d/*.h >> srcFiles
+	@echo ../msh2d/*.c ../msh2d/*.h >> srcFiles
+	@echo ../suop/*.c ../suop/*.h >> srcFiles
 
 
 

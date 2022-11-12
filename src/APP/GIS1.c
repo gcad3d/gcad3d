@@ -766,7 +766,7 @@ static  GLfloat GL_col_tab [][4] = {
   cp1 = GUI_DATA_S1;
 
   printf("gis_CB1 |%s|\n",cp1);
-  LOG_A__ (MSG_ERR_typ_INF, cp1);
+  LOG_A__ (ERR_INF, cp1);
 
 
 

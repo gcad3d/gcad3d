@@ -76,8 +76,6 @@ MDL_IS_SUB   DO NOT USE
 //   active-model can be a subModel; see MDL_IS_MAIN
 
 
-
-
 If a subModel is active -
 - AP_modact_nam is the name of the active submodel;
 - AP_modact_ibm is -1;

@@ -76,8 +76,9 @@ inputfields:  Meas_e1, Meas_e2
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_cast.h"             // INT_PTR
-#include "../ut/func_types.h"               // UI_FuncInit
+#include "../ut/func_types.h"          // UI_FuncInit
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 
 #include "../ci/NC_apt.h"              // T_PRJ
 

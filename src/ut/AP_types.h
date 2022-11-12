@@ -71,6 +71,7 @@ void INF_OTYP (){}
 // #define Typ_VCP2              ///< D   position-vector, Plane-2D
 
 /// DB-curves 20-39
+// TYP_IS_CV
 #define Typ_CV            20  ///< S   all curves
 #define Typ_CVPOL         21  ///< S   CurvPoly
 #define Typ_CVPSP3        22  ///< S   polynom_d3
@@ -107,8 +108,8 @@ void INF_OTYP (){}
 #define Typ_SURHAT        60  ///< A Hatch
 
 // trimmed, perforated surfaces:
-#define Typ_SURPLN        58  ///< A Planar surf.
-#define Typ_SURSUP        69  ///< A support-surface 
+#define Typ_SURPLN        58  ///< A Planar surf. NOT supportSurf !
+#define Typ_SURSUP        69  ///< A support-surface (PLN SURCON SURTOR SURRU SURRV ..)
 #define Typ_SUTP          59  ///< A surface-trimmed-perforated-supported
 
 // pretesselated surfaces
@@ -297,16 +298,17 @@ void INF_OTYP (){}
 // #define Typ_TraMat       213   ///< Matrixtransformation
 
 
-/// operators
-#define Typ_ope__        220  ///< operator =
-#define Typ_ope_eq       221  ///< operator =
-#define Typ_ope_ne       222  ///< operator !=
-#define Typ_ope_lt       223  ///< operator <
-#define Typ_ope_gt       224  ///< operator >
-#define Typ_ope_ge       225  ///< operator >=
-#define Typ_ope_le       226  ///< operator <=
-#define Typ_ope_and      227  ///< operator &
-#define Typ_ope_or       228  ///< operator |
+/// operators - see CopTxtTab !
+#define Typ_ope__        219  ///< operator =
+#define Typ_ope_eq       220  ///< operator =
+#define Typ_ope_ne       221  ///< operator !=
+#define Typ_ope_lt       222  ///< operator <
+#define Typ_ope_gt       223  ///< operator >
+#define Typ_ope_ge       224  ///< operator >=
+#define Typ_ope_le       225  ///< operator <=
+#define Typ_ope_and      226  ///< operator &     AND
+#define Typ_ope_or       227  ///< operator |     OR
+#define Typ_ope_not      228  ///< operator !     NOT
 
 
 /// modifiers  TYP_IS_MOD
@@ -332,6 +334,7 @@ void INF_OTYP (){}
 #define Typ_modOUT       248
 #define Typ_modAux       249  ///< Modifier; on|off; text=last infoWord
 #define Typ_modHIX       250  // X-vec of plane
+#define Typ_modOpe       251  ///< UNUSED (use Typ_ope__)
 #define Typ_modUndef     259  ///< undefined
 
 

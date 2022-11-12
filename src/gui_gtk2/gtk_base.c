@@ -1904,11 +1904,11 @@ static int       UI_act_Id;
 //================================================================
   int GUI_set_enable (MemObj *mo, int mode) {
 //================================================================
-/// \code
-/// GUI_set_enable   makes widgets / groups of widgets unselectable (disactivate)
-///   mode        1=TRUE=active; 0=FALSE=unpickable, inactive; 2=query state
-///   RetCode     for mode=2: state; 0=inactive, 1=active
-/// \endcode
+// GUI_set_enable   makes widgets / groups of widgets unselectable (disactivate)
+//   mode        1 TRUE  active;
+//               0 FALSE unpickable, inactive;
+//               2 query state
+//   RetCode     for mode=2: state; 0=inactive, 1=active
 
 
   Obj_Unknown *go;

@@ -1235,7 +1235,7 @@ char*   GUI_Win_tit     (void *gtkWin);
 
   // if(mo->ioff == 0) {
   if(UME_obj_IS_VALID(mo) < 0) {          // 2012-07-19
-    printf("***** GUI_obj_pos - invalid MemObj\n");
+    // printf("***** GUI_obj_pos - invalid MemObj\n");
     return NULL;
   }
 

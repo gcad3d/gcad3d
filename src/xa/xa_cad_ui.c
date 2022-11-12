@@ -106,6 +106,7 @@ IE_get_inp_typ       get type & text of inputField
 IE_get_inp_TypAct    get IE_inpTypAct = IE_inpTypR[IE_inpInd];
 IE_inp_set_txt       write text -> inputField
 IE_inp_set_err       disp red boundary aroud inputfield with error / reset normal
+IE_inp_set_styl      set background normal (white) or error (red)
 IE_inp_clean         Typ_SubModel, TYP_FilNam, Typ_CtlgPart: remove enclosing '"'
 IE_inp_mod__         modify active inputField
 IE_inp_selection_clear    check / clear a active selection in inputfield
@@ -441,16 +442,17 @@ cl -c /I ..\include xa_cad_ui.c
 
 
 #include "../ut/ut_geo.h"
-#include "../ut/ut_txt.h"         // term_buf
+#include "../ut/ut_txt.h"              // term_buf
 #include "../ut/ut_TX.h"
-#include "../ut/ut_txfil.h"       // UTF_GetLinNr
-#include "../ut/ut_cast.h"        // INT_PTR
-#include "../ut/ut_os.h"          // OS_beep
-#include "../ut/ut_gtypes.h"      // AP_src_typ__
-#include "../ut/ut_ox_base.h"     // OGX_SET_OBJ OGX_NUL
-#include "../ut/ut_obj.h"         // UTO_
+#include "../ut/ut_txfil.h"            // UTF_GetLinNr
+#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_os.h"               // OS_beep
+#include "../ut/ut_gtypes.h"           // AP_src_typ__
+#include "../ut/ut_ox_base.h"          // OGX_SET_OBJ OGX_NUL
+#include "../ut/ut_obj.h"              // UTO_
 #include "../ut/func_types.h"          // FUNC_DispWire
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 
 #include "../gui/gui__.h"         // Gtk3
 
@@ -580,6 +582,7 @@ static int          IE_cad_typ = -1;   // active outputTyp; eg Typ_PT or Typ_LN
 static int  IE_inpErr;        // -1=no_error; >=0=index inputField with error
 static int  IE_inpAnz;        // Anzahl erforderl. Objekte
        int  IE_inpSrc;        // type of Input; 1=graf.Sel; 2=keyIn; 3=PgUp/Dwn
+// static int  IE_nObjOld;       // nr of active inputfields (following fields inactive)
 
 // static char IE_inpStat[INPRECANZ];   // Status Input; '0'=Leer, '1'=complete.
 static int  IE_inpStat = 0;   // status of the active inputField;
@@ -701,6 +704,8 @@ Typ_modCX     "CX"                       Modifier ACROSS (Default = Along)
                                          "ISOparametric Curve from Surf"
 
 Typ_modUnlim  "UNL|UNL1|UNL2"
+
+Typ_modOpe    "[AND|OR|NOT]"
 
 
 Typ_SubModel  APT_decode_model _FilNam_  "M int.."
@@ -903,12 +908,13 @@ static IE_rec_txt cad_lst_c[]={
   "CIR Cen Tang",                "",           // 2
   "CIR Tang Tang Radius",        "",           // 3
   "CIR Tang Tang Tang",          "",           // 4
-  "ARC Cen Ang1 Ang2 Radius",    "ARC",        // 5
-  "ARC Cen PT Angle",            "ARC",        // 6
-  "ARC PT PT Radius",            "ARC",        // 7
-  "ARC PT Tang Radius [Angle]",  "ARC",        // 8
-  "ARC PT PT Cen",               "ARC",        // 9
-  "ARC PT PT PT",                "ARC1",       // 10 
+  "CIR CI Radius",               "",           // 5
+  "ARC Cen Ang1 Ang2 Radius",    "ARC",        // 6
+  "ARC Cen PT Angle",            "ARC",        // 7
+  "ARC PT PT Radius",            "ARC",        // 8
+  "ARC PT Tang Radius [Angle]",  "ARC",        // 9
+  "ARC PT PT Cen",               "ARC",        // 10
+  "ARC PT PT PT",                "ARC1",       // 11 
   "",""};
 
 
@@ -918,9 +924,11 @@ static IE_rec_stru IE_cad_c[]={
    0, Typ_PT,       "Centerpoint",
    0, Typ_goGeo8,   "Radius  (radius/PT/CIR)",
    0, Typ_VC,       "[Z-Axis-Vector]",  // ||DD0", liefert manchmal "1".. ??
+   0, Typ_modCWCCW, "[CW/CCW]",
   // "CIR Axis Point",              "",
    1, Typ_LN,       "Axis-centerline",
    1, Typ_PT,       "Point on Circle",
+   1, Typ_modCWCCW, "[CW/CCW]",
   // "CIR Cen Tang",                "", 
    2, Typ_PT,       "Centerpoint",
    2, Typ_goPrim,   "Tang. (Pt/Ln/Cir/Curv)",
@@ -937,47 +945,50 @@ static IE_rec_stru IE_cad_c[]={
    4, Typ_goGeo6,   "Obj2 (PT/LN/CIR)",
    4, Typ_goGeo6,   "Obj2 (PT/LN/CIR)",
    4, Typ_mod1,     "[Version]",
-   // 3, Typ_VC,      "[Z-Achs-Vektor]",
+  // "CIR CI Radius"                "",           // 5
+   5, Typ_CI,       "Circle",         
+   5, Typ_goGeo8,   "Radius  (radius/PT/CIR)",
+   5, Typ_modREV,   "[REVers]",
   // "CIR PT-PT-PT",                          "",
    // 3, Typ_PT,       "1.point",
    // 3, Typ_PT,       "2.point",
    // 3, Typ_PT,       "3.point",
   // "ARC Cen Ang1 Ang2 Radius",    "ARC",
-   5, Typ_PT,       "Centerpoint",
-   5, Typ_Angle,    "Angle-Start||AP0-",
-   5, Typ_Angle,    "Angle-End||AP0-",
-   5, Typ_goGeo8,   "Radius  (radius/PT/CIR)",
-   5, Typ_modCWCCW, "[CW/CCW]",
+   6, Typ_PT,       "Centerpoint",
+   6, Typ_Angle,    "Angle-Start||AP0-",
+   6, Typ_Angle,    "Angle-End||AP0-",
+   6, Typ_goGeo8,   "Radius  (radius/PT/CIR)",
+   6, Typ_modCWCCW, "[CW/CCW]",
   // "ARC Cen PT Angle Z-Axis",            "ARC",
-   6, Typ_PT,       "Point on Axis",
-   6, Typ_PT,       "StartPoint",
-   6, Typ_Angle,    "Angle",
-   6, Typ_VC,       "[Z-Axis-Vector]||DD0",
+   7, Typ_PT,       "Point on Axis",
+   7, Typ_PT,       "StartPoint",
+   7, Typ_Angle,    "Angle",
+   7, Typ_VC,       "[Z-Axis-Vector]||DD0",
   // "ARC PT PT Radius [Z-Axis] [Version]",     "ARC",
-   7, Typ_PT,       "Startpoint",
-   7, Typ_PT,       "Endpoint",
-   7, Typ_goGeo8,   "Radius  (radius/PT/CIR)",
-   7, Typ_VC,       "[Z-Axis-Vector]",
-   7, Typ_modCWCCW, "[CW/CCW]",
-   7, Typ_mod1,     "[Version]",
-  // "ARC PT Tang Radius [Angle]",  "ARC",
    8, Typ_PT,       "Startpoint",
-   8, Typ_VC,       "StartDirection||DD0",
-   8, Typ_goGeo8,   "Radius",
-   8, Typ_Angle,    "[Angle]",
+   8, Typ_PT,       "Endpoint",
+   8, Typ_goGeo8,   "Radius  (radius/PT/CIR)",
    8, Typ_VC,       "[Z-Axis-Vector]",
    8, Typ_modCWCCW, "[CW/CCW]",
-  // "ARC PT PT Cen [Z-Axis]",     "ARC",
+   8, Typ_mod1,     "[Version]",
+  // "ARC PT Tang Radius [Angle]",  "ARC",
    9, Typ_PT,       "Startpoint",
-   9, Typ_PT,       "Endpoint",
-   9, Typ_PT,       "Centerpoint",
-   9, Typ_VC,       "[Z-Axis-Vector]||DD2",
+   9, Typ_VC,       "StartDirection||DD0",
+   9, Typ_goGeo8,   "Radius",
+   9, Typ_Angle,    "[Angle]",
+   9, Typ_VC,       "[Z-Axis-Vector]",
    9, Typ_modCWCCW, "[CW/CCW]",
-  // "ARC PT PT PT",                "ARC1",
+  // "ARC PT PT Cen [Z-Axis]",     "ARC",
   10, Typ_PT,       "Startpoint",
-  10, Typ_PT,       "Midpoint",
   10, Typ_PT,       "Endpoint",
+  10, Typ_PT,       "Centerpoint",
+  10, Typ_VC,       "[Z-Axis-Vector]||DD2",
   10, Typ_modCWCCW, "[CW/CCW]",
+  // "ARC PT PT PT",                "ARC1",
+  11, Typ_PT,       "Startpoint",
+  11, Typ_PT,       "Midpoint",
+  11, Typ_PT,       "Endpoint",
+  11, Typ_modCWCCW, "[CW/CCW]",
   //===========================
   -1, -1,           ""};
 
@@ -1555,7 +1566,8 @@ static IE_rec_txt cad_lst__[]={
   "Parallel obj (offset)",  "PARL",   // 7
   "Mirror about line",      "MIR",    // 8
   "Mirror about plane",     "MIR",    // 9
-  "ISOparametric Curve from Surf", "ISO",  // 10
+  "ISOparametric Curve from Surf", "ISO",   // 10
+  "Surf-OPEration cut,join,..",    "FOPE",  // 11
   "",""};
 
 
@@ -1612,6 +1624,11 @@ static IE_rec_stru IE_cad__[]={
   10, Typ_goGeom,    "Surface",
   10, Typ_goGeo8,    "Parameter/Point",
   10, Typ_modCX,     "[across]",
+  // "Surf-OPEration cut,join,..",    "OPE",  // 11
+  11, Typ_SUR,       "Surface",
+  11, Typ_goGeom,    "Curv,Pln,Surf",
+  11, Typ_ope__,     "[AND/OR/NOT]",
+  11, Typ_mod1,      "[solutionNr]",
   -1, -1,            ""};
 
 
@@ -1747,7 +1764,7 @@ static int IE_first, IE_last;
   int     ii;
  
 
-  // printf("IE_cad_set_OK %d\n",iStat);
+  printf("IE_cad_set_OK iStat=%d IE_inpErr=%d\n",iStat,IE_inpErr);
   // if(iStat) AP_debug__("IE_cad_set_OK");
 
 
@@ -3123,6 +3140,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   int IE_inp_set_err (int iEnt) {
 //================================================================
 // IE_inp_set_err       disp red boundary aroud inputfield with error / reset normal
+// Gtk2 displays red background ..
 // Input:
 //   iEnt       >= 0 - index inputfield with error;
 //              -1     reset error, set  errorfield to normal.
@@ -3130,7 +3148,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 //   IE_inpErr  index inputfield with error, static
 
 
-  // printf("IE_inp_set_err iEnt=%d IE_inpErr=%d\n",iEnt,IE_inpErr);
+  printf("IE_inp_set_err iEnt=%d IE_inpErr=%d\n",iEnt,IE_inpErr);
 
   if(iEnt >= 0) {
     // set ERROR = ON
@@ -3139,13 +3157,13 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
       if(iEnt != IE_inpErr) IE_inp_set_styl (IE_inpErr, GUI_STYL_normal);
       else return 0;
     }
-    // set ERROR
+    // set ERROR - backGrnd red
     IE_inpErr = iEnt;
     IE_inp_set_styl (IE_inpErr, GUI_STYL_activ);
 
 
   } else {
-    // set ERROR = OFF
+    // set ERROR = OFF - backGrnd white  
     if(IE_inpErr >= 0) {
       IE_inp_set_styl (IE_inpErr, GUI_STYL_normal);
       IE_inpErr = iEnt;
@@ -3160,12 +3178,12 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 //================================================================
   int IE_inp_set_styl (int ind, int mode) {
 //================================================================
-// IE_inp_set_styl                     write text -> inputField
+// IE_inp_set_styl                     set background normal (white) or error (red)
 //   mode    GUI_STYL_activ  (1) sets inputfield to state error
-//           GUI_STYL_normal (0) resets
+//           GUI_STYL_normal (0) resets inputfield to white (active)
 
 
-  // printf("SSSSSSSSSSSSSS IE_inp_set_styl ind=%d mode=%d\n",ind,mode);
+  printf("SSSSSSSSSSSSSS IE_inp_set_styl ind=%d mode=%d\n",ind,mode);
   // if(ind == 1) AP_debug__ ("");
 
 
@@ -3624,7 +3642,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   ModelBas  *modb1;
 
 
-  // printf("SSSSSSSSSS IE_sel_CB_1 typSel=%d ind=%ld |%s|\n",typSel,ind,buf);
+  printf("SSSSSSSSSS IE_sel_CB_1 typSel=%d ind=%ld |%s|\n",typSel,ind,buf);
   // printf(" IE_delete=%d\n",IE_delete);
 
 
@@ -4718,7 +4736,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
   int i1;
 
-  // printf("CCCCCCCCCCCCCC IE_cad_ClearInputs %d\n",iNr);
+  printf("CCCCCCCCCCCCCC IE_cad_ClearInputs %d\n",iNr);
   // printf("  IE_ed1_win.stat=%d\n",IE_ed1_win.stat);
 
   if(IE_inpErr >= 0) IE_inp_set_err (-1);
@@ -4783,7 +4801,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 // ind ist der gewahlte Funktionstyp (die ZeilenNr)
 
 
-  static int nObjOld=INPRECANZ, nObjR;
+  static int nObjR;
 
   int  irc, i1, i2;
   char *p1, *p2, cbuf[256];
@@ -4794,8 +4812,8 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
 
   // printf("11111111111111111111111111111111111111111111111111111111111\n");
-  // printf("IE_cad_init1 IE_FuncTyp=%d IE_FuncSubTyp=%d IE_modify=%d\n",
-         // IE_FuncTyp,ind,IE_modify);
+  printf("IE_cad_init1 IE_FuncTyp=%d IE_FuncSubTyp=%d IE_modify=%d\n",
+         IE_FuncTyp,ind,IE_modify);
   // printf(" IE_cad_typ=%d\n",IE_cad_typ);
 
   IE_stat__ = 2;    // 2=createPhase; create Menu & empty inputFields.
@@ -4804,9 +4822,18 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
   IE_FuncSubTyp = ind;
 
-  // fix IE_cad_typ for joints
-  if((IE_FuncTyp == 13) && (IE_FuncSubTyp >= 1)) {        // joint export
-    IE_cad_typ = Typ_Joint;
+
+  //----------------------------------------------------------------
+  // fix IE_cad_typ (typ outObj)
+  // for joints
+  if(IE_FuncTyp == IE_Func_Interact) {
+    if(IE_FuncSubTyp >= 1) IE_cad_typ = Typ_Joint;   // joint export
+    else IE_cad_typ = Typ_Activ;
+
+  } else if(IE_FuncTyp == IE_Func_Modify) {
+    if(IE_FuncSubTyp == 11) IE_cad_typ = Typ_SUR;    // Surf-OPEration FOPE
+    else IE_cad_typ = Typ_CV;
+
   }
 
   // printf(" 1.Rec %d %d %s\n",
@@ -4885,12 +4912,16 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
     IE_inpAuxDat[i2].auxInf[0] = '\0';
     ++i2;
   }
+    // printf(" cad_init1 IE_nObjOld=%d\n",IE_nObjOld);
   nObjR=0;   // index inputField
   for(i1=IE_first; i1<=IE_last; ++i1) {
-      // printf(" inp:iCad=%d ind=%d inf=|%s|\n",i1,nObjR,IE_cad_act[i1].info);
+      // printf(" cad_init1 i1=%d nObjR=%d inf=|%s|\n",i1,nObjR,IE_cad_act[i1].info);
 
-    if(nObjOld <= nObjR)
-      GUI_set_enable (&IE_wCad_obj[nObjR], TRUE);
+    // if(IE_nObjOld <= nObjR) {
+        // printf(" cad_init1-activ. inp[%d]\n",i1);
+      GUI_set_enable (&IE_wCad_obj[nObjR], TRUE); // set inputfield active
+      GUI_entry_styl (&IE_wCad_obj[nObjR], GUI_STYL_normal); // set background white
+    // }
 
     // if(IE_cad_act[i1].typ == Typ_Subtyp) continue;
     strcpy(cbuf, IE_cad_act[i1].info);
@@ -4943,15 +4974,16 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
   // delete unused Menulines
   // disactivate unused entries & info
-  // printf(" nObjOld=%d,nObjR=%d\n",nObjOld,nObjR);
-  if(nObjOld > nObjR) {
-    for(i1=nObjR; i1<nObjOld; ++i1) {
-        // printf(" disactiv. inp[%d]\n",i1);
+  // printf(" cad_init1 IE_nObjOld=%d,nObjR=%d\n",IE_nObjOld,nObjR);
+  // if(IE_nObjOld > nObjR) {
+    // for(i1=nObjR; i1<IE_nObjOld; ++i1) {
+    for(i1=nObjR; i1<INPRECANZ; ++i1) {
+        // printf(" cad_init1-disactiv. inp[%d]\n",i1);
       GUI_set_enable (&IE_wCad_obj[i1], FALSE);
       GUI_label_mod (&IE_wCad_info[i1], " ");
     }
-  }
-  nObjOld=nObjR;
+  // }
+  // IE_nObjOld = nObjR;
 
 /*
   // Funktionsinfo -> Messageline rausschreiben
@@ -5011,7 +5043,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   L_exit:
   
     // TESTBLOCK
-    // printf("ex-IE_cad_init1 irc=%d IE_cad_typ=%d\n",irc,IE_cad_typ);
+    printf("ex-IE_cad_init1 irc=%d IE_cad_typ=%d\n",irc,IE_cad_typ);
     // END TESTBLOCK
 
   return irc;
@@ -5164,11 +5196,11 @@ static int _do_not = 0;
 
 
 
-  // printf(">>>>-IE_cad_test__ anz=%d first=%d\n",IE_inpAnz,IE_first);
-  // printf("     IE_FuncTyp=%d IE_FuncSubTyp=%d\n",IE_FuncTyp,IE_FuncSubTyp);
-  // printf(" IE_buf=|%s|\n",IE_buf);
-  // printf(" IE_EdFnc=%d\n",IE_EdFnc);
-  // printf(" IE_cad_typ=%d IE_objInd=%ld\n",IE_cad_typ,IE_objInd);
+  printf(">>>>-IE_cad_test__ anz=%d first=%d\n",IE_inpAnz,IE_first);
+  printf("     IE_FuncTyp=%d IE_FuncSubTyp=%d\n",IE_FuncTyp,IE_FuncSubTyp);
+  printf(" IE_buf=|%s|\n",IE_buf);
+  printf(" IE_EdFnc=%d\n",IE_EdFnc);
+  printf(" IE_cad_typ=%d IE_objInd=%ld\n",IE_cad_typ,IE_objInd);
 
 
   if(!IE_lst_act) return 0;         // Drama - woher ??
@@ -5369,7 +5401,7 @@ static int _do_not = 0;
   if(IE_save == 1) l1 = IE_objInd;   // 1=save perm.
   else l1 = 0;
 
-    // printf(" IE_cad_test__ IE_cad_typ=%d ind=%ld\n",IE_cad_typ,l1);
+    printf(" IE_cad_test__ IE_cad_typ=%d ind=%ld\n",IE_cad_typ,l1);
 
 
   if(IE_FuncTyp == IE_Func_CADEnv) {             // ActiveCADEnv
@@ -7979,6 +8011,7 @@ static IE_info_rec IE_info_tab[] = {
       else if (typ == Typ_modCX)      IE_cad_Inp1_nxtREV (i1, "CX");
       else if (typ == Typ_modPERP)    IE_cad_Inp1_nxtREV (i1, "PERP");
       else if (typ == Typ_modUnlim)   IE_cad_Inp1_nxtREV (i1, "UNL|UNL1|UNL2");
+      else if (typ == Typ_ope__)      IE_cad_Inp1_nxtREV (i1, "AND|OR|NOT");
       else if (typ == Typ_modCTRL)    IE_cad_Inp1_nxtREV (i1, "CTRL");
       else if (typ == Typ_modCWCCW)   IE_cad_Inp1_nxtREV (i1, "CW");
       else if (typ == Typ_modRepl)    IE_cad_Inp1_nxtREV (i1, "REPL");
@@ -8201,7 +8234,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     if(GUI_OBJ_IS_VALID(&IE_edWin1)) {
       // kill GruppenEditorWindow, if activ
       // IE_ed1__ (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
-      IE_ui_func (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
+      if(IE_ui_func) IE_ui_func (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
     }
     IE_inpInd    = -1;
     IE_inpTypAct = -1;
@@ -9381,7 +9414,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   ObjGX     ox1; // = OGX_NUL;
 
 
-  // printf("IE_cad_prev__ typ=%d dbi=%ld dli=%ld |%s|\n",typ,dbi,dli,src);
+  printf("IE_cad_prev__ typ=%d dbi=%ld dli=%ld |%s|\n",typ,dbi,dli,src);
   // printf(" _cad_prev__ UI_InpMode=%d IE_FuncTyp=%d\n",UI_InpMode,IE_FuncTyp);
 
 
@@ -9463,7 +9496,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     irc = SRC__add_dynTyp (sSrc, sizeof(sSrc), rTyp, src, 1);
     if(irc < 0) goto L_err_dyn;
   }
-    // printf(" _Inp_disp__-sSrc|%s|\n",sSrc);
+    printf(" _Inp_disp__-sSrc|%s|\n",sSrc);
 
 
   //----------------------------------------------------------------
@@ -9474,14 +9507,13 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // get atomicObjects from sourceLine p1; full evaluated.
   irc = ATO_ato_srcLn__ (&ato1, sSrc);
   if(irc < 0) goto L_err_dyn;
-    // ATO_dump__ (&ato1, "_Inp_disp__-ato1");
+    ATO_dump__ (&ato1, "_Inp_disp__-ato1");
 
 
   // test if obj is useful (eg in = point, requested = groupcode Typ_go_PD)
   // get rTyp from basicType or groupType (eg Typ_go_PD)
   oTyp = AP_typ__ck_ato__ (&ato1, rTyp);
-  // oTyp = IE_inpCkTyp (iind, p1, &ato1);
-    // printf(" _Inp_disp__-oTyp=%d iind=%d\n",oTyp,iind);
+    printf(" _Inp_disp__-oTyp=%d iind=%d\n",oTyp,iind);
   if(oTyp <= 0) {
     // msg obj not useful -
     IE_cad_msg_obj_ko (sSrc, 0);
@@ -11600,7 +11632,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 //=====================================================================
   int IE_ed2_mod (MemObj *mo, void **data) {
 //=====================================================================
-// Hilfsfunktionen Window TextEdit
+// IE_ed2_mod              Hilfsfunktionen Window TextEdit
 
 
   int      i1, lNr, iFlag;
@@ -11612,9 +11644,10 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
   // printf("============================================= \n");
-  // printf("IE_ed2_mod  |%s|\n",txt);
+  // printf("IE_ed2_mod  |%s|\n",txt);  // "OK" or "Exit" or "Test"
 
 
+  //----------------------------------------------------------------
   if(!strcmp(txt, "Exit")) {
     // exit mode Modify; goto EndOfProgram; IE_activate..
     IE_cad_INS ("Exit");
@@ -11622,6 +11655,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   }
 
 
+  //----------------------------------------------------------------
   // ab hier "OK oder "Test"
   if(!strcmp(txt, "Test")) iFlag = 1;  // 1=Test
   else                     iFlag = 2;  // 2=OK
@@ -11637,20 +11671,23 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   lNr = ED_get_lnr_act ();   // get act.lNr
 
-  if(iFlag == 2) WC_set_obj_stat (0);  // perm; nur bei OK
+  if(iFlag == 2) {
+    WC_set_obj_stat (0);        // perm; nur bei OK
+    strcpy(mem_cbuf1, IE_buf);  // copy code - ED_work_CAD will clear IE_buf
+  }
 
   // IE_cad_test__:
   ED_work_CAD (lNr, IE_buf);
   DL_Redraw ();
 
-  WC_set_obj_stat (1); // ab nun wieder alles temp ..
+  WC_set_obj_stat (1);      // ab nun wieder alles temp ..
 
   if(iFlag == 1) return 0;  // Test done ..
 
 
   //----------------------------------------------------------------
   // IE_cad_OK:
-  UTF_chg_line (lNr, IE_buf);   // replace line im mem ..
+  UTF_chg_line (lNr, mem_cbuf1);   // replace line im mem ..
 
   // kill win
   // IE_ed2__ (NULL, PTR_INT(UI_FuncKill));  // 2011-04-14
@@ -11681,7 +11718,9 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
 
   i1 = GUI_DATA_L1;
-  // printf("IE_ed2__ %d\n",i1);
+
+
+  printf("IE_ed2__ %d\n",i1);
 
 
 
@@ -11727,7 +11766,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
       // get act.lNr
       lNr = ED_get_lnr_act ();
       p1 = UTF_GetPosLnr (&lLen, lNr);
-        // printf(" lNr=%d lLen=%d\n",lNr,lLen);
+        printf(" IE_ed2__ lNr=%ld lLen=%ld\n",lNr,lLen);
       if(lNr >= IE_bufMax) {TX_Error("IE_ed2__ EOM"); return -1;}
       memcpy(IE_buf, p1, lLen);
       IE_buf[lLen] = '\0';
@@ -11761,10 +11800,12 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     case UI_FuncKill:   // Exit-Button
         printf("IE_ed2__ Kill\n");
       GUI_Win_kill (&win0);
+      IE_EdFnc = 0;
 
 
     case UI_FuncExit:   // called from GUI_Win__
       IE_edWin1 = GUI_OBJ_INVALID();
+      IE_EdFnc = 0;
         printf("IE_ed2__ Exit\n");
   }
 

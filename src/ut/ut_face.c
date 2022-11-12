@@ -138,6 +138,7 @@ UFA_disp_nEdg2     display 2D-edges
 UFA_fac_ck_zero_2D check faces for zero-size (linear face)
 UFA_fac_dump_      dump faces
 UFA_fac_dump1      dump 1 face
+UFA_nifac_dump__   dump doubly-indexed-faces and neighbours
 UFA_fnb_dump_1     dump face and its neighbours
 UFA_fnb_dump__     dump faces and neighbours
 UFA_fnb_dump_f     dump faces and neighbours into file
@@ -2048,6 +2049,9 @@ const Fac3 FAC3_NUL = { 0, 0, 0, 16, 0, 0, 0 };
   int UFA_fnb_set_val (Fac3 *fnb1, int esn, int ifnb) {
 //================================================================
 // UFA_fnb_set_val               set face-neighbour
+//    0  normal edge
+//   -1  IB/OB
+//   -2  BL
 // do not overwrite breaklines
  
   // printf("UFA_fnb_set_val i1=%d i2=%d i3=%d e=%d val=%d\n",
@@ -2286,6 +2290,30 @@ const Fac3 FAC3_NUL = { 0, 0, 0, 16, 0, 0, 0 };
 }
 
  
+//================================================================
+  int UFA_nifac_dump__ (Fac3 *fac, int *ipa, int fNr, char *inf) {
+//================================================================
+// UFA_nifac_dump__        dump doubly-indexed-faces and neighbours
+
+  int    i1;
+  Fac3   *fa1;
+
+
+  if(!DEB_STAT) return 0;
+
+  printf("---------------- UFA_nifac_dump__ %d %s\n",fNr,inf);
+  for(i1=0; i1<fNr; ++i1) {
+    fa1 = &fac[i1];
+    printf("f%d (%d %d %d  s%2d) ipa = (%d %d %d)\n", i1,
+           fa1->i1,      fa1->i2,      fa1->i3,    fa1->fst0,
+           ipa[fa1->i1], ipa[fa1->i2], ipa[fa1->i3]);
+  }
+  printf("---------------- ex-UFA_nifac_dump__ %d %s\n",fNr,inf);
+
+  return 0;
+}
+
+
 //================================================================
   int UFA_fnb_dump_1 (Fac3 *fac, Fac3 *fnb, char *txt, ...) {
 //================================================================
@@ -4549,7 +4577,8 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
   f1.fst0 = st;
 
-  return MemTab_sav ((MemTab*)fTab, &l1, &f1, 1);
+  // return MemTab_sav ((MemTab*)fTab, &l1, &f1, 1);
+  return MemTab_add (fTab, &l1, &f1, 1, 0);
 
 }
 
@@ -5109,6 +5138,8 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
   // TESTBLOCK
   // printf("UFA_3fac_fac_pt ifc=%d ipt=%d\n",ifc,ipt);
+  // printf(" _3fac_fac_pt fac.rNr=%d fac.rMax=%d\n",fTab->rNr,fTab->rMax);
+
   // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "3fac");
   // UFA_nfb_ck__ (fTab->data, fnb, fTab->rNr, "UFA_3fac_fac_pt");
   // if(ipt = 4) return -99;
@@ -5153,6 +5184,8 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
   // add new face <fNr + 1>
   if3 = fTab->rNr;
   UFA_add_fac_st (fTab, i3, i1, ipt, 0);
+    // printf(" _3fac_fac_pt if2=%d if3=%d\n",if2,if3);
+
 
   // ifc: keep i1
   fnb[ifc].i2   = if2;
@@ -5177,10 +5210,10 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
 
     // TESTBLOCK
-#ifdef DEB
+// #ifdef DEB
     // printf("========= UFA_3fac_fac_pt Pt %d MOD F%d CREATE F%d F%d ======\n",
            // ipt,ifc,if2,if3);
-#endif
+// #endif
     // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "ex-UFA_3fac_fac_pt");
     // UFA_nfb_ck__ (fTab->data, fnb, fTab->rNr, "ex-UFA_3fac_fac_pt");
     // UFA_nfb_ck_f (ifc, fTab->data, fnb);

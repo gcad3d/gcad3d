@@ -13,6 +13,7 @@
 // subtyp     0=VRML1, 1=VRML2
 // jntStat    0=unInitilized, 1=open  (DBFile <tmp>/joints)
 // debStat    0=normal (debug off); 1=debug_ON
+// logStat    0=normal (logging-off); 1=logging-ON
 // tstDllStat 0=normal (OFF); 1=testdll_ON
 // mdl_modified   UNUSED
 // mdl_box_valid  AP_mdlbox_invalid_ck - 0=valid, 1=void,invalid
@@ -36,16 +37,17 @@ typedef struct {int errLn; short sysStat, errStat;
                           TUT_stat:1,      // 5
                           jntStat:1,
                           debStat:1,
+                          logStat:1,
                           iActStat:1,
-                          tstDllStat:1,
-                          mdl_modified:1,  // 10
+                          tstDllStat:1,    // 10
+                          mdl_modified:1,  
                           mdl_box_valid:1,
                           comp:1,
                           start_rcmd:1,
-                          err_hide:1,
-                          zip:1,           // 15
-                          mdl_load,
-                          uuBits:16; }                         AP_STAT;
+                          err_hide:1,      // 15
+                          zip:1,           
+                          mdl_load:1,
+                          uuBits:15; }                         AP_STAT;
 
 
 

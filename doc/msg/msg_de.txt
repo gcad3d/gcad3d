@@ -163,6 +163,7 @@ CIR_Axis_Point=Circle from its centerline and point on circle
 CIR_Cen_Tang=Kreis aus Mittelpunkt, tangential an Punkt/Linie/Kreis
 CIR_Tang_Tang_Radius=Kreis tangential an zwei Elemente, mit fixem Radius.
 CIR_Tang_Tang_Tang=Kreis tangential an 3 Elemente.
+CIR_CI_Radius=Konzentrischer Kreis; Kreis, Radius oder Punkt am Kreis
 ARC_Cen_Ang1_Ang2_Radius=Kreisbogen durch Mittelpunkt, Winkel-Startpunkt, Winkel-Endpunkt und Radius.
 ARC_Cen_PT_Angle=Kreisbogen durch Mittelpunkt, Startpunkt und Öffnungswinkel.
 ARC_PT_PT_Radius=Kreisbogen durch Startpunkt, Endpunkt und Radius.
@@ -248,6 +249,7 @@ Parallel_obj__offset_=parallel object (offset-curve or surface)
 Mirror_about_line=Objekte um eine Linie spiegeln
 Mirror_about_plane=Objekte um eine Ebene spiegeln
 ISOparametric_Curve_from_Surf=Kurve aus einer Fläche extrahieren (von Parameterwert(en)); [CX (Querrichtung)]
+Surf_OPEration_cut_join___=cut or join surface using curve, plane or surface (boolean AND OR NOT)
 
 Interact_connect=Interaktion an Objekt binden
 Joint_export=ein Objekt exportieren (Punkt oder Text)
@@ -275,6 +277,7 @@ Typ_YVal=Y-Wert eing.; Sel PT
 Typ_ZVal=Z-Wert eing.; Sel PT
 Typ_Angle=Winkel: Wert (Grad) eing. / Sel LN / PT-PT / Bild-Tasten
 Typ_PLN=Sel PLN / Bild-Tasten (ConstrPln)
+Typ_SUR=selects surface (A)
 Typ_SOL=Sel Conus/Torus
 Typ_goPrim=Sel PT/LN/CIR
 Typ_lFig=Sel LN/Cir/CRV
@@ -304,6 +307,7 @@ Typ_modREV=Bild-Tasten / ("REV" = reverse) eing.
 Typ_modCX=Bild-Tasten / ("CX" = Querrichtung) eing.
 Typ_modUnlim=Unlimitiert; Bild-Tasten / "UNL" oder "UNL1" oder "UNL2" eingeben
 Typ_modRepl=Obj. ersetzen; Standard = kopieren; Bild-Taste oder "REPL" eingeben
+Typ_modOpe=boolean operation AND OR NOT (join, split, ..
 Typ_Txt=Text eingeben / Bild-Tasten
 Typ_String=Text eing. / Modify-Edit
 TYP_FilNam=Filename eing. / mittl. Mausetaste (F5) Liste / sel.Model

@@ -163,6 +163,7 @@ CIR_Axis_Point=Circle from its centerline and point on circle
 CIR_Cen_Tang=Circle from center, tangential to point/line/circle
 CIR_Tang_Tang_Radius=Circle tangential to two elements, with fixed radius
 CIR_Tang_Tang_Tang=Circle tangential to 3 elements
+CIR_CI_Radius=Concentric circle; circle, radius or point on circle
 ARC_Cen_Ang1_Ang2_Radius=Circ.Arc by center, start angle, end angle and radius
 ARC_Cen_PT_Angle=Circ.Arc by center, start point and opening angle
 ARC_PT_PT_Radius=Circ.Arc by start point, end point and radius
@@ -248,6 +249,7 @@ Parallel_obj__offset_=parallel object (offset-curve or surface)
 Mirror_about_line=Mirror: reflect objects across line
 Mirror_about_plane=Mirror: reflect objects across plane
 ISOparametric_Curve_from_Surf=extract curve from surface (from paramtere(s)); [CX (across; Default = along)]
+Surf_OPEration_cut_join___=cut or join surface using curve, plane or surface (boolean AND OR NOT)
 
 Interact_connect=connect object with interaction
 Joint_export=export object (point or text)
@@ -275,6 +277,7 @@ Typ_YVal=Key Y-Val; Sel PT
 Typ_ZVal=Key Z-Val; Sel PT
 Typ_Angle=Angle: Key Val(Deg.); Sel LN / PT-PT; Key PgUp/Dwn
 Typ_PLN=Sel PLN; Key PgDwn (ConstrPln)
+Typ_SUR=selects surface (A)
 Typ_SOL=Sel Conus/Torus
 Typ_goPrim=Sel PT/LN/CIR
 Typ_lFig=Sel LN/Cir/CRV
@@ -305,6 +308,7 @@ Typ_modCX=Key PgUp / PgDwn  ("CX" = across)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
 Typ_modPERP=Key PgUp / PgDwn ("PERP" = normal - perpendicular)
 Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
+Typ_modOpe=boolean operation AND OR NOT (join, split, ..
 Typ_Txt=enter text / key PgUp / PgDwn
 Typ_String=Key Text / Modify-Edit
 TYP_FilNam=Key Filename / middle Mousebutt.(F5=FileList) / sel.Model

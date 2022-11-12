@@ -163,6 +163,7 @@ CIR_Axis_Point=Circle from its centerline and point on circle
 CIR_Cen_Tang=Bulatan dari pusat, bertangen dengan titik/garisan/bulatan
 CIR_Tang_Tang_Radius=Bulatan bertangen dengan dua unsur, dengan jejari tetap
 CIR_Tang_Tang_Tang=Bulatan bertangen dengan 3 unsur
+CIR_CI_Radius=Concentric circle; circle, radius or point on circle
 ARC_Cen_Ang1_Ang2_Radius=Lekung dengan tengah, sudut mula, sudut akhir dan jejari
 ARC_Cen_PT_Angle=Lekung dengan pusat, titik mula dan sudut buka
 ARC_PT_PT_Radius=Lekung dengan titik mula, titik akhir dan jejari
@@ -248,6 +249,7 @@ Parallel_obj__offset_=parallel object (offset-curve or surface)
 Mirror_about_line=Cermin: pantul objek merentasi garisan
 Mirror_about_plane=Cermin: pantul objek merentasi satah
 ISOparametric_Curve_from_Surf=ekstrak lekung dari permukaan (dari parameter(s)); [CX (merentasi; Lalai = along)]
+Surf_OPEration_cut_join___=cut or join surface using curve, plane or surface (boolean AND OR NOT)
 
 Interact_connect=sambung objek dengan interaksi
 Joint_export=eksport objek (titik atau teks)
@@ -275,6 +277,7 @@ Typ_YVal=Key Y-Val; Sel PT
 Typ_ZVal=Key Z-Val; Sel PT
 Typ_Angle=Sudut: Key Val(Deg.); Sel LN / PT-PT; Key PgUp/Dwn
 Typ_PLN=Sel PLN; Key PgDwn (ConstrPln)
+Typ_SUR=selects surface (A)
 Typ_SOL=Sel Kon/Torus
 Typ_goPrim=Sel PT/LN/CIR
 Typ_lFig=Sel LN/Cir/CRV
@@ -304,6 +307,7 @@ Typ_modREV=Key PgUp / PgDwn  ("REV" = songsang)
 Typ_modCX=Key PgUp / PgDwn  (\"CX\" = merentasi)
 Typ_modUnlim=Tanpa Had; PgUp atau PgDwn atau key "UNL" atau "UNL1" atau "UNL2"
 Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
+Typ_modOpe=boolean operation AND OR NOT (join, split, ..
 Typ_Txt=masukkan teks / key PgUp / PgDwn
 Typ_String=Key Teks / Ubahsuai-Sunting
 TYP_FilNam=Key Namafail / butTetikus tengah(F5=SenaraiFail) / sel.Model

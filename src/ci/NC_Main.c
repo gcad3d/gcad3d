@@ -437,6 +437,7 @@ Verbinden:
 #include "../ut/ut_gtypes.h"              // APED_dbo_oid
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 #include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"                  // TX_Print
 // #include "../ut/ut_crv.h"
@@ -2269,8 +2270,6 @@ static long     actDLi;
   int   irc;
   char  *p1;
 
-static int errStat=0; // 0=OK
-
 
     // find p1 = PosCodEnd
     p1 = strchr(cbuf, '\n');
@@ -2769,6 +2768,10 @@ APT_stat_act:
   //=============== Zeile fertig =============================================
   Fertig:
   if(APT_lNr < 0) goto L_exit99; // skip DYN-BLOCK-Zeilen
+
+
+
+  DL_disp_def (0);  // reset hide    2022-09-12
 
 /*
   // nur bei Verarbeitung aus dem Memory (nicht aus File)
@@ -3277,7 +3280,6 @@ APT_stat_act:
   } else if(typTyp == Typ_SUR) {
     iAtt = GR_Att_act;
   }
-
 
 
   //----------------------------------------------------------------
@@ -3862,18 +3864,16 @@ APT_stat_act:
           // if(irc < 0) goto Error;
 
         } else {
+          // GText
+          // skip text-only (no position; eg "N#="text")
+          if(((GText*)ox1->data)->size < 0.f) break;
 
           if(APT_obj_stat) {  // 1=temp
             irc = GR_temp_txtG ((GText*)ox1->data, ATT_COL_HILI);
           } else {            // 0=permanent
-            irc = GR_perm_txtG ((GText*)ox1->data, dbi, 0);
+            irc = GR_perm_txtG ((GText*)ox1->data, dbi, 0);    // GR_set_txt__
           }
           if(irc < 0) goto Error;
-          // gtx1 = ox1->data;
-          // if(gtx1->size >= 0.) {
-            // APT_DrawTxtG (0, &gtx1.pt, gtx1.size, gtx1.dir, gtx1.txt);
-            // APT_DrawTxtG (iAtt, dbi, ox1->data);
-          // }
         }
       break;
 
@@ -10196,9 +10196,9 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
 
   int   i1, irc;
 
+
   // printf("APT_obj_ato typ=%d\n",typ);
   // ATO_dump__ (aus_obj, "_obj_ato-1");
-
 
 
   if(aus_obj == NULL) {
@@ -10237,7 +10237,9 @@ int APT_Lay_add(int layNr,int aus_anz,char* sptr,int* aus_typ,double* aus_tab){
     if(typ == Typ_VAR) {  // 2013-03-15
       irc = APT_decode_var (data, aus_anz, aus_typ, aus_tab);
 
-    } else if(typ == Typ_XVal) {
+    } else if((typ == Typ_XVal) ||
+              (typ == Typ_YVal) ||
+              (typ == Typ_ZVal))  {
       irc = APT_decode_xyzval (data, aus_anz, aus_typ, aus_tab, &typ);
 
     } else if(typ == Typ_Angle) {

@@ -270,7 +270,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     } else {
       UTF_wri_f__ (stdout);
 
-    }
+    } 
 
   return 0;
 
@@ -292,10 +292,10 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 // extraced from IE_inpTxtOut
 
   int       irc = 0, i1, sLen;
-  char      *actBuf, s1[8];
+  char      *actBuf, s1[80];
 
 
-  // printf("SRC__add_dynTyp %d |%s|\n",typ,si);
+  printf("SRC__add_dynTyp %d |%s|\n",typ,si);
 
   sLen = strlen(si);
   if(sLen < 1) return -1;
@@ -345,6 +345,10 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     // "P20" -> R(P20)"
     if(s1[0] == 'R') goto L_cpy_txt;
     sprintf(so, "R(%s)",actBuf);
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_SUR) {
+    if(s1[0] == 'A') goto L_cpy_txt;
 
   //----------------------------------------------------------------
   } else if(typ == Typ_XVal) {
@@ -402,7 +406,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
   //----------------------------------------------------------------
   L_exit:
-      // printf(" ex-SRC__add_dynTyp %d |%s|\n",irc,so);
+      printf(" ex-SRC__add_dynTyp %d |%s|\n",irc,so);
   return irc;
 
 

@@ -134,6 +134,7 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 #include "../ut/func_types.h"               // SYM_TRIANG
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 
 #include "../xa/xa_mem.h"              // memspc101
 #include "../xa/xa_ui.h"               // APF_*

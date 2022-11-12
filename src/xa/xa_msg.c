@@ -46,6 +46,7 @@ Modifications:
 List_functions_start:
 
 -------------- ERROR-MESSAGES ----------------------------------
+MSG_ERROR       std-error-msg
 MSG_ERR__       errormessage (key, additional_text)         see INF_DEB_MSG_ERR
 MSG_ERR_out     error/warning/info
 MSG_ERR_sev     get severity (1|2|3) from errorcode (< 0)
@@ -234,6 +235,8 @@ static FILE   *MSG_fp=NULL;
 #define MSG_bSiz 512
 static char   MSG_buf[MSG_bSiz];
 
+static char   *ERR_sev_txt[] = {"INF", "WNG","ERR","BRK"};
+
 
 
 //================================================================
@@ -243,27 +246,29 @@ static char   MSG_buf[MSG_bSiz];
 char *MSG_ERR_txt[]={
   "*** INF:",      // iSev = 0
   "*** WNG:",      // iSev = 1
-  "*** ERROR:"     // iSev = 2
+  "*** ERROR:",    // iSev = 2
   "*** BREAK:"     // iSev = 3
+  "*** CON--:"     // iSev = 4         UU ?
+  "*** EXIT-TEST:" // iSev = 5
 };
 
 
-/// messages for MSG_ERR_out MSG_ERR__
+/// messages for errordcodes ERR_codes
 char *MSG_ERR_tab[]={
-  "internal error - exit",                ///< 3 99 internal Error,
-  "memtab out of memory error",           ///< 2 98 error, exit right now
-  "not implemented yet error - exit",     ///< 2 97 error, exit right now
-  "memspace already in use",              ///< 2 96 ERR_MEMSPC_IN_USE
-  "not implemented yet error - info",     ///< 2 95 info only - TODO
-  "function not implemented",             ///< 1 94 func_not_impl,
-  "subModel undefined",                   ///< 1 93 subModel_undefined,
-  "DB-object undefined",                  ///< 1 92 db_obj_undefined,
-  "file open",                            ///< 1 91 file_open,
-  "testExit",                             ///< 1 90 testExit,
-  "OBSOLETE",                             ///< 0 89 
-  "unsupported",                          ///< 0 88 
-  "canceled by user",                     ///< 0 87 ERR_USER_ABORT
-  "uu"                                    ///< -
+  "internal error - exit",                ///< 0 99 internal Error,
+  "memtab out of memory",                 ///< 1 98 error, exit right now
+  "not implemented yet - exit",           ///< 2 97 error, exit right now
+  "memspace already in use",              ///< 3 96 ERR_MEMSPC_IN_USE
+  "not implemented yet - info",           ///< 4 95 info only - TODO
+  "function not implemented",             ///< 5 94 func_not_impl,
+  "subModel undefined",                   ///< 6 93 subModel_undefined,
+  "DB-object undefined",                  ///< 7 92 db_obj_undefined,
+  "file open",                            ///< 8 91 file_open,
+  "testExit",                             ///< 9 90 testExit,
+  "OBSOLETE",                             /// 10 89 
+  "unsupported",                          /// 11 88 
+  "canceled by user",                     /// 12 87 ERR_USER_ABORT
+  "--"                                    /// 13 86
 };
 
 
@@ -1073,7 +1078,7 @@ char *MSG_ERR_tab[]={
 //==================================================================================
 /// \code
 /// MSG_ERR_out     error/warning/info; use with MSG_ERR__
-///   msgTypr       MSG_ERR_typ_ERR|MSG_ERR_typ_WNG|MSG_ERR_typ_INF
+///   msgTyp        ERR_ERR|ERR_WNG|ERR_INF
 ///   iErr          errorcode; see ERR_codes
 ///
 /// output:       TX_Error ..
@@ -1099,7 +1104,7 @@ char *MSG_ERR_tab[]={
 
 
 
-  // TX_Print ("%s %s(): %s %s", MSG_ERR_txt[MSG_ERR_typ_ERR],
+  // TX_Print ("%s %s(): %s %s", MSG_ERR_txt[ERR_ERR],
                      // fnc,
                      // MSG_ERR_tab[ikey],
                      // s1);
@@ -1127,5 +1132,93 @@ char *MSG_ERR_tab[]={
 }
 
 
+//==================================================================================
+  int MSG_ERR_std (int iErr, const char *fnc, int lNr, char *txt, ...) {
+//==================================================================================
+// MSG_ERR_std     error/warning/info; use with MSG_ERR__
+//
+// Input:
+//   iErr       errorcode from list ERR_codes; eg 'ERR_func_not_impl' (-94)
+//              - or severity:
+//                -1 = WNG     error-continue next level;
+//                -2 = ERROR   error-unrecoverable; stop/break active operation;
+//                -3 = BREAK   error-internal; exit right now, stop and unload plugin
+// output:       TX_Error ..
+//   retCod      iErr
+//
+// TODO:  store iSev - eg in AP_errStat_set (int in ../xa/ap_stat.h;)
+// - set 2=realloc-DB_allocCDAT to eg 10
+// - replace MSG_ERR__ with MSG_ERROR
+//
+// see MSG_ERR__
+// see MSG_ERR_txt
+
+  va_list va;
+  int     irc = 0, iSev;
+  char    s1[256], s2[560], s3[256], *etx;
+
+
+  // printf("MSG_ERR_std: iErr=%d\n",iErr);
+
+  // get iSev from iErr;
+  iSev = 0;
+  // get ext = codeText
+  etx = MSG_ERR_tab[13];        // set unknown errorText "uu"
+
+  if(iErr < -50) {
+      // printf(" - %d %d %d\n",ERR_TEST,ERR_TODO_I,ERR_EOM);
+    // codes from list ERR_codes; eg "ERR_func_not_impl"
+    if(iErr < -86) etx = MSG_ERR_tab[iErr + 99];  // get the errorText from MSG_ERR_tab
+    if(iErr < ERR_TEST)          iSev = 1;
+    if(iErr < ERR_TODO_I)        iSev = 2;
+    if(iErr < ERR_EOM)           iSev = 3;
+
+  } else {
+    iSev = -iErr;
+  }
+
+    // printf(" MSG_ERR_std iErr=%d iSev=%d |%s|\n",iErr,iSev,etx);
+    
+
+  va_start (va, txt);
+  vsprintf (s1, txt, va);
+  va_end (va);
+    // printf(" MSG_ERR_std s1=|%s|\n",s1);
+
+
+
+  if(AP_get_modact_ind() >= 0) {
+    // subModel is active ..
+    sprintf(s3, "- SM %s - CAD-Line %d ",DB_mdlNam_iBas(AP_get_modact_ind()),
+            ED_get_lnr_SM());
+  } else {
+    // mainModel is active ..
+    sprintf(s3, "- CAD-Line %d ",APT_get_line_act());
+  }
+
+
+  sprintf(s2,"%s %s in func %s lNr %d %s inf \"%s\"",
+              ERR_sev_txt[iSev],
+                 etx,       fnc,  lNr,s3,s1);   
+
+
+
+  printf("======================================== \n");
+  printf("  %s\n",s2);
+  printf("======================================== \n");
+
+  TX_Print ("*****  %s",s2);
+
+
+
+  if(iSev > 1) {
+    // do not raise Errors for testExit
+    if(iErr != ERR_TEST) AP_errStat_set (1);
+  }
+
+
+  return iErr;
+
+}
 
 // EOF

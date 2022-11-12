@@ -10,23 +10,22 @@
 CAD functions:
 <a href="CAD_using_en.htm">See operating CAD ..</a>
 
-see also <a href="CAD_Base_en.htm#V">Codes Variables</a>
+see also <a href="CAD_Base_en.htm#fmt_values">Math-functions Variables</a>
 
 Variables use shortcut key V.
+- store a numeric value in DB;  "V{DB-index}={value}"
 
 Implicit definition of variables by function VAL():
   Example: VAL(P20 P21)  - the distance between 2 points.
 
-Variables are temporarily displayed as horzontal lines;
-  the length indicates the value.
+The value of variables is temporarily displayed in red in center of screen
 
 
 <a name="F0"></a>
   <h2>V Variable - Value</h2>
 V - variable value
-Direct allocation of a variable
+Direct allocation of a variable or numeric expression
 
-With Pageup / Page Down key a defined variable.
 
 
 
@@ -65,7 +64,7 @@ V20 = L20
 <a name="F4"></a>
   <h2>V PT - LN Perp.Dist</h2>
 PT-V LN normal distance
-  Variable = Normal distance of a point from a distance
+  Variable = Normal distance of a point from a line
 
 V20 = P20 L20
 
@@ -91,7 +90,7 @@ V20 = C20
     - tilt-angle ay: the angle between the line and the XY-plane of the active coord.system
 
   [REVers]                 Pageup / Page Down ("<a href="CAD_input_en.htm#_ModREV_">REV</a>")
-    - 180-degree complementry angle (180 - angle)
+    - negative angle
 
   [complement]             Pageup / Page Down ("<a href="CAD_input_en.htm#_ModCX_">CX</a>")
     - 360-degree complementry angle (360 - angle)
@@ -117,7 +116,7 @@ V20 = ANG D(L20)
   [Line/Vector 2]
 
   [REVers]                 Pageup / Page Down ("<a href="CAD_input_en.htm#_ModREV_">REV</a>")
-    - 180-degree complementry angle (180 - angle)
+    - negative angle
 
   [complement]             Pageup / Page Down ("<a href="CAD_input_en.htm#_ModCX_">CX</a>")
     - 360-degree complementry angle (360 - angle)

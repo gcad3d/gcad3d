@@ -379,6 +379,7 @@ __declspec(dllexport) int DXFW__ (char*);
 #include "../ut/ut_os.h"                  // AP_get_bas_dir ..
 // #include "../ut/ut_txTab.h"               // TxtTab
 #include "../ut/ut_memTab.h"              // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 
 #include "../gr/ut_DL.h"                  // DL_GetAtt
 #include "../gr/ut_GL.h"                  // GL_GetCen
@@ -389,13 +390,13 @@ __declspec(dllexport) int DXFW__ (char*);
 
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 
-#include "../xa/xa_msg.h"                 // MSG_ERR_typ_*
+#include "../xa/xa_msg.h"                 // ERR_*
 #include "../xa/xa_mem.h"                 // memspc501
 #include "../xa/xa.h"                     // AP_STAT
 
 
 
-typedef_MemTab(int);
+// typedef_MemTab(int);
 
 
 //===========================================================================
@@ -2089,7 +2090,7 @@ usw.
     // get DB-obj
     ox1 = DB_GetObjGX (iTyp, oTab[i1].dbInd);
     if(ox1.typ == Typ_Error) {
-      LOG_A__ (MSG_ERR_typ_ERR, "DXFW_main typ=%d dbi=%ld",
+      LOG_A__ (ERR_ERR, "DXFW_main typ=%d dbi=%ld",
                oTab[i1].typ,oTab[i1].dbInd);
       ++dxfw_errNr;
       continue;
@@ -2359,7 +2360,7 @@ usw.
   l1 = OS_FilSiz (fnam);
   // fBuf = MEM_alloc_tmp ((int)(l1 + 128));
   fBuf = malloc ((int)(l1 + 128));
-  if(!fBuf) { LOG_A__ (MSG_ERR_typ_ERR, "DXFW_cat_file EOM"); return -1;}
+  if(!fBuf) { LOG_A__ (ERR_ERR, "DXFW_cat_file EOM"); return -1;}
   MEM_get_file (fBuf, &l1, fnam);
   fwrite (fBuf, 1, l1, fpo);
   free(fBuf);

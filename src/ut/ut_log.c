@@ -42,12 +42,12 @@ List_functions_start:
 LOG_A__         write
 LOG_A_pt2       report errPos
 LOG_A_pt3       report errPos
-LOG_A_write     write, internal
+LOG_A_write     write, fopen if not yet open; set AP_stat.logStat
 
 LOG_A_set_fnam  (re)define logfilename
 LOG_A_init      set logfilename
 LOG_A_disp      display logfile
-LOG_A_exit      close logfile
+LOG_A_exit      close logfile, reset AP_stat.logStat
 
 List_functions_end:
 =================================================================
@@ -55,21 +55,27 @@ List_functions_end:
 \endcode *//*----------------------------------------
 
 
-You must set the logfilename with LOG_A_set_fnam
-You must delete the logfile.
+Set the logfilename with LOG_A_set_fnam
+Delete the logfile.
 
 Example usage:
 
-#include "../ut/ut_log.h"                  // MSG_ERR_typ_*
+#include "../ut/ut_log.h"                  // ERR_*
 
   sprintf(fn, "%sLog_xy.txt", AP_get_tmp_dir());
-  LOG_A_set_fnam (fn);
-  LOG_A__ (MSG_ERR_typ_ERR, " err xyz - retCod=%d",irc);
-  ..
-  LOG_A_exit ((int)errNr);
+  LOG_A_set_fnam (fn);          // fopen
+
+  if(AP_stat.logStat)
+  LOG_A__ (ERR_ERR, " err xyz - retCod=%d",irc);
+    // Messagetypes for LOG_A__: see ../xa/xa_msg.h ERR_INF - ERR_CON
+ 
+  LOG_A_exit ((int)errNr);      // close
 
   // display logfile manually: Dump/view_logfile or with func.
   LOG_A_disp ();
+
+
+
 
 */
 
@@ -87,11 +93,16 @@ Example usage:
 
 
 #include "../ut/ut_geo.h"              // Point ...
-#include "../xa/xa_msg.h"              // MSG_ERR_typ_*
+#include "../xa/xa_msg.h"              // ERR_*
+#include "../xa/ap_stat.h"             // AP_STAT
 
 
 
+// externals:
+// xa.c:
+extern AP_STAT   AP_stat;         // sysStat,errStat..
 
+// local:
 static FILE      *LOG_A_fp=NULL;        // file Logfile
 static char      LOG_A_fnam[128];  // filename Logfile
 
@@ -135,7 +146,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 
   // if not yet open then open Logfile
   // open log-file
-  if(iopen) irc = LOG_A__ (MSG_ERR_typ_INF, "=========== logfile %s ",fnam);
+  if(iopen) irc = LOG_A__ (ERR_INF, "=========== logfile %s ",fnam);
   else      irc = 0;
   return irc;
 
@@ -155,6 +166,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
       return -1;
 
     } else {
+      AP_stat.logStat = 1; // ON
       fprintf (LOG_A_fp, "INF Logstart %s\n",OS_date1());
     }
   }
@@ -171,10 +183,10 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 //================================================================
 // LOG                    write message into logfile
 // Input:
-//   msgTyp     MSG_ERR_typ_INF = 0
-//              MSG_ERR_typ_WNG = 1
-//              MSG_ERR_typ_ERR = 2
-//              MSG_ERR_typ_CON     4        // continuation line
+//   msgTyp     ERR_INF = 0        // see ../xa/xa_msg.h
+//              ERR_WNG = 1
+//              ERR_ERR = 2
+//              ERR_CON   4        // continuation line
 //   txt        must be format (eg "%s" or "%s %d")
 //   ...        parameters appropriate format <txt>
 //
@@ -209,7 +221,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
   sprintf(s1, "pos =  %lf %lf",pte->x, pte->y);
 
   // return LOG_A_write (s1);
-  return LOG_A__ (MSG_ERR_typ_CON, s1);
+  return LOG_A__ (ERR_CON, s1);
 
 }   
   
@@ -293,6 +305,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
     fprintf (LOG_A_fp, "INF =========== Logend %s\n",OS_date1());
     fclose (LOG_A_fp);
     LOG_A_fp = NULL;
+    AP_stat.logStat = 0; // OFF
 
     if(errNr > 0) TX_Print ("**** Logfile reports %d errors",errNr);
   }

@@ -207,13 +207,14 @@ cl -c /I ..\include xa_ui.c
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_TX.h"
 #include "../ut/ut_os.h"
-#include "../ut/ut_txt.h"         // fnam_del
-#include "../ut/ut_txfil.h"       // UTF_FilBuf0Siz
+#include "../ut/ut_txt.h"              // fnam_del
+#include "../ut/ut_txfil.h"            // UTF_FilBuf0Siz
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_col.h"              // COL_INT32
 #include "../ut/func_types.h"          // FUNC_DispWire
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 
 #include "../gui/gui__.h"              // Gtk3
 
@@ -4526,71 +4527,69 @@ static char LstBuf[LstSiz][32];
 //================================================================
   int UI_VWR_ON () {
 //================================================================
-// activate VWR
+// UI_VWR_ON                               activate VWR
 
   int     i1,  opMod;
 
 
-  // printf("UI_VWR_ON %d\n",UI_InpMode);
+  printf("UI_VWR_ON %d\n",UI_InpMode);
 
-    opMod = UI_InpMode;    // old mode
+  opMod = UI_InpMode;    // old mode
 
-      if(opMod == UI_MODE_VWR) return 0;
-
-
-      // printf("VWR - activate\n");
-      UI_InpMode = UI_MODE_VWR;
-
-      MSG_pri_0 ("VWR_On");
-
-        GUI_gl_block (&winMain, 1);
-
-        GL_temp_del_1 (GR_TMP_I0);               // remove tempObj
-        GL_grid_tmp_set (NULL); // disactivate temp. grid
-
-        // UI_cb_search (0);  // switch off "Search/Name"        2011-03-03
-
-        // disactivate menu Insert Select CATALOG,
-        UI_set_Ins_Sel_Cat (FALSE);
-
-        // reactiv. Interact (MAN->VWR u CAD->VWR)
-        GUI_set_enable (&ckb_Iact, TRUE);
-
-        GUI_gl_block (&winMain, 0);
-
-        // MAN,CAD -> VWR: hide all activities, joints.
-        DL_hide_unvisTypes (1);
-
-        // enable selection of all types
-        sele_set__ (Typ_goGeom);      
+  if(opMod == UI_MODE_VWR) return 0;
 
 
-      //----------------------------------------------------------------
-      // MAN -> VWR:
-      if(opMod == UI_MODE_MAN) {
-
-        UI_ed_OFF ();
-        UI_brw_ON ();
-        Brw_init__ ();
-        MDL_brw_upd ();
-
-        GR_dli_hili = -1L;       // reset hilite of last-created-obj
-
-        // act. GO,STEP;   MAN:On; CAD,VWR:Off.
-        GUI_set_enable (&but_go, FALSE);
-        GUI_set_enable (&but_step, FALSE);
-
-      }
+  // CAD -> VWR:
+  if(opMod == UI_MODE_CAD) {
+    IE_cad_exitFunc ();                // remove GroupEdit-win
+    // remove CAD-toolbar tbCad
+    GUI_set_show (&tbCad, 0);
 
 
-      //----------------------------------------------------------------
-      // // CAD -> VWR:
-      // if(opMod == UI_MODE_CAD) {
-        // IE_cad_exitFunc ();                // remove GroupEdit-win
-        // // remove CAD-toolbar tbCad
-        // GUI_set_show (&tbCad, 0);
-      // }
+  //----------------------------------------------------------------
+  // MAN -> VWR:
+  } else if(opMod == UI_MODE_MAN) {
 
+    UI_ed_OFF ();
+    UI_brw_ON ();
+    Brw_init__ ();
+    MDL_brw_upd ();
+
+    GR_dli_hili = -1L;       // reset hilite of last-created-obj
+
+    // act. GO,STEP;   MAN:On; CAD,VWR:Off.
+    GUI_set_enable (&but_go, FALSE);
+    GUI_set_enable (&but_step, FALSE);
+
+  }
+
+
+  //----------------------------------------------------------------
+  // printf("VWR - activate\n");
+  UI_InpMode = UI_MODE_VWR;
+
+  MSG_pri_0 ("VWR_On");
+
+  // UI_set_Ins_Sel_Cat (FALSE);
+
+  GUI_gl_block (&winMain, 1);
+
+  GL_temp_del_1 (GR_TMP_I0);               // remove tempObj
+  GL_grid_tmp_set (NULL); // disactivate temp. grid
+
+  // UI_cb_search (0);  // switch off "Search/Name"        2011-03-03
+
+  // disactivate menu Insert Select CATALOG,
+  // reactiv. Interact (MAN->VWR u CAD->VWR)
+  GUI_set_enable (&ckb_Iact, TRUE);
+
+  GUI_gl_block (&winMain, 0);
+
+  // MAN,CAD -> VWR: hide all activities, joints.
+  DL_hide_unvisTypes (1);
+
+  // enable selection of all types
+  sele_set__ (Typ_goGeom);      
 
   GUI_update__ ();  // f Gtk3
   DL_Redraw ();
@@ -4650,7 +4649,7 @@ static char LstBuf[LstSiz][32];
   int     i1,  opMod;
 
 
-  // printf("UI_CAD_ON UI_InpMode=%d\n",UI_InpMode);
+  printf("UI_CAD_ON UI_InpMode=%d\n",UI_InpMode);
 
     opMod = UI_InpMode;    // old mode
 
@@ -4715,6 +4714,8 @@ static char LstBuf[LstSiz][32];
           DL_hide_unvisTypes (0);
           DL_Redraw ();  // first time only necessary ..
         }
+
+  // IE_nObjOld = INPRECANZ;
 
   GUI_obj_focus (&winGR);
 
@@ -4874,11 +4875,9 @@ static char LstBuf[LstSiz][32];
 //=====================================================================
   int UI_butCB (MemObj *mo, void **data) {
 //=====================================================================
-/*
-Callback Buttons.
+// UI_butCB                         button-callback 
+// See UI_but__ (txt);
 
-See UI_but__ (txt);
-*/
 
   int    i1, i2, opMod;
   long   ll;
@@ -4888,8 +4887,11 @@ See UI_but__ (txt);
 
   // printf("\n=================================================\n");
   cp1 = GUI_DATA_S1;
-    // printf("UI_butCB |%s|\n",cp1);
-    // printf("  UI_InpMode=%d sysStat=%d\n",UI_InpMode,AP_stat.sysStat);
+
+    // TESTBLOCK
+    printf("UI_butCB |%s|\n",cp1);
+    printf("  UI_InpMode=%d sysStat=%d\n",UI_InpMode,AP_stat.sysStat);
+    // END TESTBLOCK
 
 
   // if(AP_stat.sysStat < 3) return 0;   // startup
@@ -5013,8 +5015,6 @@ See UI_but__ (txt);
     }
 
 
-
-
   //=============================================================
   } else if(!strcmp(cp1, "MAN")) {
     i1 = GUI_radiobutt_get (&ckb_man);     // 1=active, 0=not
@@ -5026,12 +5026,12 @@ See UI_but__ (txt);
     }
 
 
-
   //=============================================================
   } else if(!strcmp(cp1, "VWR")) {
-    i1 = GUI_radiobutt_get (&ckb_vwr);     // 1=active, 0=not
-      // printf(" ckb_vwr=%d\n",i1);
-    if(i1) {
+//     i1 = GUI_radiobutt_get (&ckb_vwr);     // 1=active, 0=not
+//       printf(" ckb_vwr=%d\n",i1);
+//     if(i1) {
+    if(UI_InpMode != UI_MODE_VWR) {
       UI_VWR_ON ();
     } else { 
       UI_VWR_OFF ();
@@ -5612,7 +5612,7 @@ See UI_but__ (txt);
 
   // surf's : Color, Transparenz, Style, Style;
   if(typ == Typ_SUR) {
-    col1 = COL_INT32(&ga1->iatt); // col1 = (ColRGB*)&ga1->iatt;
+    col1 = COL_INT32P(&ga1->iatt); // col1 = (ColRGB*)&ga1->iatt;
 /*
     if(col1->color == 0) {
       sprintf(cbuf2, " Color = Default");
@@ -8886,15 +8886,22 @@ box1
 //================================================================
   int UI_lang_chg (MemObj *mo, void **data) {
 //================================================================
+// UI_lang_chg                   change language
 
   char    *cp1;
 
 
   printf("UI_lang_chg |%s|%s| %d\n",GUI_DATA_S1,AP_lang,AP_stat.sysStat); 
+  // printf("   UI_InpMode=%d\n",UI_InpMode);
+
 
   if(AP_stat.sysStat < 2) return 0;
 
   if(GUI_DATA_EVENT == TYP_EventRelease) return 0;
+
+  // exit CAD,MAN -> VWR
+  if(UI_InpMode != UI_MODE_VWR) UI_main_set__ (UI_MODE_VWR);
+
 
   cp1 = GUI_DATA_S1;
   if(!strcmp(cp1, AP_lang)) return 0;
@@ -8906,6 +8913,7 @@ box1
 
   // load msg/msg_const_c2l<AP_lang>de.txt
   MSG_const_init (AP_lang);
+
   // open file msg/msg_<sLang>.txt on lun MSG_fp
   MSG_Init (AP_lang);
 

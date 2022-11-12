@@ -15,6 +15,7 @@ typedef struct {char iter[16];}        TreeNode;
   // 16=sizeof(GtkTreeIter)
 #endif
 
+// typedef struct {char iter[sizeof(GtkTreeIter)];}        TreeNode;
 
 
 MemObj GUI_tree1__ (MemObj *o_par, void *selCB, char *opts);

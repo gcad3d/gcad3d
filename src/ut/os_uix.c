@@ -78,7 +78,7 @@ extern int errno;
 /// retCod: 0=OK; -1=Error.
 /// \endcode
 
-  // printf("OS_file_delete |%s|\n",fNam);
+  printf("OS_file_delete |%s|\n",fNam);
 
   return remove (fNam);    // ACHTUNG: keine Wildcards mit remove !
 
@@ -112,7 +112,7 @@ extern int errno;
 /// rename File; NO Wildcards !
 // MS u Unix gleich.
 
-  // printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
+  printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
 
   remove (fnNew);    // delete File (sonst get das rename ned ..)
                      // ACHTUNG: keine Wildcards mit remove !

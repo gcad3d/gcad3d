@@ -147,21 +147,22 @@ cl -c /I ..\include xa_ui_gr.c
 #include "../ut/ut_geo.h"
 #include "../ut/ut_txt.h"
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_TX.h"
-#include "../ut/ut_os.h"             // AP_get_bas_dir
-#include "../ut/ut_cast.h"           // INT_PTR
-#include "../ut/ut_err.h"            // ERR_SET1
-#include "../ut/ut_gtypes.h"         // AP_src_typ__
-#include "../ut/ut_txfil.h"          // UTF_GetLinNr
+#include "../ut/ut_os.h"               // AP_get_bas_dir
+#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_err.h"              // ERR_SET1
+#include "../ut/ut_gtypes.h"           // AP_src_typ__
+#include "../ut/ut_txfil.h"            // UTF_GetLinNr
+#include "../ut/func_types.h"          // FUNC_DispRend ..
 
-#include "../gui/gui__.h"            // Gtk3
+#include "../gui/gui__.h"              // Gtk3
 
 #include "../gr/ut_gr.h"
 #include "../gr/ut_DL.h"
 
-#include "../ut/func_types.h"             // FUNC_DispRend ..
 #include "../gr/ut_GL.h"
-#include "../gr/ut_DL.h"             // DL_GetAtt
+#include "../gr/ut_DL.h"               // DL_GetAtt
 
 #include "../db/ut_DB.h"
 

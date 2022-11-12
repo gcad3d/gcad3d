@@ -184,14 +184,16 @@ Identification key for a variable is V.
 
 see also <A HREF="CAD_Var_en.htm">CAD functions variable</A> 
 
-- stores a numeric value in DB;  "V{DB-index}={value}"
+- stores a numeric value in DB;  "V{DB-index}={numeric_expression}"
 
   Example:
-    V20=25              # set DB-variable[20] = 25
-    C20=P20 V20         # use DB-variable[20] for circle - set radius = 25
+    V20=25              # DB-variable 20 = 25
+    C20=P20 V20         # circle aroud P25 with radius = 25
+    V21=V20 * 2
+    V22=2 * X(P20)     # V22 is X-coord. of P20 * 2
 
 
-Numeric values see <A HREF='#fmt_values'>values</A>
+Numeric expressions see <A HREF='#fmt_values'>values</A>
 
 
 
@@ -1110,67 +1112,74 @@ MODE DISP_ONAM_NT OFF
 <h3>Values:</h3>
 
 
-- Direct: enter number with keybord;
+<b>Direct: enter number with keybord;</b>
+V20=10
+V21=V20 + 10
 
 
 
-- from DB-variable (eg V20 (DB-variable 20))
+<b>Basic mathematic operations:</b>
+  + - / * ^   (plus minus multiply subtract power)
 
-  Example:
-    V20=25
-    C20=P20 V20         # circle with radius 25
+Process * before +- not supported - 
+  - must be specified with brackets
+V35=10 + 5 * 2     # 30
+V36=10 + (5 * 2)   # 20
+
+  Power:
+V27=4^0.5       # result is 2 (4 to the power 0.5)
+
+
+<b>Numeric Constants:</b>
+PI         PI               3.1415926535897932384
+RAD_360    PI * 2           6.2831853071795862319
+RAD_180    PI               3.1415926535897932384
+RAD_90     PI / 2           1.5707963267948965579
+RAD_1      PI / 180         0.0174532925199432954
+SR_3       SQRT(3)          1.732050808
+SR_2       SQRT(2)          1.414213562
+
+V22=V21 * PI
 
 
 
-- from geometric obj -
+<b>Geometric Constants:</b>
+   DX DY DZ DIX DIY DIZ           Standardvektoren
+   RX RY RZ RIX RIY RIZ           Standardebenen
+
+
+
+<b>Geometric funktions:</b>
     X(P20)                   x-coordinate of point 20
     Y(P20)                   y-coordinate of point 20
     Z(P20)                   z-coordinate of point 20
-    VAL(L20)                 length of line 20
     VAL(C20)                 radius of circle 20
+    VAL(L20)                 length of line 20
     VAL(P1 P2)               length between 2 points
     VAL(P1 L1)               normal distance from point to line
+    ANG(..)                  angle
 
   Example:
     C21=P21 VAL(C20)     # circle with same radius as C20
-
-    
-
-  
-- from numeric constant:
-    RAD_360    PI * 2     6.2831853071795862319
-    RAD_180    PI         3.1415926535897932384 
-    RAD_90     PI / 2     1.5707963267948965579
-    RAD_1      PI / 180   0.0174532925199432954
-    SR_3       SQRT(3)    1.732050808
-    SR_2       SQRT(2)    1.414213562
-
-  Example:
-    V21 = V20 * TAN(RAD_90)
+    V29=ANG(D(L(P(0 0 0) P(10 10 0))))  # 45 - angle of vector from 2 points
 
 
-
-- from mathematic functions:
+<b>Mathematic functions:</b>
    SIN () COS () TAN () ASIN () ACOS () ATAN ())
    SQRT()      square-root
    ABS()       Absolute value (the sign is always positive)
    FIX()       remove the numbers after the decimal point
    RND()       Rounding. 1.3 to 1.0, 1.8 to 2.0, -1.3 to -1.0, -1.8 to -2.0
 
-  Example:
-    V26=RND(V20) * 2    # V20=1.8 resuts in 4
 
-   
+  V24=ABS(-12.5)    # 12.5
+  V25=FIX(1.8)      # 1.0
 
-- from mathematic operations:
-  supported operators: + - / * ^   (plus minus multiply subtract power)
 
-  Example:
-    V20=10
-    V21=10+20*2     # result is 60
-    V22=10+(20*2)   # result is 50
-    V23=V22*2       # result is 100
-    V27=4^0.5       # result is 2 (4 to the power 0.5)
+
+<b>Display content of variable:</b>
+PRI "V26 = " V26
+PRI "P20 = " P20
 
 
 

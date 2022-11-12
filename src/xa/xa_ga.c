@@ -2114,7 +2114,7 @@ static ObjAtt ObjAtt_NUL = {0L, 0, 0};
     // printf(" gaNr=%d\n",gaNr);
 
 
-  col = COL_INT32(&GA_ObjTab[gaNr].iatt); // col = (ColRGB*)&GA_ObjTab[gaNr].iatt;
+  col = COL_INT32P(&GA_ObjTab[gaNr].iatt); // col = (ColRGB*)&GA_ObjTab[gaNr].iatt;
     // DEB_dump_obj__ (Typ_Color, col, " col ex ga ");
 
   if(sStyl == 1) {               // reset style to 1=normal
@@ -2223,7 +2223,7 @@ static ObjAtt ObjAtt_NUL = {0L, 0, 0};
     if((typ == Typ_SUR)  ||                   // surfs
        (typ == Typ_SOL)  ||                   // surfs
        (typ == Typ_Model))   {                // surfs
-      col = COL_INT32(&GA_ObjTab[i1].iatt); // col = (ColRGB*)&GA_ObjTab[i1].iatt;
+      col = COL_INT32P(&GA_ObjTab[i1].iatt); // col = (ColRGB*)&GA_ObjTab[i1].iatt;
       fprintf(fpo," cr=%d cg=%d cb=%d col=%d tra=%d sym=%d tex=%d\n",
         col->cr,col->cg,col->cb,col->color,col->vtra,col->vsym,col->vtex);
 

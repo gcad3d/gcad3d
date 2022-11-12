@@ -2717,6 +2717,9 @@ typedef struct {Point2 p1, p2; double double rad, ango;}      Circ2C;
   double   d1;
   Vector2  vl, vp;
 
+  
+  // printf(" UT2D_sid_3pt %f %f\n",pt->x,pt->y);
+  // printf("  %f %f   -   %f %f\n",p1->x,p1->y,p2->x,p2->y);
 
   UT2D_vc_2pt (&vl, p1, p2);
 
@@ -12344,6 +12347,10 @@ int UT2D_ci_ptrd (Circ2 *ci, Point2 *ptc, double rdc) {
   int UT2D_pt_tra_pt3_rsys (Point2 *pt2, Point *pt3, Refsys *rSys) {
 //====================================================================
 // UT2D_pt_tra_pt3_rsys            transf. 3D-Point => 2D-Point
+// Input:  pt3   3D-point has world-coords (not coords in plane);
+// Output: pt2   coords X,Y in plane, Z=0.
+// see UTRA_2D_pt_3D
+
 
   if(rSys->bpi >= 0) {
     // transf. onto Backplane

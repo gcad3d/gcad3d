@@ -1508,7 +1508,7 @@ REPLACED by UTO_obj__ccv_segnr
 //====================================================================
   int UT3D_pt_segparccv (Point *p1, int is, double ps, ObjGX *cv1) {
 //====================================================================
-// REPLACED BY UT3D_pt_segparccv
+// REPLACED BY UT3D_pt_ccv_segnr_par1
 // UT3D_pt_segparccv      Punkt <-- segNr und Paramter auf CCV
 
 // see UTO_pt_par1_dbo

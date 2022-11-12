@@ -951,9 +951,9 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
       // printf(" symDir__fnAbs-s_act=|%s|\n",p1);
 
     // test if symbolPath has "$"-variable
-    p2 = strchr (s2, '$');
+    p2 = strchr (p1, '$');
     // expand shell variables in symbolPath
-    if(p2) irc = OS_osVar_eval (p1, sizeof(s2));
+    if(p2) irc = OS_osVar_eval (p1, sizeof(s1) - (p1 - &s1[0]));
     // if(p2) irc = OS_filnam_eval (s2, p1, sizeof(s2));
     // else strcpy (s2, p1);
       // printf(" symDir__fnAbs-eval-p1 |%s|\n",p1);

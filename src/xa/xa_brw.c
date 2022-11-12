@@ -110,8 +110,9 @@ see also UI_mcl__ GUI_mList__  ../gtk/tst_tree_it.c
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_txTab.h"            // TxtTab
-#include "../ut/func_types.h"               // UI_FuncOK
+#include "../ut/func_types.h"          // UI_FuncOK
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 
 #include "../gui/gui__.h"              // Gtk3
 

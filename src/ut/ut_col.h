@@ -3,8 +3,12 @@
 
 */
 
+// ColRGB from int:
+#define COL_INT32__(i32) (*((ColRGB*)&i32))
+
+
 // *ColRGB from *int:
-#define COL_INT32(i32) ((ColRGB*)(i32))
+#define COL_INT32P(i32) ((ColRGB*)(i32))
 
 // *char from *int (&att):
 #define CHAR_ICOL(i32) ((unsigned char*)(i32))

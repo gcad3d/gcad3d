@@ -99,7 +99,7 @@ static char *AP_loc_dir;         // local
 static char *AP_cfg_dir;
 static char *AP_tmp_dir;
 static char *AP_doc_dir;
-static char *AP_ico_dir;
+       char *AP_ico_dir;
 
 
 #define LNG_MAX_NR 16

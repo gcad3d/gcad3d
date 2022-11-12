@@ -229,7 +229,7 @@ INF_GR_RECORDS      Source-record Database-record DisplayList-record
                     temporary-dynamic-obj   GR_tDyn_*
                     temporary-obj           GR_temp_*
                     
-INF_GR_preview      temp. display of symbolic-objects ((VC,Tra,VAR,Activ)
+INF_GR_preview      temp. display of symbolic-objects (VC,Tra,VAR,Activ)
 
 INF_GR_attrib       attributes (color, linetype ..)
 
@@ -291,6 +291,7 @@ INF_workflow_MAN
 INF_workflow_CAD__
 INF_workflow_CAD_edit
 INF_workflow_models         load / save model ..
+INF_workflow_ATO            decode atomic-objects
 
 INF_basModels__
 INF_timer__
@@ -372,6 +373,9 @@ inputObjects  pt 2pt  ..
  bMsh  Typ_GL_Sur, binary-mesh           INF_FMTB_BinaryMesh
  patch Opengl-patch; type, points (GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN.. ))
  ipatch indexed-Opengl-patch; type, indexTable, points.
+ Mtb   MemTab 
+ Tab   table,array,list; eg the data-block of a MemTab
+ Oxm   OgxTab (MemTab_ObjGX + Memspc)
 
  ox   Complex-Object                     ObjGX  OGX_..
  otb  struct ObjTab - table of binaray objects
@@ -611,6 +615,43 @@ INF_binaryObjects   get binObj from other objects
 
 
 
+================================================================== \endcode */}
+void INF_SRC__ (){        /*! \code
+
+source-code, ascii-string; eg "P20=100,0,0"
+Functions:
+APED
+
+
+================================================================== \endcode */}
+void INF_OID__ (){        /*! \code
+
+source-object-ID     eg "P22",
+
+Functions:
+*_oid*
+APED_oid_dbo__    make name (oid) from typ and DB-Index
+APED_dbo_oid      get type and dbi from object-ID
+
+
+================================================================== \endcode */}
+void INF_TXO__ (){        /*! \code
+
+source-object    ObjSRC ObjTXTSRC
+
+Functions:
+APED_txo_srcLn__    split source-code into source-objects  
+OSRC_*
+
+
+================================================================== \endcode */}
+void INF_ATO__ (){        /*! \code
+
+atomic-object     ObjAto
+
+Functions:
+ATO_ato_srcLn__
+
 
 ================================================================== \endcode */}
 void INF_obj_types (){        /*! \code
@@ -630,7 +671,7 @@ name     funcGrp      struct    form          descr                    files,fun
                     Vector    Typ_VC
 pt     UT3D_        Point     Typ_PT        point                    INF_Typ_PT
 ln                  Line      Typ_LN
-                    Circ      Typ_CI
+                    Circ      Typ_CI        circle                   INF_Typ_CI
                     CurvPoly  Typ_CVPOL     polygon                  INF_Typ_CVPOL
                     CurvPol2  Typ_CVPOL2    polygon-2D               ../ut/ut_plg.c
                     CurvElli  Typ_CVELL     ellipse                  INF_Typ_CVELL
@@ -648,6 +689,10 @@ stp    SUTP_        ObjGX     Typ_SUTP    trimmed,perforated surf (SurTP)  INF_S
                     GText     Typ_GTXT
                     AText     Typ_ATXT, Typ_Tag                      INF_Typ_?
 ....................................................................................
+src    APED_        char[]    Typ_ObjSRC    source-code              INF_SRC__
+oid    *_oid*                               source-object-ID         INF_OID__
+txo    APED_txo_    ObjSRC    Typ_ObjSRC    source-object            INF_TXO__
+ato    ATO_         ObjAto    Typ_ObjAto    atomic-object            INF_ATO__
        UTcol_       ColRGB    Typ_Color     color                    INF_Typ_Color
 ox     OGX_         ObjGX     Typ_ObjGX     complex-object           INF_Typ_ObjGX
 obj    UTO_         typ+data  int+void*     binary-obj               INF_UTO__
@@ -655,8 +700,6 @@ otb    OTB_         ObjTab    - undef !     obj+xDat[]               INF_ObjTab
                     ObjBin    - undef !
 dbo    DB_          typ+dbi   int+long      DB-object (dataBase)     INF_DBO__
                     ObjDB     Typ_ObjDB
-ato    ATO_         ObjAto    Typ_ObjAto    atomic-object
-txo    APED_txo_    ObjSRC    Typ_ObjSRC    source-object
 jnt    JNT_         -         Typ_Joint                              INF_joints
 bbx    BBX2_        BBox2     Typ_BBox2     boundingBox-2D           INF_BBOX
 odl    DL_          DL_Att    - undef !     DisplayListRecord
@@ -898,7 +941,20 @@ Files:
 
 
 ================================================================== \endcode */}
+void INF_Typ_CI (){        /*! \code
+
+struct Circ
+typ Typ_CI
+
+Functions:
+APT_decode_ci
+
+
+================================================================== \endcode */}
 void INF_Typ_CVELL (){        /*! \code
+
+struct CurvElli
+typ Typ_CVELL
 
 
 Functions:
@@ -957,12 +1013,12 @@ see INF_ConstructionPlane
 
 Defaultplanes are:
 DB-indexes    obj_ID    normal-to
-DB_PLX_IND     DX         X-axis
-DB_PLY_IND     DY         Y-axis
-DB_PLZ_IND     DZ         Z-axis
-DB_PLIX_IND    DIX        negative-X-axis
-DB_PLIY_IND    DIY        negative-Y-axis
-DB_PLIY_IND    DIZ        negative-Z-axis
+DB_PLX_IND     DX         X-axis            RX  ZX Y   -1
+DB_PLY_IND     DY         Y-axis            RY -XZ Y   -2
+DB_PLZ_IND     DZ         Z-axis            RZ  XY Z   -3
+DB_PLIX_IND    DIX        negative-X-axis   RIX        -4
+DB_PLIY_IND    DIY        negative-Y-axis   RIY        -5
+DB_PLIY_IND    DIZ        negative-Z-axis   RIZ        -6
 
 
 ================================================================== \endcode */}
@@ -1409,7 +1465,7 @@ Point *pb1, Point *pb2,        // LL (lower-left), UR (upper-right)
 
 bbx    BBX2_        BBox2     Typ_BBox2     boundingBox-2D           INF_BBOX
 
-
+see also GridBox
 
 
 
@@ -1629,28 +1685,6 @@ expand:  (malloc & copy)
 
 
 ================================================================== \endcode */}
-void INF_OgxTab (){        /*! \code
-
-otb    OXMT_        OgxTab                  ObjGX + var-len-record   INF_OgxTab
-
-OgxTab is a container of a MemTab .ogx plus a Memspc .spc -
-  MemTab is a list of Fixed-Length-Records                           see INF_MemTab
-  Memspc is a list of Variable-Length-Records                        see INF_Memspc
-
-
-Examples:
-  OgxTab otb1 = _OGXTAB_NUL;
-  OXMT_test_1 ()
-
-
-Files:
-../APP/ut_ogxt.c
-
-../ut/ut_ogxt.c
-../ut/ut_ogxt.h
-
-
-================================================================== \endcode */}
 void INF_UtxTab (){        /*! \code
 
 add, find, reallocate - strings terminated with '\0'.
@@ -1843,6 +1877,10 @@ main-events                   INF_workflow_events
 select-process                INF_workflow_select
 
 
+------- GR:
+UI_GL_draw__
+GL_Redraw    // redraw objects stored in GL - referenced by GL-index;
+
 
 
 ../../doc/gcad_doxygen/ProgramFlow.dox
@@ -1894,9 +1932,10 @@ UI_GL_mouse__                 OpenGL-callback for user-selection
     sele_src_cnvt__           add all useful components of selected obj
     UI_GR_Select2             callback von GUI_Popup (Liste der sel.Obj)
       UI_GR_Select_work1       work GR_Sel_Filter 3-7
-        //sele_decode             change selected_object into requested_object
-      UI_GR_Select_work2      work  hide,view,SM or call
-        IE_sel_CB__            write selection -> CAD-inputfield
+        UI_GR_Select_work2      work  hide,view,SM or call
+          IE_sel_CB__            write selection -> CAD-inputfield
+            IE_sel_CB_1
+              IE_cad_test__
        IE_cad_sel1            CAD-report sel.
        ED_add_Text            MAN
     UI_popSel_CB_prev         hilite obj and/or unhilite last displayed object
@@ -2077,6 +2116,18 @@ IE_cad_test__      // test if input complete, create sourcline, activate OK-butt
 
 
 
+WC_Work1 (src)
+  APT_work_def (src)
+    APT_ato_par_srcLn (ato.., src)
+   |ATO_ato_srcLn__ (ato.., src)
+    APT_store_obj (typ, dbi, ato..)
+      APT_decode_sur (ox, ato..)
+      DB_StoreSur (dbi, ox)
+    GA_find__                           find att
+    APT_Draw__ (att, typ dbi)
+
+
+
 ================================================================== \endcode */}
 INF_workflow_CAD_edit (){        /*! \code
 
@@ -2093,6 +2144,30 @@ IE_cad_Inp_cancel         // user pressed CAD-Cancel-button
   IE_cad_exitFunc
 IE_cad_OK                 // user pressed CAD-OK-button
 
+
+
+
+================================================================== \endcode */}
+INF_workflow_ATO (){        /*! \code
+decode atomic-objects
+
+ATO_ato_eval__        // evaluate atomic-objects (compute); reduce records.
+  ATO_ato_eval_Grp      // evaluate FncNam-group
+    ATO_ato_eval_val      // evaluate funcs producing a numeric value
+      ATO_ato_eval_nope     // evaluate funcs producing a nunmeric value X Y Z ANG PTS
+        ATO_ato_eval_3ope     // evaluate single math.operation (*+-/)
+    ATO_ato_eval_geom     // evaluate geometrical function
+    ATO_ato_eval_mod      // evaluate modifier (MOD ..)
+    ATO_ato_eval_math     // evaluate math. functions SQRT SIN COS ..
+  ATO_ato_eval_ope      // evaluate math.operators (*+-/)
+
+
+Testmodels:
+Data/test_expr_1.gcad   
+Data/Renault1.gcad     
+Data/sample_dimen1.gcad
+Data/sample_dimen2.gcad
+DXF/Carve_Diem.dxf     
 
 
 
@@ -2383,6 +2458,8 @@ cscope              /usr/bin/cscope, source-file admin program
 void INF_debug (){        /*! \code
  \code
 
+MSG_ERROR (iSev, "err %d",ii);   // 1=WNG (continues); 2=ERROR; stops; 3=BREAK;
+
 MSG_ERR__                 see INF_DEB_MSG_ERR
 
 see below:
@@ -2478,8 +2555,8 @@ Log-file:
   LOG_A_init ("appNam");
 
   // write into debugFile
-  LOG_A__ (MSG_ERR_typ_INF, "exp_export typ=%d dbi=%ld", 3, 20L);
-  LOG_A__ (MSG_ERR_typ_ERR, "exp_export typ=%d dbi=%ld", 3, 20L);
+  LOG_A__ (ERR_INF, "exp_export typ=%d dbi=%ld", 3, 20L);
+  LOG_A__ (ERR_ERR, "exp_export typ=%d dbi=%ld", 3, 20L);
 
 
   // close debugfile with nr of errorMessages
@@ -2508,8 +2585,8 @@ MSG_ERR__         errormessage (key, additional_text)
 MSG_ERR__                      errormessage (key, additional_text)
 MSG_ERR_out                    internal; MSG_ERR__ -> TX_Error ..
 
-MSG_ERR_typ_                   type of errormessage; info|warning|error
-MSG_ERR_txt                    messagetxt for ERRMSG_ERR_typ_INF/WNG/ERR
+ERR_                   type of errormessage; info|warning|error
+MSG_ERR_txt                    messagetxt for ERRERR_INF/WNG/ERR
 
 MSG_ERR_tab                    messages for ERRMSG__
 

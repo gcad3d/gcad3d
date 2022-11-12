@@ -122,6 +122,7 @@ Circ      DB_GetCirc       (long);
 ObjGX*    DB_GetCurv       (long);
 ObjGX*    DB_GetSol        (long);
 ObjGX*    DB_GetGTxt       (long Ind);
+char*     DB_get_Text      (long Ind);
 // int       DB_GetTool       (BTool* tl1, long Ind);
 ObjGX*    DB_GetSur        (long Ind, int mode);
 ObjGX*    DB_GetTra        (long Ind);

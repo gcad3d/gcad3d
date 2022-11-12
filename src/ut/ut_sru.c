@@ -497,7 +497,8 @@ double SRU_parsru_utLn2 ();
   else if(SRU_typ2 == Typ_PT) irc = 2;
   else                        irc = 0;
 
-  // printf("ex UT3D_cv_sru_ %d %d %d\n",irc,*ptNr,ptMax);
+    // printf("ex UT3D_cv_sru_ %d %d %d\n",irc,*ptNr,ptMax);
+
   return irc;
 
 }

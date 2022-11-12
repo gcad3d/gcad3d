@@ -44,14 +44,14 @@ TODO:
 #define ERR_severity_2     ERR_TODO_E
 #define ERR_severity_1     ERR_file_open
 
-  if(iErr <= ERR_internal)        iSev = 3;   // MSG_ERR_typ_BRK
-  else if(iErr <= ERR_TODO_E)     iSev = 2;   // MSG_ERR_typ_ERR
-  else if(iErr <= ERR_file_open)  iSev = 1;   // MSG_ERR_typ_WNG
-  else                            iSev = 0;   // MSG_ERR_typ_INF
+  if(iErr <= ERR_internal)        iSev = 3;   // ERR_BRK
+  else if(iErr <= ERR_TODO_E)     iSev = 2;   // ERR_ERR
+  else if(iErr <= ERR_file_open)  iSev = 1;   // ERR_WNG
+  else                            iSev = 0;   // ERR_INF
 
-// MSG_ERR_typ_xx == severity; MSG_ERR_typ_BRK
+// ERR_xx == severity; ERR_BRK
 // text zu severity MSG_ERR_txt
- MSG_ERR_typ_ERR
+ ERR_ERR
 
 
 es sollte verknüpft sein:
@@ -87,54 +87,62 @@ Example:
 //   0  error-continue normal; info only;
 // eg: if(iErr <= ERR_severity_2) printf(" severity is 2 or 3\n");
 #define ERR_severity_3     ERR_internal
-#define ERR_severity_2     ERR_TODO_E
+#define ERR_severity_2     ERR_MEMSPC_IN_USE
 #define ERR_severity_1     ERR_file_open
 
 
 // messagetype for MSG_ERR_out; see MSG_ERR_txt in ../xa/xa_msg.c
-#define MSG_ERR_typ_INF     0
-#define MSG_ERR_typ_WNG     1
-#define MSG_ERR_typ_ERR     2
-#define MSG_ERR_typ_BRK     3
-#define MSG_ERR_typ_CON     4        // continuation line - skip also if errTyp > 2
+#define ERR_INF     0
+#define ERR_WNG     1
+#define ERR_ERR     2
+#define ERR_BRK     3
+#define ERR_CON     4        // continuation line - skip also if errTyp > 2
+// #define ERR_EXT     5        // exit-test
 
 int MSG_ERR_out (int msgTyp, const char *fnc, int lNr, int ikey, char *txt, ...);
 
 
-/// \code
-/// MSG_ERR__             errormessage (key, additional_text)
-/// Input:
-///   iErr      errorcode; see enum ERR_codes below
-/// Output:     TX_Error "<MSG_ERR_txt> <actFuncNam>(): <MSG_STD_tab[ikey]> ..."
-///   retCod    ??
-/// Example:  return MSG_ERR__ (func_not_impl, "/ cvTyp %d", cvTyp);
-///   how to add new STD-message:
-///    - add key in enum above;
-///    - add text for key in MSG_ERR_tab in ../xa/xa_msg.c
-///
-///  return MSG_ERR__ (ERR_internal, "memspc not free");
-/// \endcode
+// MSG_ERR__             errormessage (key, additional_text)
+// DO_NOT_USE - to beplaced by MSG_ERROR
+// Input:
+//   iErr      errorcode; see enum ERR_codes below
+// Output:     TX_Error "<MSG_ERR_txt> <actFuncNam>(): <MSG_STD_tab[ikey]> ..."
+//   retCod    ??
+// Example:  return MSG_ERR__ (func_not_impl, "/ cvTyp %d", cvTyp);
+//   how to add new STD-message:
+//    - add key in enum above;
+//    - add text for key in MSG_ERR_tab in ../xa/xa_msg.c
+//
+//  return MSG_ERR__ (ERR_internal, "memspc not free");
 int MSG_ERR__ (int iErr, ...);
 #define MSG_ERR__(iErr,...)\
- MSG_ERR_out (MSG_ERR_typ_ERR,__func__,__LINE__,iErr,__VA_ARGS__)
+ MSG_ERR_out (ERR_ERR,__func__,__LINE__,iErr,__VA_ARGS__)
+
+
+int MSG_ERROR (int iErr, ...);
+// iErr - use code of ERR_codes below or value -1 to -49
+// eg: return MSG_ERROR (2, "point %ld not stored in DB",dbi);
+#define MSG_ERROR(iErr,...)\
+ MSG_ERR_std (iErr,__func__,__LINE__,__VA_ARGS__)
+
 
 
 // keys for error-Messages MSG_ERR__;
 // text for messages in MSG_ERR_tab in ../xa/xa_msg.c
-enum ERR_codes {
-  ERR_internal = -99,       // 3  internal error, exit right now    -99
-  ERR_EOM,                  // 2  out of memory, exit right now     -98
-  ERR_TODO_E,               // 2  error, exit right now             -97
-  ERR_MEMSPC_IN_USE,        // 2  error,                            -96
-  ERR_TODO_I,               // 1  info only - TODO                  -95
-  ERR_func_not_impl,        // 1  function not implemented          -94
-  ERR_subModel_undefined,   // 1  subModel_undefined                -93
-  ERR_db_obj_undefined,     // 1  db-obj_undefined                  -92
-  ERR_file_open,            // 1  file_open error                   -91
-  ERR_TEST,                 // 1  testExit                          -90
-  ERR_obsolete,             // 0                                    -89
-  ERR_unsupported,          // 0                                    -88
-  ERR_USER_ABORT,           // 0                                    -87
+enum ERR_codes {            //  sev
+  ERR_internal = -99,       // 0 3  internal error, exit right now    -99
+  ERR_EOM,                  // 1 2  out of memory, exit right now     -98
+  ERR_TODO_E,               // 2 2  error, exit right now             -97
+  ERR_MEMSPC_IN_USE,        // 3 2  error,                            -96
+  ERR_TODO_I,               // 4 1  info only - TODO                  -95
+  ERR_func_not_impl,        // 5 1  function not implemented          -94
+  ERR_subModel_undefined,   // 6 1  subModel_undefined                -93
+  ERR_db_obj_undefined,     // 7 1  db-obj_undefined                  -92
+  ERR_file_open,            // 8 1  file_open error                   -91
+  ERR_TEST,                 // 9 0  testExit                          -90
+  ERR_obsolete,             //10 0                                    -89
+  ERR_unsupported,          //11 0                                    -88
+  ERR_USER_ABORT,           //12 0                                    -87
   ERR_STD      // first = standard-error (not specific to function)
 };
 

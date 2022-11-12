@@ -706,6 +706,7 @@ __declspec(dllexport) int IGE_r__ (void*);
 #include "../ut/ut_TX.h"               // TX_Print
 #include "../ut/func_types.h"               // UI_Func...
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_deb.h"              // DEB_*
 
 #include "../gr/ut_DL.h"               // DL_GetAtt

@@ -170,18 +170,19 @@ PRCV0 is used for:
 
 
 #include "../ut/ut_geo.h"
-#include "../ut/ut_geo_const.h"           // UT3D_CCV_NUL UT3D_PRCV_NUL
-#include "../ut/ut_memTab.h"              // MemTab
-#include "../ut/ut_prcv__.h"              // 
-#include "../ut/ut_os.h"                  // OS_ ..
-#include "../ut/ut_deb.h"                 // DEB_*
+#include "../ut/ut_geo_const.h"        // UT3D_CCV_NUL UT3D_PRCV_NUL
+#include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
+#include "../ut/ut_prcv__.h"           // 
+#include "../ut/ut_os.h"               // OS_ ..
+#include "../ut/ut_deb.h"              // DEB_*
 
-#include "../db/ut_DB.h"                  // UTO__dbo
+#include "../db/ut_DB.h"               // UTO__dbo
 #include "../gr/ut_gr.h"               // GR_tDyn_pcv
-#include "../xa/xa_mem.h"                 // memspc*
+#include "../xa/xa_mem.h"              // memspc*
 
 
-typedef_MemTab(Point);
+// typedef_MemTab(Point);
 
 
 

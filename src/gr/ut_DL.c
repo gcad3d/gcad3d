@@ -275,21 +275,20 @@ cc -c -g3 -Wall ut_DL.c
 // #include <GL/glu.h>
 
 
-#include "../ut/ut_geo.h"                /* Point-def   */
-#include "../ut/ut_cast.h"               // INT_PTR
+#include "../ut/ut_geo.h"              // Point-def 
+#include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_memTab.h"           // MemTab
-#include "../ut/ut_TX.h"                 /* TX_Error */
-#include "../ut/ut_txfil.h"              // UTF_clear1
-#include "../ut/ut_txt.h"                // fnam_del
-#include "../ut/ut_os.h"                 // OS_ ..
-#include "../ut/ut_col.h"                // COL_INT32
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
+#include "../ut/ut_TX.h"               // TX_Error
+#include "../ut/ut_txfil.h"            // UTF_clear1
+#include "../ut/ut_txt.h"              // fnam_del
+#include "../ut/ut_os.h"               // OS_ ..
+#include "../ut/ut_col.h"              // COL_INT32
 
-#include "../ut/func_types.h"                 // Typ_Att_def, SYM_TRI_S, ..
-#include "../ut/func_types.h"                 // Typ_Att_def, SYM_TRI_S, ..
-#include "../gr/vf.h"                    // GL_vf1_CS
+#include "../ut/func_types.h"          // Typ_Att_def, SYM_TRI_S, ..
+#include "../gr/vf.h"                  // GL_vf1_CS
 
-#include "../db/ut_DB.h"                 // DB_GetPoint ..
-
+#include "../db/ut_DB.h"               // DB_GetPoint ..
 
 #include "../gr/ut_GL.h"
 #include "../gr/ut_DL.h"
@@ -2946,7 +2945,7 @@ static long   DL_hidden = -1L;
   if((GR_ObjTab[idl].typ == Typ_SUR)  ||
      (GR_ObjTab[idl].typ == Typ_SOL)  ||
      (GR_ObjTab[idl].typ == Typ_Model))   {
-    col = COL_INT32(&GR_ObjTab[idl].iatt); // col = (ColRGB*)&GR_ObjTab[idl].iatt;
+    col = COL_INT32P(&GR_ObjTab[idl].iatt); // col = (ColRGB*)&GR_ObjTab[idl].iatt;
     if(col->vtex == 0) {
       // sprintf(cAtt, "r%dg%db%d,%d",
       sprintf(cAtt, "r%02xg%02xb%02x,t%d,s%d %d",
@@ -3479,7 +3478,7 @@ static long   DL_hidden = -1L;
 //================================================================
 /// DL_get_col           get ColRGB* of DL-record (surf)
 
-  return COL_INT32(&GR_ObjTab[dli].iatt); // col = (ColRGB*)&GR_ObjTab[dli].iatt;
+  return COL_INT32P(&GR_ObjTab[dli].iatt); // col = (ColRGB*)&GR_ObjTab[dli].iatt;
 
 }
 
@@ -3518,7 +3517,7 @@ static long   DL_hidden = -1L;
   ColRGB *col;
 
 
-  col = COL_INT32(&GR_ObjTab[dli].iatt); // col = (ColRGB*)&GR_ObjTab[dli].iatt;
+  col = COL_INT32P(&GR_ObjTab[dli].iatt); // col = (ColRGB*)&GR_ObjTab[dli].iatt;
 
   return col->vsym;
 

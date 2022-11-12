@@ -173,7 +173,7 @@ char myMemspc[50000];
 
 
 
-/*
+
   //================================================================
 // DO NOT USE; beeing replaced ..
   // cre_6 ();      // ruled surfaces
@@ -181,7 +181,7 @@ char myMemspc[50000];
   // cre_8 ();      // tesselated surfaces
   // cre_9 ();      // planare surf; trimmed / perforated
   // cre_10();      // TestDisplayfunktions (_Disp_)
-*/
+
 
   //================================================================
   // Redraw DispList
@@ -566,6 +566,7 @@ char myMemspc[50000];
   int cre_9 () {
 //=========================================================
 // planare surf; trimmed / perforated
+// TOTO: use OXMT
 
   Point pp1[]={600.,100., 0., 650.,100., 0.,
                650.,200., 0., 600.,200., 0., 600.,100., 0.};
@@ -1340,7 +1341,7 @@ char myMemspc[50000];
 
   // disp with default-color (att=0);
   // GR_tDyn_nfac (&nfa, 0);
-  GR_tDyn_nifac (&nfa, 0);
+  GR_tDyn_nifac (-1L, &nfa, 0);
 
   // or set color yellow (1,1,0)
   // UTcol__3i (&col1, 200,200,0);     // RGB 0-255
@@ -1384,7 +1385,7 @@ char myMemspc[50000];
   nifa.vc3   = va;
 
   // disp with default-color (att=0);
-  GR_tDyn_nifac (&nifa, 0);
+  GR_tDyn_nifac (-1L, &nifa, 0);
 
   return 0;
 

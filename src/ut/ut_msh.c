@@ -94,7 +94,7 @@ List_functions_end:
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/ut_TX.h"               // TX_Print
 
-#include "../xa/xa_msg.h"              // MSG_ERR_typ_*
+#include "../xa/xa_msg.h"              // ERR_*
 #include "../xa/xa_mem.h"              // memspc51
 #include "../xa/xa.h"                  // AP_modact_nam
 
@@ -1262,7 +1262,7 @@ List_functions_end:
         // point ouside mesh
 // TODO: gis-offset ?  // gis_log_pt3 (&pa1[i1]);  // report errPos
         LOG_A_pt3 (&pa1[i1]);  // report errPos
-        LOG_A__ (MSG_ERR_typ_ERR, "point[%d] outside mesh - deleted", i2);
+        LOG_A__ (ERR_ERR, "point[%d] outside mesh - deleted", i2);
         // TX_Error("point[%d] - %f %f outside mesh - deleted", i1,
                  // pa1[i1].x,pa1[i1].y);
         MEM_del_nrec (ptNr, pa1, i1, 1, sizeof(Point));

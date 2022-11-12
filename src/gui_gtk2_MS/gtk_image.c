@@ -87,8 +87,10 @@ extern GtkWidget *UI_act_wi;
 
 // dummy-functions (only for MS-win)
 #ifdef _MSC_VER
-int GUI_TUT_CB_tmr (void *data) {}
-int GUI_TUT_m_CB (GtkWidget *widget, GdkEventExpose *event, gpointer userdata) {}
+int GUI_TUT_CB_tmr (void *data)
+      {return 0;}
+int GUI_TUT_m_CB (GtkWidget *widget, GdkEventExpose *event, gpointer userdata)
+      {return FALSE;}
 #endif
 
 

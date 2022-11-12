@@ -41,7 +41,7 @@ OXMT_init_mx         malloc ox-space, existing variable-length-space
 OXMT_free
 
 OXMT_add_oxt         add obj-tree (<oNr> complex-objects with data)
-OXMT_add_ume         add all data to OgxTab.spc
+OXMT_add_ume         add all data to OgxTab.spc, return address
 OXMT_reserve_osp     reserve space in OgxTab.spc (occupy, do not write)
 
 OXMT_MEMTAB_IND      nr of root-objects in OgxTab.ogx
@@ -56,14 +56,41 @@ OXMT_test_2
 
 List_functions_end:
 =====================================================
+
 requires:
 #include "../ut/ut_ox_base.h"          // OGX_SET_OBJ
 
 
 
-==============================================================
 
-*/
+
+
+//================================================================ */
+void INF_OgxTab (){        /*! \code
+
+otb    OXMT_        OgxTab                  ObjGX + var-len-record   INF_OgxTab
+
+OgxTab is a container of a MemTab .ogx plus a Memspc .spc -
+  MemTab is a list of Fixed-Length-Records                           see INF_MemTab
+  Memspc is a list of Variable-Length-Records                        see INF_Memspc
+
+
+
+Examples:
+  OgxTab otb1 = _OGXTAB_NUL;
+  OXMT_test_1 ()
+
+
+Files:
+../APP/ut_ogxt.c
+../APP/test_OGXT.c
+
+../ut/ut_ogxt.c
+../ut/ut_ogxt.h
+
+
+================================================================== \endcode */}
+
 
 
 #ifdef _MSC_VER
@@ -134,6 +161,7 @@ typedef_MemTab(ObjGX);
 
 
   printf("OXMT_init_mm rNr=%d\n",rNr);
+  UME_dump (msp, "mspc");
 
   // get space for <rNr> ObjGX-records (malloc)
   MemTab_ini__ (&oxtb1->ogx, sizeof(ObjGX), Typ_ObjGX, rNr);
@@ -144,6 +172,8 @@ typedef_MemTab(ObjGX);
   oxtb1->spc = *msp;
   // set msp invalid
   msp->spcTyp = MEMTYP_NONE;
+
+    printf(" ex-OXMT_init_mx\n");
 
   return 0;
 

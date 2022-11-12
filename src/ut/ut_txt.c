@@ -2245,12 +2245,14 @@ static char   TX_buf2[128];
 /// \endcode
 
 
-  int i1;
+  int   irc, i1;
+
+
+  // printf("UTX_cmp_word_wordtab |%s|  |%s|%s|\n",wd1,wdtab[0],wdtab[1]);
 
   if(wd1 == NULL) return -1;
   if(*wd1 == '\0') return -1;
 
-  // printf("UTX_cmp_word_wordtab |%s|\n",wd1);
 
   i1 = 0;
 
@@ -2258,13 +2260,16 @@ static char   TX_buf2[128];
 
     if(!strcmp(wdtab[i1], wd1)) {
       // printf("ex UTX_cmp_word_wordtab %d |%s|\n",i1,wdtab[i1]);
-      return i1;
+      goto L_exit;
     }
     ++i1;
   }
 
-  // printf("ex UTX_cmp_word_wordtab -1 |%s|\n",wd1);
-  return -1;
+  i1 = -1;
+
+  L_exit:
+    // printf("ex UTX_cmp_word_wordtab %d |%s|\n",i1,wd1);
+  return i1;
 
 }
 
@@ -6831,7 +6836,11 @@ Example (scan line):
 /// \endcode
 
   int  i1;
-  char cbuf[80], cw[4];
+  char *cbuf, cw[4];
+
+
+  cbuf = MEM_alloc_tmp (cNr * 2);
+
 
   cbuf[0] = '\0';
   cw[1] = '\0';

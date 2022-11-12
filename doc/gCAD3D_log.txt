@@ -1,3 +1,24 @@
+Version 2.50.00 / 2022-11-12
+
+- CAD-Circle-Cen-Radius senseOfRottaion added
+- CAD-Circle-Axis-Point senseOfRottaion added
+- new CAD-function Circle-concentric
+- Bugfix CAD Circle"CIR-Cen-Radius-CW"
+- Bugfix CAD Variables "V X/Y/Z-Part PT"
+- Bugfix CAD Variables "V PT-PT-Dist"
+- Bugfix CAD Dimensiones "N DIM Radius - ParameterError"
+- Bugfix CAD Dimensiones "N Text,LN - Error: GL_txt_ar2"
+- Bugfix CAD Dimensiones "N DIM Angle - ParameterError"
+- Bugfix "CAD-obj-Edit with TextEdit"
+- Bugfix "Interpreter-eval-geometric-values"
+- Bugfix "Change Language CAD inputfields"
+- Bugfix "Dimensions no tolerance"
+
+Programlines (C)  539971
+Functions           5080
+
+
+===========================================================================
 Version 2.48.00 / 2022-07-15
 
 - Iges-import: Parametric Spline Curve typ 112 added

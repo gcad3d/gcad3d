@@ -208,9 +208,12 @@ cc -Wall ut_obj.c -DOFFLINE&&a.out
 #include "../ut/ut_txt.h"              // term_buf
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_obj.h"
+#include "../ut/ut_deb.h"              // DEB_exit DEB_stop
 #include "../ut/func_types.h"                  // SYM_TRI_S
 
 #include "../db/ut_DB.h"
+
+#include "../ci/NC_apt.h"              // T_BSP0
 
 #include "../xa/xa_msg.h"              // MSG_*
 #include "../xa/xa_mem.h"              // memspc54
@@ -321,18 +324,21 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
 //   typo         requested output-type
 //   mode         0=raise-error; 1=do-not-raise-error
 // Output: 
-//   objo         converted object of type typo
+//   objo         converted object of type typo; Typ_PT -> Point, Typ_SUR -> ObjGX
 //   retCod       0=OK, -1=Err.
 //
+// see APT_store_obj
 // see sele_decode AP_vec_txt APT_obj_expr UT3D_pt_std_ci
 // see UT3D_ptvcpar_std_obj UTO2__pt_set_std_pt UT3D_ptvcpar_std_dbo
+// TODO: make common function for UTO_obj_cnvt_ato - APT_store_obj (surfaces !!)
 
 
   int    irc;
+  Memspc tmpSpc;
 
 
-  // printf("UTO_obj_cnvt_obj typo=%d\n",typo);
-  // ATO_dump__ (ato1, " _cnvt_obj-in");
+  printf("UTO_obj_cnvt_obj typo=%d\n",typo);
+  ATO_dump__ (ato1, " _cnvt_obj-in");
 
 
   switch (typo) {
@@ -359,6 +365,17 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
       irc = APT_decode_pln1 (objo, ato1->nr, ato1->typ, ato1->val);
       break;
 
+
+    //----------------------------------------------------------------
+    case Typ_SUR:
+      UME_init (&tmpSpc, memspc501, sizeof(memspc501));
+      if((ato1->typ[0] == Typ_cmdNCsub)&&(ato1->val[0] == T_FOPE)) {
+        irc = APT_decode_suop (objo, ato1->nr, ato1->typ, ato1->val, &tmpSpc);
+      } else {
+        irc = APT_decode_sur (objo, ato1->nr, ato1->typ, ato1->val, &tmpSpc);
+      }
+      break;
+
     // case Typ_SubModel:   // from ModelReference - sele_decode L_mdl_conv1:
 
 
@@ -367,7 +384,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
   }
 
 
-    // DEB_dump_obj__ (typo, objo, "ex-UTO_obj_cnvt_ato");
+    DEB_dump_obj__ (typo, objo, "ex-UTO_obj_cnvt_ato");
 
   return irc;
 
@@ -3675,7 +3692,7 @@ static ObjGX  *odb;
   double     d1, *vp1, us, ue, *va2 = NULL, *va1o;
   char       obj1[OBJ_SIZ_MAX];
   ObjGX      *ox1, *ox2, *oxTab, oxDbo1, oxDbo2, oxCCV;
-  Point      pt1, ps, pe;
+  Point      pt1, ps, pe, *pts=NULL, *pte=NULL;
   CurvCCV    *ccvTab;
   void       *oo1, *o1, *o2;
 
@@ -3814,8 +3831,6 @@ static ObjGX  *odb;
     // DEB_dump_obj__ (o2Form, o2, " o2");
 
 
-
-
   switch (o1Form) {       // o1 = obj to cut
 
     // o1Form always less or equal o2Form !
@@ -3925,7 +3940,17 @@ static ObjGX  *odb;
           // UT3D_2pt_int2ln (&pa[0],&pa[1], NULL, (Line*)o1, (Line*)o2);
           // intersect lines; both limited or unlimited
           irc = UT3D_pt_intlnln (pa, UT_TOL_cv, (Line*)o1, iUnl, (Line*)o2, iUnl);
-          if(irc) goto NoInt;
+            // printf(" _int_2ox-f-intlnln irc=%d\n",irc);
+            // irc 1-4 have connection; 5-12 overlap; 
+          if(irc < 0) goto NoInt;
+          if(irc > 4) goto NoInt;
+          if(iUnl == 0) {
+            // limited; check endPoints or outside line
+            pts = &((Line*)o2)->p1;
+            pte = &((Line*)o2)->p2;
+            ue = 0.;
+            ue = 1.;
+          }
           nip = 1;
           break;
 
@@ -3980,11 +4005,22 @@ static ObjGX  *odb;
                                (CurvClot*)o2, UT_DISP_cv);
           break;
 
+
         case Typ_PLN:  // LN x R
           irc = UT3D_pt_intlnpl (pa, (Plane*)o2, (Line*)o1);
-          if(irc < 0) goto L_err1;
+          // 0 = vc parallel to plane; 1 = OK;
+            printf(" _int_2ox-f-intlnpl irc=%d\n",irc);
+          if(irc != 1) goto L_err1;
+          if(iUnl == 0) {
+            // limited; check endPoints or outside line
+            pts = &((Line*)o1)->p1;
+            pte = &((Line*)o1)->p2;
+            ue = 0.;
+            ue = 1.;
+          }
           nip = 1;
           break;
+
 
         case Typ_Val:     // LN X Parameter 130
         case Typ_Par1:    // 140
@@ -4072,6 +4108,8 @@ static ObjGX  *odb;
 
     //================================================================
     case Typ_CVPOL:  // o1=CVPOL
+        // printf(" npt_int_2ox-o1=CVPOL o2=%d\n",o2Form);
+
 
       switch (o2Form) {
 
@@ -4111,6 +4149,7 @@ static ObjGX  *odb;
         // case Typ_CVRBSP:  // CVPOL x CVRBSP
 
         case Typ_PLN:  // CVPOL x R
+          nip = aSiz;
           irc = UT3D_pt_intplplg (&nip, pa, (Plane*)o2, (CurvPoly*)o1);
           if(irc != 0) goto L_err1;
           break;
@@ -4391,9 +4430,27 @@ static ObjGX  *odb;
 
   irc = 0;
 
+  // if (curve = limited): remove points outside curve;
+  if(iUnl == 0) {
+    for(i1=0; i1<nip; ++i1) {
+      if(pts) {
+        irc = UT3D_par_ck_inObj__ (va1[i1], &pa[i1], pts, pte, us, ue);
+        if(!irc) {
+          // point outside curve - remove point and param
+          i2 = nip;
+          MEM_del_nrec (&i2, pa, i1, 1, sizeof(Point));
+          MEM_del_nrec (&nip, va1, i1, 1, sizeof(double));
+          --i1; // point overwritten
+        }
+      }
+    }
+  }
+
+
   // nip intersection-points found.
   // if(nip > 0) *pNr += nip;
   if(nip > 0) *pNr = nip;
+  // goto L_exit;
 
 
   //----------------------------------------------------------------
@@ -4408,6 +4465,7 @@ static ObjGX  *odb;
     // }
     // if(isnan(pa[0].x)) AP_debug__  ("ex-UTO_npt_int_2ox");
     // printf("iiiiiiiiiiiiiiiiiiiiiiiiiiiiii ex-UTO_npt_int_2ox\n\n");
+    // DEB_exit();
     // END TESTBLOCK 
 
 
@@ -7420,7 +7478,7 @@ static int traAct;
   ObjGX    *ox2;
 
 
-  // printf("UTO_INT_crv_sur %d\n",typCv);
+  printf("UTO_INT_crv_sur %d\n",typCv);
 
 
   // get typ of surface
@@ -7531,7 +7589,7 @@ static int traAct;
   ObjGX *ox1;
 
 
-  // printf("UTO_INT_susu\n");
+  printf("UTO_INT_susu\n");
 
   *oTyp  = 0;
   iMaxNr = 1; // nr of solutions

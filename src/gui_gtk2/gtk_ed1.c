@@ -743,8 +743,7 @@ static char  *GUI_ed1_lcSet;
 
   // printf("GUI_edi_Write %ld %ld\n",*txlen,maxlen);
   // printf("|"); UTX_dump_s__(txbuf,*txlen+1);printf("|\n");
-  // printf("|%s|\n",txbuf);
-  // UTF_dump__ ();
+  // UTF_dump__ ("GUI_edi_Write-in");
 
 
   // set GUI_ed1_view GUI_ed1_buff
@@ -788,6 +787,13 @@ static char  *GUI_ed1_lcSet;
   // moves the "insert" and "selection_bound" marks simultaneously
   gtk_text_buffer_place_cursor (GUI_ed1_buff, &it1);
 */
+
+    // TESTBLOCK
+    // printf(" ex-GUI_edi_Write---------------------------------------------\n");
+    // printf("|%s|\n",txbuf);
+    // UTF_dump__ ("ex-GUI_edi_Write");
+    // END TESTBLOCK
+
 
   return 0;
 

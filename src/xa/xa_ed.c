@@ -185,7 +185,8 @@ cl -c /I ..\include xa_ed.c
 #include "../ut/ut_TX.h"       // TX_Print
 #include "../ut/ut_os.h"       // OS_Wait
 #include "../ut/ut_txfil.h"    // UTF_add_file
-#include "../ut/ut_memTab.h"          // MemTab_..
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_cast.h"             // INT_PTR
 
 #include "../ut/func_types.h"
@@ -209,7 +210,7 @@ cl -c /I ..\include xa_ed.c
 
 
 // prototypes:
-  typedef_MemTab(IgaTab);
+//   typedef_MemTab(IgaTab);
 
 
 
@@ -2155,8 +2156,8 @@ static int lnr1, lnr2;
 
   tmpStat = WC_get_obj_stat();
 
-  // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
-  // printf("ED_work_CAD %d |%s| tmpStat=%d\n",lNr,cbuf,tmpStat);
+  printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+  printf("ED_work_CAD %d |%s| tmpStat=%d\n",lNr,cbuf,tmpStat);
 
 
 

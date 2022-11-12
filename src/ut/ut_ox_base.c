@@ -48,6 +48,7 @@ OGX_GET_OBJ             get type and data of binary-obj
 OGX_GET_INT             get index out of complexObject (long from data-pointer)
 OGX_GET_LONG            get index out of complexObject (long from data-pointer)
 OGX_GET_INDEX           get DB-typ and DB-index out of complexObject
+OGX_GET_SUBOBJ          get obj[ii] out of array of obj's of typ <form>
 OGX_DAT                 get data-block of ObjGX
 
 OGX_ox_ato1             complexObj from 1 atomicObj (ausTyp/ausTab)
@@ -74,6 +75,7 @@ OGX_tst_load_ox         get a test-ObjGX-tree
 
 List_functions_end:
 =====================================================
+see also OXMT  (complex-object (ObjGX) + variable-length-record)
 
 \endcode *//*----------------------------------------
 

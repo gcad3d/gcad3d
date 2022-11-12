@@ -1108,15 +1108,19 @@ Returncodes:
   int UT3D_pt_intplplg (int *pNr, Point *pa, Plane *pln, CurvPoly *plg) {
 //=======================================================================
 // UT3D_pt_intplplg           intersect Plane polygon
-
 // Input:
-// pNr = max.Nr.inters.points/parameters
+//   pNr    max.Nr.inters.points/parameters
+// Output:
+//   pNr    nr of intersectionpoints
+//   pa     intersectionpoints
 
   int    i1, i2, ii, pSiz;
   double dl, dn1, dn2;
 
 
-  // printf("UT3D_pt_intplplg %d\n",plg->ptNr);
+  // printf("UT3D_pt_intplplg plgNr=%d paSiz=%d\n",plg->ptNr,*pNr);
+  // DEB_dump_obj__(Typ_PLN, pln, " intplplg-in");
+  // DEB_dump_obj__(Typ_CVPOL, plg, " intplplg-in");
 
 
   pSiz  = *pNr-1;
@@ -1143,7 +1147,12 @@ Returncodes:
   }
 
   *pNr = ii;
-  // printf("ex UT3D_pt_intplplg %d\n",*pNr);
+
+    // TESTBLOCK
+    // printf("ex-UT3D_pt_intplplg %d\n",*pNr);
+    // for(i1=0; i1<ii; ++i1)
+      // DEB_dump_obj__(Typ_PT, &pa[i1], " p[%d]",i1);
+    // END TESTBLOCK
   return 0;
 
 }

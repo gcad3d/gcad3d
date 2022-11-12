@@ -40,41 +40,53 @@ List_functions_start:
 
 ATO_ato_srcLn__         get atomicObjects from sourceLine; full evaluated.
 ATO_ato_txo__           get atomic-objects from source-objects
+ATO_srcTxt              get atomicObj from Typ_Txt (after AP_typ_srcExpr)
 ATO_ato_expr_add        add ato to ato-table
 ATO_swap                swap 2 records
 ATO_del_rec             delete record
-ATO_clear__             delete all records
+ATO_clear__             delete all records                                       INLINE
 ATO_clear_block         delete block of records
 ATO_clean__             make clean atomicObjects from ato (use ATO_clean_1)
-ATO_clean_1             close all gaps (typ == Typ_NULL)
 ATO_cpy_rec             copy ATO-record iTo = iFrom, delete iFrom
 ATO_sort1               sort types ascending
 ATO_pNr__               get nr of parameters following record
-
+ATO_ato_nGrp            ii = index FncNam; get nGrp = nr of related data
+ 
 ATO_parents__           get all parents of obj (index into ato)
 
 // ATO_ato_srcLn_exp    DO NOT USE  get/add ato as typ/val from modelCode
 // ATO_ato_atoTab__     DO NOT USE  get single dbo from ato
 // ATO_ato_expr__       DO NOT USE  get struct from modelCode (text).
+// ATO_ato_eval_ope     DO NOT USE  evaluate math.operators (*+-/)
 
-ATO_ato_typTab          get atomicObjects from aus_typ/aus_tab (old version)
 ATO_ato_eval__          evaluate atomic-objects (compute); reduce records.
+ATO_ato_eval_Grp        evaluate group of ato - records
+ATO_ato_eval_ck_ope     check next records value,mathOperator(+-/*),value
+ATO_ato_eval_nope       find and resolve math.operations (*+-/)
+ATO_ato_eval_3ope       evaluate math.operation (*+-/)
+ATO_ato_eval_val        evaluate funcs producing a nunmeric value
 ATO_ato_eval_geom       evaluate geometrical functions
+ATO_ato_eval_math       evaluate math functions (SQRT SIN COS ..)
+ATO_ato_eval_mod        evaluate modifier (MOD ..)
 ATO_ato_obj_pt          get parametric position of point on obj
-ATO_srcTxt              get atomicObj from Typ_Txt (after AP_typ_srcExpr)
 
 ATO_malloc              get memspace for atomicObjects
 ATO_free                free ObjAto after ATO_malloc
 ATO_tmpSpc_get__        get memspace on stack or heap for active func only
+ATO_tmpSpc_get1         get memspace on stack or heap for active func only
 ATO_tmpSpc_get_s        get memspace for atomicObjects (string)
-ATO_getSpc_tmp__        get temp - memspace for atomicObjects
+ATO_getSpc_tmp__        get temp - memspace for atomicObjects                    INLINE
 ATO_getSpc_tmp1         aux.Func for ATO_getSpc_tmp__
 ATO_getSpc__            get memSpc for atomicObjects (memspc53/54/55)
-ATO_getSpc_siz       compute necessary space for type/value-table
+ATO_getSpc_siz          compute necessary space for type/value-table
 ATO_dump__              dump ato-table
+ATO_dump_grp            dump group of ato-table
 
 List_functions_end:
 =====================================================
+// ATO_ato_typTab          get atomicObjects from aus_typ/aus_tab (old version)
+// ATO_eval_ope__          DO NOT USE - replaced by ATO_ato_eval_ope
+// ATO_eval_fnc1__         UU
 for txo-funcs see APED
 see also:
 APT_obj_ato             create struct from atomicObjs
@@ -205,6 +217,7 @@ APT_obj_ato                create struct from atomicObjs
 #include "../xa/xa_mem.h"              // memspc..
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 #include "../xa/xa_sele.h"             // Typ_go*
+#include "../xa/xa_msg.h"              // MSG_*
 
 #include "../gui/gui__.h"              // GUI_* TYP_EventEnter
 
@@ -368,7 +381,7 @@ extern double NcoValTab[];
 }
 
 
-
+/*
 //===================================================================
   int ATO_ato_typTab (ObjAto *ato,
                       int aus_anz, int aus_typ[], double aus_tab[]) {
@@ -394,7 +407,7 @@ extern double NcoValTab[];
   return 0;
 
 }
-
+*/
  
 //================================================================
   int ATO_ato_atoTab__ (int *aTyp, double *aVal, ObjAto *ato) {
@@ -751,19 +764,24 @@ extern double NcoValTab[];
 
 
 //================================================================
-  int ATO_dump__ (ObjAto *ato, char *txt) {
+  int ATO_dump_grp (ObjAto *ato, int iGrp, int nGrp, char *txt) {
 //================================================================
-//  dump ato-table
-
-
-  int   i1;
+//  ATO_dump_grp                   dump group of ato-table
+  
+  int   i1, ie;
   char  s1[8];
 
+  
+  printf("-------- ATO_dump_grp iGrp=%d nGrp=%d %s\n",iGrp,nGrp,txt);
+  // for(ii=iGrp;ii<iGrp+nGrp;++ii) printf(" \n");
 
+  
   printf("-------- ATO_dump__ nr=%d siz=%d %s\n",ato->nr,ato->siz,txt);
+// return 0;
 
+  ie = iGrp + nGrp;
 
-  for(i1=0; i1 < ato->nr; ++i1) {
+  for(i1=iGrp; i1 < ie; ++i1) {
     if(ato->ilev) {
       sprintf(s1, "%4d",  ato->ilev[i1]);
     } else {
@@ -774,9 +792,21 @@ extern double NcoValTab[];
       ato->val[i1],
       s1,
       AP_src_typ__(ato->typ[i1]));
-  }
-
+  }   
+      
   return 0;
+      
+}     
+      
+      
+
+//================================================================
+  int ATO_dump__ (ObjAto *ato, char *txt) {
+//================================================================
+//  dump ato-table
+
+
+  return ATO_dump_grp (ato, 0, ato->nr, txt);
 
 }
 
@@ -1115,6 +1145,7 @@ extern long      GLT_cta_SIZ;
 
 
   // printf("ATO_clear_block is=%d bNr=%d nr=%d\n", is, bNr, ato->nr);
+  // ATO_dump__ (ato, "ATO_clear_blocki-in");
 
 
   // delete ato->typ-block
@@ -1138,6 +1169,7 @@ extern long      GLT_cta_SIZ;
   ato->nr -= bNr;
 
     // printf("ex clear_block nr=%d\n",ato->nr);
+    // ATO_dump__ (ato, "ex ATO_clear_block");
 
   return 0;
 
@@ -1226,20 +1258,18 @@ extern long      GLT_cta_SIZ;
 
 
 //================================================================
-  int ATO_ato_eval_geom (ObjAto *ato, int iif) {
+  int ATO_ato_eval_geom (ObjAto *ato, int iGrp, int nGrp) {
 //================================================================
-/// \code
-/// evaluate geometrical functions (Typ_FncNam)
-/// geom-func: P(2) L,C,D,R,S,U(121) ANG(137) X(134) Y,Z ..
-/// Input:
-///   iif      startindex in ato
-/// Output:
-///   ato      ?
-///   Retcod:  0 = no geom.func; 1 = function evaluated; -1 = error
-/// see APT_decode_func ../ci/NC_apt.c :16974
-/// \endcode
+// ATO_ato_eval_geom               evaluate geometrical functions (Typ_FncNam)
+// geom-func: P(2) L,C,D,R,S,U(121) ANG(137) X(134) Y,Z ..
+// Input:
+//   iif      startindex in ato
+// Output:
+//   ato      ?
+//   Retcod:  0 = no geom.func; 1 = function evaluated; -1 = error
+// see APT_decode_func ../ci/NC_apt.c :16974
 
-  int       irc, i1, i2, typ, iv, iie, vNr, dNr, iNew;
+  int       irc, i1, i2, typ, iv, vNr, dNr, iNew;
   long      dbi;
   double    d1;
   Point     pt1;
@@ -1252,12 +1282,12 @@ extern long      GLT_cta_SIZ;
   char      obj1[OBJ_SIZ_MAX], c1;
 
 
-  typ = ato->val[iif];
 
 
-  // printf("GGGGGGGGGGG  ATO_ato_eval_geom iif=%d typ=%d\n",iif,typ);
-  // ATO_dump__ (ato, "ATO_ato_eval_geom-in");
-  // printf(" ato->typ[iif+1] = %d\n",ato->typ[iif+1]);
+  // TESTBLOCK
+  // printf("ATO_ato_eval_geom iGrp=%d nGrp=%d\n",iGrp,nGrp);
+  // ATO_dump_grp (ato, iGrp, nGrp, "ATO_ato_eval_geom-in");
+  // END TESTBLOCK
 
 
 /*
@@ -1269,17 +1299,18 @@ extern long      GLT_cta_SIZ;
   }
 */
 
-  iv = iif;
-  iie = ato->nr;
+  typ = ato->val[iGrp];
+  iv = iGrp + 1;
+  vNr = nGrp - 1;
     // printf(" iv=%d iie=%d\n",iv,iie);
 
 
 
-  //----------------------------------------------------------------
-  //  get vNr = nr of parameters following record iif
-  vNr = ATO_pNr__ (&iv, ato);
-  if(vNr < 1) return -1;
-    // printf(" vNr=%d\n",vNr);
+//   //----------------------------------------------------------------
+//   //  get vNr = nr of parameters following record iGrp
+//   vNr = ATO_pNr__ (&iv, ato);
+//   if(vNr < 1) return -1;
+//     // printf(" vNr=%d\n",vNr);
 
 
   //----------------------------------------------------------------
@@ -1351,15 +1382,21 @@ extern long      GLT_cta_SIZ;
 
     case Typ_Group:  // U(objs)
       // change FncNam/Typ_Group into Typ_Group/objNr
-      ato->typ[iif] = Typ_Group;
-      ato->val[iif] = vNr;
+      ato->typ[iGrp] = Typ_Group;
+      ato->val[iGrp] = vNr;
       goto L_done;    // do not delete groupMembers
-
 
     case Typ_modif:  // MOD(#)
       typ = Typ_modif;
       d1 = ato->val[iv];
       break;
+
+    case Typ_PTS:
+      typ = Typ_PTS;
+      d1 = ato->val[iv];
+      break;
+
+
 
     default:
       TX_Error("ATO_ato_eval_geom E001 %d",typ);
@@ -1369,18 +1406,22 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   // save func as db-obj
-  ato->typ[iif] = typ;
-  ato->val[iif] = d1;
+  ato->typ[iGrp] = typ;
+  ato->val[iGrp] = d1;
+
+  for(i1=iGrp + 1; i1<iGrp + nGrp; ++i1) ato->typ[i1] = Typ_NULL;
 
 
   // kill all records for this expression
-  ATO_clear_block (ato, iv, vNr);
+  ATO_clear_block (ato, iGrp + 1, nGrp - 1);
 
   //----------------------------------------------------------------
   // done
   L_done:
   
+    // TESTBLOCK
     // ATO_dump__ (ato, " ex-ATO_ato_eval_geom");
+    // END TESTBLOCK
  
   return 1;
 
@@ -1389,6 +1430,719 @@ extern long      GLT_cta_SIZ;
   ParErr:
     TX_Error("Parameter: %s ATO_ato_eval_geom",AP_src_typ__(typ));
     return -1;
+
+}
+
+
+//================================================================
+  int ATO_ato_eval_nope (ObjAto *ato, int iGrp, int nGrp) {
+//================================================================
+// ATO_ato_eval_nope          find and resolve math.operations (+-/*)
+
+  int    irc, i1;
+
+
+  // printf("ATO_ato_eval_nope iGrp=%d nGrp=%d\n",iGrp,nGrp);
+
+
+  // func can have math.operations; resolve first
+  L_res_nxt_ope:
+  if(nGrp < 3) goto L_exit;
+
+  // check next 3 records value,mathOperator(+-/*),value
+  i1 = ATO_ato_eval_ck_ope (ato, iGrp, nGrp);
+  if(i1 >= 0) {
+    // found math. operation; resolve next 3 records
+    irc = ATO_ato_eval_3ope (ato, i1);
+    if(irc < 0) return MSG_ERROR (irc, "");
+    nGrp -= 2;
+    goto L_res_nxt_ope;
+  }
+
+  L_exit:
+    // TESTBLOCK
+    // ATO_dump_grp (ato, iGrp, nGrp, "ex-ATO_ato_eval_nope");
+    // END TESTBLOCK
+  return nGrp;
+
+}
+
+
+//============================================================================
+  int ATO_ato_eval_val (ObjAto *ato, int iGrp, int nGrp) {
+//============================================================================
+// ATO_ato_eval_val      evaluate funcs producing a nunmeric value
+//   X Y Z ANG PTS PTI ..
+// TODO: nr of parameters for func not always 1; see ATO_ato_eval_geom ATO_pNr__
+
+  int     irc, i1, fTyp, *gTyp, oTyp, iv, vNr;
+  double  d1, *gVal;
+
+
+  // printf("ATO_ato_eval_val iGrp=%d nGrp=%d\n",iGrp,nGrp);
+  // ATO_dump_grp (ato, iGrp, nGrp, "ATO_ato_eval_val-in");
+
+
+  // func can have math.operations; resolve first
+  if(nGrp >= 4) nGrp = ATO_ato_eval_nope (ato, iGrp, nGrp);
+
+
+  // resolve func
+  L_res_val:
+  fTyp = ato->val[iGrp];
+  gTyp = &ato->typ[iGrp];
+  gVal = &ato->val[iGrp];
+
+  // skip Typ_FncNam
+  iv = iGrp + 1;
+  vNr = nGrp - 1;
+
+
+  switch (fTyp) {
+
+    case Typ_Val:
+      d1 = ato->val[iv];
+      oTyp = fTyp;
+      break;
+
+    case Typ_XVal:       // 1 value: ATO_eval_fnc1__; here more than 1 value ..
+    case Typ_YVal:
+    case Typ_ZVal:
+      // X(P#) Y(P#) Z(P#)
+      i1 = APT_decode_xyzval (&d1, vNr, &ato->typ[iv], &ato->val[iv], &fTyp);
+      if(i1 < 0) goto ParErr;
+      oTyp = fTyp;
+      break;
+
+    case Typ_Angle:
+      i1 = APT_decode_angd__ (&d1, vNr, &ato->typ[iv], &ato->val[iv]);
+      if(i1 < 0) goto ParErr;
+      oTyp = Typ_Angle;
+      break;
+
+//     case Typ_Rad:
+
+    case Typ_PTS:
+    case Typ_PTI:
+    case Typ_SEG:
+    case Typ_Par1:
+      d1 = ato->val[iv];
+      oTyp = fTyp;
+      break;
+
+
+    default:
+      TX_Error("ATO_ato_eval_val E001 %d %s",fTyp,AP_src_typ__(fTyp));
+      return -1;
+  }
+
+  ato->typ[iGrp] = oTyp;
+  ato->val[iGrp] = d1;
+
+  for(i1=iGrp + 1; i1<iGrp + nGrp; ++i1) ato->typ[i1] = Typ_NULL;
+
+    // TESTBLOCK
+    // printf(" ATO_ato_eval_val d1=%f\n",d1);
+    // ATO_dump_grp (ato, iGrp, nGrp, "ATO_ato_eval_val-L10");
+    // END TESTBLOCK
+
+  ATO_clear_block (ato, iGrp + 1, nGrp - 1);
+
+    // TESTBLOCK
+    // ATO_dump__ (ato, "ex-ATO_ato_eval_val");
+    // END TESTBLOCK
+ 
+  return 0;
+
+
+  ParErr:
+    TX_Error("Parameter: %s ATO_ato_eval_val",AP_src_typ__(fTyp));
+    return -1;
+
+}
+
+
+//================================================================
+  int ATO_ato_eval_mod (ObjAto *ato, int iGrp, int nGrp) {
+//================================================================
+// ATO_ato_eval_mod                   evaluate modifier (MOD ..)
+// Input:
+//   iGrp        index 1. obj of grp
+//   nGrp        nr of grp-objects, >= 3;
+// Output
+//   ato         
+
+  int    iNxt;
+
+  // ATO_dump_grp (ato, iGrp, nGrp, "ATO_ato_eval_mod-in");
+
+
+  if(nGrp != 2) return MSG_ERROR (ERR_TODO_E,"E1-nGrp=%d",nGrp);
+
+  iNxt = iGrp + 1;
+  ato->typ[iGrp] = (int)ato->val[iGrp];
+  ato->val[iGrp] = ato->val[iNxt];
+
+  ATO_clear_block (ato, iNxt, 1);
+
+    // TESTBLOCK
+    // ATO_dump__ (ato, "ex-ATO_ato_eval_mod");
+    // END TESTBLOCK
+ 
+  return 0;
+
+}
+
+
+//======================================================================
+  int ATO_ato_eval_3ope (ObjAto *ato, int iGrp) {
+//======================================================================
+// ATO_ato_eval_3ope                  evaluate single math.operation (*+-/)
+// Input:
+//   iGrp   index in ato for value,operator,value (3 records)
+// Output:
+//   ato    2 records removed;
+// see also ATO_ato_eval_ope ATO_eval_ope__
+
+  int      iop, ip2;
+
+
+  // TESTBLOCK
+  // ATO_dump_grp (ato, iGrp, 3, "ATO_ato_eval_3ope-in");
+  // END TESTBLOCK
+
+  iop = iGrp + 1;
+  ip2 = iGrp + 2;
+
+
+  //----------------------------------------------------------------
+  // found val-ope-val; work.
+  // change ato->val[i1];
+  switch (ato->typ[iop]) {
+    case TYP_OpmPlus:
+      ato->val[iGrp] += ato->val[ip2];
+      break;
+
+    case TYP_OpmMinus:
+      ato->val[iGrp] -= ato->val[ip2];
+      break;
+
+    case TYP_OpmMult:
+      ato->val[iGrp] *= ato->val[ip2];
+      break;
+
+    case TYP_OpmDiv:
+      ato->val[iGrp] /= ato->val[ip2];
+      break;
+
+    case TYP_OpmPow:
+      ato->val[iGrp] = pow(ato->val[iGrp], ato->val[ip2]);
+      break;
+
+    default:
+      TX_Error("ATO_ato_eval_3ope E001");
+      return -1;
+
+  }
+    // printf(" iGrp=%f ip2=%f ope %d\n",ato->val[iGrp],ato->val[ip2],ato->typ[iop]);
+
+   ATO_clear_block (ato, iGrp + 1, 2);
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    // ATO_dump__ (ato, "ex-ATO_ato_eval_3ope");
+  return 0;
+
+}
+
+
+
+//======================================================================
+  int ATO_ato_eval_ope (ObjAto *ato, int iGrp, int nGrp) {
+//======================================================================
+// ATO_ato_eval_ope                            evaluate math.operators (*+-/)
+// see also ATO_eval_ope__
+
+  int     i1, i2, i3, is, ii, ie, ila;
+
+
+  // if(ato->nr < 3) goto L_exit;
+  if(nGrp < 3) goto L_exit;
+
+  is = iGrp;
+  ie = iGrp + nGrp;
+
+
+  // TESTBLOCK
+  // ATO_dump_grp (ato, iGrp, nGrp, "ATO_ato_eval_ope-in");
+  // END TESTBLOCK
+
+  // imod = 0;
+
+  //----------------------------------------------------------------
+  // get next record; must be Typ_Val
+  if(ato->typ[is] != Typ_Val) return MSG_ERROR (-1, "ATO_ato_eval_ope E1");
+  i2 = is + 1;
+
+
+  //----------------------------------------------------------------
+  L_nxt:
+  // get 2. record as i2; must be operator (TYP_IS_OPM)
+  if(!TYP_IS_OPM(ato->typ[i2])) return MSG_ERROR (-1, "ATO_ato_eval_ope E2");
+
+
+  // get 3. record as i3; must be value
+  i3 = i2 + 1;
+  if(i2 >= ie) return MSG_ERROR (-1, "ATO_ato_eval_ope E3");
+  if(ato->typ[i3] != Typ_Val) return MSG_ERROR (-1, "ATO_ato_eval_ope E4");
+
+    // printf(" is=%d i2=%d i3=%d\n",is,i2,i3);
+
+
+  //----------------------------------------------------------------
+  // found val-ope-val; work.
+  // change ato->val[i1];
+  switch (ato->typ[i2]) {
+    case TYP_OpmPlus:
+      ato->val[is] += ato->val[i3];
+      break;
+
+    case TYP_OpmMinus:
+      ato->val[is] -= ato->val[i3];
+      break;
+
+    case TYP_OpmMult:
+      ato->val[is] *= ato->val[i3];
+      break;
+
+    case TYP_OpmDiv:
+      ato->val[is] /= ato->val[i3];
+      break;
+
+    case TYP_OpmPow:
+      ato->val[is] = pow(ato->val[is], ato->val[i3]);
+  }
+    // printf(" is=%f i3=%f ope %d\n",ato->val[is],ato->val[i3],ato->typ[i2]);
+
+  ato->typ[i2] = Typ_NULL;
+  ato->typ[i3] = Typ_NULL;
+
+  i2 = i3 + 1;
+  if(i2 < ie) goto L_nxt;
+
+
+  //----------------------------------------------------------------
+   ATO_clear_block (ato, is + 1, nGrp - 1);
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    // ATO_dump__ (ato, "ex-ATO_ato_eval_ope");
+  return 0;
+
+}
+
+
+//================================================================
+  int ATO_ato_eval_math (ObjAto *ato, int iGrp, int nGrp) {
+//================================================================
+// ATO_ato_eval_math          evaluate math functions (SQRT SIN COS ..)
+// Input:
+//   iGrp    index to FncNam in ato
+//   nGrp    nr of records of group
+// Output:
+//   ato     group is replaced by a single data-record (ato->rNr changes)
+// was APT_decode_Fmc
+
+
+  int        fTyp, iv;
+  double     d1, d2, *gVal;
+
+
+  // TESTBLOCK
+  // printf("ATO_ato_eval_math iGrp=%d nGrp=%d\n",iGrp,nGrp);
+  // ATO_dump_grp (ato, iGrp, nGrp, "ATO_ato_eval_math-in");
+  // END TESTBLOCK
+
+
+  // func can have math.operations; resolve first
+  if(nGrp >= 4) nGrp = ATO_ato_eval_nope (ato, iGrp, nGrp);
+
+
+  fTyp = ato->val[iGrp];
+  gVal = &ato->val[iGrp + 1];
+
+
+  //----------------------------------------------------------------
+   // ATO_clear_block (ato, is + 1, nGrp - 1);
+
+  switch (fTyp) {
+
+    case Typ_FcmSQRT:
+      d1 = sqrt(*gVal);
+      break;
+    case Typ_FcmSIN:
+      d1 = sin(*gVal);
+      break;
+    case Typ_FcmCOS:
+      d1 = cos(*gVal);
+      break;
+    case Typ_FcmTAN:
+      d1 = tan(*gVal);
+      break;
+    case Typ_FcmASIN:
+      d1 = asin(*gVal);
+      break;
+    case Typ_FcmACOS:
+      d1 = acos(*gVal);
+      break;
+    case Typ_FcmATAN:
+      d1 = atan(*gVal);
+      break;
+    case Typ_FcmABS:
+      d1 = fabs(*gVal);
+      break;
+    case Typ_FcmFIX:
+      d1 = (int)*gVal;
+      break;
+    case Typ_FcmRND:
+      d2 = 0.5;
+      if(*gVal < 0.0) d2 = -0.5;
+      d1 = (int)(*gVal + d2);
+      break;
+    default:
+      TX_Error("ATO_ato_eval_math E001 %d",fTyp);
+      return -1;
+  }
+
+  ato->typ[iGrp] = Typ_Val;
+  ato->val[iGrp] = d1;
+
+  ATO_clear_block (ato, iGrp + 1, nGrp - 1);
+
+    // TESTBLOCK
+    // ATO_dump__ (ato, "ex-ATO_ato_eval_math");
+    // END TESTBLOCK
+
+  return 0;
+
+}
+
+
+//================================================================
+  int ATO_ato_eval_ck_ope (ObjAto *ato, int iGrp, int nGrp) {
+//================================================================
+// ATO_ato_eval_ck_ope             check next records value,mathOperator(+-/*),value
+// Input:
+//   iGrp        index 1. obj of grp
+//   nGrp        nr of grp-objects, >= 3;
+// Output
+//   retCode     -1   NO; not a math.operation
+//               >=0  OK; is a math.operation (value,mathOperator(+-/*),value)
+//                    retCode = index first value; 3 records.
+
+   
+  int    irc, ie;
+
+  // printf("ATO_ato_eval_ck_ope iGrp=%d nGrp=%d\n",iGrp,nGrp);
+
+  irc = -1; // NO
+  // ie = iGrp + nGrp;
+
+  L_ck_nxt:
+
+  if((ato->typ[iGrp] < Typ_Val)||(ato->typ[iGrp] >= Typ_Dist)) {
+    // check also following records
+    --nGrp;
+    if(nGrp < 3) goto L_NO;
+    ++iGrp;
+    goto L_ck_nxt;
+  }
+
+  iGrp += 1;
+  if((ato->typ[iGrp] < TYP_OpmPlus)||(ato->typ[iGrp] > TYP_OpmPow)) goto L_ck_nxt;
+    
+  iGrp += 1;
+  if((ato->typ[iGrp] < Typ_Val)||(ato->typ[iGrp] >= Typ_Dist)) goto L_ck_nxt;
+
+
+  // yes, OK
+  irc = iGrp - 2;
+
+  L_NO:
+    // TESTBLOCK
+    // printf("ex-ATO_ato_eval_ck_ope %d\n",irc);
+    // END TESTBLOCK
+ 
+    return irc;
+
+}
+
+
+//================================================================
+  int ATO_ato_eval_Grp (ObjAto *ato, int iGrp, int nGrp) {
+//================================================================
+// ATO_ato_eval_Grp          evaluate group of ato - records,
+// Input:
+//   iGrp    index to FncNam in ato
+//   nGrp    nr of records of group
+// Output:
+//   ato     group is replaced by a single data-record (ato->rNr changes)
+
+
+  int    irc, ii, fTyp, nxtTyp, fVal;
+
+  // ATO_dump_grp (ato, iGrp, nGrp, "ATO_ato_eval_Grp-in");
+
+  fTyp = ato->typ[iGrp];
+  fVal = (int)ato->val[iGrp];
+
+  nxtTyp = ato->typ[iGrp + 1];
+
+
+  if(fTyp == Typ_FncNam) {
+
+      if((fVal >= Typ_Val)&&(fVal < Typ_Dist)) {           // 130 - 140
+      // evaluate funcs producing a numeric value VAL X Y Z ANG PTS PTI SEG
+      return ATO_ato_eval_val (ato, iGrp, nGrp);
+
+
+    } else if((fVal >= Typ_VAR)&&(fVal < Typ_Part)) {          // 1 - 120
+      // evaluate geometrical functions P D L C S R V 
+      return ATO_ato_eval_geom (ato, iGrp, nGrp);
+
+
+    } else if((fVal >= Typ_modif)&&(fVal < TYP_FuncInit)) {   // 229 - 260
+      // evaluate modifier (MOD ..)
+      return ATO_ato_eval_mod (ato, iGrp, nGrp);
+
+
+    } else if((fVal >= Typ_FcmSQRT)&&(fVal < TYPE_STRU_NR)) {   // 290 - 300
+      // evaluate math. functions SQRT SIN COS ..
+      return ATO_ato_eval_math (ato, iGrp, nGrp);
+
+    } else return MSG_ERROR (ERR_TODO_E,"FncNam-E2-fVal=%d",fVal);
+
+
+  //----------------------------------------------------------------
+  } else {
+    if(fTyp == Typ_Val) {
+      // only values: evaluate math.operators (*+-/)
+      return ATO_ato_eval_ope (ato, iGrp, nGrp);
+
+    } else return MSG_ERROR (ERR_TODO_E,"E3-fTyp=%d",fTyp);
+
+  }
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int ATO_ato_nGrp (ObjAto *ato, int ii) {
+//================================================================
+// ATO_ato_nGrp                ii = index FncNam; get nGrp = nr of related data
+
+  int      nGrp, lGrp, ie;
+
+  // printf("ATO_ato_nGrp %d\n",ii);
+
+  lGrp = (int)ato->ilev[ii];  // level of group
+  nGrp = 1;
+  ie = ato->nr;
+
+
+  L_nxt_data:
+      // printf(" ATO_ato_nGrp: ii=%d nGrp=%d\n",ii,nGrp);
+    ++ii;
+    if(ii >= ie) goto L_exit;
+    if(ato->ilev[ii] > lGrp) {
+      ++nGrp;
+      goto L_nxt_data;
+    }
+
+
+  L_exit:
+  return nGrp;
+
+}
+
+
+//================================================================
+  int ATO_ato_eval__ (ObjAto *ato) {
+//================================================================
+// ATO_ato_eval__              evaluate atomic-objects (compute); reduce records.
+// loop tru all levels), evaluate ..
+// Input:
+//   ato    numeric constants already resolved (PI ..)
+//          DB-variables already resolved (V<dbi>)
+//          geometric-constants already resolved (DX RZ ..)
+// Output:
+//   ato    all functions (FncNam) resolved, removed;
+
+
+  int        irc, ii, ie, iGrp, lGrp, nGrp;
+  double     d1;
+
+
+  // ATO_dump__ (ato, "ATO_ato_eval__-in   AAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+  // printf(" ilev=%p\n",ato->ilev);
+  
+
+  iGrp = ato->nr;
+
+  //----------------------------------------------------------------
+  // get next group Typ_FncNam; begin at end
+  L_nxt_fnc:
+    ie = ato->nr;
+    --iGrp;
+    if(iGrp < 0) goto L_nxt__;
+    if(ato->typ[iGrp] != Typ_FncNam) goto L_nxt_fnc;
+    nGrp = ATO_ato_nGrp (ato, iGrp);
+
+  L_nxt_eval:
+      // printf(" ATO_ato_eval__-L_nxt_eval: iGrp=%d nGrp=%d\n",iGrp,nGrp);
+    if(nGrp == 1) goto L_nxt__;
+    // evaluate FncNam-group, remove evaluated records, restart.
+    irc = ATO_ato_eval_Grp (ato, iGrp, nGrp);
+    if(irc < 0) goto L_err1;
+      // ATO_dump__ (ato, "ATO_ato_eval__-f-eval_Grp");
+    goto L_nxt_fnc;
+
+
+  //----------------------------------------------------------------
+  // all FncNam-groups resolved;
+  L_nxt__:
+      // ATO_dump__ (ato, "ATO_ato_eval__-L_nxt__");
+    if(ato->nr >= 3) {
+      // only values remaining: evaluate math.operators (*+-/)
+      irc = ATO_ato_eval_nope (ato, 0, ato->nr);
+      if(irc < 0) return MSG_ERROR (irc, "");
+    }
+
+  irc = 0;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    // TESTBLOCK
+    // ATO_dump__ (ato, "ex-ATO_ato_eval__");
+    // END TESTBLOCK
+
+  return irc;
+
+
+  //----------------------------------------------------------------
+  L_err1:
+  irc = -1;
+  return MSG_ERROR (irc, "");
+
+}
+
+/*
+//================================================================
+  int ATO_ato_eval__ (ObjAto *ato) {
+//================================================================
+// ATO_ato_eval__              evaluate atomic-objects (compute); reduce records.
+// math-func: SQRT(290) SIN...
+// geom-func: P(2) L,C,D,R,S,U(121) ANG(137) X(134) Y,Z
+// loop tru all levels(highest first), evaluate ..
+// Record inaktiv setzen (Typ=Typ_NULL); ganz am Ende kompaktieren.
+// Input:  ato; numeric constants already resolved (PI ..)
+//              DB-variables already resolved (V<dbi>)
+//              geometric-constants already resolved (DX RZ ..)
+// Output: ato. all functions resolved; concatenated;
+
+
+  int        irc, ii, ie, iGrp, lGrp, nGrp;
+  double     d1;
+
+
+  ATO_dump__ (ato, "ATO_ato_eval__-in   AAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+  printf(" ilev=%p\n",ato->ilev);
+
+
+
+  //----------------------------------------------------------------
+  // get next group Typ_FncNam (with the highest level)
+  L_nxt_grp:
+    ie = ato->nr;
+    ii = 0; //-1;
+    lGrp = -2;
+    nGrp = 0;
+    L_nxt_FncNam:
+        printf(" L_nxt_FncNam: ii=%d iGrp=%d lGrp=%d nGrp=%d\n",ii,iGrp,lGrp,nGrp);
+      // ++ii;
+      if(ii >= ie) goto L_nxt_eval;
+      // skip all types != FncNam
+      if(ato->typ[ii] != Typ_FncNam) goto L_nxt_data;
+        printf(" ... lGrp=%d ilev[%d]=%d\n",lGrp,ii,(int)ato->ilev[ii]);
+      // skip groups with level <= lGrp
+      if((int)ato->ilev[ii] <= lGrp) {
+        // skip all data of FncNam ii
+        L_skip_data:
+          ++ii;
+          if(ii >= ie) goto L_nxt_eval;
+          if(ato->typ[ii] == Typ_FncNam) goto L_nxt_FncNam;
+          goto L_skip_data;
+      }
+      lGrp = (int)ato->ilev[ii];  // level of group
+      iGrp = ii;
+      nGrp = 1;              // nr of dataRecords of group
+      L_nxt_data:
+          printf(" L_nxt_data: ii=%d iGrp=%d lGrp=%d nGrp=%d\n",ii,iGrp,lGrp,nGrp);
+        ++ii;
+        if(ii >= ie) goto L_nxt_eval;
+        if(ato->typ[ii] == Typ_FncNam) goto L_nxt_FncNam;
+        if(ato->ilev[ii] > lGrp) {
+          ++nGrp;
+          goto L_nxt_data;
+        }
+
+  L_nxt_eval:
+      printf(" ATO_ato_eval__-L_nxt_eval: iGrp=%d lGrp=%d nGrp=%d\n",iGrp,lGrp,nGrp);
+    if(lGrp == -2) goto L_nxt__;
+    if(nGrp == 1) goto L_nxt__;
+    // evaluate FncNam-group, remove evaluated records, restart.
+    irc = ATO_ato_eval_Grp (ato, iGrp, nGrp);
+    if(irc < 0) goto L_err1;
+    goto L_nxt_grp;
+
+
+  //----------------------------------------------------------------
+  // all FncNam-groups resolved;
+  L_nxt__:
+      ATO_dump__ (ato, "ATO_ato_eval__-L_nxt__");
+    if(ato->nr >= 3) {
+      // only values remaining: evaluate math.operators (*+-/)
+      ii = ATO_ato_eval_ck_ope (ato, 0, ato->nr);
+      if(ii >= 0) {
+        // found math. operation; resolve next 3 records
+        irc = ATO_ato_eval_3ope (ato, ii);
+        if(irc < 0) return MSG_ERROR (irc, "");
+        goto L_nxt__;
+      }
+    }
+ 
+  irc = 0;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    // TESTBLOCK
+    ATO_dump__ (ato, "ex-ATO_ato_eval__");
+    // END TESTBLOCK
+
+  return irc;
+
+
+  //----------------------------------------------------------------
+  L_err1:
+  irc = -1;
+  return MSG_ERROR (irc, "");
 
 }
 
@@ -1403,16 +2157,15 @@ extern long      GLT_cta_SIZ;
 /// loop tru all levels(highest first), evaluate ..
 /// Record inaktiv setzen (Typ=Typ_NULL); ganz am Ende kompaktieren.
 /// Input, Output: ato.
-/// see APT_decode_comp1
 /// \endcode
 
-  int     ii, io, i1, i2, i3, ie, imod;
+  int     irc, ii, io, i1, i2, i3, ie, imod, ila, vNr, typ;
   long    l1;
   double  d1;
 
 
-  // ATO_dump__ (ato, "ATO_ato_eval__-in");
-  // printf(" ilev=%p\n",ato->ilev);
+  ATO_dump__ (ato, "ATO_ato_eval__-in   AAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+  printf(" ilev=%p\n",ato->ilev);
 
 
   if(!ato->ilev) {TX_Error("ATO_ato_eval__ E001"); return -1;}
@@ -1422,10 +2175,50 @@ extern long      GLT_cta_SIZ;
 
 
   //----------------------------------------------------------------
+  // evaluate all geometric funcs producing a value (typ=Typ_FncNam, val=Typ_Val)
+  // find FncNam with highest ilev
+  L_valGeo:
+  imod = 0;
+  ila = -2;
+  for(ii=0; ii<ie; ++ii) {
+    if(ato->typ[ii] != Typ_FncNam) continue;
+    if(ato->val[ii] < Typ_Val) continue;
+    if(ato->val[ii] >= Typ_Typ) continue;
+    ++imod;
+    if(ato->ilev[ii] > ila) {ila = ato->ilev[ii]; i1 = ii; }
+      // printf(" L_valGeo ila = %d\n",ila);
+  }
+
+  if(imod) {
+    i2 = i1;
+    vNr = ATO_pNr__ (&i2, ato);
+      // printf(" L_valGeo i1=%d i2=%d vNr=%d\n",i1,i2,vNr);
+    if(vNr < 1) return -1;
+    if(vNr >= 3) {
+      // evaluate math.operators (*+-/)
+      irc = ATO_ato_eval_ope (&d1, &vNr, ato, i2);
+      if(irc < 0) return irc;
+    }
+    typ = (int)ato->val[i1];
+    irc = ATO_ato_eval_val (&d1, &vNr, typ, ato, i2);
+    if(irc < 0) return irc;
+    ato->typ[i1] = typ;
+    ato->val[i1] = d1;
+    ATO_clear_block (ato, i2, vNr);
+  }
+
+  if(ato->nr < 2) goto L_exit;
+
+    // ATO_dump__ (ato, "after eval_vals");
+
+
+
+  //----------------------------------------------------------------
   // evaluate variables;
   imod = 0;
   for(ii=0; ii<ie; ++ii) {
     if(ato->typ[ii] != Typ_VAR) continue;
+    ++imod;
     APT_decode_var (&d1, 1, &ato->typ[ii],  &ato->val[ii]);
     ato->typ[ii] = Typ_Val;
     ato->val[ii] = d1;
@@ -1438,8 +2231,9 @@ extern long      GLT_cta_SIZ;
     // ATO_dump__ (ato, "after eval_vars");
 
 
+
   //----------------------------------------------------------------
-  // evaluate math.operators (+-*/)
+  // evaluate math.operators (*+-/) 
   // 3 records Typ_Val/MathOperator/Typ_Val into 1 record Typ_Val.
   L_mathOpe:
   i1 = ATO_eval_ope__ (ato);
@@ -1459,26 +2253,26 @@ extern long      GLT_cta_SIZ;
 
 
 
-  //----------------------------------------------------------------
-  // decode OpmMinus followed by Val
-  L_ope_2:
-    // ATO_dump__ (ato, " L_ope_2:");
-/*
-    ie = ato->nr - 1;
-    for(ii=0; ii<ie; ++ii) {
-      if(ato->typ[ii] != TYP_OpmMinus) continue;
-      i1 = ii + 1;
-      if(ato->typ[i1] != Typ_Val) continue;
-        printf(" ato_eval-ope_2 %d %d\n",ii,i1);
-      // change i1 -> (val *= -1); delete ii.
-      ato->val[i1] *= -1.;
-      ato->typ[ii] = Typ_NULL;
-      ie = ato->nr;
-      i1 = 0;
-      ATO_clean_1 (&i1, &ato->nr, ato);  // remove gaps with typ=Typ_NULL
-      goto L_ope_2;
-    }
-*/
+/
+//   //----------------------------------------------------------------
+//   // decode OpmMinus followed by Val
+//   L_ope_2:
+//     // ATO_dump__ (ato, " L_ope_2:");
+//     ie = ato->nr - 1;
+//     for(ii=0; ii<ie; ++ii) {
+//       if(ato->typ[ii] != TYP_OpmMinus) continue;
+//       i1 = ii + 1;
+//       if(ato->typ[i1] != Typ_Val) continue;
+//         printf(" ato_eval-ope_2 %d %d\n",ii,i1);
+//       // change i1 -> (val *= -1); delete ii.
+//       ato->val[i1] *= -1.;
+//       ato->typ[ii] = Typ_NULL;
+//       ie = ato->nr;
+//       i1 = 0;
+//       ATO_clean_1 (&i1, &ato->nr, ato);  // remove gaps with typ=Typ_NULL
+//       goto L_ope_2;
+//     }
+/
 
 
   //----------------------------------------------------------------
@@ -1503,17 +2297,47 @@ extern long      GLT_cta_SIZ;
     // ATO_dump__ (ato, " L_geom_0:");
   imod = 0;
   ie = ato->nr - 1;
+    // TESTBLOCK
     // printf(" L_geom_0: ie=%d\n",ie);
     // ATO_dump__ (ato, "before L_geom_0");
+    // END TESTBLOCK
   for(ii=ie; ii>=0; --ii) {
     if(ii >= ato->nr) continue;
     if(ato->typ[ii] != Typ_FncNam) continue;
     i1 = ATO_ato_eval_geom (ato, ii);
       // printf(" i1 ex eval_geom = %d\n",i1);
     if(i1 < 0) goto L_comp_0;
+    // if(i1 < 0) goto L_mathOpe;
     if(i1 > 0) ++imod;
   }
   if(imod) goto L_geom_0;
+
+    // TESTBLOCK
+    // printf(" L_geom_1: ie=%d\n",ie);
+    // ATO_dump__ (ato, "L_geom_1");
+    // END TESTBLOCK
+
+
+/
+//   //----------------------------------------------------------------
+//   // evaluate math.operators (*+-/) 
+//   // 3 records Typ_Val/MathOperator/Typ_Val into 1 record Typ_Val.
+//   L_mathOpe:
+//   i1 = ATO_eval_ope__ (ato);
+// 
+// 
+// 
+//   //----------------------------------------------------------------
+//   L_fnc0:
+//   // eval math-functions with only one value  (and geom-func-VAL)
+//   i2 = ATO_eval_fnc1__ (ato);
+//   if(i2 < 0) return i2;         // 2070-01-27
+//   if((i1 > 0) || (i2 > 0)) {
+//     // remove all NULL-records
+//     ATO_clean__ (ato);
+//     goto L_mathOpe;
+//   }
+/
 
 
   //----------------------------------------------------------------
@@ -1545,19 +2369,19 @@ extern long      GLT_cta_SIZ;
   //----------------------------------------------------------------
   L_exit:
     // TESTBLOCK
-    // printf(" ex-ATO_ato_eval__\n");
-    // ATO_dump__ (ato, "ex-ATO_ato_eval__");
+    printf(" ex-ATO_ato_eval__\n");
+    ATO_dump__ (ato, "ex-ATO_ato_eval__");
     // END TESTBLOCK
 
   // test for unknown types
-/* removed for processCommand "TEC val val val .."
-  if(ato->nr >= 2) {
-    if((ato->typ[0] == Typ_Val) && (ato->typ[1] == Typ_Val))  // 2020-01-04
-      TX_Print ("**** Line %d - change val val . to P(val val .) or D(...)",
-                ED_get_lnr_act());
-// TODO: lineNr wrong if in subModel !
-  }
-*/
+/  removed for processCommand "TEC val val val .."
+//   if(ato->nr >= 2) {
+//     if((ato->typ[0] == Typ_Val) && (ato->typ[1] == Typ_Val))  // 2020-01-04
+//       TX_Print ("**** Line %d - change val val . to P(val val .) or D(...)",
+//                 ED_get_lnr_act());
+// // TODO: lineNr wrong if in subModel !
+//   }
+/
 
   return 0;
 
@@ -1567,18 +2391,17 @@ extern long      GLT_cta_SIZ;
 //================================================================
   int ATO_eval_ope__ (ObjAto *ato) {
 //================================================================
-/// \code
-/// evaluate math.operators (+-*/)
-/// 3 records Typ_Val/MathOperator/Typ_Val into 1 record Typ_Val.
-/// Retcode:  nr of evaluations
-/// \endcode
+// DO NOT USE - replaced by ATO_ato_eval_ope - 
+// evaluate math.operators (*+-/)
+// 3 records Typ_Val/MathOperator/Typ_Val into 1 record Typ_Val.
+// Retcode:  nr of evaluations
 
 
   int      imod, ii, i1, i2, i3, is, ie, ila;
   // char     c1;
 
 
-  // ATO_dump__ (ato, "ATO_eval_ope__ start");
+  ATO_dump__ (ato, "ATO_eval_ope__-in");
 
   imod = 0;
 
@@ -1661,6 +2484,10 @@ extern long      GLT_cta_SIZ;
 
   //----------------------------------------------------------------
   L_exit:
+    // TESTBLOCK
+    ATO_dump__ (ato, "ex-ATO_eval_ope__");
+    return MSG_ERROR (ERR_TEST, "");
+    // END TESTBLOCK
   return imod;
 
 }
@@ -1832,6 +2659,7 @@ extern long      GLT_cta_SIZ;
   return imod;
 
 }
+*/
 
 
 //================================================================
@@ -2036,7 +2864,7 @@ extern long      GLT_cta_SIZ;
  
   // printf("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS\n");
   // printf("ATO_ato_srcLn__ |%s|\n",srcLn);
-  // printf(" ilev=%p\n",ato->ilev);
+  // printf(" ilev=%d\n",*ato->ilev);
 
 
 
@@ -2049,13 +2877,13 @@ extern long      GLT_cta_SIZ;
   // analyze sourceline; get source-objects -> tso
   irc = APED_txo_srcLn__ (tso, itsMax, srcLn);
     // printf(" _txo_srcLn__ %d\n",irc);
-  if(irc < 1) return irc;
+  if(irc < 1) return MSG_ERROR (-2, "err 1"); // return irc;
     // APED_txo_dump (tso, srcLn, "nach-txo_srcLn__");
 
 
   // get atomic-objects from source-objects
   irc = ATO_ato_txo__ (ato, tso, srcLn);
-  if(irc < 0) return irc;
+  if(irc < 0) return MSG_ERROR (-2, "err 2"); // return irc;
     // ATO_dump__ (ato, " nach _ato_txo_");
 
 

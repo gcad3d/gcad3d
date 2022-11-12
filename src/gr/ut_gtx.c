@@ -77,14 +77,14 @@ see also dxfr_gxt dxfw_gxt
 
 #include "../ut/ut_geo.h"
 #include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
 
-#include "../db/ut_DB.h"      // DB_GetVar
+#include "../db/ut_DB.h"               // DB_GetVar
 
-
-#include "../gr/ut_gr.h"      // eigene Prototypen
-#include "../gr/vf.h"         // GL_vf1_CW ..
+#include "../gr/ut_gr.h"               // eigene Prototypen
+#include "../gr/vf.h"                  // GL_vf1_CW ..
 #include "../gr/ut_GL.h"               // GL_get_Scale
 
 

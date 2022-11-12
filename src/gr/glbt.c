@@ -119,15 +119,16 @@ I2D_stat
 #include <GL/glu.h>                      // gluPickMatrix
 
 
-#include "../ut/ut_geo.h"                // Point-def
+#include "../ut/ut_geo.h"              // Point-def
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 
-#include "../db/ut_DB.h"                 // DB_GetVector
-#include "../gr/ut_GL.h"                 // GR_MODE_SELECT
+#include "../db/ut_DB.h"               // DB_GetVector
+#include "../gr/ut_GL.h"               // GR_MODE_SELECT
 #include "../gr/ut_gr.h"               // LN_WIDTH_..
 
 #include "../xa/xa_sele.h"             // Typ_FncVAR1
-#include "../xa/xa_mem.h"               // memspc..
+#include "../xa/xa_mem.h"              // memspc..
 
 
 

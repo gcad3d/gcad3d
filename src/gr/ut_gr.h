@@ -18,6 +18,8 @@
 
 Prerequisites:
 #include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
+#include "../ut/ut_memTab.h"           // MemTab_..
 
 -----------------------------------------------------
 Modifications:
@@ -270,6 +272,8 @@ void GR_temp_osu (ObjGX *oxi, long dbi, int att);
  GR_set_osu(OPERS_TEMP+OPERS_CLOSE,oxi,dbi,att);
 
 
+
+int GR_set_nifac (int opers, long dbi, MshFac *nifa, int att);
 void GR_temp_sur (long dbi, int att);
 #define GR_temp_sur(dbi,att)\
  GR_set_sur(OPERS_TEMP+OPERS_CLOSE,dbi,att);
@@ -285,6 +289,20 @@ void GR_tDyn_osu (ObjGX *oxi, long dbi, long att);
 void GR_perm_sur (long dbi, long att);
 #define GR_perm_sur(dbi,att)\
  GR_set_sur(OPERS_PERM+OPERS_CLOSE,dbi,att);
+
+
+
+void GR_temp_nifac (long dbi, MshFac *nifa, int att);
+#define GR_temp_nifac(dbi,nifa,att)\
+ GR_set_nifac(OPERS_TEMP+OPERS_CLOSE,dbi,nifa,att);
+
+void GR_tDyn_nifac (long dbi, MshFac *nifa, int att);
+#define GR_tDyn_nifac(dbi,nifa,att)\
+ GR_set_nifac(OPERS_TDYN+OPERS_CLOSE,dbi,nifa,att);
+
+void GR_perm_nifac (long dbi, MshFac *nifa, int att);
+#define GR_perm_nifac(dbi,nifa,att)\
+ GR_set_nifac(OPERS_PERM+OPERS_CLOSE,dbi,nifa,att);
 
 
 
@@ -326,6 +344,7 @@ int GR_tDyn_nsymB (int ptNr, Point *pTab, int typ, int att);
 
 int GR_tDyn_tx2A (Point2 *pt1, char *txtA, int att);
 int GR_tDyn_txiA (Point *pt1, int ii, int att);
+int GR_tDyn_txi2 (Point2 *pt1, int ii, int att);
 
 int GR_tDyn_box__ (Point *p1, Point *p2, int att);
 int GR_tDyn_box2__ (Point2 *p1, Point2 *p2, int att);
@@ -380,6 +399,7 @@ int AP_add_pt (long *dbi, int att, Point *pt1);
   int GR_Disp_sur (ObjGX *oxi, int att);
   int GR_Disp_sbsp (int ptUNr, int ptVNr,  Point *pTab, int att);
 
+  int GR_set_z2    (double dz);
   double GR_gtx_ckBlockWidth (char*, double);
   int    GR_gxt_strLen (char*);
   double GTX_chw_  (double);

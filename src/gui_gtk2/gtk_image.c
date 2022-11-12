@@ -70,6 +70,10 @@ see tst_gtk_image.c
 #include "../gui_gtk2/gtk_image.h"
 
 
+// extern - ../xa/xa_main.c
+extern char *AP_ico_dir;
+
+
 // local vars:
 static int       icoNr;
        GdkPixbuf **IcoTab;
@@ -80,10 +84,8 @@ static GtkWidget  *TUT_win=NULL;
 // gtk_core.c:
 extern GtkWidget *UI_act_wi;
 
-
 #define VIEWTIME_T 400
 #define VIEWTIME_M 400
-
 
 
 
@@ -239,12 +241,10 @@ extern GtkWidget *UI_act_wi;
 //================================================================
   int GUI_TUT_m__ (int ii) {
 //================================================================
-// display image "mousebutton" without decoration for 0.8 secs
-// Input: ii=mousebutton; 1|2|3
-
-//   TX_Print ("ScreenCast-Support only Gtk3");
-//   return 0;
-
+/// \code
+/// display image "mousebutton" without decoration for 0.8 secs
+/// Input: ii=mousebutton; 1|2|3
+/// \endcode
 
 
   int        i1;
@@ -315,18 +315,13 @@ extern GtkWidget *UI_act_wi;
 
   return 0;
 
-
 }
 
 
 //================================================================
   int GUI_TUT_t__ (char *ltxt) {
 //================================================================
-// display text without decoration for 0.8 secs
-// \endcode
-
-//   TX_Print ("ScreenCast-Support only Gtk3");
-//   return 0;
+/// display text without decoration for 0.8 secs
 
   GtkWidget  *w1;
   GdkCursor   *cNxt;

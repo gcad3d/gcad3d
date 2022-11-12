@@ -38,6 +38,8 @@ List_functions_start:
 DEB_dump_pt             simple-dump Point
 DEB_dump_pt2            simple-dump Point2
 DEB_dump_pTab           dump MemTab(Point) + MemTab(char) (point + status)
+DEB_dump_nchar          structured (10-groups) of chars (bin-vals)
+DEB_dump_nint           structured (10-groups) of int's
 
 DEB_dump_obj__          dump object
 DEB_dump_obj_1          dump bin-obj and its pointers, do not resolve.
@@ -172,7 +174,7 @@ DBO_dump__
   void     *vp1;
 
 
-  // printf("DEB_dump_nobj__ typ=%d oNr=%d txt=|%s|\n",form,oNr,txt);
+  printf("============ DEB_dump_nobj__ typ=%d oNr=%d %s\n",form,oNr,txt);
 
   il1 = UTO_siz_stru (form);
 
@@ -269,11 +271,13 @@ static FILE     *uo = NULL;
 
   int        irc, i1, i2, ii;
   char       cbuf[256], *p1;
-  UtxTab_NEW (txTab1);
+  // UtxTab_NEW (txTab1);
+  TxtTab     txTab1 = _UTXTAB_NUL;
   va_list    va;
 
 
   // printf("DEB_dump_obj__ typ=%d txt=|%s|\n",typ,txt);
+
 
 
   //----------------------------------------------------------------
@@ -328,6 +332,14 @@ static FILE     *uo = NULL;
     uo = stdout;
     DestFlag = 0;
     return 0;
+
+
+  //----------------------------------------------------------------
+  } else if(typ == Typ_Error) {
+    printf(" - ERROR\n");
+    return 0;
+
+
 
   }
 
@@ -2501,8 +2513,8 @@ static int iLev;
   sprintf(cbuf,txt,vp);
 
 
-  printf("DEB_dump_ox_1 |%s| typ=%d form=%d siz=%d dir=%d aux=%d\n",cbuf,
-             oxi->typ,oxi->form,oxi->siz,oxi->dir,oxi->aux);
+  // printf("DEB_dump_ox_1 |%s| typ=%d form=%d siz=%d dir=%d aux=%d\n",cbuf,
+             // oxi->typ,oxi->form,oxi->siz,oxi->dir,oxi->aux);
 
 
   //----------------------------------------------------------------
@@ -2951,6 +2963,76 @@ static char cOff[64];
   return 0;
   
 } 
+
+
+//================================================================
+  int DEB_dump_nchar (char *ca, int cNr) {
+//================================================================
+// DEB_dump_nchar         structured (10-groups) of chars (bin-vals)
+
+#define ssnchar \
+  "------------0;----1;----2;----3;----4;----5;----6;----7;----8;----9;\n"
+
+  int    i1, i2, i3, ie;
+
+  printf(ssnchar);
+
+  i3 = 0;
+  for(i1=0; i1<cNr; i1 += 10) {
+    ie = cNr - i1;
+    if(ie > 10) ie = 10;
+    printf(" [%5d]",i1);
+    for(i2=0;i2<ie;++i2) {
+      printf(" % 4d;",ca[i1+i2]);
+    }
+    printf("\n");
+    ++i3;
+    if(i3 >= 20) {
+      printf(ssnchar);
+      i3 = 0;
+    }
+  }
+  printf("\n");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int DEB_dump_nint (int *ia, int iNr) {
+//================================================================
+// DEB_dump_nint          structured (10-groups) of int's
+// maxVal is 999999
+
+#define ssnint \
+"------|------0;------1;------2;------3;------4;------5;------6;------7;------8;------9;\n"
+
+  int    i1, i2, i3, ie;
+
+
+  printf(ssnint);
+
+  i3 = 0;
+  for(i1=0; i1<iNr; i1 += 10) {
+    ie = iNr - i1;
+    if(ie > 10) ie = 10;
+    printf("%6d|",i1);
+    for(i2=0;i2<ie;++i2) {
+      printf("% 6d;",ia[i1+i2]);
+    }
+    printf("\n");
+    ++i3;
+    if(i3 >= 20) {
+      printf(ssnint);
+      i3 = 0;
+    }
+  }
+  printf("\n");
+
+  return 0;
+
+}
 
 
 //================================================================

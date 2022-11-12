@@ -92,14 +92,14 @@ extern GtkStyle *UI_stylTab[];      // 0=default; 1=red; 2=blue
 //=====================================================================
   int GUI_entry_styl (MemObj *o_par,  int imod) {
 //=====================================================================
-/// \code
-/// GUI_entry_styl    modify frame of entry;
-/// imod      0=GUI_STYL_normal=default_frame;  1=GUI_STYL_activ=red_frame.
-/// \endcode
+// GUI_entry_styl    modify frame of entry;
+// imod      0 GUI_STYL_normal - default  - white background
+//           1 GUI_STYL_activ  - ERROR    - red background   
+//           2 GUI_STYL_passiv - inactive - gray background
 
 // see GUI_button_styl
 
-  static GtkRcStyle   *styl0 = NULL, *styl1;
+  static GtkRcStyle   *styl0 = NULL, *styl1, *styl2;
 
   int         pTyp, i1;
   Obj_Unknown *go;
@@ -109,14 +109,21 @@ extern GtkStyle *UI_stylTab[];      // 0=default; 1=red; 2=blue
   if(!pTyp) return (-1);
 
 
+  // printf("GUI_entry_styl %d\n",imod);
+
+
   if(!styl0) {
     styl0 = gtk_rc_style_new ();   // normal
     styl0->color_flags[GTK_STATE_NORMAL]      = GTK_RC_BASE;
-    gdk_color_parse ("gray90", &styl0->base[0]);
+    gdk_color_parse ("white", &styl0->base[0]);
 
-    styl1 = gtk_rc_style_new ();   // active
+    styl1 = gtk_rc_style_new ();   // Error
     styl1->color_flags[GTK_STATE_NORMAL]      = GTK_RC_BASE;
     gdk_color_parse ("red", &styl1->base[0]); // from X11 rgb.txt file
+
+    styl2 = gtk_rc_style_new ();   // inactive
+    styl2->color_flags[GTK_STATE_NORMAL]      = GTK_RC_BASE;
+    gdk_color_parse ("gray90", &styl2->base[0]);
   }
 
 
@@ -124,8 +131,11 @@ extern GtkStyle *UI_stylTab[];      // 0=default; 1=red; 2=blue
   // gtk_widget_set_can_default (go->widget, TRUE);
   // gtk_entry_set_has_frame (GTK_ENTRY(go->widget), TRUE);
 
-  if(imod < 1) {   // GUI_STYL_normal
+  if(imod == 0) {   // GUI_STYL_normal
     gtk_widget_modify_style (go->widget, styl0);
+
+  } else if(imod == 1) {   // GUI_STYL_activ
+    gtk_widget_modify_style (go->widget, styl1);
     // gtk_widget_modify_bg (go->widget, GTK_STATE_NORMAL, &col1);
     // gtk_entry_set_has_frame (GTK_ENTRY(go->widget), FALSE);
     // i1 = GTK_SHADOW_IN;
@@ -134,7 +144,7 @@ extern GtkStyle *UI_stylTab[];      // 0=default; 1=red; 2=blue
     // gtk_widget_restore_default_style (go->widget);
 
   } else {   // GUI_STYL_activ
-    gtk_widget_modify_style (go->widget, styl1);
+    gtk_widget_modify_style (go->widget, styl2);
     // gtk_entry_set_has_frame (GTK_ENTRY(go->widget), TRUE);
     // gtk_widget_grab_focus (go->widget);
     // gtk_widget_has_default (go->widget);

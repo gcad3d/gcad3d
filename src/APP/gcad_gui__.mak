@@ -52,14 +52,16 @@ GUI_exe:
 link:
 	@echo make the link ..
 	cd $(gcad_dir_bin) ;\
- if test "$(VGUI)" = "gtk2"; then\
- echo "Gtk2";\
  ln -fs xa_gui_gtk2.so xa_gui.so;\
- fi;\
- if test "$(VGUI)" = "gtk3"; then\
- echo "Gtk3";\
- ln -fs xa_gui_gtk3.so xa_gui.so;\
- fi
+
+
+#if test "$(VGUI)" = "gtk2"; then\
+#echo "Gtk2";\
+#fi;\
+#if test "$(VGUI)" = "gtk3"; then\
+#echo "Gtk3";\
+#ln -fs xa_gui_gtk3.so xa_gui.so;\
+#fi
 
 
 # EOF

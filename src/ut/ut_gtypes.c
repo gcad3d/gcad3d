@@ -247,7 +247,7 @@ int    GcoDbiTab[] = {  // dbi-tab for GcoTxtTab
 char  *CopTxtTab[] = {  // controlOperators (EQ NE LT GT G_E L_E)  Typ_ope_eq ..
 // 00             1              2              3              4   TypTxtTab220
   "EQ",          "NE",          "LT",          "GT",          "G_E",
-  "L_E",         "AND",         "OR",
+  "L_E",         "AND",         "OR",          "NOT",
   ""};
 
 
@@ -271,7 +271,7 @@ char  *ObjCodTab[] = {
   "PRISM",       "SPH",         "CON",         "TOR",         "CYL",
 // 30
   "CUT",         "REV",         "SWP",         "LE",          "RI",
-  "DIM",         "DIMA",        "LDR",         "UNUSED",      "FSUB",
+  "DIM",         "DIMA",        "LDR",         "FOPE",        "FSUB",
 // 40
   "PRJ",         "TRA",         "ROT",         "MIR",         "TXA",
   "DIMD",        "DIMR",        "DIM3",        "REC",         "INT",
@@ -283,14 +283,15 @@ char  *ObjCodTab[] = {
   "TNG",         "IMP",         "BSP1",        "PARL",         "BLEND",
 // 70
   "UNL",         "UNL1",        "UNL2",        "DISP_PT",      "DISP_PL",
+  "ANG",         "DRX",         "DRY",         "DRZ",          "CSU",
 // 80
-  "ANG",         "DRX",         "DRY",         "DRZ",          ""};
+  ""};
 
 // last word must be "" !
 
 // die zugehoerige enum ist Typ_Cmd1 in ../ci/NC_apt.h
-// unused: RI LE HI LO SKWC
-// nur f WCUT: MA RADI RADC T_MA T_RISO T_RCON SKWC
+// unused: RI LE HI LO
+// nur f WCUT: MA RADI RADC T_MA T_RISO T_RCON
 
 
 
@@ -1612,6 +1613,7 @@ char  *ObjCodTab[] = {
   Typ_ZVal,     "Typ_ZVal",
   Typ_Angle,    "Typ_Angle",
   Typ_PLN,      "Typ_PLN",
+  Typ_SUR,      "Typ_SUR",
   Typ_SOL,      "Typ_SOL",
   Typ_Tra,      "Typ_Tra",
   Typ_modAux,   "Typ_mod1",                    // Bild-Tasten/ (Version ändern)
@@ -1636,6 +1638,8 @@ char  *ObjCodTab[] = {
 
   Typ_String,   "Typ_String",
   TYP_FilNam,   "TYP_FilNam",
+
+  Typ_ope__,    "Typ_ope__",
 
   Typ_modRepl,  "Typ_modRepl",
   Typ_mod1,     "Typ_mod1",

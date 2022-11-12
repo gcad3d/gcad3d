@@ -2,10 +2,6 @@
 ../ut/ut_memTab.h
 for Functions see ../ut/ut_memTab.c
 
-
-*//*!
-\file ../ut/ut_memTab.h
-\ingroup grp_ut_obgrp_ut_obj
 */
 
 /// \code
@@ -24,7 +20,7 @@ for Functions see ../ut/ut_memTab.c
 #define def_MemTab(vTyp1)\
   typedef struct {vTyp1 *data; unsigned int rMax, rNr, rSiz, tSiz;\
           unsigned char typ, incSiz, use, spcTyp;}
-// size = 20
+// size = 32 (4 b free !)
 
 /// template for the typedef:
 #define typedef_MemTab(vTyp1)\
@@ -35,11 +31,16 @@ for Functions see ../ut/ut_memTab.c
 // #define MemTab(vTyp1) (MemTab_##vTyp1) = { ((void *)0), -1, -1}
 
 // #define _MEMTAB_NUL {NULL, 0, 0, 0, ' ',' ',' ',' '}
-#define _MEMTAB_NUL { NULL, 0, 0, 0, 0,\
+// #define _MEMTAB_NUL { NULL, 0, 0, 0, 0,\
+
+#define _MEMTAB_NUL { NULL, 0, 0, 0,\
                       (char)0, (char)0, (char)0, (char)MEMTYP_NONE }
 
 /// default-typedef (mit void *data)
 def_MemTab(void) MemTab;
+
+// MemTab* from MemTab_<type>*
+#define MEMTAB_ANONP(mtb) (MemTab*)mtb
 
 
 
@@ -184,6 +185,7 @@ void MemTab_ini_temp (MemTab *memTab, int rTyp, int rTot);
   (mtb)->rNr = 0
 
 // MemTab_disp_tdyn
+// display group of objects of same objTyp in MemTab (GR_set_mtb)
 #define MemTab_disp_tdyn GR_tDyn_mtb
 #define MemTab_disp_temp GR_temp_mtb
 

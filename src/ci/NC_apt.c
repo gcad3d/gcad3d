@@ -216,6 +216,7 @@ cc -c NC_apt.c
 #include "../ut/func_types.h"                  // Typ_Att_hili
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_deb.h"                 // DEB_stop
 
 
@@ -1163,7 +1164,7 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
 
 
     //----------------------------------------------------------------
-    if((aus_typ[0] >= Typ_Val)&&(aus_typ[0] < Typ_Par1)) {
+    if((aus_typ[0] >= Typ_Val)&&(aus_typ[0] < Typ_Dist)) {
       *d1 = aus_tab[0];
       goto L_exit;
 
@@ -1225,7 +1226,7 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
   int APT_decode_angd__ (double *ang, 
                          int aus_anz,int aus_typ[],double aus_tab[]) {
 //====================================================================
-// Angle in Degrees
+// APT_decode_angd__                     Angle in Degrees
 // V#=ANG L# PERP
 
 
@@ -1337,6 +1338,8 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
   } else if (aus_typ[0] == Typ_CI)     {
     p1 = DB_get_CI ((long)aus_tab[0]);
     *ang = UT_DEGREES(((Circ*)p1)->ango);
+      // printf(" ANG-C %f\n",*ang);
+
     goto L_exit;
 
 
@@ -1408,7 +1411,8 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
 
     // apply REV
     // if(iRev) *ang = UT2D_angd_invert (ang);
-    if(iRev) *ang = fabs(180. - *ang);
+    // if(iRev) *ang = fabs(180. - *ang);
+    if(iRev) *ang *= -1.;
 
     APT_subTyp = Typ_Angle;
 
@@ -1436,7 +1440,6 @@ static struct {double du, dv;} APT_ptPars;  // parameters of temporary points
 //====================================================================
 
   int              i1, irc;
-  // double           db1;
   Point            pt1, pt2;
   Vector           vc1, vc2;
   Line             ln1;
@@ -5723,6 +5726,7 @@ static  TraRot  trr;
 //             TSU_DrawSurTP1    Tess / Disp getrimmte/gelochte Planare Flaeche
 // 
 // 
+// returns OGX = planar-surface (Typ_SURSUP, SuSUP=Typ_PLN, bnd=Typ_CI)
 // see APT_decode_fsub
 
   int      irc, i1, i2, oNr, typ, bp, iNxt;
@@ -7349,6 +7353,132 @@ static ObjGX   oxa[2];
 }
 
 
+
+//======================================================================
+  int APT_decode_suop (ObjGX *oxo,
+                       int aus_anz, int aus_typ[], double aus_tab[],
+                       Memspc *wrkSpc) {
+//======================================================================
+// create surface from boolean operation.
+// Inputs:
+//   0 "FOPE"     Typ_cmdNCsub T_FOPE
+//   1  surface to modify (split, join, ..)         Typ_SUR <dbi>
+//   2  cutting curve or plane or surface           <typ>   <dbi>
+//   3  [AND|OR|NOT]        Typ_ope_and|Typ_ope_or|Typ_ope_not (iOpe = 0,1,2; def=0)
+//   4  [MOD(<versionNr>)]  (iMod; 0=undef)
+
+  int      irc, ii, i1, iMod, iOpe, o2Typ, o2Nr;
+  ObjGX    *ox1;
+  void     *oo2;
+
+
+  printf("APT_decode_suop %d\n",aus_anz);
+  for(i1=0; i1<aus_anz; ++i1) {
+    printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+  }
+
+
+TX_Error ("*** UNDER CONSTRUCTION ***");
+return -1;
+
+
+
+
+
+  
+  //----------------------------------------------------------------
+  // get iMod, iOpe
+  ii = aus_anz - 1;
+
+  if(aus_typ[ii] == Typ_modif) {
+    iMod = aus_tab[ii];
+    --ii;
+  } else iMod = 0;
+
+
+  if(aus_typ[ii] == Typ_ope__) {
+    iOpe = aus_tab[ii] - Typ_ope_and;    // AND=0; OR=1; NOT=2
+    --ii;
+  } else iOpe = 0;
+    printf(" iMod=%d iOpe=%d\n",iMod,iOpe);
+
+
+  //----------------------------------------------------------------
+  // get o2Typ,oo2 = modifying-obj; plane, curve or surf.
+  o2Typ = UTO__dbo (&oo2, &o2Nr, (int)aus_typ[ii], (long)aus_tab[ii]); 
+  if(o2Typ < 0) return MSG_ERROR (-2, "obj 2 not stored in DB");
+    DEB_dump_obj__ (o2Typ, oo2, "decode_suop__-oo2");
+
+
+  //----------------------------------------------------------------
+  // get surf-ox1 = surf-to-modify;
+  --ii;
+  if(aus_typ[ii] != Typ_SUR) return MSG_ERROR (-2, "obj 1 is not surf");
+  ox1 = DB_GetSur ((long)aus_tab[ii], 0);
+  if(ox1->typ == Typ_Error) return MSG_ERROR (-2, "obj 2 not stored in DB");
+    DEB_dump_obj__ (Typ_ObjGX, ox1, "decode_suop__-ox1");
+    DEB_dump_ox_s_ (ox1, "decode_suop__-ox1");
+
+
+  //----------------------------------------------------------------
+  // get surf-to-modify; bnd's and faces.
+
+
+  // get bnd3 = boundaries of surf-ox1
+
+
+  // get msh3 = mesh of surf-ox1
+
+
+  // get bnd2 = 2D-boundaries of surf-ox1
+
+  // get msh2 = 2D-mesh of surf-ox1
+
+
+
+  //----------------------------------------------------------------
+  // if oo2 == Plane:
+  // get icv3 = intersection-curve from plane X surface
+  // get icv2 = 2D-curve of icv3
+
+
+  //----------------------------------------------------------------
+  // if oo2 == curve:
+  // get icv3 = project curve onto surface ox1
+  // get icv2 = 2D-curve of icv3
+ 
+
+
+  //----------------------------------------------------------------
+  // if oo2 == surface:
+  // if surf-ox1 and surf-oo2 have different support-surface:
+	// - get icv3 = intersect suppSur-ox1 X suppSur-oo2;
+  // - get icv2 = 2D-curve of icv3
+
+
+  // if surf-ox1 and surf-oo2 have same support-surface:
+  // - get icv3 = boundaries of surf-oo2
+  // - get icv2 = 2D-curves of icv3
+
+
+  //================================================================
+  // have now:
+  // bnd2 = 2D-boundaries of surf to modify
+  // icv2 = 2D-curves intersecting 
+
+  // intersect bnd2 X icv2; follow curve at intersections according operator iOpe;
+  // - result is n new boundaries;
+
+  // - get all resulting boundaries back to 3D for preview (to modify versionNr)
+  // - get 3D-mesh for resulting surface with index versionNr
+
+
+
+  return -1;
+
+}
+
+
 //======================================================================
   int APT_decode_msh__ (ObjGX *ox1,
                         int aus_anz, int aus_typ[], double aus_tab[]) {
@@ -7532,6 +7662,8 @@ static ObjGX   oxa[2];
 //=============================================================================
 // Surf in Punkte zerlegen und -> ??
 // ACHTUNG: ox1->ptiTab = memspc55
+// TODO: returns typ=Typ_SURSUP for planar surf "C20";
+//       should return Typ_SURTPS.  Or SurPLN, get TPS by STPS ??
 
   int      i1, i2, i3, irc, ausInd, ptNr, fTabNr, iRow;
   long     *iTab;
@@ -8147,6 +8279,26 @@ static Conus co1;  // {Plane pl; double r1, r2, h;}
 
 
 //=============================================================================
+  int APT_decode_bcsu (ObjGX *ox1, int aus_anz,int aus_typ[],double aus_tab[]) {
+//=============================================================================
+// composite-surfaces
+
+  int    i1;
+
+
+  printf("\nAPT_decode_bcsu |%d|\n",aus_anz);
+  for(i1=0; i1<aus_anz; ++i1) {
+    printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
+  }
+
+  L_err1:
+    TX_Error("Definition of CSU not yet implemented");
+    return 0;
+
+}
+
+
+//=============================================================================
   int APT_decode_btor (ObjGX *ox1, int aus_anz,int aus_typ[],double aus_tab[]) {
 //=============================================================================
 
@@ -8239,7 +8391,6 @@ static Torus to1;
 
   //------------------------------------------------------
   // B=TOR PT VC rad rad
-  // if(aus_anz == 5) 
   if(aus_typ[3] == Typ_Val) {
 
     pt1 = DB_GetPoint ((long)aus_tab[1]);
@@ -8284,7 +8435,7 @@ static Torus to1;
 
   //------------------------------------------------------
   L_fertig:
-  // printf(" r1=%f r2=%f\n",to1.r1,to1.r2);
+    // printf(" r1=%f r2=%f\n",to1.r1,to1.r2);
 
   ox1->typ   = Typ_TOR;
   ox1->form  = Typ_TOR;
@@ -8815,7 +8966,7 @@ goto Error;
 
 
 //=============================================================================
-  int APT_decode_sol (ObjGX *bd1,int aus_anz,int aus_typ[],double aus_tab[],
+  int APT_decode_sol (ObjGX *bd1,int aus_anz, int aus_typ[], double aus_tab[],
                       Memspc *oSpc) {
 //=============================================================================
 // ACHTUNG: bd1->oiTab = memspc55
@@ -8828,7 +8979,7 @@ goto Error;
   
 
 
-  // printf("APT_decode_sol %d\n",aus_typ[0]);
+  // printf("APT_decode_sol %d\n",aus_anz);
   // for(i1=0;i1<aus_anz;++i1)printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
 
 
@@ -8856,6 +9007,7 @@ goto Error;
   // SPH   = 26.
   // CONUS = 27
   // TORUS = 28
+  // CSU
 
 
   i1 = aus_tab[0];
@@ -8869,6 +9021,8 @@ goto Error;
   } else if(i1 == T_TOR) {   // TORUS
     return APT_decode_btor (bd1, aus_anz,aus_typ,aus_tab);
 
+  } else if(i1 == T_CSU) {   // Concatenated surfaces
+    return APT_decode_bcsu (bd1, aus_anz,aus_typ,aus_tab);
 
   } else if(i1 != T_PRISM) {   // PRISM
     goto Error;
@@ -9907,9 +10061,9 @@ goto Error;
 }
 
 
-//===========================================================================
-  int APT_decode_dimen (Dimen *dim1,int aus_anz,int aus_typ[],double aus_tab[]){
-//===========================================================================
+//===============================================================================
+  int APT_decode_dimen (Dimen *dim1,int aus_anz,int aus_typ[],double aus_tab[]) {
+//===============================================================================
 // dtyp: 0=Linearmasz 1=Durchmesser 2=Leader 3=Winkelmasz
 
   int      irc, i1, i2;
@@ -9948,7 +10102,7 @@ goto Error;
   i1 = 1;
 
 
-  // P1
+  // [1] = P1
   if(aus_typ[i1] == Typ_PT) {
     pt1 = DB_GetPoint ((long)aus_tab[i1]);
     dim1->p1 = UT2D_pt_pt3 (&pt1);
@@ -9961,7 +10115,7 @@ goto Error;
   } 
 
 
-  // P2
+  // [2] = P2
   if(aus_typ[i1] == Typ_PT) {
     pt1 = DB_GetPoint ((long)aus_tab[i1]);
     dim1->p2 = UT2D_pt_pt3 (&pt1);
@@ -9973,7 +10127,7 @@ goto Error;
     i1 += 2;
   }
 
-  // P-Txt
+  // [3] P-Txt
   if(aus_typ[i1] == Typ_PT) {
     pt1 = DB_GetPoint ((long)aus_tab[i1]);
     dim1->p3 = UT2D_pt_pt3 (&pt1);
@@ -9985,14 +10139,13 @@ goto Error;
     i1 += 2;
   }
 
-  // A1
+  // Angle
   if(i1 >= aus_anz) goto L_ang2;
   if((aus_typ[i1] == Typ_Angle) ||
      (aus_typ[i1] == Typ_VC)) {
     irc =  APT_decode_angd__d1 (&dim1->a1, &i1, aus_typ, aus_tab);
     if(irc < 0) goto L_parErr;
-    // printf(" ang=%f\n",dim1->a1);
-    // dim1->a2 = dim1->a1;
+      // printf(" i1=%d a1=%f\n",i1,dim1->a1);
   }
 
 /*
@@ -10006,22 +10159,27 @@ goto Error;
 
   // headtypes; 0=nix, 1=<, 2=>, 3=/, 4=o;  -1=Default;
   // Default ist also 12.
+  if(i1 >= aus_anz) goto L_ang2;
   if(aus_typ[i1] == Typ_Val) {
     if(aus_tab[i1] >= 0)  dim1->hd = aus_tab[i1];
+      // printf(" i1=%d hd=%d\n",i1,dim1->hd);
     ++i1;
   }
 
   // Leaderlinestypes; 0=nix, 1=normale Line.  -1=Default;
   // Default ist also 11.
+  if(i1 >= aus_anz) goto L_ang2;
   if(aus_typ[i1] == Typ_Val) {
     if(aus_tab[i1] >= 0)  dim1->ld = aus_tab[i1];
+      // printf(" i1=%d ld=%d\n",i1,dim1->ld);
     ++i1;
   }
 
   // Zusatztext
+  if(i1 >= aus_anz) goto L_ang2;
   if(aus_typ[i1] == Typ_String) {
     APT_get_String (APT_spc1, APT_defTxt, aus_tab[i1]);
-    // printf(" zusTxt=|%s|\n",APT_spc1);
+      // printf(" zusTxt=|%s|\n",APT_spc1);
     dim1->txt = APT_spc1;
     ++i1;
   }
@@ -10059,11 +10217,9 @@ goto Error;
 
   L_exit:
 
-
-  // TESTAUSG
-  // DEB_dump_obj__ (Typ_Dimen, dim1, "ex-decode_dimen");
-
-
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_Dimen, dim1, "ex-APT_decode_dimen");
+    // END TESTBLOCK
 
   return 0;
 
@@ -10077,9 +10233,9 @@ goto Error;
 
 
 
-//===========================================================================
-  int APT_decode_dimdia(Dimen *dim1,int aus_anz,int aus_typ[],double aus_tab[]){
-//===========================================================================
+//===================================================================================
+  int APT_decode_dimdia (Dimen *dim1, int aus_anz, int aus_typ[], double aus_tab[]) {
+//===================================================================================
 // dtyp: 0=Linearmasz 1=Durchmesser 2=Leader 3=Winkelmasz
 
   int      i1, i2;
@@ -10093,7 +10249,7 @@ goto Error;
 
   // printf("APT_decode_dimdia %d\n",aus_anz);
   // for(i1=0;i1<aus_anz; ++i1) {
-    // printf(" %d %d\n",i1,aus_typ[i1]);
+    // printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
   // }
 
 
@@ -10125,6 +10281,9 @@ goto Error;
 
   // headtypes; 0=nix, 1=<, 2=>, 3=/, 4=o;
   // Default ist also 12.
+  dim1->txt = NULL;
+  if(i1 >= aus_anz) goto L_dimdia;
+
   if((aus_typ[i1] == Typ_Val)    ||
      (aus_typ[i1] == Typ_modif))     {
     i2 = aus_tab[i1];
@@ -10135,18 +10294,18 @@ goto Error;
 
 
   // Zusatztext
+  if(i1 >= aus_anz) goto L_dimdia;
   if(aus_typ[i1] == Typ_String) {
     APT_get_String (APT_spc1, APT_defTxt, aus_tab[i1]);
     // printf(" zusTxt=|%s|\n",APT_spc1);
     dim1->txt = APT_spc1;
     ++i1;
-  } else {
-    dim1->txt = NULL;
   }
 
 
 
   // in a2 den Radius liefern
+  L_dimdia:
   rdc = fabs(ci1->rad);
   dim1->a2 = rdc;
 
@@ -10182,7 +10341,7 @@ goto Error;
   return 0;
 
   L_errhd:
-  TX_Error(" ParameterError  min 0; max 4");
+  TX_Error(" ParameterError  min 0; max 4",NULL);
   return -1;
 
 
@@ -10253,9 +10412,9 @@ goto Error;
   int     ii;
 
 
-  printf("APT_decode_ldrc |%d| APT_prim_typ=%d\n",aus_anz,APT_prim_typ);
-  for(ii=0; ii<aus_anz; ++ii)
-  printf(" %d typ=%d tab=%f\n",ii,aus_typ[ii],aus_tab[ii]);
+  // printf("APT_decode_ldrc |%d| APT_prim_typ=%d\n",aus_anz,APT_prim_typ);
+  // for(ii=0; ii<aus_anz; ++ii)
+  // printf(" %d typ=%d tab=%f\n",ii,aus_typ[ii],aus_tab[ii]);
 
 
   ii = 1;
@@ -10279,7 +10438,7 @@ goto Error;
   if(aus_typ[ii] == Typ_String) {
     APT_get_String (APT_spc1, APT_defTxt, aus_tab[ii]);
     atx->txt = APT_spc1;
-      printf(" zusTxt=|%s|\n",atx->txt);
+      // printf(" zusTxt=|%s|\n",atx->txt);
     ++ii;
   }
 
@@ -10478,9 +10637,9 @@ goto Error;
 }
 
 
-//===========================================================================
-  int APT_decode_ldr_ (Dimen *dim1,int aus_anz,int aus_typ[],double aus_tab[]){
-//===========================================================================
+//================================================================================
+  int APT_decode_ldr_ (Dimen *dim1, int aus_anz, int aus_typ[], double aus_tab[]){
+//================================================================================
 // N=LDR TextPosition [Startpunkt L1] [Startpunkt L2] [Textwinkel] [Text]
 // GL_DrawLdr
 
@@ -10533,12 +10692,7 @@ goto Error;
 
 
   // Angle
-  if((aus_typ[i1] == Typ_Angle) ||
-     (aus_typ[i1] == Typ_VC)) {
-    irc =  APT_decode_angd__d1 (&dim1->a1, &i1, aus_typ, aus_tab);
-    if(irc < 0) goto L_parErr;
-
-  } else {
+  if(i1 >= aus_anz) {
     // keine Angabe: Richtung von p1-p2 oder p2-p3
     if(dim1->p3.x == UT_DB_LEER) {
       d1 = UT2D_angr_ptpt ((Point2*)&dim1->p1, (Point2*)&dim1->p2);
@@ -10546,10 +10700,18 @@ goto Error;
       d1 = UT2D_angr_ptpt ((Point2*)&dim1->p2, (Point2*)&dim1->p3);
     }
     dim1->a1 = UT_DEGREES(d1);
+    goto L_exit;
+  }
+
+  if((aus_typ[i1] == Typ_Angle) ||
+     (aus_typ[i1] == Typ_VC)) {
+    irc =  APT_decode_angd__d1 (&dim1->a1, &i1, aus_typ, aus_tab);
+    if(irc < 0) goto L_parErr;
   }
 
 
   // Typ Head (arrow, balloon ..)
+  if(i1 >= aus_anz) goto L_exit;
   if(aus_typ[i1] == Typ_Val) {
     dim1->hd = aus_tab[i1];
     ++i1;
@@ -10557,6 +10719,7 @@ goto Error;
 
 
   // Zusatztext
+  if(i1 >= aus_anz) goto L_exit;
   if(aus_typ[i1] == Typ_String) {
     APT_get_String (APT_spc1, APT_defTxt, aus_tab[i1]);
     // printf(" zusTxt=|%s|\n",APT_spc1);
@@ -10565,8 +10728,11 @@ goto Error;
   }
 
 
-  // TESTAUSG
-  // DEB_dump_obj__ (Typ_Dimen, dim1, "_decode_ldr");
+  L_exit:
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_Dimen, dim1, "ex-APT_decode_ldr_");
+    // END TESTBLOCK
 
   return 0;
 
@@ -10579,16 +10745,14 @@ goto Error;
 }
 
 
-//===========================================================================
-  int APT_decode_dima (Dimen *dim1,int aus_anz,int aus_typ[],double aus_tab[]){
-//===========================================================================
+//=================================================================================
+  int APT_decode_dima (Dimen *dim1, int aus_anz, int aus_typ[], double aus_tab[]) {
+//=================================================================================
 // 
 
   int      irc, i1, i2;
   Point    pt1;
   Vector2  vc20;
-
-
 
 
   // printf("APT_decode_dima %d\n",aus_anz);
@@ -11001,11 +11165,19 @@ See AP_PT2EyePln
 
 
 
+  if(aus_typ[0] == Typ_String) {
+    // string only
+    APT_get_String (APT_spc1, APT_defTxt, aus_tab[0]);
+    gtx1->pt  = UT3D_PT_NUL;
+    gtx1->txt = APT_spc1;
+    gtx1->size = -1.f;
+    goto L_exit;
+  }
+
 
   // Posi. links unten
   if(aus_typ[0] != Typ_PT) goto L_parErr;
-    gtx1->pt = DB_GetPoint ((long)aus_tab[0]);
-
+  gtx1->pt = DB_GetPoint ((long)aus_tab[0]);
 
   i1 = 1;
 
@@ -11013,9 +11185,9 @@ See AP_PT2EyePln
   // size
   if(aus_typ[i1] == Typ_Val)  {
     gtx1->size = aus_tab[i1];
-    if(gtx1->size < 0.001)  gtx1->size = 0.;    // size 0 ist Defaultsize
+    if(gtx1->size < 0.001)  gtx1->size = 0.f;    // size 0 ist Defaultsize
     ++i1;
-  } else gtx1->size = 0.;
+  } else gtx1->size = 0.f;
 
 
 
@@ -11051,9 +11223,10 @@ See AP_PT2EyePln
   }
 
 
-    // TESTAUSG
+  L_exit:
+    // TESTBLOCK
     // DEB_dump_obj__ (Typ_GTXT, gtx1, "_decode_gtxt");
-
+    // END TESTBLOCK
   return 0;
 
 
@@ -11295,9 +11468,9 @@ Rückgabewert ist der gefundene Index.
 }
 
 
-//=============================================================================
-  int APT_decode_pt (Point *pt_out,int aus_anz,int aus_typ[],double aus_tab[]){
-//=============================================================================
+//=================================================================================
+  int APT_decode_pt (Point *pt_out, int aus_anz, int aus_typ[], double aus_tab[]) {
+//=================================================================================
 // APT_decode_pt          decode point 
 //  Output:
 //    retCode        -3   obj not complete
@@ -13359,7 +13532,9 @@ Rückgabewert ist der gefundene Index.
 
   //================================================================
   Exit:  
+    // TESTBLOCK
     // DEB_dump_obj__ (Typ_PT, pt_out, "ex-APT_decode_pt-irc = %d",irc);
+    // END TESTBLOCK
   return irc;
 
 
@@ -15788,16 +15963,10 @@ Rückgabewert ist der gefundene Index.
 
 
 
-  // removed: CW|CCW   MOD
+    // TESTBLOCK
+    // printf(" decode_ci iRev=%d Dreh=%d iMod=%d\n",iRev,Dreh,iMod);
+    // END TESTBLOCK
 
-
-  // Bearbeitungsreihenfolge:
-  // zuerst alle C=ARC,
-  // dann alle C=ARC1
-  // dann alle uebrigen.
-    // for(i1=0; i1<aus_anz; ++i1)
-      // printf(" %d typ=%d tab=%f\n",i1,aus_typ[i1],aus_tab[i1]);
-    // printf(" Dreh=%d iMod=%d\n",Dreh,iMod);
 
 
 
@@ -16057,11 +16226,12 @@ Rückgabewert ist der gefundene Index.
 
 
     //---------------------------------------------
-    // C = C [REV]
+    // C = C [REV]                        // concentric circ or arc
     if (aus_typ[0] == Typ_CI)           {
       ci3d = DB_GetCirc  ((long)aus_tab[0]);
       if(iRev) UT3D_ci_inv1 (&ci3d);
-      goto Fertig3D;
+      if(UT3D_ck_ci360(&ci3d)) goto Fertig3D;
+      goto L_out_360;
 
 
     //-----------------------------------------------------------------
@@ -16100,7 +16270,7 @@ Rückgabewert ist der gefundene Index.
 
 
       //---------------------------------------------
-      // C = P radius                   // p1=center, radius.
+      // C = P radius [CW]              // p1=center, radius.           360-deg
       if (aus_typ[1] == Typ_Val)             {
   
         ci3d.pc  = *pp1;
@@ -16111,22 +16281,22 @@ Rückgabewert ist der gefundene Index.
         UT3D_vc_setLength (&vc1, &WC_sur_act.vx, ci3d.rad);
         UT3D_pt_traptvc (&ci3d.p1, &ci3d.pc, &vc1);
         ci3d.p2  = ci3d.p1;
-        goto Fertig3D;
+        goto L_out_360;
 
 
       //---------------------------------------------
-      // C = P P [CW|CCW]            (p1=center, p2 = point am Umfang)
+      // C = P P [CW]            // p1=center, p2 = point on circ;        360-deg
       } else if (aus_typ[1] == Typ_PT)             {
 
         ci3d.pc = *pp1;
         ci3d.p1 = DB_GetPoint ((long)aus_tab[1]);
         ci3d.p2 = ci3d.p1;
         ci3d.rad = UT3D_len_2pt (&ci3d.p1, &ci3d.pc);
-        goto Fertig3D; // update Dreh
+        goto L_out_360; // update Dreh
 
 
       //---------------------------------------------
-      // C = P L                     (p1=center, tangential an l1)
+      // C = P L [CW]                (p1=center, tangential an l1)        360-deg
       } else if (aus_typ[1] == Typ_LN)             {
 
         APT_modMax1 = -2;
@@ -16139,11 +16309,11 @@ Rückgabewert ist der gefundene Index.
         UT3D_vc_ln (&vc1, &ln1);
         UT3D_vc_2pt (&vc2, &ci3d.p1, &ci3d.pc);
         UT3D_vc_perp2vc (&ci3d.vz, &vc1, &vc2);
-        goto Fertig3D;
+        goto L_out_360;
 
 
       //-----------------------------------------------------------------
-      // C = P C                     (p1=center, tangential an CIR)
+      // C = P C [CW]                (p1=center, tangential an CIR)        360-deg
       } else if (aus_typ[1] == Typ_CI)             {
         // return APT_decode_ctc (ciO, aus_anz, aus_typ, aus_tab);
         ci3d.pc = *pp1;
@@ -16152,11 +16322,11 @@ Rückgabewert ist der gefundene Index.
         ci3d.p2 = ci3d.p1;
         ci3d.vz = ci1.vz;
         ci3d.rad = UT3D_len_2pt (&ci3d.pc, &ci3d.p1);
-        goto Fertig3D;
+        goto L_out_360;
 
 
       //-----------------------------------------------------------------
-      // C = P S                     (p1=center, tangential to curve
+      // C = P S [CW]                (p1=center, tangential to curve        360-deg
       } else if (aus_typ[1] == Typ_CV)             {
         ci3d.pc = *pp1;
           // DEB_dump_obj__(Typ_PT, &ci3d.pc, "pt:");
@@ -16176,7 +16346,7 @@ Rückgabewert ist der gefundene Index.
         ci3d.p2 = ci3d.p1;
         ci3d.vz = WC_sur_act.vz; // TODO: vector from curve !
         ci3d.rad = UT3D_len_2pt (&ci3d.pc, &ci3d.p1);
-        goto Fertig3D;
+        goto L_out_360;
 
 
       //-----------------------------------------------------------------
@@ -16190,7 +16360,7 @@ Rückgabewert ist der gefundene Index.
       ln1 = DB_GetLine ((long)aus_tab[0]);
 
       //-----------------------------------------------------------------
-      // C = C P                          // centerline point-on-circ
+      // C = L P [CW]                     // centerline point-on-circ    / 360-deg
       if (aus_typ[1] == Typ_PT)    {
         ci3d.p1 = DB_GetPoint ((long)aus_tab[1]);
         ci3d.p2 = ci3d.p1;
@@ -16199,7 +16369,7 @@ Rückgabewert ist der gefundene Index.
         UT3D_vcn_len__ln (&ci3d.vz, NULL, &ln1);
         ci3d.rad = d1;
         ci3d.ango = RAD_360;
-        goto Fertig3D;
+        goto L_out_360;
 
 
       //-----------------------------------------------------------------
@@ -16213,14 +16383,24 @@ Rückgabewert ist der gefundene Index.
       ci3d = DB_GetCirc ((long)aus_tab[0]);
 
       //-----------------------------------------------------------------
-      // C = C radius                           (Konzentr. Kreis)
+      // C = C radius [CW]                      // concentric arc or circle
       if (aus_typ[1] == Typ_Val)    {
-        // eventuell noch die Drehrichtung des alten Kreise kopieren erforderlich !
-        d1 = fabs(ci3d.rad) - fabs(aus_tab[1]);
-        UT3D_pt_traptptlen(&ci3d.p1, &ci3d.pc, &ci3d.p1, d1);
-        UT3D_pt_traptptlen(&ci3d.p2, &ci3d.pc, &ci3d.p2, d1);
-        ci3d.rad = aus_tab[1] * Dreh;
-        goto Fertig3D;
+        // d1 = fabs(ci3d.rad) + aus_tab[1];   // relative
+        d1 = fabs(aus_tab[1]);   // absolut
+        goto L_CIRC_C_P;
+
+
+      //-----------------------------------------------------------------
+      // C = C P [REV]                    // concentric arc or circle
+      } else if(aus_typ[1] == Typ_PT) {
+        pp1 = DB_get_PT ((long)aus_tab[1]);
+        d1 = UT3D_len_2pt (&ci3d.pc, pp1);
+        L_CIRC_C_P:
+          irc = UT3D_ci_ci_rad (&ci3d, &ci3d, d1);
+          if(irc < 0) goto Geom_err;
+          if(iRev) UT3D_ci_inv1 (&ci3d);
+          if(UT3D_ck_ci360(&ci3d)) goto Fertig3D;
+          goto Fertig1;   // L_out_360 destroys iRev
 
 
       //-----------------------------------------------------------------
@@ -16260,42 +16440,37 @@ Rückgabewert ist der gefundene Index.
 
 
     //-----------------------------------------------------------------
-    // C = P Radius Z-Achse             // p1=center, radius.
+    // C = P Radius Z-Achse             // center, radius, axisVec        360-deg
     if        ((aus_typ[0] == Typ_PT)    &&
                (aus_typ[1] == Typ_Val)   &&
                (aus_typ[2] == Typ_VC))             {
 
       ci3d.pc  = DB_GetPoint ((long)aus_tab[0]);
-      ci3d.vz  = DB_GetVector ((long)aus_tab[2]);
       ci3d.rad = aus_tab[1];
+      ci3d.vz  = DB_GetVector ((long)aus_tab[2]);
 
-
-      // Z-Achse normieren
-      UT3D_vc_normalize (&ci3d.vz, &ci3d.vz);
+      UT3D_vc_normalize (&ci3d.vz, &ci3d.vz);   // normalize Z-axis
 
       // zu Drehachse eine X-Achse generieren
       UT3D_vc_perpvcplXY (&vc1, &ci3d.vz);
-
       UT3D_pt_traptvclen (&ci3d.p1, &ci3d.pc, &vc1, ci3d.rad);
-
       ci3d.p2   = ci3d.p1;
-
-      goto Fertig3D;
+      goto L_out_360;
 
 
     //-----------------------------------------------------------------
-    // P = PT-Cen Z-Vector PT-Umfang                   // P D P
+    // P = P D P          // pointCenter, axisVec, pointOnCirc           360-deg
     } else if ((aus_typ[0] == Typ_PT)    &&
                (aus_typ[1] == Typ_VC)    &&
                (aus_typ[2] == Typ_PT))             {
 
       ci3d.pc = DB_GetPoint ((long)aus_tab[0]);
       ci3d.vz = DB_GetVector ((long)aus_tab[1]);
-      ci3d.p1 = DB_GetPoint ((long)aus_tab[2]);
-      ci3d.p2 = ci3d.p1;
-      ci3d.rad = UT3D_len_2pt (&ci3d.p1, &ci3d.pc);
-
-      goto Fertig3D;
+      pp1 = DB_get_PT ((long)aus_tab[2]);         // RadiusPT
+      // ci3d.p1 = DB_GetPoint ((long)aus_tab[2]);
+      // ci3d.p2 = ci3d.p1;
+      // ci3d.rad = UT3D_len_2pt (&ci3d.p1, &ci3d.pc);
+      goto L_CIRC_P_P_D;
 
 
 
@@ -16317,28 +16492,29 @@ Rückgabewert ist der gefundene Index.
 
 
     //-----------------------------------------------------------------
-    //C = P P D                   // CI  =  CenterPT   RadiusPT   Z-Vektor
+    // C = P P D                   // CI  =  CenterPT   RadiusPT   Z-Vektor   360-deg
     } else if ((aus_typ[0] == Typ_PT)    &&
                (aus_typ[1] == Typ_PT)    &&
                (aus_typ[2] == Typ_VC))      {
 
-
       ci3d.pc = DB_GetPoint ((long)aus_tab[0]);     // centerpoint
+      pp1 = DB_get_PT ((long)aus_tab[1]);           // RadiusPT
       ci3d.vz = DB_GetVector ((long)aus_tab[2]);    // Z-vec
-      pp1 = DB_get_PT ((long)aus_tab[1]);         // RadiusPT
-      // project RadiusPT --> Axis; dist == radius
-      UT3D_pt_projptptvc (&pt1, &ci3d.rad, NULL, pp1, &ci3d.pc, &ci3d.vz);
-      // Circ-p1 = pt1 --> pp1
-      UT3D_vc_2pt (&vc1, &pt1, pp1);
-      UT3D_pt_traptvc (&ci3d.p1, &ci3d.pc, &vc1);
-      ci3d.p2 = ci3d.p1;
-      goto Fertig3D;
+      L_CIRC_P_P_D:
+        UT3D_vc_normalize (&ci3d.vz, &ci3d.vz);     // normalize Z-axis
+        // project RadiusPT --> Axis; dist == radius
+        UT3D_pt_projptptvc (&pt1, &ci3d.rad, NULL, pp1, &ci3d.pc, &ci3d.vz);
+        // Circ-p1 = pt1 --> pp1
+        UT3D_vc_2pt (&vc1, &pt1, pp1);
+        UT3D_pt_traptvc (&ci3d.p1, &ci3d.pc, &vc1);
+        ci3d.p2 = ci3d.p1;
+        goto L_out_360;
 
 
 
 
     //-----------------------------------------------------------------
-    //C = P rad CW|CCW              // CI  =  CenterPT   Radius   Dreh
+    //C = P rad CW|CCW              // CI  =  CenterPT Radius Dreh  / 360-deg
     } else if ((aus_typ[0] == Typ_PT)         &&
                (aus_typ[1] == Typ_Val)        &&
                (aus_typ[2] == Typ_cmdNCsub))      {
@@ -16355,7 +16531,7 @@ Rückgabewert ist der gefundene Index.
 
       i1 = aus_tab[2];
       if(i1 == T_CW) ci3d.rad = fabs(ci3d.rad) * -1;
-      goto Fertig3D;
+      goto L_out_360;
 
 
     //-----------------------------------------------------------------
@@ -16535,6 +16711,11 @@ Rückgabewert ist der gefundene Index.
 
 
     //-----------------------------------------------------------------
+    // C = P P VC sRot    // centerPt  pointOnCirc axisVec rotSense   / 360-deg
+    if        ((aus_typ[0] == Typ_PT)    &&
+               (aus_typ[1] == Typ_PT)    &&
+               (aus_typ[2] == Typ_Val)   &&
+               (aus_typ[4] == Typ_VC))      {
     }
 */
 
@@ -16965,14 +17146,31 @@ Rückgabewert ist der gefundene Index.
 
 
   //---------------------------------------------------------------------
+  L_out_360:         // printf("L_out_360: Dreh=%d\n",Dreh);
+
+    // 360-deg-circ: do not use with iRev !
+    if(Dreh < 0) {
+      // CW
+      ci3d.ango = -RAD_360;
+      ci3d.rad  = -fabs(ci3d.rad);
+    } else {
+      ci3d.ango = RAD_360;
+      ci3d.rad  = fabs(ci3d.rad);
+    }
+    goto Fertig1;
+
+
+
+  //---------------------------------------------------------------------
   // nun ist der Bogen als Circ in ci3d; Radius aber immer positiv !
   // vz wird noch normiert; alles andere muss fertig sein !
-  Fertig3D:        // printf(" Dreh=%d\n",Dreh);
+  Fertig3D:        // printf("Fertig3D: Dreh=%d\n",Dreh);
 
   if(Dreh < 0) {
+    // -1=CW
     ci3d.rad  = -fabs(ci3d.rad);
     // ci3d.ango = -fabs(ci3d.ango);
-    UT3D_ci_setangr (&ci3d);
+    UT3D_ci_setangr (&ci3d);  // NOT FOR 360-DEG-CIRC
   }
 
   // vz normieren
@@ -16982,20 +17180,22 @@ Rückgabewert ist der gefundene Index.
 
 
 
-
-
   Exit:    // ciO complete
 
-  // wenn Vollkreis und vz = DIZ: vz umdrehen !
-  // if(UT3D_comp2pt(&ciO->p1,&ciO->p2,UT_TOL_pt)) {
-  if(UTP_comp2db (fabs(ciO->ango), RAD_360, UT_TOL_pt) == 1) {
-    if(UT3D_comp2vc_p(&ciO->vz, (Vector*)&UT3D_VECTOR_IZ, UT_TOL_min1) != 0)
-      UT3D_vc_invert (&ciO->vz, &ciO->vz);
-  }
+//   // wenn Vollkreis und vz = DIZ: vz umdrehen !
+//   // check if ango == 360
+//   if(UTP_comp2db (fabs(ciO->ango), RAD_360, UT_TOL_pt)) {
+//     // check if axisVec is (0,0,-1)
+//     if(UT3D_comp2vc_p(&ciO->vz, (Vector*)&UT3D_VECTOR_IZ, UT_TOL_min1))
+//       // invert axisVec
+//       UT3D_vc_invert (&ciO->vz, &ciO->vz);
+//   }
 
   L_exit9:
 
+    // TESTBLOCK
     // DEB_dump_obj__(Typ_CI, ciO, "\n ex APT_decode_ci:");
+    // END TESTBLOCK
 
   return rc;
 
@@ -18636,9 +18836,9 @@ long defInd;
 
 
     //----------------------------------------------------------------
-    } else if((int)aus_tab[0] == T_BLEND) {     // TODO !
-      i1 = APT_BLEND__ (&ox1, aus_anz, aus_typ, aus_tab, &APTSpcTmp);
-        // DEB_dump_obj__ (ox1.form, obj1, "ex APT_TNG__");
+    } else if((int)aus_tab[0] == T_FOPE) {     // TODO !
+      i1 = APT_decode_suop (&ox1, aus_anz, aus_typ, aus_tab, &APTSpcTmp);
+        // DEB_dump_obj__ (ox1.form, obj1, "ex APT_decode_suop");
       if(i1 < 0) return -1;
       // goto L_sub_store;
 
@@ -19114,6 +19314,12 @@ long defInd;
           if(i1 < 0) return -1;
           goto L_SUR_sav;
 
+
+//         } else if(iCmd == T_FOPE) {
+//           // boolean surface-operation
+//           i1 = APT_decode_suop (&ox1, aus_anz, aus_typ, aus_tab);
+//           if(i1 < 0) return -1;
+//           goto L_SUR_sav;
 
         }
       }
@@ -22336,8 +22542,8 @@ static Line lno;
 
 
   // printf("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii \n");
-  // printf("APT_INT__ %d\n",aus_anz);
-  // for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+  printf("APT_INT__ %d\n",aus_anz);
+  for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
 
 
 

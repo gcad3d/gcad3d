@@ -163,6 +163,7 @@ CIR_Axis_Point=Circle from its centerline and point on circle
 CIR_Cen_Tang=Cerchio da: centro, tangente a Punto / Linea / Cerchio
 CIR_Tang_Tang_Radius=Cerchio tangente a due elementi, con raggio stabilito
 CIR_Tang_Tang_Tang=Cerchio tangente a 3 elementi
+CIR_CI_Radius=Concentric circle; circle, radius or point on circle
 ARC_Cen_Ang1_Ang2_Radius=Arco di circonferenza da: centro, angolo iniziale, angolo finale e raggio
 ARC_Cen_PT_Angle=Arco di circonferenza da: centro, punto iniziale e angolo di apertura (ampiezza)
 ARC_PT_PT_Radius=Arco di circonferenza da: punto di partenza, punto di arrivo e raggio
@@ -248,6 +249,7 @@ Parallel_obj__offset_=parallel object (offset-curve or surface)
 Mirror_about_line=specchio: riflette gli oggetti in un linea
 Mirror_about_plane=specchio: riflette gli oggetti in un piano
 ISOparametric_Curve_from_Surf=curva estratta da: superficie (da parametri (s)); [CX (tutta; Default = lungo)]
+Surf_OPEration_cut_join___=cut or join surface using curve, plane or surface (boolean AND OR NOT)
 
 Interact_connect=connetti l'oggetto con l'interazione
 Joint_export=export object (point or text)
@@ -275,6 +277,7 @@ Typ_YVal=Digita il valore Y; Seleziona PT
 Typ_ZVal=Digita il valore Z; Seleziona PT
 Typ_Angle=Angolo: Digita il valore (gradi); Seleziona LN / PT-PT; PagSu / DWN
 Typ_PLN=Seleziona PLN; Tasto PgDwn (Piano di costruzione)
+Typ_SUR=selects surface (A)
 Typ_SOL=Seleziona Cono / Toro
 Typ_goPrim=Seleziona PT / LN / CIR
 Typ_lFig=Seleziona LN / CIR / CRV
@@ -305,6 +308,7 @@ Typ_modCX=Key PgUp / PgDwn  ("CX" = across)
 Typ_modUnlim=Unlimited; PgUp or PgDwn or key "UNL" or "UNL1" or "UNL2"
 Typ_modPERP=Key PgUp / PgDwn ("PERP" = normal - perpendicular)
 Typ_modRepl=replace obj default = copy Key PgUp/Dwn or "REPL"
+Typ_modOpe=boolean operation AND OR NOT (join, split, ..
 Typ_Txt=enter text / key PgUp / PgDwn
 Typ_String=Digita il Testo / Modifica il testo
 TYP_FilNam=Digita il nome del file / Medio Mousebutt. (F5 = FileList) / sel.Model

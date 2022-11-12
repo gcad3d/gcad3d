@@ -74,12 +74,13 @@ List_functions_end:
 
 
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_BitTab.h"           // bit-arrays
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr ..
 #include "../ut/ut_txt.h"              // UTX_pos_skipLeadBlk
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txTab.h"            // TxtTab UtxTab
 
 #include "../gui/gui__.h"              // Gtk3
@@ -99,7 +100,7 @@ List_functions_end:
 
 
 
-typedef_MemTab(int);
+// typedef_MemTab(int);
 
 
 //||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||

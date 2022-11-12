@@ -21,7 +21,7 @@
 
 <h2>CAD Circles</h2>
 
-Also see Circle codes
+See also <a href="CAD_Base_en.htm#C">Codes Kreise</a>
 
 Circles use shortcut key C (Circle)
 
@@ -33,18 +33,30 @@ See also: <a href="CAD_Base_en.htm#fmt_dynamic-obj">dynamic circles</a>
 
 <hr>
 <p><a name="F0"></a></p>
-<h3>CIR Cen Radius [Z-Axis]</h3>
-Circle from centre, radius [Arc Vector]
+<h3>CIR Cen Radius [Z-Axis] [CW/CCW]</h3>
+360-degree-Circle from centre, radius [AxisVector] [rotSense]
+
+  <a href="CAD_Base_en.htm#P">centerpoint</a>
+  Radius or <a href="CAD_Base_en.htm#P">point,</a> on circle
+  Optional: <a href="CAD_Base_en.htm#D">[AxisVector]</a>
+  Optional: sense of rotation; default is CCW (CounterClockWise)
+
 
 # Circle (360-degree)
-C20 = P20 VAL(25) DZ
+C20=P20 P21
+C20=P20 P21 CW
+C20=P20 VAL(25) 
+C20=P20 VAL(25) DY
 
 
 
 <hr>
 <p><a name="F1"></a></p>
-  <h2>CIR Axis Point</h2>
-Circle from  <a href="CAD_Base_en.htm#L">centerline</a> and <a href="CAD_Base_en.htm#P">Point</a> on circle.
+  <h2>CIR Axis Point [CW/CCW]</h2>
+360-degree-Circle from
+  <a href="CAD_Base_en.htm#L">centerline</a>
+  <a href="CAD_Base_en.htm#P">point</a> on circle.
+  Optional: sense of rotation; default is CCW (CounterClockWise)
 
 # circle around horiz. line
 C23=L(P(0 0 0) DX) P(10 10 0)
@@ -118,8 +130,22 @@ Entry points must exactly on an input element.
 C20 = L20 L21 L22
 
 
-<hr>
 <p><a name="F5"></a></p>
+  <h2>CIR CI  Radius [REV]</h2>
+concentric circle;
+  Radius     radius or point on circle
+  [REV]      optional: change sense of rotation;
+
+
+C20=P(-245 0 0) P(-200 0 0)
+# concentric circle with radius 66
+C21=C20 66
+# concentric circle through point (-300 0 0) clockwise
+C22=C20 P(-300 0 0) REV 
+
+
+<hr>
+<p><a name="F6"></a></p>
 <h3>ARC Cen Ang1 Ang2 Radius   [Direction of Rotation]</h3>
 Circular arc by center, start-angle, end-angle and radius.
 
@@ -132,7 +158,7 @@ C21 = ARC P20 ANG(0) ANG(90) 10 CW
 
 
 <hr>
-<p><a name="F6"></a></p>
+<p><a name="F7"></a></p>
 <h3>ARC Cen PT Angle [Z-Axis] ARC</h3>
 Circular arc from point on axis, starting point, opening angle and -
    optional - axis-vector.
@@ -142,7 +168,7 @@ C21 = ARC P20 P21 ANG(90) DZ
 
 
 <hr>
-<p><a name="F7"></a></p>
+<p><a name="F8"></a></p>
 <h3>ARC PT PT Radius [Z-Axis] [CW/CCW] [Version]      ARC</h3>
 Circular arc by starting point, end point and radius.
    Z-axis-vector is optional.
@@ -155,7 +181,7 @@ C21 = ARC P(251 23 0) P(189 75 0) VAL(50) DZ
 
 
 <hr>
-<p><a name="F8"></a></p>
+<p><a name="F9"></a></p>
 <h3>ARC PT Tang Radius [Angle] [Z-Axis] [CW/CCW]    ARC</h3>
 Circular arc by starting point, starting direction and radius.
    Starting direction: the tangent-direction to the circle in the starting point.
@@ -173,7 +199,7 @@ C20 = ARC P20 D20 25 ANG(30)
 
 
 <hr>
-<p><a name="F9"></a></p>
+<p><a name="F10"></a></p>
 <h3>ARC PT PT Cen [Z-Axis] [CW/CCW]      ARC</h3>
 Circular arc by starting point, end point and center
    Arc vector is optional.
@@ -182,7 +208,7 @@ C20=ARC P(10,6) P(16 0) DIZ
 
 
 <hr>
-<p><a name="F10"></a></p>
+<p><a name="F11"></a></p>
 <h3>ARC PT PT PT  [CW/CCW]         ARC1</h3>
 Arc by three points on the perimeter.
    [CW/CCW] is the direction of rotation. Default is &quot;CW&quot;.

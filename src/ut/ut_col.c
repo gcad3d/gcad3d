@@ -100,7 +100,7 @@ see AP_defcol AP_actcol
   // printf("UTcol__3i %d %d %d\n",cr,cg,cb);
 
 
-  *col1 = *(COL_INT32(&i0)); // *col1 = *((ColRGB*)&i0);
+  *col1 = *(COL_INT32P(&i0)); // *col1 = *((ColRGB*)&i0);
   // col1->vtra  = 0;
   // col1->vsym  = 0;
   // col1->vtex  = 0;

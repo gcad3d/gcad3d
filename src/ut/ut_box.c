@@ -659,13 +659,12 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 //=======================================================================
   int UT2D_ckBoxinBox1 (Point2 *p1, Point2 *p2, Point2 *p3, Point2 *p4) {
 //=======================================================================
-/// \code
-/// check if 2 boxes overlap
-/// p1-p2 sind Box1, p3-p4 Box2.
-/// ACHTUNG: p1 muss links unter p2 liegen; p3 links unter p4.
-/// RC  0:   NO, boxes do not overlap
-/// RC  1:   yes boxes overlap.
-/// \endcode
+// check if 2 boxes overlap
+// p1-p2 sind Box1, p3-p4 Box2.
+// ACHTUNG: p1 muss links unter p2 liegen; p3 links unter p4.
+// RC  0:   NO, boxes do not overlap
+// RC  1:   yes boxes overlap.
+// see BBX2_ck_ln_int_bbx
 
 
   // printf(" UT2D_ckBoxinBox1\n");
@@ -948,6 +947,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 
   *pmin = ptab[0];
   *pmax = ptab[0];
+
   for (i1=1; i1<nump; ++i1) {
     if (ptab[i1].x < pmin->x) pmin->x = ptab[i1].x;
     if (ptab[i1].y < pmin->y) pmin->y = ptab[i1].y;

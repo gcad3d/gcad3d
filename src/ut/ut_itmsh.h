@@ -142,7 +142,7 @@ typedef struct {int vxSt, vxNr, vxMax, surNb;}                      EdgSur;
 /// dir     0=undefined; 1=CCW; -1=CW
 /// \endcode
 typedef struct {int suID, contNr; char typb, typt, dir, stat;}      BndSur;
-//                                                                  ^
+//
 
 
 /*
@@ -211,7 +211,7 @@ void   UT3D_tria_fac(Triang*, Fac3*, Point*);
 typedef struct {int     fNr,       // nr of faces
                         ptNr,      // nr of points
                         oTyp;      // type of surface
-                Fac3    *fac;      // indexed faces
+                Fac3    *fac;      // indexed faces (3 indexes into ipa or pa3)
                 Point   *pa3;      // 3D-points
                 int     *ipa;      // index to points
                 Vec3f   *vc3;      // normalVectors; one for every point
@@ -221,11 +221,16 @@ typedef struct {int     fNr,       // nr of faces
 // see also struct MshDat MshSur
 
 #define _MSHFAC_NUL {0,0,0, NULL,NULL,NULL,NULL, UME_NEW}
+//                          fac  pa3  ipa  vc3   mSpc
 
 
 
 
 //----------------------------------------------------------------
+extern MemTab MEMTAB_NUL;
+
+
+
 typedef_MemTab(int);
 typedef_MemTab(char);
 typedef_MemTab(Point2);

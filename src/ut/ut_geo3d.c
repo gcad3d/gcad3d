@@ -53,13 +53,16 @@ DEB_dump_obj__            dump geom. element (2D or 3D) (../ut/ut_dump.c)
 
 -------------- sense_of_rotation -------------------------------------
 UT3D_sr_polc              sense_of_rotation of a closed polygon
-UT3D_sr_npt_bp            get senseOfRotation for n points on backplane bp
 UT3D_sr_el                get sense_of_rotation of a ellipse
 UT3D_sr_ci                get sense_of_rotation of a circ                    INLINE
+UT3D_sr_npt_bp            get senseOfRotation for n points on backplane bp
+UT3D_sr_crv_pln           get senseOfRotation for closed curve relating to plane
+UT3D_sr_crv_vz            get senseOfRotation for curve relating to up-vector
 UT3D_sr_rev_obj           get rotSense from rotSense and reverse-flag
 
 -------------- side -------------------------------------
 UT3D_sid_2vc              check vc's for perp, same or opposit direction
+UT3D_sid_bp_vc            check backplane vs vector for perp, same or opposit direction
 UT3D_sid_3pt              check if pt is in, before or behind perpendic.Plane
 UT3D_sid_pt_pt2vc         check if point is above or below plane from pt0,vx,vy
 UT3D_sid_ptpl             check if pt is in, above or below plane
@@ -426,6 +429,7 @@ UT3D_ci_ptrd2vc2angr      circ from cen, Rd, Z-Axis, X-Axis, startAng, endAng
 UT3D_ci_ptvcrd            Circ from startpoint, startvector, radius ..
 UT3D_ci_3pt               Circ from 3 points
 UT3D_ci_3pt_vc_rd_ango    Circ from startPt endPt centerPt Z-vec rad ango
+UT3D_ci_ci_rad            Circ = concentric circle, new radius
 UT3D_ci_pcvzpt180         180 deg-circ (CCW) from center, axis, startpoint
 UT3D_ci_ci2               3D-Circ = 2D-Circ
 UT3D_ci_obj2              3D-Circ = 2D-ObjG
@@ -507,6 +511,7 @@ UT3D_pl_tra_m3            apply transformation to refSys
 -------------- backPlane ---------------------------------------
 UT3D_bp_perp_2pt          returns main-BackPlaneNr (0-2) normal to 2 points
 UT3D_bp_perp_vc           returns main-BackPlaneNr (0-2) normal to vec
+UT3D_bp_vc_up2D           get backplane and upside for vector
 UT3D_bp_ln                backplane from line
 UT3D_bp_pta               backplane from n points
 UT3D_bp_pl__              get backplane+offset for plane
@@ -586,19 +591,20 @@ Planare_3D-Curve {3D-RefSys, Planare_2D-Curve}
 
 // #include "../ut/ut_umem.h"            // UME_reserve
 #include "../ut/ut_geo.h"
-#include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
+#include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
 #include "../ut/ut_math.h"
-#include "../ut/ut_bspl.h"                // UT3D_parbsp_par1
-#include "../ut/ut_rbspl.h"               // UT3D_par_par1_rbsp
-#include "../ut/ut_plg.h"                 // UT3D_par_par1plg
-#include "../ut/ut_elli.h"                // UT3D_angr_par1_ell
-#include "../ut/func_types.h"             // SYM_SQUARE ..
-#include "../ut/ut_TX.h"                  // TX_Error
-#include "../ut/ut_memTab.h"              // MemTab_..
+#include "../ut/ut_bspl.h"             // UT3D_parbsp_par1
+#include "../ut/ut_rbspl.h"            // UT3D_par_par1_rbsp
+#include "../ut/ut_plg.h"              // UT3D_par_par1plg
+#include "../ut/ut_elli.h"             // UT3D_angr_par1_ell
+#include "../ut/func_types.h"          // SYM_SQUARE ..
+#include "../ut/ut_TX.h"               // TX_Error
+#include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 
-#include "../xa/xa_msg.h"                 // MSG_*
+#include "../xa/xa_msg.h"              // MSG_*
 
-#include "../gr/ut_gr.h"                  // GR_tDyn_*
+#include "../gr/ut_gr.h"               // GR_tDyn_*
 
 
 
@@ -610,7 +616,7 @@ Point*    DB_get_PT        (long Ind);
 
 
 //===========================================================================
-typedef_MemTab(Point);
+// typedef_MemTab(Point);
 
 
 
@@ -1290,7 +1296,7 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
 //   *tol             max dist of lines
 // OUT:
 //   Point *px        intersectionpoint (only for rc=0)
-//   Returncodes:
+//   Returncodes:     irc 0=normal intersection; 1-4 have connection; 5-12 overlap;
 //    -6   collinear  d-c gap a-b
 //    -5   collinear  c-d gap a-b
 //    -4   collinear  a-b gap d-c
@@ -4139,6 +4145,103 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
 
 
 //================================================================
+  int UT3D_sr_crv_pln (int typ, void *crv, Plane *pln) {
+//================================================================
+// UT3D_sr_crv_pln           get senseOfRotation for closed curve relating to plane
+// Output:
+//   retCod     0=CCW    1=CW  
+
+  int     sr, sid, ibp;
+  double  bpd;
+
+
+  DEB_dump_obj__ (typ, crv, "UT3D_sr_crv_pln-crv");
+  DEB_dump_obj__ (Typ_PLN, pln, "UT3D_sr_crv_pln-pln");
+
+  return UT3D_sr_crv_vz (typ, crv, &pln->vz);
+
+    // TESTBLOCK
+    printf("ex-UT3D_sr_crv_pln sr = %d\n",sr);
+    // END TESTBLOCK
+
+
+  return sr;
+
+}
+
+
+//================================================================
+  int UT3D_sr_crv_vz (int typ, void *crv, Vector *vz) {
+//================================================================
+// UT3D_sr_crv_vz            get senseOfRotation for curve relating to up-vector
+// Input:
+//   typ,crv    binary curve; eg Typ_CI,Typ_CVELL,Typ_CVPOL,Typ_CVBSP
+// Output:
+//   retCod     0=CCW    1=CW  
+
+  int     sr, sid, ibp, up2D;
+
+
+  // DEB_dump_obj__ (typ, crv, "UT3D_sr_crv_vz-crv");
+  // DEB_dump_obj__ (Typ_VC, vz, "UT3D_sr_crv_vz-vz");
+
+
+  switch (typ) {
+
+    case Typ_CI:
+      sr = UT3D_sr_ci ((Circ*)crv);
+      // test if Circ.vz is opposite pln.vz; if yes: reverse sr
+      sid = UT3D_sid_2vc (&((Circ*)crv)->vz, vz);
+      if(sid < 0) sr = ICHG01 (sr);
+      break;
+
+    case Typ_CVELL:
+      sr = UT3D_sr_el ((CurvElli*)crv);
+      // test if elli.vz is opposite pln.vz; if yes: reverse sr
+      sid = UT3D_sid_2vc (&((CurvElli*)crv)->vz, vz);
+      if(sid < 0) sr = ICHG01 (sr);
+      break;
+
+
+    case Typ_CVPOL:
+      // get bp for vec
+      ibp = UT3D_bp_perp_vc (NULL, vz);
+      // get sr for pts of CurvPoly
+      sr = UT3D_sr_npt_bp (((CurvPoly*)crv)->ptNr, ((CurvPoly*)crv)->cpTab, ibp);
+         // printf(" UT3D_sr_npt_bp-pol-1 sr=%d ibp=%d up2D=%d\n",sr,ibp,up2D);
+      // test if vz is opposite bp; if yes: reverse sr
+      sid = UT3D_sid_bp_vc (ibp, vz);
+      if(sid < 0) sr = ICHG01 (sr);
+         // printf(" UT3D_sr_npt_bp-poli-2 sr=%d sid=%d\n",sr,sid);
+      break;
+
+    case Typ_CVBSP:
+      // get bp for vec
+      ibp = UT3D_bp_perp_vc (NULL, vz);
+      // get sr for controlPts of CurvBSpl
+      sr = UT3D_sr_npt_bp (((CurvBSpl*)crv)->ptNr, ((CurvBSpl*)crv)->cpTab, ibp);
+         // printf(" UT3D_sr_npt_bp-bsp sr=%d ibp=%d up2D=%d\n",sr,ibp,up2D);
+      // test if vz is opposite bp; if yes: reverse sr
+      sid = UT3D_sid_bp_vc (ibp, vz);
+      if(sid < 0) sr = ICHG01 (sr);
+      break;
+
+
+    default:
+      return MSG_ERROR (ERR_TODO_E,"UT3D_sr_crv_pln - typ %d",typ);
+  }
+
+    // TESTBLOCK
+    // printf("ex-UT3D_sr_crv_pln sr = %d\n",sr);
+    // END TESTBLOCK
+
+
+  return sr;
+
+}
+
+
+//================================================================
   int UT3D_sr_rev_obj (int sr1, int sr2) {
 //================================================================
 /// \code
@@ -5668,6 +5771,59 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   // printf("ex UT3D_sid_2vc %d %f\n",irc,sk);
 
   return irc;
+
+}
+
+
+//================================================================
+  int UT3D_sid_bp_vc (int bp, Vector *vz) {
+//================================================================
+// UT3D_sid_bp_vc        check backplane vs vector for perp, same or opposit direction
+// Input:
+//   backplanes:
+//   vector = 0,0,1  vs bp = BCKPLN_XY returns 0 (same direction)
+//   vector = 0,0,-1 vs bp = BCKPLN_XY returns 1 (opposit direction)
+// Output:
+//   retCod:  -1 vc's point into opposit direction
+//             0 vc's are perpendicular
+//             1 vc's point into same direction
+
+// 
+// BCKPLN_XY - 2 - 0,0,1 - UT3D_VECTOR_Z
+// BCKPLN_XZ - 1 - 0,1,0 - UT3D_VECTOR_Y
+// BCKPLN_YZ - 0 - 1,0,0 - UT3D_VECTOR_X
+  
+
+  int      sid;
+
+
+  // DEB_dump_obj__ (Typ_VC, vz, "UT3D_sid_bp_vc bp = %d",bp);
+
+
+  switch (bp) {
+
+    case BCKPLN_XY:
+      sid = UT3D_sid_2vc ((Vector*)&UT3D_VECTOR_Z, vz);
+      break;
+
+    case BCKPLN_XZ:
+      sid = UT3D_sid_2vc ((Vector*)&UT3D_VECTOR_Y, vz);
+      break;
+
+    case BCKPLN_YZ:
+      sid = UT3D_sid_2vc ((Vector*)&UT3D_VECTOR_X, vz);
+      break;
+
+    default:
+      return MSG_ERROR (ERR_TODO_E,"UT3D_sid_bp_vc - bp %d",bp);
+  }
+
+    // TESTBLOCK
+    // printf("ex-UT3D_sid_bp_vc sid = %d\n",sid);
+    // END TESTBLOCK
+
+
+  return sid;
 
 }
 
@@ -8406,7 +8562,7 @@ liegt. ohne acos.
    Vector   vl;
 
 
-  printf("UT3D_pt_projptln  iUnl=%d\n",iUnl);
+  // printf("UT3D_pt_projptln  iUnl=%d\n",iUnl);
   // DEB_dump_obj__ (Typ_LN, ln, " projptln-ln");
   // DEB_dump_obj__ (Typ_PT, pt, " projptln-pt");
 
@@ -13902,13 +14058,15 @@ Version 2 - auch Mist
 
 
   // printf("UT3D_ci_inv1\n");
-  // DEB_dump_obj__ (Typ_CI, ci1, "UT3D_ci_inv1");
+  // DEB_dump_obj__ (Typ_CI, ci1, "UT3D_ci_inv1-in");
 
 
   MEM_swap__ (&ci1->p1, &ci1->p2, sizeof(Point));
 
   ci1->rad  = -ci1->rad;
   ci1->ango = -ci1->ango;
+
+  // DEB_dump_obj__ (Typ_CI, ci1, "ex-UT3D_ci_inv1");
 
   return 0;
 
@@ -15134,15 +15292,16 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 //================================================================
   double UT3D_angr_2vc__ (Vector *v1, Vector *v2) {
 //================================================================
-/// \code
-/// UT3D_angr_2vc__d            angle between two vec's (always 0 <= PI)
-///   v1, v2 must not be normalized.
-/// see UT3D_angr_2vc_n
-/// \endcode
+// UT3D_angr_2vc__d            angle between two vec's (always 0 <= PI)
+//   v1, v2 must not be normalized.
+// see UT3D_angr_2vc_n
 
 
   double   ang, pr;
 
+
+  // DEB_dump_obj__ (Typ_VC, v1, "UT3D_angr_2vc__ - v1");
+  // DEB_dump_obj__ (Typ_VC, v2, "UT3D_angr_2vc__ - v2");
 
   pr = UT3D_len_vc (v1) * UT3D_len_vc (v2);
 
@@ -19179,6 +19338,112 @@ extern  ModelRef  *DB_get_ModRef (long);
 
 
 //================================================================
+  int UT3D_bp_vc_up2D (int *up2D, int *isParl, Vector *vc1) {
+//================================================================
+// UT3D_bp_vc_up2D     get backplane and upside for vector
+// 
+// Input:
+//   vc1      vector normal to backplane (eg z-vector of plane)
+//   isParl   NULL  get backplane from longest vector; must not be parallel
+//            else test if vector is absolute normal to backplane;
+// Output:
+//   retcod:  backplane -
+//            2   BCKPLN_XY - vc1 = Z-vector
+//            1   BCKPLN_XZ - vc1 = Y-vector
+//            0   BCKPLN_YZ - vc1 = X-vector
+//   isParl   0   yes; vc1 is absolute normal to backplane;
+//            1   no, vc1 is not exact normal to backplane;
+//                retCod gives longest vector
+//   up2D     0   vc1 goes above backplane (goes up)
+//            1   vc1 goes below backplane (down)
+//                  
+
+  int      bpi, sid;
+  double   dx, dy, dz;
+
+
+  DEB_dump_obj__(Typ_VC, vc1, "UT3D_bp_vc_up2D-vc1");
+
+
+  // die Koordinate mit dem hoechsten Wert stillegen ..
+  dx = fabs(vc1->dx);
+  dy = fabs(vc1->dy);
+  dz = fabs(vc1->dz);
+
+  if(dy > dx) {             // Y > X
+    if(dz > dy) goto L_XY;     // skip Z-Coord
+    else        goto L_XZ;     // skip Y-Coord 
+  } else {                  // X > Y
+    if(dz > dx) goto L_XY;     // skip Z-Coord
+    else        goto L_YZ;     // skip X-Coord
+  }
+
+
+  //----------------------------------------------------------------
+  // get up2D
+
+  L_XY:
+    bpi = BCKPLN_XY;     // skip Z-Coord
+    sid = UT3D_sid_2vc (vc1, (Vector*)&UT3D_VECTOR_Z);
+    goto L_parl;
+
+
+  L_XZ:
+    bpi = BCKPLN_XZ;     // skip Y-Coord
+    sid = UT3D_sid_2vc (vc1, (Vector*)&UT3D_VECTOR_Y);
+    goto L_parl;
+
+
+  L_YZ:
+    bpi = BCKPLN_YZ;     // skip X-Coord
+    sid = UT3D_sid_2vc (vc1, (Vector*)&UT3D_VECTOR_X);
+
+
+  //----------------------------------------------------------------
+  // get isParl
+  L_parl:
+    printf(" bp_vc_up2D bpi=%d sid=%d\n",bpi,sid);
+
+  if(!isParl) goto L_exit;
+
+  if(bpi == BCKPLN_XY) {
+    // Z
+    if((dx * 1024.) > dz) goto L_not;
+    if((dy * 1024.) > dz) goto L_not;
+  } else if(bpi == BCKPLN_XZ) {
+    // Y
+    if((dx * 1024.) > dy) goto L_not;
+    if((dz * 1024.) > dy) goto L_not;
+  } else {
+    // X
+    if((dy * 1024.) > dx) goto L_not;
+    if((dz * 1024.) > dx) goto L_not;
+  }
+
+  *isParl = 0;
+  goto L_exit;
+
+  L_not:
+  *isParl = 1;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+    if(sid < 0) *up2D = 1;
+    else        *up2D = 0;
+
+      printf("ex UT3D_bp_vc_up2D bpi=%d up2D=%d  %f %f %f\n",
+             bpi, *up2D, dx,dy,dz);
+      if(isParl) printf("  isParl=%d\n",*isParl);
+
+
+  return bpi;
+
+
+}
+
+
+//================================================================
   int UT3D_bp_ln (double *bpd, Line *oLn) {
 //================================================================
 // UT3D_bp_ln                backplane from line
@@ -20827,6 +21092,9 @@ extern  ModelRef  *DB_get_ModRef (long);
   int UT3D_pt_tra_pt2_rsys (Point *pt3, Point2 *pt2, Refsys *rSys) {
 //====================================================================
 // UT3D_pt_tra_pt2_rsys            transf. 2D-Point => 3D-Point
+// Input:  pt2   2D-point - coords in plane (Z=0)
+// Output: pt3   world-coords
+// see UTRA_3D_pt_2D
 
   Point  ptx;
 
@@ -20937,6 +21205,8 @@ extern  ModelRef  *DB_get_ModRef (long);
   int UT3D_rsys_pl (Refsys *rsys, Plane *oPln) {
 //================================================================
 // UT3D_rsys_pl             get backplane/transformation-matrix for plane
+// see UT2D_pt_tra_pt3_rsys UT3D_pt_tra_pt2_rsys
+// see UTRA_2D_3D_init UTRA_2D_pt_3D UTRA_3D_pt_2D   (without backplane)
 
   int    ii, typ1, bpi, isParl;
   double d1 = 1.;
@@ -21228,6 +21498,59 @@ extern  ModelRef  *DB_get_ModRef (long);
 
 
 //================================================================
+  int UT3D_ci_ci_rad (Circ *cio, Circ *cii, double rdc) {
+//================================================================
+// UT3D_ci_ci_rad            Circ = concentric circle, new radius
+
+  double   fRdc;
+  Vector   vc1, vc2;
+
+
+  // fRdc = oldRad / newRad;
+  fRdc = rdc / cii->rad;
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_CI, cii, "UT3D_ci_ci_rad-in");
+    // printf(" radius = %f fRdc = %f\n",rdc,fRdc);
+    // END TESTBLOCK
+ 
+
+  *cio = *cii;
+  cio->rad = rdc;
+
+
+  // vc1 = vector pc-p1
+  UT3D_vc_2pt (&vc1, &cii->pc, &cii->p1);
+
+  // multiply vec * fRad for new startPt
+  UT3D_vc_multvc (&vc2, &vc1, fRdc);
+
+  // get new startPt p1
+  UT3D_pt_traptvc (&cio->p1, &cio->pc, &vc2);
+
+  if(!UT3D_ck_ci360(cii)) {
+    cio->p2 = cio->p1;
+    goto L_exit;
+  }
+
+  // vc1 = vector pc-p2
+  UT3D_vc_2pt (&vc1, &cii->pc, &cii->p2);
+
+  // multiply vec * fRad for new startPt
+  UT3D_vc_multvc (&vc2, &vc1, fRdc);
+
+  // get new endPt p2
+  UT3D_pt_traptvc (&cio->p2, &cio->pc, &vc2);
+
+
+  L_exit:
+    // DEB_dump_obj__ (Typ_CI, cio, "ex-UT3D_ci_ci_rad");
+  return 0;
+
+}
+
+
+//================================================================
   int UT3D_pt_proj_pt_pt_vcn (Point *pp, double *len,
                               Point *pt, Point *pl, Vector *vln) {
 //================================================================
@@ -21370,6 +21693,10 @@ extern  ModelRef  *DB_get_ModRef (long);
 
   float dxx,dxy,dxz,dyx,dyy,dyz;
 
+  // DEB_dump_obj__ (Typ_PT, ptc, "UT3D_vc3f_perp_3pt p1");
+  // DEB_dump_obj__ (Typ_PT, ptx, "UT3D_vc3f_perp_3pt p2");
+  // DEB_dump_obj__ (Typ_PT, pty, "UT3D_vc3f_perp_3pt p3");
+
 
   dxx = ptx->x - ptc->x;
   dxy = ptx->y - ptc->y;
@@ -21382,6 +21709,8 @@ extern  ModelRef  *DB_get_ModRef (long);
   vp->dx = dxy * dyz - dxz * dyy;
   vp->dy = dxz * dyx - dxx * dyz;
   vp->dz = dxx * dyy - dxy * dyx;
+
+    // DEB_dump_obj__ (Typ_VC3F, pty, "ex-UT3D_vc3f_perp_3pt");
 
   return 0;
 
@@ -21426,25 +21755,26 @@ extern  ModelRef  *DB_get_ModRef (long);
 
   float len;
 
-  /* printf("UT2D_vc_setLength %f %f %f %f\n", */
-                   /* vci->dx,vci->dy,vci->dz,new_len); */
+  // printf("UT2D_vc_setLength %f %f %f %f\n",
+                   // vci->dx,vci->dy,vci->dz,new_len);
 
   len = UT3F_len_vc (vci);
     // printf(" UT3D_vc3f_setLength-len=%f\n",len);
 
-  if (len != 0.f)
-    {
-      len = new_len / len;
-      vco->dx = vci->dx*len;
-      vco->dy = vci->dy*len;
-      vco->dz = vci->dz*len;
-      /* printf("UT3D_vc_setLength %f %f %f\n",vco->dx,vco->dy,vco->dz); */
-    }
-  else
-    {
-      printf("**** UT3D_vc3f_setLength error\n");
-      // *vco = UT3D_VECTOR_X;
-    }
+  if(len != 0.f) {
+    len = new_len / len;
+    vco->dx = vci->dx*len;
+    vco->dy = vci->dy*len;
+    vco->dz = vci->dz*len;
+
+  } else {
+    printf("**** UT3D_vc3f_setLength error\n");
+    // *vco = UT3D_VECTOR_X;
+  }
+
+
+  // printf("ex-UT2D_vc_setLength %f %f %f\n",vco->dx,vco->dy,vco->dz); 
+
 }
 
 

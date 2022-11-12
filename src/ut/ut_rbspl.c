@@ -109,6 +109,7 @@ List_functions_end:
 #include "../ut/ut_obj.h"                 // UTO_stru_2_obj
 #include "../ut/func_types.h"                  // SYM_..
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../gr/ut_gr.h"               // GR_tDyn_pcv
 #include "../xa/xa_mem.h"
 

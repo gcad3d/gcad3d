@@ -88,11 +88,13 @@ extern int       UI_fontsizX, UI_fontsizY;
 //=====================================================================
   int GUI_entry_styl (MemObj *o_par,  int imod) {
 //=====================================================================
-/// \code
-/// GUI_entry_styl    modify frame of entry;
-/// imod      0=GUI_STYL_normal=def_frame;  1=GUI_STYL_activ=red_frame.
-/// \endcode
-
+// GUI_entry_styl    modify frame of entry;
+// TODO - GUI_STYL_passiv NOR IMPLEMENTED YET !
+//
+// imod      0=GUI_STYL_normal - default  - white background
+//           1=GUI_STYL_activ  - ERROR    - red background   
+//           2=GUI_STYL_passiv - inactive - gray background
+//
 // works not: gtk_widget_override_background_color
 // works:     gtk_widget_override_color
 

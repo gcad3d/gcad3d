@@ -73,7 +73,7 @@ __declspec(dllexport) int gCad_fini ();
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 
 #include "../xa/xa.h"                     // MDL_IS_MAIN
-#include "../xa/xa_msg.h"                 // MSG_ERR_typ_*
+#include "../xa/xa_msg.h"                 // ERR_*
 
 #include "../gr/ut_DL.h"               // DL_OBJ_IS_ACTMDL
 
@@ -249,8 +249,8 @@ static int exp_objNr = 0;
   printf(" ------- finish\n");
 
 
-  LOG_A__ (MSG_ERR_typ_INF, "nr of errors = %d", exp_errNr);
-  LOG_A__ (MSG_ERR_typ_INF, "nr of objs exported = %d", exp_objNr);
+  LOG_A__ (ERR_INF, "nr of errors = %d", exp_errNr);
+  LOG_A__ (ERR_INF, "nr of objs exported = %d", exp_objNr);
 
   LOG_A_exit (exp_errNr);
 
@@ -302,7 +302,7 @@ static int exp_objNr = 0;
     // get DB-obj
     ox1 = DB_GetObjGX (iTyp, dbi);
     if(ox1.typ == Typ_Error) {
-      LOG_A__ (MSG_ERR_typ_ERR, "exp_export typ=%d dbi=%ld",iTyp,dbi);
+      LOG_A__ (ERR_ERR, "exp_export typ=%d dbi=%ld",iTyp,dbi);
       ++exp_errNr;
       continue;
     }

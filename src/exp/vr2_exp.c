@@ -403,7 +403,7 @@ __declspec(dllexport) int VR2_exp__ (char*);
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 
 #include "../xa/xa.h"                     // MDL_IS_MAIN
-#include "../xa/xa_msg.h"                 // MSG_ERR_typ_*
+#include "../xa/xa_msg.h"                 // ERR_*
 #include "../xa/xa_tex.h"                 // Tex_get_fn
 
 
@@ -623,8 +623,8 @@ static ColRGB *exp_sCol;
   // printf(" ------- finish\n");
 
 
-  LOG_A__ (MSG_ERR_typ_INF, "nr of errors = %d", exp_errNr);
-  LOG_A__ (MSG_ERR_typ_INF, "nr of objs exported = %d", exp_objNr);
+  LOG_A__ (ERR_INF, "nr of errors = %d", exp_errNr);
+  LOG_A__ (ERR_INF, "nr of objs exported = %d", exp_objNr);
 
   LOG_A_exit (exp_errNr);
 
@@ -733,7 +733,7 @@ static ColRGB *exp_sCol;
     // get DB-obj
     ox1 = DB_GetObjGX (iTyp, dbi);
     if(ox1.typ == Typ_Error) {
-      LOG_A__ (MSG_ERR_typ_ERR, "exp_export typ=%d dbi=%ld",iTyp,dbi);
+      LOG_A__ (ERR_ERR, "exp_export typ=%d dbi=%ld",iTyp,dbi);
       ++exp_errNr;
       continue;
     }
@@ -990,7 +990,7 @@ static ColRGB *exp_sCol;
   if(!irc) {
     // sprintf(s1," for export external submodel export model \"%s\" before",mnam);
     TX_Print(s1);
-    LOG_A__ (MSG_ERR_typ_ERR, s1);
+    LOG_A__ (ERR_ERR, s1);
     ++exp_errNr;
     irc = -1;
     goto L_exit;

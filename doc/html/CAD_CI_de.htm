@@ -19,17 +19,27 @@ Kreise benutzen den Kennbuchstaben C ("Circle").
 
 
 <p><a name="F0"></a></p>
-  <h2>CIR Cen Radius [Z-Axis]</h2>
-Kreis aus <a href="CAD_Base_de.htm#P">Mittelpunkt,</a> Radius <a href="CAD_Base_de.htm#D">[Achs-Vektor]</a>
+  <h2>CIR Cen Radius [Z-Axis-Vector] [CW/CCW]</h2>
+360-Grad-Kreis aus
+  <a href="CAD_Base_de.htm#P">Mittelpunkt,</a>
+  Radius oder <a href="CAD_Base_de.htm#P">Punkt,</a> am Kreis
+  Optional: <a href="CAD_Base_de.htm#D">[Achs-Vektor]</a>
+  Optional: Drehrichtung; Standard ist CCW (CounterClockWise)
 
 # Kreis (360 - Grad)
-C20=P20 VAL(25) DZ
+C20=P20 P21
+C20=P20 P21 CW
+C20=P20 VAL(25)
+C20=P20 VAL(25) DY
 
 
 
 <p><a name="F1"></a></p>
-  <h2>CIR Axis Point</h2>
-Kreis aus <a href="CAD_Base_de.htm#L">Kreisachse</a> und <a href="CAD_Base_de.htm#P">Punkt</a> am Kreis.
+  <h2>CIR Axis Point [CW/CCW]</h2>
+360-Grad-Kreis aus
+  <a href="CAD_Base_de.htm#L">Kreisachse</a>
+  <a href="CAD_Base_de.htm#P">Punkt</a> am Kreis.
+  Optional: Drehrichtung; Standard ist CCW (CounterClockWise)
 
 # Kreis um around horiz. Linie
 C23=L(P(0 0 0) DX) P(10 10 0)
@@ -100,6 +110,20 @@ C20 = L20 L21 L22
 
 
 <p><a name="F5"></a></p>
+  <h2>CIR CI  Radius [REV]</h2>
+Konzentrischer Kreis;
+  Radius     Eingabe von Radius oder einem Punkt am Kreisumfang
+  [REV]      optional: Umdrehungsrichtung ändern (CW - Uhrzeigersinn)
+
+
+C20=P(-245 0 0) P(-200 0 0)
+# Konzentrischer Kreis mit Radius 66
+C21=C20 66          
+# Konzentrischer Kreis durch Punkt (-300 0 0) im Uhrzeigersinn
+C22=C20 P(-300 0 0) REV  
+
+
+<p><a name="F6"></a></p>
   <h2>ARC Cen Ang1 Ang2 Radius   [CW/CCW]</h2>
 Kreisbogen durch <a href="CAD_Base_de.htm#P">Mittelpunkt,</a> Winkel-Startpunkt, Winkel-Endpunkt und Radius.
 
@@ -111,7 +135,7 @@ Kreisbogen durch <a href="CAD_Base_de.htm#P">Mittelpunkt,</a> Winkel-Startpunkt,
 C21=ARC P20 ANG(0) ANG(90) 10 CW
 
 
-<p><a name="F6"></a></p>
+<p><a name="F7"></a></p>
   <h2>ARC Cen PT Angle [Z-Axis]       ARC</h2>
 Kreisbogen durch <a href="CAD_Base_de.htm#P">Punkt auf Mittelachse</a>, Startpunkt, Öffnungswinkel und -
    - optional - Achsvektor.
@@ -121,7 +145,7 @@ Kreisbogen durch <a href="CAD_Base_de.htm#P">Punkt auf Mittelachse</a>, Startpun
 C21=ARC P20 P21 ANG(90) DZ
 
 
-<p><a name="F7"></a></p>
+<p><a name="F8"></a></p>
   <h2>ARC PT PT Radius [Z-Axis] [CW/CCW] [Version]      ARC</h2>
 Kreisbogen durch <a href="CAD_Base_de.htm#P">Startpunkt,</a> Endpunkt und Radius.
   <a href="CAD_Base_de.htm#D">Achsvektor</a> optional.
@@ -132,7 +156,7 @@ Kreisbogen durch <a href="CAD_Base_de.htm#P">Startpunkt,</a> Endpunkt und Radius
 C21=ARC P(251 23 0) P(189 75 0) VAL(50) DZ
 
 
-<p><a name="F8"></a></p>
+<p><a name="F9"></a></p>
   <h2>ARC PT Tang Radius [Angle] [Z-Axis] [CW/CCW]       ARC</h2>
 Kreisbogen durch Startpunkt, Startrichtung und Radius.
   Startrichtung: die Tangente an den Kreis im Startpunkt.
@@ -150,7 +174,7 @@ D20=TNG P20 S20
 C20=ARC P20 D20 25 ANG(30)
 
 
-<p><a name="F9"></a></p>
+<p><a name="F10"></a></p>
   <h2>ARC PT PT Cen [Z-Axis] [CW/CCW]              ARC</h2>
 Kreisbogen durch Startpunkt, Endpunkt und <a href="CAD_Base_de.htm#P">Mittelpunkt</a>
   <a href="CAD_Base_de.htm#D">Achsvektor</a> optional. Seite wechseln: 
@@ -159,7 +183,7 @@ Kreisbogen durch Startpunkt, Endpunkt und <a href="CAD_Base_de.htm#P">Mittelpunk
 C20=ARC P(10 6) P(16 0) P(10 0) DIZ
 
 
-<p><a name="F10"></a></p>
+<p><a name="F11"></a></p>
   <h2>ARC PT PT PT         [CW/CCW]         ARC1</h2>
 Kreisbogen durch drei <a href="CAD_Base_de.htm#P">Punkte</a> am Umfang.
   <a href="CAD_Base_de.htm#CWCCW">[CW/CCW]</a> ist die Drehrichtung; optional ("CW").

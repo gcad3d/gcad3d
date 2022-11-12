@@ -72,6 +72,7 @@ GR_Disp_..    display obj (using dynamic DL-record)
 List_functions_start:
 
 GR_Disp_message       switch for textoutput to console (DispMode)
+GR_set_z2             set z-height for 2D-objects (GR_tDyn_txi2 ..)
 
 GR_set_obj            display obj     - temp/tDyn/perm
 GR_set_osu            disp surface from bin.surf.obj
@@ -97,10 +98,11 @@ GR_perm_pln           plane
 // GR_perm_pcv           perm.disp polygon
 GR_perm_ocv           perm.disp Curve-obj (C, S)
 GR_perm_sur           perm.disp surface
+GR_perm_nifac         perm.disp indexed faces display MshFac
 GR_perm_txt__         perm.disp notes with 2D-text
 GR_perm_txtG          perm.disp grafic text (rotated, scaled)
 GR_perm_mdr           perm.disp subModel from modelreference
-GR_perm_Dimen          hor/vert/parall. dimension
+// GR_perm_Dimen          hor/vert/parall. dimension
 
 -------------- display temporary-dynamic objects
 GR_tDyn_ox            temp.Dyn complex-obj ObjGX
@@ -156,7 +158,7 @@ GR_tDyn_npcv_itb_npt  disp group of polygons from IndTab to points
 GR_tDyn_npcv_itb_nipt disp group of polygons from IndTab to indexed points
 GR_tDyn_ipcv          display indexed point-array as curve
 GR_tDyn_ip2cv         display indexed 2D-point-array as curve
-GR_tDyn_nifac         display MshFac
+GR_tDyn_nifac         display indexed faces MshFac
 GR_tDyn_mtb           disp MemTab; alias MemTab_disp_tdyn
 
 -------------- display temporary objects
@@ -521,7 +523,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
     DL_perm_init (Typ_SUR, dbi, att);
 
     // perm: att is struct ColRGB (color with type symbolic|shaded|textured|..)
-    GL_actCol = *(COL_INT32(&att));
+    GL_actCol = *(COL_INT32P(&att));
       // used later in GL_set_* with GL_ColSet
 
     if (GL_actCol.vtex != 0) {
@@ -1391,7 +1393,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
   // fix style; shaded/symbolic
   sStyl = 0;
-  col = COL_INT32(&att);    // col = (ColRGB*)&att;
+  col = COL_INT32P(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
 
     if((APT_dispSOL == OFF) ||
@@ -1442,7 +1444,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
   // fix style; shaded/symbolic
   sStyl = 0;
-  col = COL_INT32(&att);    // col = (ColRGB*)&att;
+  col = COL_INT32P(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
 
     if((APT_dispSOL == OFF) ||
@@ -1563,7 +1565,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
   // fix style; shaded/symbolic
   sStyl = 0;
-  col = COL_INT32(&att);    // col = (ColRGB*)&att;
+  col = COL_INT32P(&att);    // col = (ColRGB*)&att;
   if(TSU_mode == 0)  {      // 0 = draw OpenGL
 
     if((APT_dispSOL == OFF) ||
@@ -1668,7 +1670,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
 
   // die Color / das Attribut
-  GL_actCol =  *(COL_INT32(&attInd)); // GL_actCol = *((ColRGB*)&attInd);
+  GL_actCol =  *(COL_INT32P(&attInd)); // GL_actCol = *((ColRGB*)&attInd);
 
 
 
@@ -1709,7 +1711,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
 
   // fix style; shaded/symbolic
-  col = COL_INT32(&attInd); // col = (ColRGB*)&attInd;
+  col = COL_INT32P(&attInd); // col = (ColRGB*)&attInd;
 
   if((APT_dispSOL == OFF) ||
      (col->vsym   == 1))      sStyl = 1;   // 0=ON=shade; 1=OFF=symbolic
@@ -2551,10 +2553,10 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
 
 
-  // printf("GR_DrawSur ind=%ld typ=%d form=%d siz=%d\n",apt_ind,
-          // oxi->typ,oxi->form,oxi->siz);
-  // printf(" TSU_mode=%d\n",TSU_get_mode());
-  // DEB_dump_ox_s_ (oxi, "GR_DrawSur");
+  printf("GR_DrawSur ind=%ld typ=%d form=%d siz=%d\n",apt_ind,
+          oxi->typ,oxi->form,oxi->siz);
+  printf(" TSU_mode=%d\n",TSU_get_mode());
+  DEB_dump_ox_s_ (oxi, "GR_DrawSur");
   // if(oxi->typ==Typ_SUR) printf(" S:vtex=%d\n",((ColRGB*)&att)->vtex);
 
 
@@ -2585,7 +2587,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
 
   // die Color / das Attribut
-  GL_actCol = *(COL_INT32(&att)); // GL_actCol = *((ColRGB*)&att);
+  GL_actCol = *(COL_INT32P(&att)); // GL_actCol = *((ColRGB*)&att);
 
 
   // Texure
@@ -2613,12 +2615,13 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
   if(oxi->typ == Typ_SUR)      goto L_SurCplx;
   if(oxi->typ == Typ_SURRU)    goto L_SurCplx;
   if(oxi->typ == Typ_SURRV)    goto L_SurCplx;
+  if(oxi->typ == Typ_SUTP)     goto L_SurCplx;
   if(oxi->typ == Typ_SURSWP)   goto L_SurSwp;
   if(oxi->typ == Typ_SURCIR)   goto L_SurCir;
   if(oxi->typ == Typ_SURSTRIP) goto L_SurStripe;
   if(oxi->typ == Typ_SURBSP)   goto L_SurBSpl;
   if(oxi->typ == Typ_SURRBSP)  goto L_SurRBSpl;
-  if(oxi->typ == Typ_SURPMSH)   goto L_SurMesh;
+  if(oxi->typ == Typ_SURPMSH)  goto L_SurMesh;
   if(oxi->typ == Typ_SURHAT)   goto L_SurHat;
 
     TX_Error("GR_DrawSur E001 %d",oxi->typ);
@@ -3964,31 +3967,124 @@ int GR_Delete (long ind)                               {return 0;}
 
 
 //================================================================
-  int GR_tDyn_nifac (MshFac *nifa, int att) {
+  int GR_set_nifac (int opers, long dbi, MshFac *nifa, int att) {
 //================================================================
-// GR_tDyn_nifac         display MshFac
+// GR_set_nifac         display MshFac
 // Input:
 //   att          0 is defaulColor, else ColRGB
 
+  long   l1;
   ColRGB *col;
 
 
-  printf("GR_tDyn_nifac nf=%d\n",nifa->fNr);
-  if(att) DEB_dump_obj__ (Typ_Color, COL_INT32(&att), " col:");
+  printf("GR_set_nifac opers=%d dbi=%ld nf=%d\n",opers,dbi,nifa->fNr);
+  if(att) DEB_dump_obj__ (Typ_Color, COL_INT32P(&att), " col:");
 
 
-  DL_tDyn_init (att);
+  //----------------------------------------------------------------
+  // perm
+  if(opers & OPERS_PERM) {
+    // create perm. DL-record an open GL-list
+    DL_perm_init (Typ_SUR, dbi, att);
 
-  GL_att_sur (att);
+    // perm: att is struct ColRGB (color with type symbolic|shaded|textured|..)
+    GL_actCol = *(COL_INT32P(&att));
+      // used later in GL_set_* with GL_ColSet
 
-  // GL_set_nifac_V1 (nifa->fNr,nifa->fac,nifa->ipa,nifa->pa3,nifa->vc3,nifa->oTyp);
-  GL_set_nifac_V2 (nifa);
+    if (GL_actCol.vtex != 0) {
+      // prepare texture (set GL_actTex)
+      // find textureNr of surface <apt_ind> from (typ,dbi)
+      l1 = GA_find__ (Typ_SUR, dbi);
+        // printf(" GA-nr=%d\n",l1);
+      if(l1 < 0) {
+        printf("GR_set_sur I001 %ld\n",dbi);
+        GL_actTex = -1;
+      } else {
+        // get TexRef of GA-Record l1
+        GL_actTex = GA_tex_ga2tr (l1);
+      }
 
-  GL_list_close (); // close GL-record
+    } else {
+      // no texture ..
+      GL_actTex = -1;
+    }
+        // printf(" _set_sur typ=%d dbi=%ld GL_actTex=%d\n",oxi->typ,dbi,GL_actTex);
+
+
+
+
+  //----------------------------------------------------------------
+  // temp
+  } else if(opers & OPERS_TEMP) {
+    DL_temp_init ();   //  get GL-index, GL_list_open
+
+    if(((ColRGB*)&att)->vsym) {
+      // symbolic - set curve-attribute; 
+      if(((ColRGB*)&att)->hili) GL_att_cv (Typ_Att_hili1);
+      // else if(((ColRGB*)&att)->dim) GL_att_cv (Typ_Att_dim);
+      else                      GL_att_cv (Typ_Att_dash_long);
+    } else {
+      // set color ..
+      GL_att_sur (att);
+    }
+
+
+  //----------------------------------------------------------------
+  // tdyn
+  } else if(opers & OPERS_TDYN) {
+    DL_tDyn_init (att);  //  get GL-index, GL_list_open
+
+    GL_att_sur (att);
+
+  }
+
+
+  //----------------------------------------------------------------
+  // disp surf
+  if(nifa->ipa) {
+    // GL_set_nifac_V1 (nifa->fNr,nifa->fac,nifa->ipa,nifa->pa3,nifa->vc3,nifa->oTyp);
+    GL_set_nifac_V2 (nifa);
+  } else {
+    printf(" no indexes - faces only\n");
+    GL_set_nfac_V2 (nifa);
+  }
+
+
+  //----------------------------------------------------------------
+  if(opers & OPERS_CLOSE) GL_list_close (); // close GL-record
 
   return 0;
 
 }
+
+
+
+// //================================================================
+//   int GR_tDyn_nifac (MshFac *nifa, int att) {
+// //================================================================
+// // GR_tDyn_nifac         display MshFac
+// // Input:
+// //   att          0 is defaulColor, else ColRGB
+// 
+//   ColRGB *col;
+// 
+// 
+//   printf("GR_tDyn_nifac nf=%d\n",nifa->fNr);
+//   if(att) DEB_dump_obj__ (Typ_Color, COL_INT32P(&att), " col:");
+// 
+// 
+//   DL_tDyn_init (att);
+// 
+//   GL_att_sur (att);
+// 
+//   // GL_set_nifac_V1 (nifa->fNr,nifa->fac,nifa->ipa,nifa->pa3,nifa->vc3,nifa->oTyp);
+//   GL_set_nifac_V2 (nifa);
+// 
+//   GL_list_close (); // close GL-record
+// 
+//   return 0;
+// 
+// }
 
 
 //=========================================================================
@@ -4952,7 +5048,8 @@ int GR_Delete (long ind)                               {return 0;}
 //================================================================
   int GR_set_mtb (int opers, MemTab *mtb, int att) {
 //================================================================
-// GR_set_mtb                     display MemTab;
+// GR_set_mtb                     display group of objects of same objTyp in MemTab
+// supported objTypes: Typ_LN Typ_LN2 Typ_CVTRM
 // see MemTab_dump
 
   int      irc=0, i1, ityp;
@@ -6767,6 +6864,40 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 }
 
 
+//================================================================
+  int GR_set_z2 (double dz) {
+//================================================================
+// GR_set_z2            s et z-height for 2D-objects (GR_tDyn_txi2 ..)
+ 
+  GL2D_Z = dz;
+
+  return 0;
+
+}
+
+
+//===================================================================
+  int GR_tDyn_txi2 (Point2 *pt1, int ii, int att) {
+//===================================================================
+// GR_tDyn_txi2       display number at 2D-position
+//  Input:
+//   ii       nr to display
+//   att      colorIndex; eg ATT_COL_RED; see INF_COL_SYMB
+//
+// see also GR_tDyn_txiA GR_temp_txi2 GR_temp_npti
+
+  char   cbuf[40]; 
+  Point  pt3;
+
+  snprintf(cbuf, sizeof(cbuf), "%d", ii); 
+
+  GR_pt3_pt2 (&pt3, pt1);
+
+  return GR_tDyn_txtA (&pt3, cbuf, att); 
+
+}
+
+
 //===================================================================
   int GR_temp_txi2 (Point2 *pt1, int ii, int att) {
 //===================================================================
@@ -7881,7 +8012,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   // dli = AP_dli_act;
 
-//   col = COL_INT32(&att);   // col = (ColRGB*)&att;
+//   col = COL_INT32P(&att);   // col = (ColRGB*)&att;
 //     DEB_dump_obj__ (Typ_Color, col, " col");
 
   MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, 10000);

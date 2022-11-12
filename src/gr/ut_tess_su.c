@@ -200,7 +200,7 @@ extern Point     *GLT_pta;
 
 //   TSU_dli = AP_dli_act;
 
-  col1 = COL_INT32(&att);   // col1 = (ColRGB*)&att;
+  col1 = COL_INT32P(&att);   // col1 = (ColRGB*)&att;
 
   // TEST ONLY:
   // col1->vsym = 1;  //set symbolic

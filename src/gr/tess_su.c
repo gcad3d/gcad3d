@@ -1882,7 +1882,7 @@ static int   patNr;     // nr of Patches
 
 
   TSU_sStyl = 0;
-  col = COL_INT32(&att);   // col = (ColRGB*)&att;
+  col = COL_INT32P(&att);   // col = (ColRGB*)&att;
     // printf(" col=%d tra=%d tex=%d sym=%d\n",
            // col->color,col->vtra,col->vtex,col->vsym);
 
@@ -2083,7 +2083,7 @@ static int   patNr;     // nr of Patches
 
   TSU_dli = AP_dli_act;
 
-  col = COL_INT32(&att);    // col = (ColRGB*)&att;
+  col = COL_INT32P(&att);    // col = (ColRGB*)&att;
 
 
   // init, Anzahl von Polygonpunkten fuer beide Seiten bestimmen.
@@ -2200,7 +2200,7 @@ static int   patNr;     // nr of Patches
 
 
   // fix style; shaded/symbolic
-  col = COL_INT32(&att);    // col = (ColRGB*)&att;
+  col = COL_INT32P(&att);    // col = (ColRGB*)&att;
 
 
 
@@ -2389,7 +2389,7 @@ static int   patNr;     // nr of Patches
   TSU_dli = AP_dli_act;
 
   // fix style; shaded/symbolic
-  col1 = COL_INT32(&att);    // col = (ColRGB*)&att;
+  col1 = COL_INT32P(&att);    // col = (ColRGB*)&att;
 
 
 
@@ -2568,7 +2568,7 @@ static int   patNr;     // nr of Patches
   TSU_dli = AP_dli_act;
 
   // fix style; shaded/symbolic
-  col = COL_INT32(&att);    // col = (ColRGB*)&att;
+  col = COL_INT32P(&att);    // col = (ColRGB*)&att;
 
 
   TSU_sStyl = 0;
@@ -2712,7 +2712,7 @@ static int   patNr;     // nr of Patches
   TSU_dli = AP_dli_act;
 
 
-  col = COL_INT32(&att);    // col = (ColRGB*)&att;
+  col = COL_INT32P(&att);    // col = (ColRGB*)&att;
 
 
   // fix style; shaded/symbolic
@@ -2808,7 +2808,7 @@ static int   patNr;     // nr of Patches
   TSU_dli = AP_dli_act;
 
   // fix style; shaded/symbolic
-  col = COL_INT32(&att);   // col = (ColRGB*)&att;
+  col = COL_INT32P(&att);   // col = (ColRGB*)&att;
     // printf(" SurTP col=%d tra=%d tex=%d\n",col->color,col->vtra,col->vtex);
     // printf("       GL_actTex=%d\n",GL_actTex);
 
@@ -3107,7 +3107,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
 
   //-----------------------------------------------------------
   // shaded or symbolic
-  col = COL_INT32(&att); // col = (ColRGB*)&att;
+  col = COL_INT32P(&att); // col = (ColRGB*)&att;
 
   TSU_sStyl = 0;
   if(TSU_mode == 0)  {      // 0=draw; 1=store
@@ -4368,7 +4368,7 @@ uOff abhaengig von Aussenkonturtyp:
         TSU_ox2.form = Typ_LN;
         TSU_ox2.data = &TSU_ln1;
         TSU_form_ = Typ_LN;
-          printf("  tr_init_-change_AC_->_LN\n");
+          // printf("  tr_init_-change_AC_->_LN\n");
         goto L_SRV___;
       }
 

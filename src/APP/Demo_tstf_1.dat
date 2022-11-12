@@ -26,7 +26,10 @@ DUMP C20               # direct command or remote-control-command:
 
 :L2:
 :: PRI("Test L2")             
-:: DUMP("AT")
-:: DUMP(/tmp/t1)
+# dump symbolic-directories into console
+:: DUMP("SD")
+# add textstring, unvisible; can only be read with DB_get_Text
+N20="das ist ein Test"
+
 
 :EOF:

@@ -395,8 +395,8 @@ UTO_stru_int
   Memspc    tSpc, oSpc, pSpc;
 
  
-  // printf("INT_intplsur %d sNr=%d imod=%d\n",*oTyp,sNr,imod);
-  // for(i1=0; i1<sNr; ++i1) printf("  A[%d] = %d\n",i1,sTab[i1]);
+  printf("INT_intplsur %d sNr=%d imod=%d\n",*oTyp,sNr,imod);
+  for(i1=0; i1<sNr; ++i1) printf("  A[%d] = %ld\n",i1,sTab[i1]);
 
 
 
@@ -407,6 +407,11 @@ UTO_stru_int
   irc = TSU_tess_sTab (&spc1, sTyp, sTab, sNr);
   if(irc < 0) return -1;
 
+     // TESTBLOCK
+     DEB_dump_ox_s_ (spc1, " intplsur");
+     DEB_dump_ox_s_ (&spc1[0], " intplsur-0");
+     DEB_dump_ox_s_ (&spc1[1], " intplsur-1");
+     // END TESTBLOCK
 
 
   //----------------------------------------------------------------
@@ -415,12 +420,12 @@ UTO_stru_int
   // space for triangles --> triTab  (12bytes/Tria)
   triTab = (Triang*)memspc501;
   triSiz = sizeof(memspc501) / sizeof(Triang);
-    // printf(" triSiz=%d\n",triSiz);
+    printf(" triSiz=%d\n",triSiz);
 
 
   surTab = (TypTsuSur*)memspc51;
   surSiz = sizeof(memspc51) / sizeof(TypTsuSur);
-    // printf(" surSiz=%d\n",surSiz);
+    printf(" surSiz=%d\n",surSiz);
 
 
 
@@ -429,8 +434,8 @@ UTO_stru_int
   surNr = surSiz;
   triNr = triSiz;
   irc = TSU_ntria_bMsh__ (surTab, &surNr, surSiz, triTab, &triNr, triSiz, spc1);
-/*
-    //----TEST:----------
+
+    // TESTBLOCK
     printf("ex TSU_ntria_bMsh__ irc=%d surNr=%d\n",irc,surNr);
     for(i1=0; i1<surNr; ++i1) {
       printf(" sur[%d].ip1=%d ip2=%d typ=%d\n",i1,
@@ -442,8 +447,9 @@ UTO_stru_int
         DEB_dump_obj__ (Typ_PT, triTab[i2].pa[2], "  p3=");
       }
     }
-    return 0;
-*/
+    // return 0;
+    // END TESTBLOCK
+
 
 
 
@@ -455,7 +461,8 @@ UTO_stru_int
 
   // intersect Plane - Triangs --> n LineSegments
   INT_int_tria_pln (lnTab, &lnNr, lnSiz, triTab, triNr, triSiz, pl1);
-    // for(i1=0; i1<lnNr; ++i1) GR_Disp_ln (&lnTab[i1], 8);
+    for(i1=0; i1<lnNr; ++i1) DEB_dump_obj__ (Typ_LN, &lnTab[i1], "l[%d]");
+      // GR_Disp_ln (&lnTab[i1], 8);
     // return -1;
 
 

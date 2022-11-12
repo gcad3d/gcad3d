@@ -109,6 +109,7 @@ gcad_src.mak
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 
 #include "../gr/ut_gr.h"               // GR_tDyn_*
 #include "../xa/xa_msg.h"              // MSG_*

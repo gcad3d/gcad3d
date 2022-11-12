@@ -1,6 +1,6 @@
 /* OgxTab                             2020-08-14   franz.reiter@cadcam.co.at
 ../ut/ut_ogxt.h
-Functions: ../ut/ut_ogxt.c
+Functions: ../ut/ut_ogxt.c ../APP/ut_ogxt.c
 */
 
 

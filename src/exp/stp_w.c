@@ -575,7 +575,7 @@ __declspec(dllexport) int STP_w__ (char*);
 #include "../db/ut_DB.h"               // DB_GetGTxt
 
 #include "../xa/xa.h"                  // AP_mod_fnam
-#include "../xa/xa_msg.h"                 // MSG_ERR_typ_*
+#include "../xa/xa_msg.h"                 // ERR_*
 #include "../xa/xa_mem.h"              // memspc201
 
 
@@ -948,7 +948,7 @@ static jmp_buf     jmp1;
       // get external-modelfile (use existing <model>.wrl
       sprintf(s1,"***** external-modelfile not yet supported ***");
       TX_Print(s1);
-      LOG_A__ (MSG_ERR_typ_INF, s1);
+      LOG_A__ (ERR_INF, s1);
       ++exp_errNr;
       // STP_w_ox_sm_ext (mbo->mnam);
       // goto L_sm_cont;
@@ -990,8 +990,8 @@ static jmp_buf     jmp1;
 
   fclose (stpw_fp);
 
-  LOG_A__ (MSG_ERR_typ_INF, "nr of errors = %d", exp_errNr);
-  LOG_A__ (MSG_ERR_typ_INF, "nr of objs exported = %d", exp_objNr);
+  LOG_A__ (ERR_INF, "nr of errors = %d", exp_errNr);
+  LOG_A__ (ERR_INF, "nr of objs exported = %d", exp_objNr);
   LOG_A_exit (exp_errNr);
 
   MemTab_free (&ol_ref);
@@ -1140,7 +1140,7 @@ static jmp_buf     jmp1;
     // get DB-obj
     ox1 = DB_GetObjGX (iTyp, dbi);
     if(ox1.typ == Typ_Error) {
-      LOG_A__ (MSG_ERR_typ_ERR, "exp_export typ=%d dbi=%ld",iTyp,dbi);
+      LOG_A__ (ERR_ERR, "exp_export typ=%d dbi=%ld",iTyp,dbi);
       ++exp_errNr;
       continue;
     }
@@ -1272,7 +1272,7 @@ static jmp_buf     jmp1;
   //----------------------------------------------------------------
   } else {
     sprintf(s1,"  STP_w_ox__ skip form=%d dbi=%ld",ox1->form,dbi);
-    LOG_A__ (MSG_ERR_typ_ERR, s1);
+    LOG_A__ (ERR_ERR, s1);
     ++exp_errNr;
     iStp = -1;
   }
@@ -1387,7 +1387,7 @@ static jmp_buf     jmp1;
     //=========================================================
     default:
       sprintf(s1,"STP_w_CRV__ %s - skip form=%d dbi=%ld",oid,ox1->form,dbi);
-      LOG_A__ (MSG_ERR_typ_ERR, s1);
+      LOG_A__ (ERR_ERR, s1);
       ++exp_errNr;
       iStp = -1;
   }
@@ -6074,7 +6074,7 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
     p1 = &s1[ll];
     if(i1 >= sSiz) {
        strcpy(s2, "STP_w_list__ overflow");
-       TX_Print(s2); LOG_A__ (MSG_ERR_typ_INF, s2); ++exp_errNr; return -1;}
+       TX_Print(s2); LOG_A__ (ERR_INF, s2); ++exp_errNr; return -1;}
     ++i1;
 
     L_nxt1:
@@ -6274,7 +6274,7 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
 // STP_w_log_inf           log info
 
   TX_Print(eTxt);
-  LOG_A__ (MSG_ERR_typ_INF, eTxt);
+  LOG_A__ (ERR_INF, eTxt);
   ++exp_errNr;
 
   return -1;
@@ -6301,7 +6301,7 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
 
   // sprintf(s1, "%s #%d",eTxt,stpw_li);
   TX_Print(s1); 
-  LOG_A__ (MSG_ERR_typ_ERR, s1);
+  LOG_A__ (ERR_ERR, s1);
   ++exp_errNr;
 
   return -1;

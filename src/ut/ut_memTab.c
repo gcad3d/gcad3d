@@ -29,63 +29,65 @@ Modifications:
 -----------------------------------------------------
 */
 #ifdef globTag
-void MemTab(){}
+void MEMTAB(){}
 #endif
 /*!
 \file  ../ut/ut_memTab.c
 \brief fixed-length-records in memory: add,insert,delete, realloc. .. MemTab_ 
-\code
-=====================================================
-List_functions_start:
 
-MemTab_ini_fixed    init memory-table with fixed memoryspace; no realloc, no free.
-MemTab_ini__        init memory-table (malloc)
-MemTab_ini_temp     get memspace for rTot records                  INLINE
-MemTab_free         free memspace from MemTab_ini_temp           INLINE
-MemTab_add          save/check/reserve in memSpc; malloc/realloc if necessary.
-MemTab_sav          save objDat to memSpc; malloc/realloc if necessary.
-MemTab_uniq_sav     if data is uniq only: save data with MemTab_add (.. 1, 0);
-MemTab_reserve      reserve space to memSpc; malloc/realloc if necessary.
-MemTab_check        check free space to memSpc; malloc/realloc if necessary.
-MemTab_ins          insert records in MemTab
-MemTab_del          delete records in MemTab
-MemTab_mod          modify records 
-MemTab_load         returns datablock and its nr of records
-MemTab_get          retrieve (copy out) records 
-MemTab_free         free MemTab-structure.
-MemTab_wrf          write MemTab to file
-MemTab_rdf          read MemTab from file
-
-MEMTAB__            get data-record from index                     INLINE
-MEMTAB_DAT          get data-record complete                       INLINE
-MEMTAB_IND          get index (pointer to next free = nr of used)  INLINE
-MEMTAB_RESET_IND    reset index (nr of used = 0)                   INLINE
-MEMTAB_RMAX         get max. nr of records                         INLINE
-MEMTAB_RSIZ         get record size                                INLINE
-MEMTAB_RFREE        get nr of free records                         INLINE
-MEMTAB_POS          get position of next data-record               INLINE
-MEMTAB_IND_POS      get record-index from position                 INLINE
-MEMTAB_IS_EMPTY     test if MemTab.data == NULL                    INLINE
-MEMTAB_SET_NULL     set MemTab = _MEMTAB_NUL;                      INLINE
-MEMTAB_CLEAR        reset  (memTab->rNr = 0;)                      INLINE
-
-MemTab_dump
-MemTab_disp_tdyn    display MemTab dynamic        alias GR_tDyn_mtb
-MemTab_disp_temp    display MemTab temporary      alias GR_temp_mtb
-
-List_functions_end:
-=====================================================
-MemTab_ini_alloc  DO NOT USE UNUSED init memory-table and malloc
-For static memspace see AP_MemTab_init AP_MemTab_get ..
-see also ../ut/ut_memTab1.c  (MemTabI_.. MemTabIT_.. MemTabPT_..  
-see also ../ut/ut_umem.c     (MEM_CAN[NOT]_..
 - necessary includes:
 #include "../ut/ut_memTab.h"              // MemTab
 
-- see also:
-../doc/gCAD3D_prog_de.txt section Memoryfunktionen
+=====================================================
+List_functions_start:
 
-\endcode *//*----------------------------------------
+MemTab_ini_fixed      init memory-table with fixed memoryspace; no realloc, no free.
+MemTab_ini__          init memory-table (malloc)
+MemTab_ini_temp       get memspace for rTot records                          INLINE
+MemTab_ini_add        init, malloc, add data into MemTab
+MemTab_free           free memspace from MemTab_ini_temp                     INLINE
+MemTab_add            save/check/reserve in memSpc; malloc/realloc if necessary.
+MemTab_sav            save objDat to memSpc; malloc/realloc if necessary.
+MemTab_uniq_sav       if data is uniq only: save data with MemTab_add (.. 1, 0);
+MemTab_reserve        reserve space to memSpc; malloc/realloc if necessary.
+MemTab_check          check free space to memSpc; malloc/realloc if necessary.
+MemTab_ins            insert records in MemTab
+MemTab_del            delete records in MemTab
+MemTab_mod            modify records 
+MemTab_load           returns datablock and its nr of records
+MemTab_get            retrieve (copy out) records 
+MemTab_free           free MemTab-structure.
+MemTab_wrf            write MemTab to file
+MemTab_rdf            read MemTab from file
+
+MEMTAB__              get data-record from index                     INLINE
+MEMTAB_DAT            get data-record complete                       INLINE
+MEMTAB_IND            get index (pointer to next free = nr of used)  INLINE
+MEMTAB_RESET_IND      reset index (nr of used = 0)                   INLINE
+MEMTAB_RMAX           get max. nr of records                         INLINE
+MEMTAB_RSIZ           get record size                                INLINE
+MEMTAB_RFREE          get nr of free records                         INLINE
+MEMTAB_POS            get position of next data-record               INLINE
+MEMTAB_IND_POS        get record-index from position                 INLINE
+MEMTAB_IS_EMPTY       test if MemTab.data == NULL                    INLINE
+MEMTAB_SET_NULL       set MemTab = _MEMTAB_NUL;                      INLINE
+MEMTAB_CLEAR          reset  (memTab->rNr = 0;)                      INLINE
+
+MemTab_dump
+MemTab_disp_tdyn      display MemTab dynamic        alias GR_tDyn_mtb > GR_set_mtb
+MemTab_disp_temp      display MemTab temporary      alias GR_temp_mtb > GR_set_mtb
+
+List_functions_end:
+=====================================================
+
+MemTab_int_..         ../ut/ut_memTab1.c      MemTab(Int)
+MemTab_IndTab_..      ../ut/ut_memTab1.c      MemTab(IndTab)
+ITAB_..               ../ut/itab.c            MemTab(IntTab)
+OXMT_..               ../APP/ut_ogxt.c        OgxTab  (MemTab(ObjGX) + Memspc)
+  TODO: add ../ut/itab.c  ->  ../ut/ut_memTab1.c als MemTab_IndInt_..
+=====================================================
+
+see also ../ut/ut_umem.c     (MEM_CAN[NOT]_..
 
 
 - OFFLINE tests:
@@ -100,6 +102,7 @@ MEM_del_nrec
 MEM_ins_nrec
 
 
+-----------------------------------------------------
 -----------------------------------------------------
 - usage examples:
 
@@ -212,13 +215,15 @@ Testprog: ../ut/tst_memTab.c
 #include <string.h>
 
 
-#include "../ut/ut_types.h"               // INT_8 - UINT_64
+#include "../ut/ut_types.h"            // INT_8 - UINT_64
 #include "../ut/AP_types.h"
 #include "../ut/ut_memTab.h"
-#include "../ut/ut_uti.h"                 // UTI_round_32up
-#include "../ut/ut_cast.h"                // INT_PTR
-#include "../ut/ut_types.h"               // UINT_8_MAX
-#include "../ut/ut_mem.h"                     // MEM_*
+#include "../ut/ut_uti.h"              // UTI_round_32up
+#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_types.h"            // UINT_8_MAX
+#include "../ut/ut_mem.h"              // MEM_*
+
+#include "../xa/xa_msg.h"              // MSG_* ERR_*
 
 
 MemTab MEMTAB_NUL = _MEMTAB_NUL;
@@ -284,29 +289,28 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 //=========================================================================
   int MemTab_ini__ (void *mtbv, int rSiz, int typ, int incSiz) {
 //=========================================================================
-/// \code
-/// MemTab_ini__           init memory-table; if already in use: clear.
-///   - prepare for permanent memoryspace (malloc) ; must be freed with MemTab_free
-///   - get space (malloc) with MemTab_add; does expand automatically;
-/// use MemTab for a list of records;
-/// use Memspc for a different types of records in the same memoryblock.
-/// 
-/// INPUT:
-///   rSiz    recordsize in bytes
-///   typ     info; Typ_PT=Point Typ_Int4=int Typ_Float8=double Typ_Int1=char;
-///   incSiz  nr of records to increment memTab;
-///           if Memspc is too small: add UTI_round_b2i(incSiz * rSiz)
-///           0 -> 0; 1 -> 2; 2 -> 4; 3 -> 8; 4 -> 16; 5 -> 32; 8=256; 10=1024 ..
-///           10: UTI_round_b2i(10) = 1024 records to add when reallocating
-///
-/// Examples:
-///   MemTab(int) mtbIa1 = _MEMTAB_NUL;
-///   MemTab_ini__ (&mtbIa1, sizeof(int), Typ_Int4, 1000);
-///   MemTab_add  (..);   // add records; reallocates if necessary
-///   MemTab_free (&mtbIa1);
-///
-///
-/// \endcode
+// MemTab_ini__           init memory-table; if already in use: clear.
+//   - MUST BE INITIALIZED WITH _MEMTAB_NUL
+//   - prepare for permanent memoryspace (malloc) ; must be freed with MemTab_free
+//   - get space (malloc) with MemTab_add; does expand automatically;
+// use MemTab for a list of records;
+// use Memspc for a different types of records in the same memoryblock.
+// 
+// INPUT:
+//   rSiz    recordsize in bytes
+//   typ     info; Typ_PT=Point Typ_Int4=int Typ_Float8=double Typ_Int1=char;
+//   incSiz  nr of records to increment memTab;
+//           if Memspc is too small: add UTI_round_b2i(incSiz * rSiz)
+//           0 -> 0; 1 -> 2; 2 -> 4; 3 -> 8; 4 -> 16; 5 -> 32; 8=256; 10=1024 ..
+//           10: UTI_round_b2i(10) = 1024 records to add when reallocating
+//
+// Examples:
+//   MemTab(int) mtbIa1 = _MEMTAB_NUL;
+//   MemTab_ini__ (&mtbIa1, sizeof(int), Typ_Int4, 1000);
+//   MemTab_add  (..);   // add records; reallocates if necessary
+//   MemTab_free (&mtbIa1);
+//
+//
 
 // SEE TODO ON TOP ..
 
@@ -328,6 +332,25 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
 
     // printf("ex-MemTab_ini__ rSiz=%d incSiz=%d\n",memTab->rSiz,memTab->incSiz);
+
+  return 0;
+
+}
+
+
+//=========================================================================
+  int MemTab_ini_add (void *pmtb, int typ, int rSiz, int rNr, void *data) {
+//=========================================================================
+// MemTab_ini_add    init, malloc, add data into MemTab
+
+
+  long    l1;
+
+  // printf("MemTab_ini_add \n");
+
+  MemTab_ini__ (pmtb, rSiz, typ, rNr + 10);
+
+  MemTab_add (pmtb, &l1, data, rNr, 0);
 
   return 0;
 
@@ -756,6 +779,7 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
 
   if(MEM_MUST_FREE(memTab->spcTyp)) {
+      // printf("MemTab_free-free\n");
     if(memTab->data) free (memTab->data);
   }
     memTab->data = NULL;
@@ -763,6 +787,8 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
     memTab->rNr  = 0;
     memTab->tSiz = 0;
  
+
+    // MemTab_dump (mtbi, "ex-MemTab_free");
 
   return 0;
 
@@ -777,9 +803,7 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
   fwrite(mt, sizeof(MemTab), 1, fp1);
 
-  if(mt->rNr > 0)
-  fwrite(mt->data, mt->rSiz, mt->rNr, fp1);
-
+  if(mt->rNr > 0) fwrite(mt->data, mt->rSiz, mt->rNr, fp1);
 
   return 0;
 }
@@ -789,46 +813,44 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
   int MemTab_rdf (FILE *fp1, MemTab *mt1) {
 //================================================================
 // read MemTab from file
-// mt1 must already have rSiz
+// Input:
+//   mt1    new Memtab - load data from open file into mt1
+//   mt2    old Memtab - has invalid data and rMax
+// Output:
+//   mt1
 
   int     ii, rNr;
   long    l1;
-  MemTab  mt2;
 
 
   // printf("MemTab_rdf rNr=%d rMax=%d rSiz=%d\n",
              // mt1->rNr,mt1->rMax,mt1->rSiz);
 
-  // copy mt1
-  mt2 = *mt1;
-     // DEB_dump_obj__ (Typ_MemTab, &mt2, " -mt-act");
-
-
-  // overwrite mt1
+  // load mt1 = old-mt; has invalid data and rMax
   fread(mt1, sizeof(MemTab), 1, fp1);
      // printf("    -mt-in rNr=%d rMax=%d rSiz=%d\n",
              // mt1->rNr, mt1->rMax, mt1->rSiz);
 
+  // clear Data, rMax, tSiz
+  mt1->data   = NULL;
+  mt1->rMax   = 0;
+  // mt1->tSiz   = 0;
 
-  // keep old dataPos & size
-  mt1->data = mt2.data;
-  mt1->rMax = mt2.rMax;
 
-  // add space if necessary
-  if(mt1->rNr > mt2.rMax) {
-    ii = mt1->rNr;
-    rNr = ii - mt2.rMax + 4;
-    MemTab_add (mt1, &l1, NULL, rNr, 2);    // can overwrite rNr
-      // printf(" _rdf-add %d records\n",rNr);
-      // DEB_dump_obj__ (Typ_MemTab, mt1, " -mt-add");
-    mt1->rNr = ii;
-  }
+  // skip reading data if no data exists
+  if(mt1->rNr <= 0) goto L_exit;
 
-  // overwrite data
-  if(mt1->rNr > 0) {
-    fread(mt1->data, mt1->rSiz, mt1->rNr, fp1);
-  }
+  // reserve space
+  MemTab_add (mt1, &l1, NULL, mt1->rNr, 1);
+    // printf(" MemTab_rdf-add %d records\n",mt1->rNr);
+    // DEB_dump_obj__ (Typ_MemTab, mt1, " -mt-add");
 
+  // get data
+  fread(mt1->data, mt1->rSiz, mt1->rNr, fp1);
+
+  L_exit:
+    // DEB_dump_obj__ (Typ_MemTab, mt1, "ex-MemTab_rdf");
+    // MemTab_dump (mt1, "ex-MemTab_rdf");
   return 0;
 }
 

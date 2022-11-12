@@ -30,6 +30,7 @@ Modifications:
 -----------------------------------------------------
 */
 #ifdef globTag
+void MEMSPC(){}
 void UME(){}
 #endif
 /*!

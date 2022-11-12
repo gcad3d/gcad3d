@@ -59,14 +59,14 @@ List_functions_end:
   irc = TSTF_load ("<file-with-testcommands>", "<Label>"); // CirSeg-Tria
 
 - ../ut/tstf__.c
-- Example see Demo_tstf_1.c Demo_tstf1.dat Demo_tstf_1.mak
+- Example see Demo_tstf_1.c Demo_tstf_1.dat Demo_tstf_1.mak
 
 - execute remoteCommand - ":: <remoteCommand>"; see ../../doc/html/RemoteControl_en.htm
 - copy modelCodes into CAD-madel and process
 
 
 Commands:
-:# internal commentline - is skipped
+# internal commentline - is skipped
 :<label>:                  # label; processing starts here and ends at next label;
 :: LOAD(modelfilename)     # load model
 :: WAIT_ESC                # in TSTF_do__ extra implement.

@@ -115,6 +115,7 @@ ctags -f ubssur.tag ubssur.c
 #include "../ut/ubssur.h"
 
 #include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_ox_base.h"          // OGX_SET_..
 #include "../gr/ut_gr.h"               // GR_tDyn_*
 

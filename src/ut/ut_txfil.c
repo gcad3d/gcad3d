@@ -791,7 +791,7 @@ int UTF_ut_dispDat () {
   char   *cPos;
 
 
-  // printf("UTF_chg_line %d |%s|\n",lNr,newRec);
+  // printf("UTF_chg_line %ld |%s|\n",lNr,newRec);
 
   cPos = UTF_GetPosLnr (&llold, lNr);
 

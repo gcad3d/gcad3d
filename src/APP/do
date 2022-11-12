@@ -57,6 +57,7 @@ echo "./do fnd_msg <text>     # find <text> in message-file msg_en"
 echo "./do *.mak              # link a plugin (for the first time)"
 echo "./do debug_ed           # edit debug-file, start with debugger"
 echo "./do gdb <params>       # start with debugger gdb"
+echo "./do valgrind <params>  # start valgrind"
 echo "./do gprof              # start gprof"
 echo "./do trc                # start with mtrace"
 echo "---------------------------------------------------------------------"
@@ -545,10 +546,17 @@ if [ ! -f ${gcad_dir_cfg}gCAD3D.rc ]; then
 fi
 
 
+#----------------------------------------------------
+if [ "$1" = "valgrind" ] ; then
+  cd
+  valgrind --leak-check=yes ${exeNam} > t1 2>&1 && vi t1
+  exit 0
+
+
 
 #----------------------------------------------------
 # analyze times in file gmon.out - AFTER run gcad
-if [ "$1" = "gmon" ] ; then
+elif [ "$1" = "gprof" ] ; then
   gprof -z ${exeNam} > t1 && vi t1
   exit 0
 

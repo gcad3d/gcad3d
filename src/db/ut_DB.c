@@ -81,6 +81,7 @@ DB_get_typ_note    get form of note/text/tag/image
 DB_get_CV          get form and struct of Curve ((ObjGX*)"S")
 DB_GetCurv         get *Curve ((ObjGX*)"S",cv_tab/cv_dyn)
 DB_GetGTxt         get *Text ((ObjGX*)"N")
+DB_get_Text        get text only (GText - stored with "N#="txt")
 DB_GetSur          get Surf ((ObjGX*)"A")
 DB_GetSol          get ? ((ObjGX*),so_tab)
 DB_GetTra          get Transformation ((ObjGX*)"T")
@@ -331,23 +332,19 @@ DB_allocModBas     mdb_dyn   ModelBas  mnam  DYN_MB_INC
 
 
 
-#include "../ut/ut_geo.h"                /* Point-def ..*/
+#include "../ut/ut_geo.h"              //
 #include "../ut/ut_cast.h"             // INT_PTR
-#include "../ut/ut_obj.h"                // UTO_obj_save
-#include "../ut/ut_txt.h"                /* Point-def ..*/
+#include "../ut/ut_obj.h"              // UTO_obj_save
+#include "../ut/ut_txt.h"              //
 #include "../ut/ut_TX.h"
-#include "../ut/ut_ox_base.h"            // OGX_SET_INDEX
-#include "../ut/ut_os.h"                 // OS_ ..
-// #include "../ut/ut_mem.h"              // MEM_*
+#include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
+#include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/ut_memTab.h"           // MemTab_..
-#include "../ut/ut_gtypes.h"             // AP_src_typ__
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
+#include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_deb.h"              // DEB_*
 
-
-
-// #include "../ut/ut_crv.h"
-
-#include "../gr/ut_gr.h"                 /* Typ_PT ...  */
+#include "../gr/ut_gr.h"               //
 #include "../gr/ut_DL.h"
 
 
@@ -1634,10 +1631,10 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
       case Typ_SUR:
       case Typ_SURCIR:
       case Typ_SURSTRIP:
-      case Typ_SURBSP:
-      case Typ_SURRU:
-      case Typ_SURRV:
-      case Typ_SURSWP:
+      case Typ_SURBSP:    // Typ_SURSUP
+      case Typ_SURRU:     // Typ_SURSUP
+      case Typ_SURRV:     // Typ_SURSUP
+      case Typ_SURSWP:    // Typ_SURSUP
       case Typ_SURSUP:
         oxp = DB_GetSur (apt_ind, 0);
         if(DB_isFree_Sur(oxp)) goto L_Error_9;
@@ -2286,6 +2283,32 @@ long DB_GetDynInd (int typ) {
 
 }
 
+
+//================================================================
+  char *DB_get_Text (long Ind) {
+//================================================================
+// DB_get_Text              get text only (GText - stored with "N#="txt")
+ 
+  ObjGX     *ox1;
+  
+  // printf(" DB_get_Text %ld\n",Ind);
+  
+  ox1 = (ObjGX*)DB_GetGTxt (Ind);
+  if(ox1->form != Typ_GTXT) {
+    TX_Error ("DB_get_Text %ld E001",Ind);
+    return NULL;
+  }
+
+    // TESTBLOCK
+    // DEB_dump_obj__(Typ_ObjGX, ox1, "ex-DB_get_Text %ld",Ind);
+    // printf("ex-DB_get_Text %ld txt=|%s|\n",Ind,((GText*)ox1->data)->txt);
+    // END TESTBLOCK
+  
+  return ((GText*)ox1->data)->txt;
+  
+} 
+  
+
 /*
 //==============================================================
 long DB_StoreTex (long Ind, TexBas *oi) {
@@ -2828,13 +2851,12 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
 }
 
  
-//***********************************************************************
+//================================================================
   void DB_GetRef (Plane* pl1, long Ind) {
-//***********************************************************************
-/// \code
-/// get a copy of a plane
-/// see DB_get_PLN
-/// \endcode
+//================================================================
+// DB_GetRef             get a copy of a plane
+// see DB_get_PLN
+// see defaultPlanes DB_DefRef DB_PLX_IND - DB_PLIZ_IND
 
   // printf("DB_GetRef %d\n",Ind);
 
@@ -9001,19 +9023,13 @@ long DB_QueryCurv (Point *pt1) {
   oxo->data   = cPos1;     // new address of oGX-Block
 
 
-  // i1 = AP_typDB_typ (ox1->typ);
-  // if(i1 == Typ_CV)       *ind = DB_Store_hdr_cv (&oxo, *ind);
-  // else if(i1 == Typ_SUR) *ind = DB_Store_hdr_su (&oxo, *ind);
-  // *oxo = *ox1;    // copy obj
-  // oxo->data   = cPos1; // new address of oGX-Block
-
-
-  // printf(" ex DB_store_ox irc=%d typ=%d form=%d ind=%d\n",irc,
+    // TESTBLOCK
+    // printf(" ex DB_store_ox irc=%d typ=%d form=%d ind=%ld\n",irc,
               // oxo->typ,oxo->form,*ind);
-  // printf(" oxo-posi=%p\n",cPos1);
-
-  // DEB_dump_ox_s_ (oxo, "DB_store_ox-out\n");
-  // DEB_dump_ox_0 (oxo, "DB_store_ox-out\n");
+    // printf(" oxo-posi=%p\n",cPos1);
+    // DEB_dump_ox_s_ (oxo, "DB_store_ox-out\n");
+    // DEB_dump_ox_0 (oxo, "DB_store_ox-out\n");
+    // END TESTBLOCK
 
 
   return irc;

@@ -20,6 +20,7 @@ nach NC_cut.h verlegt
 
 
 // Typ_Cmd1 is parallel to ObjCodTab in ../ut/ut_gtypes.c
+// UNUSED: T_BLEND
 enum Typ_Cmd1 {
    T_ON_,       T_OFF_,      T_IN,        T_OUT,       T_ARC,       // 0-4
    T_HI,        T_LO,        T_MA,        T_TAG,       T_PERP,      // 5-9
@@ -28,7 +29,7 @@ enum Typ_Cmd1 {
    T_RCIR,      T_RSTRIP,    T_SRU,       T_HAT,       T_SRV,       // 20-24
    T_PRISM,     T_SPH,       T_CON,       T_TOR,       T_CYL,       // 25-29
    T_CUT,       T_REV,       T_SWEEP,     T_RGT,       T_LFT,       // 30-34
-   T_DIM,       T_DIMA,      T_LDR,       T_LOFT,      T_FSUB,      // 35-39
+   T_DIM,       T_DIMA,      T_LDR,       T_FOPE,      T_FSUB,      // 35-39
    T_PRJ,       T_TRA,       T_ROT,       T_MIR,       T_TXA,       // 40-44
    T_DIMD,      T_DIMR,      T_DIM3,      T_REC,       T_INT,       // 45-49
    T_RSYS,      T_REPL,      T_RBSP,      T_ARC1,      T_CTRL,      // 50-54
@@ -36,7 +37,7 @@ enum Typ_Cmd1 {
    T_FW,        T_CX,        T_PTAB,      T_MSH,       T_CLOT,      // 60-64
    T_TNG,       T_IMP,       T_BSP1,      T_PARL,      T_BLEND,     // 65-69
    T_UNL,       T_UNL1,      T_UNL2,      T_DISP_PT,   T_DISP_PL,   // 70-74 
-   T_ANG,       T_DRX,       T_DRY,       T_DRZ};                   // 75-79 
+   T_ANG,       T_DRX,       T_DRY,       T_DRZ,       T_CSU};      // 75-79 
 
 
 char** APT_decode_txt    (char**);

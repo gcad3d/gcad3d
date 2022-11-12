@@ -249,10 +249,13 @@ typedef struct {int ibeg, iNr; char typi, typd, aux, stat;}         IndTab;
 
 
 /// \brief indexGroupArray  Typ_IgaTab;   _IGATAB_NUL
+//   - use for ranges;
 ///  ibeg   begin-index; points to first object of index-list
 ///  iNr    nr of objects in index-list
+///  iRef   UU 
+///  ind    -
 ///  typ    typ of objects                 eg MSH_EDGLN_OB
-///  stat
+///  stat   -
 typedef struct {int ibeg, iNr, iRef; short ind; char typ, stat;}    IgaTab;
 // size = 16
 
@@ -272,6 +275,9 @@ typedef struct {void *data; short typ, form;
                 unsigned siz:24, dir:1, aux:7;}                     ObjGX;
 // size = 16
 
+#define _OBJGX_NUL {NULL, (short)0, (short)0, 0,0,0}
+
+
 
 /// \brief table of binary-objects      ObjTab    Typ_ObjTab    INF_ObjTab
 /// \code
@@ -282,6 +288,7 @@ typedef struct {void *data; short typ, form;
 /// oSpc   keeps the binary-objects
 /// xDat   auxilary-objects; type = xTyp, NULL = none
 /// xTyp   type of objects at xDat; 0=none, else eg BBox2|BBox ..
+/// xSiz   -
 /// fmtb   format of binary obj's: Typ_GEOB_2D|Typ_GEOB_3D
 /// spcTyp  type of memory;                                   See INF_MEM_TYP
 ///
@@ -839,22 +846,21 @@ typedef struct {int ptUNr, ptVNr, degU, degV;
 
 
 
-/// \brief bounding-box 2D
-/// \code
-/// pb1     lower left boxPoint
-/// pb2     upper right boxPoint
-/// \endcode
+// \brief bounding-box 2D   Typ_BBox2
+// pb1     lower left boxPoint
+// pb2     upper right boxPoint
 typedef struct {Point2 pb1, pb2;}                                   BBox2;     
 // size = 32
 
 
-/// \brief bounding-box 3D
-/// \code
-/// ind     index of first obj
-/// oNr     nr of obj's; index of last obj is (ind + nr - 1)
-/// \endcode
+// \brief bounding-box 3D   Typ_BBox
+// pb1     lower left boxPoint
+// pb2     upper right boxPoint
 typedef struct {Point pb1, pb2;}                                    BBox;   
 // size = 48
+// see GridBox
+
+#define _BBX_NUL {{0.,0.,0.},{0.,0.,0.}}
 
 
 
@@ -870,6 +876,8 @@ typedef struct {Point pb1, pb2;}                                    BBox;
 typedef struct {unsigned cr:8, cg:8, cb:8,
                 vtra:2,vsym:1,vtex:1,color:1, hili:1,dim:1,UU:1;}   ColRGB;
 // size = 4
+
+#define _COLRGB_NUL {(int)0}
 
 
 /// \brief grafic text; Typ_GTXT
@@ -1148,6 +1156,7 @@ typedef struct {int typ; long ind; char *data;}                     Activity;
 /// ix, iy, iz    nr of points in x-direction, y-direction, z-direction
 /// \endcode
 typedef struct {Point pMin; int ix, iy, iz; double dx, dy, dz;}     GridBox;
+// see BBox
 
 
 
@@ -1568,6 +1577,8 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  void   UT2D_vc_merge2vc (Vector2 *vm, Vector2 *v1, Vector2 *v2);
  void   UT2D_vc_rotangr (Vector2 *,Vector2 *,double);
  void   UT2D_vc_travcm2 (Vector2 *vo, Mat_3x2 mata, Vector2 *vi);
+
+ void UT3D_vc3f_setLength (Vec3f *vco, Vec3f *vci, float new_len);
 
  double UT2D_angr_ciSec (double hc, double radc);
  double UT2D_len_ciSec (double hSec, double rCi);

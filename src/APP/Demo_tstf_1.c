@@ -57,6 +57,7 @@ Info remote-command-control codes see ../../doc/html/RemoteControl_en.htm
 */
 
 
+
 #ifdef _MSC_VER
 #include "../xa/MS_Def1.h"
 #endif
@@ -67,11 +68,12 @@ Info remote-command-control codes see ../../doc/html/RemoteControl_en.htm
 #include <string.h>
 
 #include "../ut/ut_geo.h"              // UT_INT_MAX
-#include "../xa/mdl__.h"               // SIZMF*
 #include "../ut/ut_txt.h"              // UTX_*
-// #include "../ut/ut_TX.h"               // TX_Print
-
+#include "../xa/mdl__.h"               // SIZMF*
+#include "../xa/ap_dir.h"              // AP_get_bas_dir
 #include "../xa/xa_msg.h"              // MSG_* ERR_*
+#include "../db/ut_DB.h"               // DB_get_Text
+
 
 
 
@@ -98,7 +100,8 @@ extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
 //=========================================================
 // user has selected this plugin; starting ...
 
-  int irc;
+  int    irc;
+  char   s1[256];
 
 
   // write to Main-Infowindow ..
@@ -107,12 +110,19 @@ extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
   // get modelname from Mainprog
   printf("Modelname = %s\n",AP_mod_fnam);
 
+  //----------------------------------------------------------------
   // load and execute commandfile; start at label, stop end exit at following label.
-  irc = TSTF_load ("./Demo_tstf_1.dat", ":L1:"); // CirSeg-Tria
-  // irc = TSTF_load ("./Demo_tstf_1.dat", ":L2:"); // CirSeg-Tria
+  sprintf(s1, "%ssrc/APP/Demo_tstf_1.dat",AP_get_bas_dir());
+  // irc = TSTF_load (s1, ":L1:"); // CirSeg-Tria
+  irc = TSTF_load (s1, ":L2:"); // CirSeg-Tria
 
 
 
+  // get text-only (stored with "N#="text")
+  TX_Print("- text of N20 is |%s|\n",DB_get_Text (20L));
+
+
+  //----------------------------------------------------------------
   // finish application
   gCad_fini ();
 

@@ -118,14 +118,15 @@ APP_act_nam
 #include "../ut/ut_os.h"               // AP_get_bas_dir ..
 #include "../ut/ut_obj.h"              // UTO_stru_2_obj UTO_obj_save
 #include "../ut/ut_memTab.h"           // MemTab_..
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txfil.h"            // UTF_GetnextLnPos
 #include "../ut/ut_cast.h"             // INT_PTR
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_TX.h"               // TX_Print
+#include "../ut/func_types.h"          // UI_Func...
 
 #include "../gui/gui__.h"              // Gtk3
 
-#include "../ut/func_types.h"               // UI_Func...
 #include "../gr/ut_DL.h"               // DL_GetAtt
 #include "../gr/ut_GL.h"               // GL_GetCen
 #include "../gr/ut_gr.h"               // GTX_..
@@ -161,7 +162,7 @@ typedef struct {MemObj wp;
 
 
 typedef_MemTab(FormVar);
-typedef_MemTab(IgaTab);
+// typedef_MemTab(IgaTab);
 
 
 

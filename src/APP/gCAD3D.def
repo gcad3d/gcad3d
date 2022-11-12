@@ -103,6 +103,7 @@ AP_get_tmp_dir
 AP_GUI__
 AP_GUI_get
 AP_GUI_test1
+AP_ico_dir
 AP_iftyp_ftyp
 AP_Import3ds
 AP_ImportLwo
@@ -247,6 +248,7 @@ APT_decode_angd__d1
 APT_decode_angd__r1
 APT_decode_att
 APT_decode_bcon
+APT_decode_bcsu
 APT_decode_bsp_
 APT_decode_bsp1
 APT_decode_bsph
@@ -317,6 +319,7 @@ APT_decode_sru
 APT_decode_srv
 APT_decode_s_sph
 APT_decode_suCir
+APT_decode_suop
 APT_decode_sur
 APT_decode_suStrip
 APT_decode_su_sweep
@@ -488,21 +491,28 @@ AP_work__
 AText_NUL
 ATO_ato_atoTab__
 ATO_ato_eval__
+ATO_ato_eval_3ope
+ATO_ato_eval_ck_ope
 ATO_ato_eval_geom
+ATO_ato_eval_Grp
+ATO_ato_eval_math
+ATO_ato_eval_mod
+ATO_ato_eval_nope
+ATO_ato_eval_ope
+ATO_ato_eval_val
 ATO_ato_expr__
 ATO_ato_expr_add
+ATO_ato_nGrp
 ATO_ato_obj_pt
 ATO_ato_srcLn__
 ATO_ato_srcLn_exp
 ATO_ato_txo__
-ATO_ato_typTab
 ATO_clean__
 ATO_clear_block
 ATO_cpy_rec
 ATO_del_rec
 ATO_dump__
-ATO_eval_fnc1__
-ATO_eval_ope__
+ATO_dump_grp
 ATO_free
 ATO_getSpc__
 ATO_getSpc_siz
@@ -779,6 +789,7 @@ DB_get_PT
 DB_GetRef
 DB_GetSol
 DB_GetSur
+DB_get_Text
 DB_GetTra
 DB_get_typ_cv
 DB_get_typ_note
@@ -862,6 +873,8 @@ DEB_dump_add_pt
 DEB_dump_dbo
 DEB_dump_file
 DEB_dump_IgaTab
+DEB_dump_nchar
+DEB_dump_nint
 DEB_dump_nobj__
 DEB_dump_nobj_1
 DEB_dump_ntxt
@@ -1503,6 +1516,7 @@ GR_set_dimen
 GR_set_dispTra
 GR_set_mdr
 GR_set_mtb
+GR_set_nifac
 GR_set_obj
 GR_set_ocv
 GR_set_osu
@@ -1513,6 +1527,7 @@ GR_set_symV3
 GR_set_txt__
 GR_set_txtA
 GR_set_txtG
+GR_set_z2
 GR_sSym_sbsp
 GR_sSym_spl
 GR_sSym_srbsp
@@ -1534,7 +1549,6 @@ GR_tDyn_ip2cv
 GR_tDyn_ipcv
 GR_tDyn_ln2_2pt
 GR_tDyn_ln_2pt
-GR_tDyn_nifac
 GR_tDyn_nobj
 GR_tDyn_npcv_itb_nipt
 GR_tDyn_npcv_itb_npt
@@ -1552,6 +1566,7 @@ GR_tDyn_symB__
 GR_tDyn_symB2__
 GR_tDyn_symV2
 GR_tDyn_tx2A
+GR_tDyn_txi2
 GR_tDyn_txiA
 GR_tDyn_vc__
 GR_tDyn_vc2__
@@ -2395,11 +2410,12 @@ MemTab_del
 MemTab_dump
 MemTab_free
 MemTab_get
-MemTabI_add_s
+MemTab_IndTab_add
 MemTab_ini__
+MemTab_ini_add
 MemTab_ini_fixed
 MemTab_ins
-MemTabIT_add__
+MemTab_int_add_range
 MemTab_load
 MemTab_mod
 MEMTAB_NUL
@@ -2421,6 +2437,7 @@ MSG_const_init
 MSG_err_0
 MSG_err_1
 MSG_ERR_out
+MSG_ERR_std
 MSG_ERR_tab
 MSG_ERR_txt
 MSG_fread
@@ -3114,6 +3131,7 @@ UFA_nfb_ck_1
 UFA_nfb_ck_e
 UFA_nfb_ck_f
 UFA_nifac_ck_pt
+UFA_nifac_dump__
 UFA_nifac_strip
 UFA_NUL
 UFA_opt__
@@ -3827,6 +3845,7 @@ UT3D_bp_perp_2pt
 UT3D_bp_perp_vc
 UT3D_bp_pl__
 UT3D_bp_pta
+UT3D_bp_vc_up2D
 UT3D_bsp_ck_closed__
 UT3D_bsp_ck_closed_tr
 UT3D_bsp_ck_minSiz
@@ -3873,6 +3892,7 @@ UT3D_ci_cip3
 UT3D_ci_cipt180
 UT3D_ci_cipt360
 UT3D_ci_ciptrd
+UT3D_ci_ci_rad
 UT3D_ci_cirad
 UT3D_ci_intplsph
 UT3D_ci_inv1
@@ -4368,6 +4388,7 @@ UT3D_sbsp_ck_net
 UT3D_sbsp_ncv
 UT3D_sid_2vc
 UT3D_sid_3pt
+UT3D_sid_bp_vc
 UT3D_sid_ptpl
 UT3D_sid_pt_pt2vc
 UT3D_sid_ptptvc
@@ -4379,6 +4400,8 @@ UT3D_slenq_2ptvc
 UT3D_slenq_projvcvc
 UT3D_slenq_ptptvc
 UT3D_srbsp_ck_closed
+UT3D_sr_crv_pln
+UT3D_sr_crv_vz
 UT3D_sr_el
 UT3D_sr_npt_bp
 UT3D_sr_polc
@@ -4685,6 +4708,9 @@ UTP_min_d3
 UTP_par1_vMin_vMax_vx
 UTP_sincosTab_circ
 UTP_sort_npar_npt
+UTRA_2D_3D_init
+UTRA_2D_pt_3D
+UTRA_3D_pt_2D
 UTRA_app__
 UTRA_app_CCV
 UTRA_app_dbo

@@ -308,9 +308,9 @@ List_functions_end:
   i31 = UT2D_sid_ptvc__ (b1, a3, &v3);
   i32 = UT2D_sid_ptvc__ (b2, a3, &v3);
   i33 = UT2D_sid_ptvc__ (b3, a3, &v3);
-    printf(" i11=%2d i12=%2d i13=%2d\n",i11,i12,i13);
-    printf(" i21=%2d i22=%2d i23=%2d\n",i21,i22,i23);
-    printf(" i31=%2d i32=%2d i33=%2d\n",i31,i32,i33);
+    // printf(" i11=%2d i12=%2d i13=%2d\n",i11,i12,i13);
+    // printf(" i21=%2d i22=%2d i23=%2d\n",i21,i22,i23);
+    // printf(" i31=%2d i32=%2d i33=%2d\n",i31,i32,i33);
 
 
   // wenn alle b-punkte ausserhalb eines a-Edge liegen: irc=0
@@ -338,7 +338,7 @@ List_functions_end:
   if(r3 > 0) return r1;
 
 
-    printf(" r1=%2d r2=%2d r3=%2d\n",r1,r2,r3);
+    // printf(" r1=%2d r2=%2d r3=%2d\n",r1,r2,r3);
 
 
 

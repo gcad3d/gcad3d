@@ -93,6 +93,14 @@ void OGX_GET_INDEX (int *typ, long *dbi, ObjGX *ox);
 
 
 
+
+// OGX_GET_SUBOBJ         get obj[ii] out of array of obj's of typ <form>   
+void OGX_GET_SUBOBJ (void **obj1, void *nobj, int form, int ii);
+#define OGX_GET_SUBOBJ(obj1,nobj,form,ii){\
+  *obj1 = (char*)nobj + (UTO_siz_stru (form) * ii);}
+
+
+
 /// \brief OGX_SET_Float8  create complexObject (ObjGX) from (typ, float8)
 /// \code
 /// replaces: ox.form  = f8typ;

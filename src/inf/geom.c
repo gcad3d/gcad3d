@@ -81,37 +81,265 @@ INF_Create_Body
 
 ================================================================== \endcode */}
 void INF_surf_opers(){                   /*! \code
-
- surf1     surf2      surf1,surf2        NOT           OR         AND
+                                     
+                                     surf3       surf3        surf3
+ surf1     surf2      surf1,surf2     NOT          OR          AND
 +---+     .   .      +---+          +---+        +---+        .   .
 | . | .     +---+    | +-+-+        | +-+ .      | . +-+        +-+
 | . | .     +---+    | +-+-+        | +-+ .      | . +-+        +-+
 +---+     .   .      +---+          +---+        +---+        .   .
 
+
+OPE = operation - NOT or OR or NAD
+IPT = intersectionpoint on surf1 and surf2
+FWD = following CCW the active boundary-segment
+REV = following CW the active boundary-segment
+OB1 = outerBoundary = first boundary of surf1
+OB2 = outerBoundary = first boundary of surf2
+IB1 = innerBoundary = boundaries following OB1, hole(s) in surf1
+IB2 = innerBoundary = boundaries following OB2, hole(s) in surf2
+SUI = surface-index; 1=sur1, 2=sur2
+BDI1 = boundary-index on surf1; 0=outerBoundary; 1-n=innerBoundary
+BDI2 = boundary-index on surf2; 0=outerBoundary; 1-n=innerBoundary
+ACTPT = active point, startpoint of a new output-segment
+NXTPT = endpoint of a new output-segment
+
+FWD  = follow boundary in same direction = CCW
+BWD  = follow boundary in same direction = CCW
+
+O1   = outerBoundary of surf1 (surf to modify)
+I1   = innerBoundary of surf1 (0 - n inner boundaries)
+O2   = outerBoundary of surf2 (modifying (cutting) surface)
+I2   = innerBoundary of surf2 (0 - n inner boundaries)
+
+Grafic:
+X  startpoint boundary surf1, surf2
+x  intersectionPoint and startpoint new boundary surf3
++  intersectionPoint
+
+For all opTypes:                                              /\ SI0
+------ get intersectionpoints IP# and side SI#;                |
+  SI0 if intersection goes to the left side;                ---|----->
+  SI1 if intersection goes to the left side;                   |
+                                                               v SI1
+
+Intersectiontypes:
+ DO1_O2   is intersection of OB (outerBoundary) of surf1 with OB of surf2;
+ - coming on O1 (OB surf1) turning into O2 - following O2.
+
+
+Find startpoints:
+  - for intersections I X x get point with SI0
+  - for intersections O X x get point with SI1
 
 //================================================================
-NOT:    (surf1 NOT surf2)
+NOT:    (surf1 NOT surf2)    (FSUB, CUT)
 - surf3 = surf1 without parts of surf2 covering surf1
-- start at first endpoint of intersect-Curves at OB of surf1
-- L1: follow surf-1 fwd to next intersectionpoint with surf-2 ( = endPt of 
-  a intersect-Curve) or endPt of curve or end contour
-  - next intersectionpoint found: 
-    - follow surf-2 bwd to next intersectionpoint ( = startPt of active
-      intersect-Curve); goto L1.
+- ignore IBs of surf2
+
+      O1
+ X------------------------------------------------o
+ V                                                |
+ |          I1                        sur3        |
+ |   X--------------------------.                /\
+ |   V                          |D               A|
+ |   |   X-----------O2---------3->---------------1-----------o
+ |   |   V                      |                 |           |
+ |   |   |                      |                 |           |
+ |   |   |                      |                 |           |
+ |   o-<-2----------I1----------o                 |           |
+ |      C|                                        |           |
+ |       |                                        |           |
+ |      /\                                        |           |
+ |      B|                                        |           |
+ o-------0-------------------O1-------------------o           |
+         |                                                    |
+         |                                                    |
+         o-------------------------O2-------------------------o
+                                                 
+O1 X O2: find SI1
+I1 X O2: find SI1
+
+A  DO1_O2  FWD following O1 at intersectionPoint O1 X O2
+B  DO2_O1  BWD following O2 at intersectionPoint O2 X O1
+
+C  DI1_O2  BWD following I1 at intersectionPoint I1 X O2
+D  DO2_I1  BWD following O2 at intersectionPoint O2 X I1
+
+- find startpoint O1 X O2 = first intersectionpoint along O1 with SI1 = IP0
+  - start along O2
+  at IP0  B=DO2_O1  BWD  to IP2
+  at IP2  C=DI1_O2  BWD  to IP3
+  at IP3  D=DO2_I1  BWD  to IP1
+  at IP1  A=DO1_O2  FWD  to endOfBnd. No more IPs.
+
+
+--------------------------------
+TODO:
+  set BDI=0
+  set BD2=0
+
+- do Get_ACTPT 
+
+- L1: 
+  Loop tru all surf1-bounds (BDI1=0,1,..)
+    loop tru all surf2-bounds (BDI2=0,1,..)
+      Get_NXTPT: 
+        OB1 X OB2: follow sur2 from ACTPT REV; get endpt or next IPT as NXTPT;
+        IB1 X OB2: 
+        IB1 X IB2: ignore if OPE=NOT
+        - next IPT found: 
+          - follow surf1 FWD to next IPT;
+        - add ACTPT - NXTPT as new curve to sur3;
+        ACTPT = NXTPT;
+        if no ACTPT: break (next surf2-bound)
+          if no surf2-bound: break; BDI1 += 1; next surf1-bound.
+        goto L1.
+
+Get_ACTPT: Input BDI1
+  get startpoint on new boundary - OB or IB of surf1
+  OB (BDI1=0):
+    O1: find first IPT DIR_O1 (FWD) along OB of surf1;
+  IB (BDI1>1):
+    I1: if no IPT on OB: find first IPT REV on IBx
+
+
+Get_NXTPT:
+
+
+------------------------------------------------------------------
+NOT - no intersection O1 X O2
+
+      O1
+ X------------------------------------------------o
+ V                                                |
+ |          I1                                    |
+ |   X--------------------------.                 |
+ |   V                          |D                |
+ |   |   X-----------O2---------1->--------o      |
+ |   |   V                      |          |      | 
+ |   |   |                      |          |      |
+ |   |   |                      |          |      |
+ |   o-<-0----------I1----------o          |      |
+ |      C|                                 |      |
+ |       |                                 |      |
+ |       o-------------------------O2------o      |
+ |                                                |
+ |                                                |
+ o---------------------------O1-------------------o
+                                                  
+                                                 
+O1 X O2: - find SI1
+I1 X O2: - find SI1
+
+A  DO1_O2  FWD following O1 at intersectionPoint O1 X O2
+B  DO2_O1  BWD following O2 at intersectionPoint O2 X O1
+
+C  DI1_O2  BWD following I1 at intersectionPoint I1 X O2
+D  DO2_I1  BWD following O2 at intersectionPoint O2 X I1
+
+- find startpoint O1 X O2 = first intersectionpoint along O1 with SI1 = none
+- find startpoint I1 X O2 = first intersectionpoint along I1 with SI1 = IP1
+  - start along O2
+  at IP1  D=DO2_I1  BWD  to IP0
+  at IP0  C=DI1_O2  BWD  to IP1; endOfBnd. No more IPs.
+
+
+
 
 
 //================================================================
-OR:   (surf1 OR surf2)
+OR:   (surf1 OR surf2)   
+//================================================================
 - surf3 = all parts of surf1 and surf2 and also covered parts
-- start at first endpoint of intersect-Curves at OB of surf1
-- L1: follow OB of surf-1 fwd to next intersectionpoint with surf-2
-  ( = endPt of a intersect-Curve) or endPt of curve or end contour
-  - next intersectionpoint found: 
-    - follow OB of surf-2 fwd to next intersectionpoint; goto L1.
+
+      sur1-OB
+ X---------------------------------O1-------------o
+ V                                                |
+ |     sur1-IB                                    |
+ |   X--------------------------o                 |
+ |   V                          |                 |
+ |   |    sur3-IB2              |                 /\
+ |   |                         D|                 |A           
+ |   |       X----------------<-3----O2-----------1-----------o
+ |   |       V                  |                 |           |
+ |   |       |                  |                 |           |
+ |   |       |                  |                 |           |
+ |   |       |        X-------<-6---I2------------5------o    |
+ |   |       |        V        F|                 |G     |    |
+ |   |       |        |   s3/3  |                 v      |    |
+ |   |      C|        |E        |                 |      |    |
+ |   o-----<-2--------7->--I1---o                 |      |    |
+ |           |        |                          O1     I2    O2
+ |           |        |                           |      |    |
+ O1          O2       I2                          |      |    |
+ |           |        |                           |      |    |
+ |           |        |                           |      |    |
+ o-----------0--------4------------O1-------------o      |    |
+            B|        |H                                 |    |
+             v        v                   sur3-IB1       |    |
+             |        o------------I2--------------------o    |
+             |                                 sur2-IB        |
+             |                                                |
+             o------------------------------------------------o
+                                               sur2-OB
+
+O1 X O2:  find SI1
+  IP0 SI1
+  IP1 SI0
+O1 X I2:  find SI1
+  IP4 SI1
+  IP5 SI0
+I1 X O2:  find SI0
+  IP2 SI1
+  IP3 SI0
+I1 X I2:  find SI0
+  IP7 SI1
+  IP6 SI0
+
+A  DO1_O2  FWD   following O1 at intersectionPoint O1 X O2
+B  DO2_O1  FWD   following O2 at intersectionPoint O2 X O1
+
+C  DI1_O2  BWD   following I1 at intersectionPoint I1 X O2
+D  DO2_I1  FWD   following O2 at intersectionPoint O2 X I1
+
+E  DI1_I2  FWD   following I1 at intersectionPoint I1 X I2
+F  DI2_I1  FWD   following I2 at intersectionPoint I2 X I1
+
+G  DO1_I2  BWD   following O1 at intersectionPoint I1 X I2
+H  DI2_O1  FWD   following I2 at intersectionPoint O2 X O1
+
+- find startpoint O1 X O2 = first intersectionpoint along O1 with SI1 = IP0
+  - start along O2
+  at IP0; B=DO2_O1 to IP1;
+  at IP1; A=DO1_O2, O1 finished; sur3-OB out.
+
+- find startpoint O1 X I2 = first intersectionpoint along O1 with SI1 = IP4      <<<<<<
+  - start along I2
+  at IP4; H=DI2_O1 to IP5;
+  at IP5; G=DO1_I2, sur3-IB1 out.
+
+- find startpoint I1 X O2 = first intersectionpoint along I1 with SI0 = IP3
+  - start along O2
+  at IP3; D=DO2_I1 to IP2;
+  at IP2; C=DI1_O2, sur3-IB2 finished.
+
+- find startpoint I1 X I2 = first intersectionpoint along I2 with SI0 = IP6
+  - start along I2
+  at IP6; F=DI2_I1 to IP7;
+  at IP7; E=DI1_I2, sur3-IB3 finished.
+
+
+// - start at first endpoint of intersect-Curves at OB of surf1
+// - L1: follow OB of surf-1 fwd to next intersectionpoint with surf-2
+//   ( = endPt of a intersect-Curve) or endPt of curve or end contour
+//   - next intersectionpoint found: 
+//     - follow OB of surf-2 fwd to next intersectionpoint; goto L1.
 
 
 //================================================================
 AND:  (surf1 AND surf2)
+//================================================================
 - surf3 = only parts where surf1 is covering surf2
 - start at first endpoint of intersect-Curves at OB of surf1
 - L1: follow OB of surf-2 fwd to next intersectionpoint with surf-1
@@ -124,6 +352,78 @@ AND:  (surf1 AND surf2)
 - create intersect-Curves surf1 - surf2
 - create points at all start- and endPoints of the intersect-Curves
 
+
+
+             
+ X-------------------O1---------------------------o
+ V                                                |
+ |                                                |
+ |   X--------I1----------------.                 |
+ |   V                          |                 |
+ |   |   X----------O2----------5---------------<-1-----------o
+ |   |   V                      |C               D|           |
+ |   |   |                      V                 |           |
+ |   |   |                      |     sur3/2      |           |
+ |   |   |                      |                /\           |
+ |   |   |                      |F               G|           |
+ |   |   |                X-----7->------I2-------3------o    |
+ |   |   |                V     |                 |      |    |
+ |   |   |                |     |                 |      |    |
+ |   |   |                |     |                 |      |    |
+ |   o---4------I1------<-6-----o                 |      |    |
+ |       |D              E|                       |      |    |
+ |       V                |                       |      |    |
+ |       |    sur3/1      |                       |      |    |
+ |       |               /\                       |      |    |
+ |       |A              H|                       |      |    |
+ o-------0->--------------2-----O1----------------o      |    |
+         |                |                              |    |
+         |                |                              |    |
+         |                o--------------I2--------------o    |
+         |                                                    |
+         |                                                    |
+         o-----------------------O2---------------------------o
+                                                      
+
+O1 X O2:  find SI0
+  IP0 SI1
+  IP1 SI0
+O1 X I2:  find SI1
+  IP2 SI1
+  IP3 SI0
+I1 X O2:  find SI0
+  IP4 SI1
+  IP5 SI0
+I1 X I2:  find SI0
+  IP6 SI1
+  IP7 SI0
+
+A=DO1_O2 FWD   following O1 at intersectionPoint O1 X O2
+B=DO2_O1  WD   following O2 at intersectionPoint O2 X O1
+
+C=DI1_O2 BWD   following I1 at intersectionPoint I1 X O2
+D=DO2_I1 FWD   following O2 at intersectionPoint O2 X I1
+
+E=DI1_I2 BWD   following I1 at intersectionPoint I1 X I2
+F=DI2_I1 FWD   following I2 at intersectionPoint I2 X I1
+
+G=DO1_I2 FWD   following O1 at intersectionPoint I1 X I2
+H=DI2_O1 BWD   following I2 at intersectionPoint O2 X O1
+
+
+- find startpoint O1 X O2 = first intersectionpoint along O1 with SI0 = IP1
+  - start along O2
+  at IP1  D=DO2_O1 FWD to IP5
+  at IP5  C=DI1_O2 BWD to IP7
+  at IP7  F=DI2_I1 FWD to IP3
+  at IP3  G=DO1_I2 FWD to IP1 - finish; out as O3/1.
+
+- find startpoint O1 X I2 = first intersectionpoint along O1 with SI1 = IP2
+  - start along I2
+  at IP2  H=DI2_O1 BWD to IP6
+  at IP6  E=DI1_I2 BWD to IP4
+  at IP4  D=DO2_I1 FWD to IP0
+  at IP0  A=DO1_O2 FWD to IP2 - finish; out as O3/2.
 
 
 
@@ -189,7 +489,6 @@ see GLU - ../gr/ut_GLU.c:130
 
 
 Functions:
-MSHI_int_pln
   INT_nln_nfac_pln2
   INT_nln_nfac_pln1
   MSHI_split__

@@ -276,6 +276,7 @@ DL_GetTrInd
 #include "../ut/ut_err.h"         // ERR_SET1
 #include "../ut/ut_os.h"          // AP_get_bas_dir
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/gr_types.h"            // SYM_* ATT_* LTYP_*
 #include "../ut/func_types.h"          // SYM_CROSS
 #include "../ut/ut_txTab.h"            // TxtTab
@@ -1066,14 +1067,12 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //================================================================
   int AP_errStat_set (int stat) {
 //================================================================
-/// \code
-/// raise error
-/// 0 = default = OK;
-/// 1 = Error                   - raise error; set AP_stat.errStat=1;
-/// 2 = DB_allocCDAT; rerun.
-///
-/// see AP_errStat_reset AP_errText_set
-/// \endcode
+// raise error
+// 0 = default = OK;
+// 1 = Error                   - raise error; set AP_stat.errStat=1;
+// 2 = DB_allocCDAT; rerun (in DB_allocCDAT !)
+//
+// see AP_errStat_reset AP_errText_set
 
 // store lineNr of active line. if mode=temporary, store lineNr -1.
 
@@ -2228,6 +2227,8 @@ static stru_FN  fnLast;
 
   // clear modelname
   AP_mod_fnam[0] = '\0';
+
+  GL_Clear ();                   // clear GL; 2022-09-01
 
   // init GR_selTab, GR_Siz_selTab, GR_nr_selTab
   GL_selTab_init ();

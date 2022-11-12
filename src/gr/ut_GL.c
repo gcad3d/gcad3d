@@ -4333,7 +4333,7 @@ GL_atts_set_shade ();
 
   for(i1=0; i1<DL_temp_nxt; ++i1) DL_tempLst[i1] = 0;
 
-  DL_temp_nxt    =   1;
+  DL_temp_nxt = 1;
 
 }
 
@@ -9420,7 +9420,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   Point    *pa;
 
 
-  printf("GL_set_nfac_V1 %d\n",nfa->fNr);
+  printf("GL_set_nfac_V2 %d\n",nfa->fNr);
   // printf(" TSU_mode=%d styl=%d\n",TSU_mode,styl);
 
 
@@ -9604,21 +9604,21 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   Point    *pa;
 
 
-  printf("GL_set_nifac_V2 %d\n",nifa->fNr);
+  printf("GL_set_nifac_V2 oTyp=%d fNr=%d\n",nifa->oTyp,nifa->fNr);
 
   fNr = nifa->fNr;
   fa  = nifa->fac;
-  va  = nifa->vc3;
   pa  = nifa->pa3;
   ia  = nifa->ipa;
+  va  = nifa->vc3;
 
 
-  if(nifa->oTyp == Typ_SURPLN) {
-    glNormal3fv ((float*)va);
-  } else {
+//   if(nifa->oTyp == Typ_SURPLN) {
+//     glNormal3fv ((float*)va);     // does not work on AMD-Cards
+//   } else {
     glEnableClientState (GL_NORMAL_ARRAY);
     glNormalPointer (GL_FLOAT, 0, va);       // same number as vertices !
-  }
+//   }
 
 
   // activate and specify pointer to vertex array
@@ -9633,6 +9633,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     MemTab_add (&GL_MIFA, &l1, NULL, iNr, 2);
   }
 
+
   // fill indexarray ifa from Fac3+ipa  or Fac3-only
   ii = 0;
   ifa = MEMTAB_DAT (&GL_MIFA);
@@ -9643,7 +9644,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       ifa[ii++] = ia[fa[i1].i1];
       ifa[ii++] = ia[fa[i1].i2];
       ifa[ii++] = ia[fa[i1].i3];
-        // printf(" GL_IFA[%d] = %d %d %d\n",i1,ifa[ii-1],ifa[ii-2],ifa[ii-3]);
+        printf(" GL_IFA[%d] = %d %d %d\n",i1,ifa[ii-3],ifa[ii-2],ifa[ii-1]);
     }
 
   } else {
@@ -9652,10 +9653,9 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
       ifa[ii++] = fa[i1].i1;
       ifa[ii++] = fa[i1].i2;
       ifa[ii++] = fa[i1].i3;
-        // printf(" GL_IFA[%d] = %d %d %d\n",i1,ifa[ii-1],ifa[ii-2],ifa[ii-3]);
+        printf(" GL_IFA[%d] = %d %d %d\n",i1,ifa[ii-3],ifa[ii-2],ifa[ii-1]);
     }
   }
-
 
   // ifa -> OpenGL
   glDrawElements (GL_TRIANGLES, iNr, GL_UNSIGNED_INT, ifa);
@@ -9665,7 +9665,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
   glDisableClientState (GL_VERTEX_ARRAY);
 
   // if(oTyp == Typ_PLN)
-  if(nifa->oTyp != Typ_SURPLN)
+//   if(nifa->oTyp != Typ_SURPLN)
     glDisableClientState (GL_NORMAL_ARRAY);
 
 
@@ -12587,7 +12587,7 @@ glCallList (DL_shade_wire);
   char    outText[256];
   
 
-  // DEB_dump_obj__ (Typ_Dimen, dim1, "GL_DrawDimen");
+  // DEB_dump_obj__ (Typ_Dimen, dim1, "GL_set_Dimen");
   // printf(" att=%d\n",att);
 
   // att = 1;  dann schwarz; aber kein Hilite !!

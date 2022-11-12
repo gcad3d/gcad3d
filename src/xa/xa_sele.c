@@ -440,6 +440,19 @@ static int    bck_GR_NoConstrPln;
       goto L_add_1;
 
     //.......................................
+    } else if((reqTyp == Typ_XVal) ||
+              (reqTyp == Typ_YVal) ||
+              (reqTyp == Typ_ZVal))      {
+      sele_get_pos_UC (&pt1);
+        // DEB_dump_obj__ (Typ_PT, &pt1, "src_cnvt__-TmpPT-12");
+      if(reqTyp == Typ_XVal) UTX_db10__(sCva->cva[0].oid, pt1.x);
+      if(reqTyp == Typ_YVal) UTX_db10__(sCva->cva[0].oid, pt1.y);
+      if(reqTyp == Typ_ZVal) UTX_db10__(sCva->cva[0].oid, pt1.z);
+      iNr = 1;
+      goto L_add__;
+
+
+    //.......................................
     } else return 0;
 
 
@@ -459,15 +472,34 @@ static int    bck_GR_NoConstrPln;
       // IE_inp_chg (-3); // do NOT proceed to next inputfield
       goto L_add_1;
 
+//     //.......................................
+//     } else if(TYP_IS_VAL(reqTyp)) {   // Typ_Val|Typ_XVal|Typ_YVal|Typ_ZVal
+//       // add X(P) + Y(P) + (Z(P)
+//       sprintf(sCva->cva[1].oid, "Y(P%ld)", dbi);
+//       sprintf(sCva->cva[2].oid, "Z(P%ld)", dbi);
+//       sprintf(sCva->cva[3].oid, "P%ld", dbi);     // not yet complete
+//       iNr = 4;
+//       goto L_add__;
+
     //.......................................
-    } else if(TYP_IS_VAL(reqTyp)) {   // Typ_Val|Typ_XVal|Typ_YVal|Typ_ZVal
-      // add X(P) + Y(P) + (Z(P)
-      sprintf(sCva->cva[0].oid, "X(P%ld)", dbi);
-      sprintf(sCva->cva[1].oid, "Y(P%ld)", dbi);
-      sprintf(sCva->cva[2].oid, "Z(P%ld)", dbi);
-      sprintf(sCva->cva[3].oid, "P%ld", dbi);     // not yet complete
-      iNr = 4;
+    } else if((reqTyp == Typ_XVal) ||
+              (reqTyp == Typ_YVal) ||
+              (reqTyp == Typ_ZVal))      {
+      sprintf(sCva->cva[0].oid, "P%ld", dbi);
+      iNr = 1;
       goto L_add__;
+
+//     //.......................................
+//     } else if(reqTyp == Typ_YVal)   {
+//       sprintf(sCva->cva[0].oid, "Y(P%ld)", dbi);
+//       iNr = 1;
+//       goto L_add__;
+// 
+//     //.......................................
+//     } else if(reqTyp == Typ_ZVal)   {
+//       sprintf(sCva->cva[0].oid, "Z(P%ld)", dbi);
+//       iNr = 1;
+//       goto L_add__;
 
     //.......................................
     } else return 0;
@@ -1462,14 +1494,18 @@ static int    bck_GR_NoConstrPln;
 
   // if GR_Sel_Filter==18 (parametric point) keep selection
   i1 = UI_GR_Sel_Filt_set (-1);   // query
-  if(i1 == 18) return 1;   // 2013-04-17
+  if(i1 == 18) goto L_exit;   // 2013-04-17
 
   // if (GR_Sel_Filter==1) give temporary-point from cursorposition on constrPlane
   // get point on constrPlane
-  if(i1 == 1)  return 1;   // 2013-04-17
+  if(i1 == 1)  goto L_exit;   // 2013-04-17
 
 
-  return BitTab_get (reqObjTab, iTyp);  // !=0 is set
+  i1 = BitTab_get (reqObjTab, iTyp);  // !=0 is set
+
+  L_exit:
+      // printf(" ex-sele_ck_typ %d\n",i1);
+    return i1;
 
 }
 
@@ -2589,7 +2625,7 @@ static int    bck_GR_NoConstrPln;
   int     i1;
   va_list va;
 
-  // printf("sele_set_types %d\n",i0);
+  printf("sele_set_types %d\n",i0);
 
   va_start (va, i0);
   goto L_work;
@@ -2638,6 +2674,7 @@ static int    bck_GR_NoConstrPln;
 
 
   // printf("sele_set__ %d\n",rTyp);
+  // if(rTyp == 0) AP_debug__ ("test_sele_set__");
 
 
   GR_NoConstrPln = 0;       // 0=enabled;  1=disabled; reset.
@@ -2695,12 +2732,11 @@ static int    bck_GR_NoConstrPln;
     case Typ_XVal:
     case Typ_YVal:
     case Typ_ZVal:
-      sele_set_types (Typ_VAR, 
-                      Typ_Val,
+      sele_set_types (Typ_PT,
                       0);
-                      // Typ_PT,
-                      // Typ_LN,
-      sele_set_icon (&i2Dbutts, Typ_VAR);   // V+ V-
+                      // Typ_VAR, 
+                      // Typ_Val,
+      sele_set_icon (&i2Dbutts, Typ_VC);          // VC+ VC-
       break;
 
 

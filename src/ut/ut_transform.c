@@ -73,6 +73,10 @@ UTRA_WCS_UCS_VC         transfer vector from UCS into WCS
 UTRA_WCS_UCS_PT         transfer point from UCS into WCS
 UTRA_pt_ucs2wcs         transform point constructionPlane to absolut
 
+UTRA_2D_3D_init         set matrixes for 3D -> 2D and back. Origin of plane must be set
+UTRA_2D_pt_3D           get 2D-point from 3D-point; Z is 0.;
+UTRA_3D_pt_2D           get 3D-point (world-coords) from 2D-point (X,Y in plane, Z=0)
+
 UT3D_m3_multm3          der Nutzen ist unbekannt ....
 
 UTRA_dump__             dump translation-data
@@ -237,6 +241,8 @@ static int TRA_NR = 0;
 static int    TRA_TYP[TRA_TAB_SIZ];
 
 static TraRot TRA_TAB[TRA_TAB_SIZ];
+
+static Mat_4x3 TRA_mat_3D_2D, TRA_mat_2D_3D;
 
 
 
@@ -2538,6 +2544,63 @@ exit(0);
     return -1;
 }
 
+
+//================================================================
+  int UTRA_2D_3D_init (Plane *pln)  {
+//================================================================
+// set matrixes for 3D -> 2D and back. Origin of plane must be set
+// see UT3D_rsys_pl UT2D_pt_tra_pt3_rsys UT3D_pt_tra_pt2_rsys (with backplane)
+
+  UT3D_m3_loadpl (TRA_mat_3D_2D, pln);
+  UT3D_m3_invm3 (TRA_mat_2D_3D, TRA_mat_3D_2D);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UTRA_2D_pt_3D (Point2 *pt2, Point *pt3) {
+//================================================================
+// UTRA_2D_pt_3D         get 2D-point from 3D-point; Z is 0.; 
+//   Must init with UTRA_2D_3D_init
+// Input:  pt3   3D-point has world-coords (not coords in plane);
+// Output: pt2   coords X,Y in plane, Z=0.
+// see UT2D_pt_tra_pt3_rsys
+
+  Point pto;
+
+  UT3D_pt_tra_pt_m3 (&pto, TRA_mat_2D_3D, pt3);
+  pt2->x = pto.x;
+  pt2->y = pto.y;
+    DEB_dump_obj__ (Typ_PT2, pt2, "ex-UTRA_2D_pt_3D");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UTRA_3D_pt_2D (Point *pt3, Point2 *pt2) {
+//================================================================
+// UTRA_3D_pt_2D    get 3D-point (world-coords) from 2D-point (X,Y in plane, Z=0)
+//   Must init with UTRA_2D_3D_init
+// Input:  pt2   2D-point - coords in plane (Z=0)
+// Output: pt3   world-coords
+// see UT3D_pt_tra_pt2_rsys
+
+  Point pti;
+
+  pti.x = pt2->x;
+  pti.y = pt2->y;
+  pti.z = 0.;
+
+  UT3D_pt_tra_pt_m3 (pt3, TRA_mat_3D_2D, &pti);
+    DEB_dump_obj__ (Typ_PT, pt3, "ex-UTRA_3D_pt_2D");
+
+  return 0;
+
+}
 
 
 // //----------------------------------------------------------------

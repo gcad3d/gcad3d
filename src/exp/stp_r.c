@@ -1222,7 +1222,7 @@ void STP_r_skipTer0 (char *sBuf);
   //----------------------------------------------------------------
   // all PRODUDCT's are exported into files ..
   L_finish:
-    printf("\n============= finish %d =============\n",mdlNr);
+    // printf("\n============= finish %d =============\n",mdlNr);
     // UI_men__ ("dump_ga");
 
 // TEST ONLY

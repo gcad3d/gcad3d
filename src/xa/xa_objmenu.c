@@ -271,7 +271,7 @@ extern int       IE_modify;
   char        s1[32];
 
 
-  // printf("OMN_popup_Brw typ=%d dbi=%ld dli=%ld version=%d\n",typ,dbi,dli,version);
+  printf("OMN_popup_Brw typ=%d dbi=%ld dli=%ld version=%d\n",typ,dbi,dli,version);
   // printf("  APP_stat=%d\n",AP_stat.APP_stat);
   // ++iTest; if(iTest == 2) AP_debug__ ("OMN_popup_Brw");
 
@@ -696,9 +696,6 @@ extern int       IE_modify;
 
     // printf("OMN_CB_popup iEv=%d isel=%d\n",iEv,isel);
 
-
-  // printf("OMN_CB_popup %d\n",event->type);
-
   // unhilite last hilited bj (IE_cad_inp_prev__())
   // if(iEv == TYP_EventUnmap) UI_prev_remove ();  // done by Ec-key ..
 
@@ -809,7 +806,7 @@ extern int       IE_modify;
     //----------------------------------------------------------------
     case MSG_activate:        // Function = Activate (model)
       if(actObj.typ == Typ_SubModel) {
-          DEB_dump_obj__ (Typ_ObjDB, &actObj, " _CB_popup-mb:\n");
+          // DEB_dump_obj__ (Typ_ObjDB, &actObj, " _CB_popup-mb:\n");
         // get modelname from ModelRefIndex;   0=main!
         if(actObj.dbInd != 0) {
           // subModel

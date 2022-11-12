@@ -636,6 +636,8 @@ static Obj_gui2     *GUI_tree1_ActObj;
 /// remove node it and its childs
 
 
+  printf("GUI_tree1_remove__ \n");
+
   // set GUI_tree1_tree, GUI_tree1_view, GUI_tree1_model and GUI_tree1_store
   if(GUI_tree1_decode(mo)) return -1;
 
@@ -651,14 +653,16 @@ static Obj_gui2     *GUI_tree1_ActObj;
 //================================================================
   int GUI_tree1_childs_remove (MemObj *mo, TreeNode *it) {
 //================================================================
-/// \code
-/// remove all childs of node; but not node.
-/// recursiv
-/// \endcode
+// remove all childs of node; but not node.
+// recursiv
 
 
   int           irc, ii;
   GtkTreeIter   rowChd;
+
+
+  // printf("GUI_tree1_childs_remove \n");
+  // printf(" siz=%d\n",sizeof(GtkTreeIter));
 
 
   // set GUI_tree1_tree, GUI_tree1_view, GUI_tree1_model and GUI_tree1_store
@@ -666,19 +670,25 @@ static Obj_gui2     *GUI_tree1_ActObj;
     if(GUI_tree1_decode(mo)) return -1;
   }
 
+   // printf(" has_child=%d\n",
+     // gtk_tree_model_iter_has_child (GUI_tree1_model, it));
 
   L_nxt:
     irc = gtk_tree_model_iter_children (GUI_tree1_model, &rowChd,
                                         (GtkTreeIter*)it);
-    if(irc == 0) return 0;
+      // printf(" childs_remove %d\n",irc);
+    if(irc == 0) {
+      return 0;
+    }
 
     // get nr of childNodes
     ii = gtk_tree_model_iter_n_children (GUI_tree1_model, &rowChd);
+      // printf(" childs_remove %d\n",ii);
 
     // remove childs of child (recursion)
     if(ii > 0) GUI_tree1_childs_remove (NULL, (TreeNode*)&rowChd);
 
-    // remove child
+    // remove child; returns TRUE if
     gtk_tree_store_remove (GUI_tree1_store, &rowChd);
     goto L_nxt;
 

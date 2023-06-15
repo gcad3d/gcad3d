@@ -12,7 +12,7 @@ if [ ! -z "`which xdg-desktop-menu`" ]; then
 fi
 
 
-rm -rf /usr/lib/gCAD3D
+rm -rf /usr/lib/gcad3d
 rm -rf /usr/share/gcad3d
 rm -rf /usr/share/doc/gcad3d
 rm -rf /usr/share/menu/gcad3d

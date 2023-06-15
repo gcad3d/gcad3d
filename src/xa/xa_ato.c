@@ -210,6 +210,7 @@ APT_obj_ato                create struct from atomicObjs
 #include "../ut/ut_txTab.h"            // TxtTab
 #include "../ut/ut_memTab.h"           // MemTab
 #include "../ut/ut_BitTab.h"           // BitTab
+#include "../ut/ut_deb.h"              // DEB_stop
 
 #include "../db/ut_DB.h"               // DB_VCX_IND DB_PLX_IND
 
@@ -1908,8 +1909,8 @@ extern long      GLT_cta_SIZ;
       return ATO_ato_eval_val (ato, iGrp, nGrp);
 
 
-    } else if((fVal >= Typ_VAR)&&(fVal < Typ_Part)) {          // 1 - 120
-      // evaluate geometrical functions P D L C S R V 
+    } else if((fVal >= Typ_VAR)&&(fVal < Typ_Val)) {          // 1 - 130
+      // evaluate geometrical functions P D L C S R V U
       return ATO_ato_eval_geom (ato, iGrp, nGrp);
 
 
@@ -1921,6 +1922,9 @@ extern long      GLT_cta_SIZ;
     } else if((fVal >= Typ_FcmSQRT)&&(fVal < TYPE_STRU_NR)) {   // 290 - 300
       // evaluate math. functions SQRT SIN COS ..
       return ATO_ato_eval_math (ato, iGrp, nGrp);
+
+    
+
 
     } else return MSG_ERROR (ERR_TODO_E,"FncNam-E2-fVal=%d",fVal);
 
@@ -2665,15 +2669,13 @@ extern long      GLT_cta_SIZ;
 //================================================================
    int ATO_ato_txo__ (ObjAto *ato, ObjTXTSRC *tso, char *sl) {
 //================================================================
-/// \code
-/// get atomic-objects from source-objects
-/// Input:
-///   tso
-///   sl        srcTxt
-/// Output:
-///   ato
-/// \endcode
-
+// get atomic-objects from source-objects
+// Input:
+//   tso
+//   sl        srcTxt
+// Output:
+//   ato
+// 
 // see APT_decode_Opm
 
   int     ii, iTyp, oTyp, its, sPos, sLen, lev=0;
@@ -2846,7 +2848,7 @@ extern long      GLT_cta_SIZ;
 ///   (provides dynamic-DB-obj's for geometric expressions)
 /// must provide memspc before with ATO_getSpc__
 /// Input:
-///   srcLn      eg "D(0 0 1)"      // may not have objNames !
+///   srcLn      eg "D(0 0 1)" or "CUT S25 P20 P21";   may not have objNames !
 ///   ato        free space for atomic-objs
 /// Output:
 ///   ato        eg ato->nr=1; ato->typ[0]=Typ_VC; ato->val[0]=-2.;
@@ -2866,6 +2868,11 @@ extern long      GLT_cta_SIZ;
   // printf("ATO_ato_srcLn__ |%s|\n",srcLn);
   // printf(" ilev=%d\n",*ato->ilev);
 
+
+  if(strlen(srcLn) < 1) {
+    ato->nr = 0;
+    return -1;
+  }
 
 
   // get temp-space for tso

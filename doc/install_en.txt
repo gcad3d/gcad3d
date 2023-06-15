@@ -1,13 +1,17 @@
+doc/install_en.txt                                      2023-06-06
+==================================================================
 
 
 
 
 Linux-Installation-binary
-Linux-Installation-source
 Linux-uninstall
 
 MS-Win-Installation-binary
 MS-Win-uninstall
+
+Installation-source
+
 
 
 ==================================================================
@@ -17,7 +21,7 @@ Linux-Installation-binary
 __________________________________________________________________
 Linux Prerequisites for binary installation:
 
-  libgtk2.0-common or libgtk-3-common
+  libgtk2.0-common
   OpenGL or Mesa
   libgl1-mesa libglu1-mesa
 
@@ -25,6 +29,8 @@ Linux Prerequisites for binary installation:
   Test if OpenGL is working:
     - install mesa-utils
     - run glxgears or glxheads
+
+  Used directories: see doc/SW_layout_en.txt
 
 
 __________________________________________________________________
@@ -35,79 +41,15 @@ Install for debian-os:  (eg Debian, Ubuntu ..)
   - interactiv: select package with eg "software-center"
   - or from terminal:
   sudo gdebi gCAD3D-#.##-bin-amd64.deb
+  - or
+  sudo dpkg -i gCAD3D-#.##-bin-amd64.deb
 
 
-Install for rpm-os  (eg CentOS Fedora ..)
+Install for rpm-os  (eg CentOS Fedora ..)    (not active - no gtk2glarea-lib)
 - Download package gcad3d-#.##-#.x86_64.rpm
   - from terminal:
   sudo rpm -i gcad3d-#.##-#.x86_64.rpm
 
-
-
-
-
-==================================================================
-Linux-Installation-source
-==================================================================
-
-__________________________________________________________________
-Linux Prerequisites for installation and build from source:
-
-
-  for compile, link gCAD3D:
-    gcc, ctags, build-essential, zenity, tar, dpkg
-    libjpeg-turbo-utils (djpeg and cjpeg)
-       for .cpp-files gcc-c++ (optional)
-
-    OpenGL-development-files
-      mesa-common-dev, libgl1-mesa-dev, libglu1-mesa-dev
-
-  for rebuild / modifications of the gui-system:
-    Gtk-development-files (libgtk-3-dev and/or libgtk2.0-dev),
-      gtk3-development-files
-        libgtk-3-dev
-        libgtk-3-doc gtk-3-examples             optional
-
-      and or gtk2-development-files
-        libgtk2.0-dev
-        libgtk2.0-doc gtk2.0-examples           optional
-
-
-
-  for building debian-package:
-    git gitk fakeroot, lintian
-
-  for building rpm-package:
-    git gitk rpmbuild
-
-
-
-  Installation of packages eg for debian-os:
-    sudo apt-get install <package>
-
-  Installation of packages for eg CenstOS, Fedora:
-    sudo dnf install <package>
-
-
-
-__________________________________________________________________
-Linux-Install-from-git-repository:
-
-# If possible: prefer installation from git-repository.
-# start commandline (eg gnome-terminal)
-# activate home-directory
-cd
-# create basedirectory for installation (arbitrary name)
-mkdir devel
-cd devel
-# get all files into ~/devel/gcad3d/*
-git clone https://github.com/gcad3d/gcad3d.git
-# goto dev-dir
-d ${HOME}/devel/gcad3d/src/APP
-# build complete
-./do complete
-# start gcad3d
-./do
 
 
 
@@ -142,7 +84,7 @@ MS-Win-Installation-binary
 ==================================================================
 
 Supported platforms:
-  Windows XP, Win7, Win8, Win10
+  Win10, Win11
 
 Prerequisites for binary installation:
   none
@@ -155,6 +97,8 @@ Prerequisites for binary installation:
   gCAD3D does not access / modify the registry,
   gCAD3D does not copy files into the system-dirctories.
 
+  Used directories: see doc/SW_layout_en.txt
+
 
 
 ==================================================================
@@ -165,60 +109,15 @@ Use ControlPanel / Software /  Remove / gCAD3D
 
 
 
-
 ==================================================================
-OBSOLETE:
+Installation-source
+==================================================================
 
-Installing the development package for MS-Windows:
- Package name is gCAD3D-devel-1.26.zip.
-
-Required software packages:
-  a compiler, such as Visual Studio Express.
-
- The package contains - -
-  - all necessary Gtk+ include files and libs,
-  - GTK toolbox with examples (sources and makefiles)
-  - some gCAD3D-demo -plugins (sources and makefiles)
-  - all include files gCAD3D
-
-
- You have to copy it into the gCAD3D basic installation directory,
-
- the base directory is normally &quot;C:\Program Files\gCAD3D&quot;
-   or &quot;C:\Program Files\gCAD3D&quot;
-   Unpack the zipfile.
-
-
-
- You will need a command shell with the correct compiler environment
-  For VC8 you can use the Visual Studio Command Window or cmd.exe plus:
-   &quot;C:\Program Files\Microsoft Visual Studio 8\Common7\Tools\vsvars32.bat&quot; 
-
-  For VC9 (Visual Studio 2008) you can use:
-   &quot;C:\Program Files\Microsoft Visual Studio 9.0\VC\vcvarsall.bat&quot; x86
-   test it with &quot;cl /?&quot;.
-
-
-
- Test link of a test program or add-on library:
-  open command shell (CMD.EXE )
-  cd C:\Program Files\gCAD3D\gtk
-  nmake-f tst_gtk0.nmak
-
-
-
- Runtime link:
-  start gCAD3D from command shell (CMD.EXE) to see messages
-  activate checkbox Options / compile_DLL 's in gCAD3D,
-  activate a DDL (select &quot;DemoXX&quot; in upper right)
-  the selected DLL will be compiled, linked, started
-  (see text window for errors)
-
-
+- for Linux, Windows see doc/build_en.txt
 
 
 
 =====================================================================
-../../doc/install_en.txt                        this file
-../../README                                    rootfile
+Send bug reports, suggestions for improvements to support@gcad3d.org
+
 EOF

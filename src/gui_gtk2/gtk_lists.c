@@ -92,7 +92,7 @@ cl -c /I ..\include ut_gtk.c
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>         // f. GDK_Return
 
-#include "../ut/ut_cast.h"                     // INT_PTR
+#include "../ut/ut_cast.h"                     // INT__PTR
 #include "../ut/ut_umem.h"                     // Memspc
 #include "../ut/ut_os.h"                       // OS_ ..
 #include "../gui/gui_types.h"                  //  Typ_

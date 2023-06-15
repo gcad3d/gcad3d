@@ -148,12 +148,10 @@ extern GtkWidget *UI_act_wi;
 //================================================================
   int GUI_Ico_init (char *icoNam[]) {
 //================================================================
-/// \code
-/// GUI_Ico_init         create and load all icons
-/// iconfiles must be in directory <base>/icons/
-/// Example:
-/// char *icoNam[]={"t2.png","t3.png",NULL};
-/// \endcode
+// GUI_Ico_init         create and load all icons
+// iconfiles must be in directory <base>/icons/
+// Example:
+// char *icoNam[]={"t2.png","t3.png",NULL};
 
 // was Brw_Init, GUI_TreeIT__
  
@@ -163,17 +161,21 @@ extern GtkWidget *UI_act_wi;
 
   GError            *error = NULL;
 
-  printf("GUI_Ico_init \n");
+  // printf("GUI_Ico_init \n");
 
 
   // count nr of icons
   for(i1=0; i1<1000; ++i1) {
+      // printf(" img[%d]=|%s|\n",i1,icoNam[i1]);
     if(icoNam[i1]) continue;
     icoNr = i1;
     IcoTab = (GdkPixbuf**) malloc (sizeof(void*) * icoNr);
     break;
   }
 
+
+  // TEST:
+  printf(" GUI_Ico_init-icoNr=%d\n",icoNr);
 
   // init icons
   i1 = 0;
@@ -185,9 +187,10 @@ extern GtkWidget *UI_act_wi;
       // TX_Error (" Imagefile %s does not exist",cbuf);
       MSG_err_1 ("NOEX_fil", "%s", cbuf);
     } else {
-      IcoTab[i1] = gdk_pixbuf_new_from_file(cbuf, &error);
+      // UTX_fnam_ms_uix (cbuf); // change UIX-filename into MS-filename
+      IcoTab[i1] = gdk_pixbuf_new_from_file(cbuf, &error);  // load icon
       if (error) {
-        TX_Error ("Could not load icon: %s\n", error->message);
+        TX_Error ("Could not load icon: %s - %s\n", cbuf, error->message);
         g_error_free(error);
         error = NULL;
       }

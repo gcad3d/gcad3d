@@ -40,29 +40,17 @@ make -f DemoPlugin_Dialog.mak
 
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-
-
-#ifdef _MSC_VER
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
-
-
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 
@@ -81,7 +69,14 @@ __declspec(dllexport) int gCad_fini ();
 #define CBUFSIZ 1024
 
 
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main ();
+export int gCad_fini ();
 
+
+
+//----------------------------------------------------------------
   static Point   pt1, pt_tab[5];        // pointbuffer
   static Line    ln1;
   static Vector  vc_tab[3];

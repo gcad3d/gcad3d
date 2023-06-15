@@ -337,7 +337,7 @@ int GR_tDyn_bez (CurvBez *bez, int att, Memspc *workSeg);
 void GR_tDyn_psp3 (long *ind, long dbi, int attInd, ObjGX *cv1, double zval);
 int GR_tDyn_npt_2 (Point2 *pta, int ptnr, int att);
 int GR_tDyn_ln_2pt (Point *pt1, Point *pt2, int att);
-int GR_tDyn_npt__ (Point *pta, int ptnr, int att);
+int GR_tDyn_npt__ (int ptnr, Point *pta, int att);
 int GR_tDyn_npti (int ptNr, Point *pTab, int typ, int ptAtt, int txAtt);
 int GR_tDyn_symB__ (Point *pt1, int typ, int att);
 int GR_tDyn_nsymB (int ptNr, Point *pTab, int typ, int att);

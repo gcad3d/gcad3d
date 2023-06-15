@@ -99,7 +99,7 @@ All trimmed-curves refer to the basic-curve.
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_geo_const.h"        // UT3D_CCV_NUL
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/func_types.h"               // SYM_..
 #include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
 #include "../ut/ut_math.h"             // IS_NAN

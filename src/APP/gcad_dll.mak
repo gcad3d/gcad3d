@@ -5,6 +5,8 @@
 # gcad_dir_bin SRC1
 # 
 
+$(info - entering gcad_dll.mak)
+
 # get VGUI 
 VGUI := $(shell cat ../gcad_gui_version)
 

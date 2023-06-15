@@ -105,9 +105,15 @@ see ../prc/prc_cut1__.h     NCCmdTab = list of all NC-words
 \endcode *//*----------------------------------------
 
 
+DO NOT UNLOAD DLL FROM INSIDE DLL !
+
 
 */
 
+
+
+// definition "export"
+#include "../xa/export.h"
 
 
 #include <math.h>
@@ -116,16 +122,9 @@ see ../prc/prc_cut1__.h     NCCmdTab = list of all NC-words
 #include <string.h>
 #include <stdarg.h>                   // va_list
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_DEPRECATE
-__declspec(dllexport) int PRCE__ (int iFnc, char*);
-#define extern __declspec(dllimport)
-#endif
-
-
 // #include "../ut/ut_umem.h"         // UME_reserve
 #include "../ut/ut_geo.h"
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
 #include "../ut/ut_txTab.h"            // UtxTab
@@ -149,6 +148,12 @@ __declspec(dllexport) int PRCE__ (int iFnc, char*);
 #include "../gui/gui__.h"              // GUI_*
 
 
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int PRCE__ (void**);
+
+
+//----------------------------------------------------------------
 #define DL_TEMP_FROM 3
 
 //================================================================
@@ -201,7 +206,7 @@ static int     rapid;                // ON=0; OFF=1;
 static int     tlActNr;     
 // int     tlActSid = 0;   // (RI LE OFF)   def = off
 
-static char    outBuf[400];
+static char    outBuf[512];
 
 #define cmd_SIZ 100
 static int     cmd_anz;
@@ -232,17 +237,23 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
 
 //===========================================================================
-  int PRCE__ (int iFnc, char* data)  {
+  int PRCE__ (void **dTab)  {
 //===========================================================================
-/// export nc
+// PRCE__        export nc
+// Input:
+//   dTab     2 pointers
+//            dTab[0] = int iFnc
+//            dTab[1] = char *data
+//
+//   iFnc     >=0 index into NCCmdTab
+//            -1  function
+//   data     additional text for nc-func NCCmdTab[iFnc]
 
 // the actual position is oldPos.
 
-/// Input:
-///   iFnc     >=0 index into NCCmdTab
-///            -1  function
-///   data     additional text for nc-func NCCmdTab[iFnc]
 
+  int       iFnc = *((int*)dTab[0]);
+  char      *data =  dTab[1];
 
   int       i1;
   long      dli;
@@ -250,11 +261,11 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   ObjAto    ato1;
 
 
-  // printf("------------- prc_cut1 V-%s ----------------------------- \n",VERSION);
-  // if(iFnc>=0)printf("PRCE__ |%s|%s| iFnc=%d\n",NCCmdTab[iFnc],data,iFnc);
-  // else printf("PRCE__ %d |%s|\n",iFnc,data);
-  // printf("  PRCE_mode=%d\n",PRCE_mode);
-  // printf("  rapid=%d tlActNr=%d\n",rapid,tlActNr);
+  printf("------------- prc_cut1 V-%s ----------------------------- \n",VERSION);
+  if(iFnc>=0)printf("PRCE__ |%s|%s| iFnc=%d\n",NCCmdTab[iFnc],data,iFnc);
+  else printf("PRCE__ %d |%s|\n",iFnc,data);
+  printf("  PRCE_mode=%d\n",PRCE_mode);
+  printf("  rapid=%d tlActNr=%d\n",rapid,tlActNr);
 
 
   // function ?
@@ -921,6 +932,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   int   i1;
 
 
+  printf("PRCE_func__ |%s|\n",data);
 
 
   //----------------------------------------------------------------
@@ -959,8 +971,14 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   //----------------------------------------------------------------
   } else if(!strncmp(data, "EXIT__", 6)) {
     // VWR needs no CmdTab ..
-    PRC_set_CmdTab (NULL);
+    // PRC_set_CmdTab (NULL);
     TX_Print(".. close %s",VERSION);
+
+      // TESTBLOCK
+      // PRCE_pp_test ();
+      // END TESTBLOCK
+
+    // PRC_exit ();
 
 
   //----------------------------------------------------------------
@@ -1511,7 +1529,7 @@ static int pp_id=0;
 
   ifunc = GUI_DATA_I1;
 
-  // printf("PRCE_tb_win %d\n",ifunc);
+  printf("PRCE_tb_win %d\n",ifunc);
 
 
   if(mo) {
@@ -1539,10 +1557,10 @@ static int pp_id=0;
       box0 = GUI_box_h (&PRCE_tb__, "e");
         // GUI_obj_dump_mo (&box0);
       // box1 = GUI_Vbox (box0, 0);
-      sprintf(memspc011, "<b> %s: </b>",APP_act_proc);
+      sprintf(memspc011, "<b> %s:    </b>",APP_act_proc);
       GUI_label_htm__ (&box0, memspc011, "");
 
-      GUI_label__(&box0, " Postproc.:", "");
+      GUI_label__(&box0, "  Postproc.:  ", "");
       GUI_Tip  ("select and start postprocessing");
 
       // create list of all postprocessors -> file ?
@@ -1553,7 +1571,7 @@ static int pp_id=0;
         // printf("  opt2-widget-nr=%d\n",pp_id);
 
 
-      GUI_button__ (&box0, " Help ", PRCE_tb_win, &GUI_FuncUCB2, "");
+      GUI_button__ (&box0, "  Help  ", PRCE_tb_win, &GUI_FuncUCB2, "");
       GUI_button__ (&box0, MSG_const__(MSG_exit),
                          PRCE_tb_win, &GUI_FuncKill, "");
 
@@ -1591,7 +1609,7 @@ static int pp_id=0;
   int PRCE_tb_exit () {
 //================================================================
 
-  // printf("PRCE_tb_exit \n");
+  printf("PRCE_tb_exit \n");
 
 
   // reset CmdTab
@@ -1627,6 +1645,8 @@ static int pp_id=0;
 //   into file <tmp>postproc.lst
 // ls -1 <bindir>plugins/<processor>/* > <fnam>
 // processor without leading "PRC_"
+//   eg <bindir>plugins/cut1/*     for processor PRC_cut1 
+
 
   // static char *optNone[] = {"none",NULL};
   static char *optNone[] = {"gCAD3D-APT",NULL};
@@ -1634,15 +1654,15 @@ static int pp_id=0;
   int   i1;
   char  s1[256], s2[256], **optLst;
     
-  // printf("PRCE_lst_postprocs |%s|\n",sproc);
+  printf("PRCE_lst_postprocs |%s|\n",sproc);
     
 
-  // list files -> postprocessors -> file
+  // list files -> postprocessors -> file <tmp>/postproc.lst
   // dir to search
-  sprintf(s1, "%splugins%c%s",AP_get_bin_dir(),fnam_del,&sproc[4]);
+  sprintf(s1, "%splugins%c%s",OS_bin_dir_get(),fnam_del,&sproc[4]);
   // outfilnam
   sprintf(s2, "%spostproc.lst",AP_get_tmp_dir());
-  i1 = UTX_dir_listf (s2, s1, NULL, NULL);
+  i1 = UTX_dir_listf (s2, s1, NULL, NULL, 0);
     // printf(" nrFiles=%d\n",i1);
 
   if(i1 > 0) {
@@ -1660,6 +1680,16 @@ static int pp_id=0;
 
 
   return optLst;
+
+}
+
+
+//================================================================
+  int PRCE_pp_test () {
+//================================================================
+  strcpy (spprc, "G-Code");
+  PRCE_pp__ ();
+  return 0;
 
 }
 
@@ -1709,28 +1739,37 @@ static int pp_id=0;
 
   //----------------------------------------------------------------
   // do postprocessing
+  //
+  // TESTBLOCK
+  printf(" spprc = |%s|\n",spprc);
+  printf(" outBuf = |%s|\n",outBuf);
+  printf(" APP_act_proc = |%s|\n",APP_act_proc);
+  // END TESTBLOCK
+
+
   // if(!strcmp(spprc, "none")) return 0;
   if(!strcmp(spprc, "gCAD3D-APT")) return 0;
 
-
   // delete logfile
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   sprintf(fnLog,"\"%snc.log\"",AP_get_tmp_dir());
 #else
   sprintf(fnLog,"%snc.log",AP_get_tmp_dir());
 #endif
-    printf("delete %s ..\n",fnLog);
+    printf(" - delete %s ..\n",fnLog);
   OS_file_delete (fnLog);
 
 
   // system "<pp> <infilnam>"
-#ifdef _MSC_VER
-    sprintf(memspc011, "CMD /C \"cd \"%splugins%c%s\" && %s \"%s\"\"",
-      AP_get_bin_dir(),fnam_del,&APP_act_proc[4], spprc, outBuf);
+#if defined _MSC_VER || __MINGW64__
+    // sprintf(memspc011, "CMD /C \"cd \"%splugins%c%s\" && %s \"%s\"\"",
+      // OS_bin_dir_get(),fnam_del,&APP_act_proc[4], spprc, outBuf);
+    sprintf(memspc011, "CMD /C \"\"%splugins%c%s%c%s\" \"%s\"\"",
+      OS_bin_dir_get(),fnam_del,&APP_act_proc[4],fnam_del,spprc,outBuf);
     
 #else
     sprintf(memspc011, "%splugins%c%s%c%s %s",
-      AP_get_bin_dir(),fnam_del,&APP_act_proc[4],fnam_del,spprc,outBuf);
+      OS_bin_dir_get(),fnam_del,&APP_act_proc[4],fnam_del,spprc,outBuf);
 #endif
       printf("%s\n",memspc011);
     OS_system (memspc011);
@@ -1741,6 +1780,9 @@ static int pp_id=0;
   // display pp-output <temp>/nc.log
   sprintf(fnLog,"%snc.log",AP_get_tmp_dir());
   TX_file_Print (fnLog);
+
+  sprintf(outBuf,"Postproc exported %snc.log and nc.iso",AP_get_tmp_dir());
+  TX_Print (outBuf);
 
 
   return 0;

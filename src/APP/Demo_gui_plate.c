@@ -41,9 +41,9 @@ List_functions_end:
 
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def1.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -51,17 +51,8 @@ List_functions_end:
 #include <string.h>
 
 
-#ifdef _MSC_VER
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
-
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/func_types.h"               // UI_Func...
 #include "../ut/ut_memTab.h"           // MemTab
@@ -80,7 +71,13 @@ __declspec(dllexport) int gCad_fini ();
 
 
 
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main ();
+export int gCad_fini ();
 
+
+//----------------------------------------------------------------
 // ext aus xa.c:
 extern  char      AP_mod_fnam[SIZMFNam];    // der Modelname
 extern  char      AP_mod_dir[SIZMFTot];  // Verzeichnis f Open, ..

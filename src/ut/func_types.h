@@ -25,17 +25,9 @@
 #define FUNC_DispHid2     18
 #define FUNC_DispHid3     19
 
-#define FUNC_LOAD_only    20
-#define FUNC_LOAD_all     21
-#define FUNC_CONNECT      22
-#define FUNC_EXEC         23
-#define FUNC_UNLOAD       24
-#define FUNC_RECOMPILE    25
-#define FUNC_QUERY        26
-#define FUNC_Init         27
-
-#define FUNC_Hili        870
+#define FUNC_Init        850
 #define FUNC_Dim         860
+#define FUNC_Hili        870
 #define FUNC_Show        880
 #define FUNC_Pick        890
 

@@ -90,7 +90,7 @@ gcc `pkg-config --cflags gtk+-3.0` gtk_dialog.c
 
 #include <gtk/gtk.h>
 
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_umem.h"
 #include "../ut/ut_mem.h"              // MEM_alloc_tmp
 #include "../ut/ut_os.h"               // OS_ .
@@ -132,7 +132,7 @@ static MemObj UI_DialogEntryWin;
 
 
 
-  printf("GUI_DialogYN_CB %d\n",INT_PTR(data));
+  printf("GUI_DialogYN_CB %d\n",INT__PTR(data));
 
 
   // if ((GTK_TOGGLE_BUTTON (parent)->active) == 0) {
@@ -150,7 +150,7 @@ static MemObj UI_DialogEntryWin;
 
   idat = UI_FuncCancel;
 
-  if(INT_PTR(data) == GTK_RESPONSE_OK) {
+  if(INT__PTR(data) == GTK_RESPONSE_OK) {
       idat = UI_FuncOK;
     // case GTK_RESPONSE_CANCEL:
     // case GTK_RESPONSE_DELETE_EVENT:

@@ -39,32 +39,27 @@ List_functions_end:
 
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def1.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
+
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_types.h"               // INT_8 - UINT_64
 #include "../ut/ut_umem.h"                // Memspc MemObj UME_*
-
 
 #include "../gui/gui__.h"
 
 
-#ifdef _MSC_VER
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main ();
+export int gCad_fini ();
 
 
 //----------------------------------------------------------------
@@ -152,7 +147,7 @@ static MemObj wVal;
   box2 = GUI_box_h (&box0, "");
 
   // GUI_label_htm__ (&box2, "<b> Demo_toolbar1: </b>", "");
-  GUI_label__ (&box2, " test ", "l");
+  GUI_label__ (&box2, "Demo_toolbar1 ", "l");
 
 
   wm0 = GUI_menu__ (&box2, NULL, 0);

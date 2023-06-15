@@ -37,7 +37,7 @@ OBJOS = $(OBJOS:/=\)
 #OS := ..\binMS64
 #endif
 #OUTDIR = ${HOME}/bin$(OS)
-OUTDIR = ..\..\..\binMS32
+OUTDIR = ..\..\..\exe_MS32
 
 
 #ADDLIBS = -lm
@@ -62,7 +62,6 @@ $(EXENAM): $(OBJ1) $(OBJOS)
 	@echo "OBJ1: $(OBJ1)"
 	@echo "OBJOS: $(OBJOS)"
 	$(CC) -o $(EXENAM) $(OBJ1) $(OBJOS) $(LKFLG)
-#	ctags --excmd=number -f ut.tag $(SRC2)
 	move/y $(EXENAM).exe $(OUTDIR)\plugins\cut1\.
 
 

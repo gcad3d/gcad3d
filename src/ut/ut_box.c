@@ -131,7 +131,7 @@ GR_tDyn_box__               disp boundingBox
 
 
 #include "../ut/ut_geo.h"
-#include "../ut/ut_cast.h"                // INT_PTR
+#include "../ut/ut_cast.h"                // INT__PTR
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
@@ -2447,7 +2447,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
       // must resolv Typ_Index; UT3D_box_obja cannot do it (typ missing)
       if(ox1->form == Typ_Index) {
         typ1 = ox1->typ;
-        frm1 = UTO__dbo (&o1, &sNr, typ1, LONG_PTR(ox1->data));
+        frm1 = UTO__dbo (&o1, &sNr, typ1, LONG__PTR(ox1->data));
         UT3D_box_obja (pb1, pb2, frm1, sNr, o1);
         continue;
  
@@ -2884,7 +2884,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
   ox2 = &oxa[1];
   
   typ1 = ox2->typ;
-  frm1 = UTO__dbo (&o1, &sNr, typ1, LONG_PTR(ox2->data));
+  frm1 = UTO__dbo (&o1, &sNr, typ1, LONG__PTR(ox2->data));
   UT3D_box_obja (pb1, pb2, frm1, sNr, o1);
 
   return 0;

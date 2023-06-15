@@ -73,7 +73,7 @@ cc -c `pkg-config --cflags gtk+-3.0` -DGTK3 gtk_multichoice.c
 
 #include <gtk/gtk.h>
 
-#include "../ut/ut_cast.h"              // INT_PTR
+#include "../ut/ut_cast.h"              // INT__PTR
 #include "../ut/ut_umem.h"                     // Memspc
 #include "../gui/gui_types.h"            // TYP_Event..
 #include "../gui/gui_base.h"
@@ -109,7 +109,7 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
 
 
   pTab[2] = (char*)gtk_menu_item_get_label (GTK_MENU_ITEM(parent));
-  lNr = INT_PTR(data);
+  lNr = INT__PTR(data);
 
       // printf("GUI_optmen_sel %d |%s|\n",lNr,(char*)pTab[2]);
 
@@ -642,7 +642,7 @@ static void *ptx;     // the active menu-txt
   void     *pTab[4];
 
 
-  ii = INT_PTR(data);
+  ii = INT__PTR(data);
 
   // printf("GUI_popup_cb1 ii=%d\n",ii);
 
@@ -651,7 +651,7 @@ static void *ptx;     // the active menu-txt
     // enter menu-item
       // printf(" GDK_ENTER_NOTIFY\n");
     iEv = TYP_EventEnter;
-    lNr = INT_PTR(data);
+    lNr = INT__PTR(data);
     // get menu-item-text
     if(UI_opt_lst) {
       ptx = UI_opt_lst[lNr];

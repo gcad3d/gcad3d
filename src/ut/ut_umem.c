@@ -37,7 +37,7 @@ void UME(){}
 \file  ../ut/ut_umem.c
        ../ut/ut_umem.h   struct Memspc
 \brief variable-length-records in memory: reserve/connect/release .. UME_
-\code
+
 =====================================================
 List_functions_start:
 
@@ -64,7 +64,8 @@ UME_add_obj           add oNr objs into Memspc (serialize)
 UME_add_nRec           copy data from pos into memSpc, update pointer <pos>
 
 UME_del               remove space (toPos - fromPos)
-UME_set_unused          correct free space (release n bytes)
+UME_set_next          release some memSpc;                                 INLINE
+UME_set_unused        correct free space (release n bytes)
 
 UME_get_next          get actual memSpacePosition                          INLINE
 UME_get_start         get startPosition of Memspc (NULL = uninitialized)   INLINE
@@ -100,14 +101,12 @@ UME_test1             test UME_add_obj
 
 List_functions_end:
 =====================================================
+// UME_add_oxt           replaced by UME_add_obj
+
 - see also:
+INF_Memspc
+Examples / Testprogs: see ../APP/Test_MEM.c  - plugin Test_MEM.mak
 INF_MEM__
-../doc/gCAD3D_prog_de.txt section Memoryfunktionen
-
-UME_add_oxt           replaced by UME_add_obj
-
-\endcode *//*----------------------------------------
-
 
 
 
@@ -847,8 +846,8 @@ const Memspc UME_NUL = UME_NEW;
 
 
 
-  printf("UME_add_nRec recNr=%d sizRec=%d\n",recNr,sizRec);
-    printf(" pos-1=%p\n",*pos);
+  // printf("UME_add_nRec recNr=%d sizRec=%d\n",recNr,sizRec);
+    // printf(" pos-1=%p\n",*pos);
 
   osiz = recNr * sizRec;
 
@@ -862,7 +861,7 @@ const Memspc UME_NUL = UME_NEW;
   // update ptr
   *pos = vpd;
 
-    printf(" pos-2=%p\n",*pos);
+    // printf(" pos-2=%p\n",*pos);
 
   return 0;
 
@@ -944,9 +943,12 @@ const Memspc UME_NUL = UME_NEW;
   ObjGX   *ox1;
 
 
-  printf("--------- UME_add_obj form=%d oNr=%d\n",form,oNr);
-  DEB_dump_nobj__ (form, oNr, data, "UME_add_obj-in");
-  if(form == Typ_ObjGX) DEB_dump_ox_s_ (data, "UME_add_obj-in");
+    // TESTBLOCK
+    // printf("--------- UME_add_obj form=%d oNr=%d\n",form,oNr);
+    // DEB_dump_nobj__ (form, oNr, data, "UME_add_obj-in");
+    // if(form == Typ_ObjGX) DEB_dump_ox_s_ (data, "UME_add_obj-in");
+    // END TESTBLOCK
+
   pStart = data;
 
 
@@ -955,28 +957,34 @@ const Memspc UME_NUL = UME_NEW;
 
   //----------------------------------------------------------------
   case Typ_VC:
-    xSiz = sizeof(Vector);
-    goto L_cpy_noPtr;
+    xSiz = sizeof(Vector); goto L_cpy_noPtr;
 
-  //----------------------------------------------------------------
+  case Typ_VC2:
+    xSiz = sizeof(Vector2); goto L_cpy_noPtr;
+
+  case Typ_VC3F:
+    xSiz = sizeof(Vec3f); goto L_cpy_noPtr;
+
   case Typ_PT:
-    xSiz = sizeof(Point);
-    goto L_cpy_noPtr;
+    xSiz = sizeof(Point); goto L_cpy_noPtr;
 
-  //----------------------------------------------------------------
+  case Typ_PT2:
+    xSiz = sizeof(Point2); goto L_cpy_noPtr;
+
   case Typ_LN:
-    xSiz = sizeof(Line);
-    goto L_cpy_noPtr;
+    xSiz = sizeof(Line); goto L_cpy_noPtr;
 
-  //----------------------------------------------------------------
+  case Typ_LN2:
+    xSiz = sizeof(Line2); goto L_cpy_noPtr;
+
   case Typ_CI:
-    xSiz = sizeof(Circ);
-    goto L_cpy_noPtr;
+    xSiz = sizeof(Circ); goto L_cpy_noPtr;
 
-  //----------------------------------------------------------------
+  case Typ_CI2:
+    xSiz = sizeof(Circ2); goto L_cpy_noPtr;
+
   case Typ_CVELL:
-    xSiz = sizeof(CurvElli);
-    goto L_cpy_noPtr;
+    xSiz = sizeof(CurvElli); goto L_cpy_noPtr;
 
   //----------------------------------------------------------------
   case Typ_CVPOL:
@@ -1072,8 +1080,8 @@ const Memspc UME_NUL = UME_NEW;
     *po = pStart;
 
     // TESTBLOCK
-    printf("ex-UME_add_obj\n");
-    DEB_dump_obj__ (form, pStart, "ex-UME_add_obj");
+    // printf("ex-UME_add_obj\n");
+    // DEB_dump_obj__ (form, pStart, "ex-UME_add_obj");
       // // DEB_dump_ox_0 (objo, "ex OGX_ox_copy_obj");
     // END TESTBLOCK
 

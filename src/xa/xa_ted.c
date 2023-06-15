@@ -77,7 +77,7 @@ UI_GR_Sel_Filt_set 15  load texture
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 
 #include "../gui/gui__.h"              // Gtk3
 
@@ -285,7 +285,7 @@ static TexRef actTr;             // active TexRef (for Restore)
   MemObj  box0, box1, box2;
 
 
-  ifunc = INT_PTR(data);
+  ifunc = INT__PTR(data);
 
   printf("TED_win__ \n");
 

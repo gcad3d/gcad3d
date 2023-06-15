@@ -42,6 +42,7 @@ MemTab_int_add_range  add iNr records of incrementing integers starting with iis
 
 ------------------- IndTab
 MemTab_IndTab_add     add IndTab = table of int's
+MemTab_IndTab_test
 
 List_functions_end:
 =====================================================
@@ -77,6 +78,8 @@ Testprog: ../ut/tst_memTab.c
 #include "../ut/ut_geo_const.h"        // _INDTAB_NUL
 #include "../ut/ut_memTab.h"
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
+
+#include "../xa/xa_msg.h"              // MSG_* ERR_*
 
 
 
@@ -142,5 +145,38 @@ Testprog: ../ut/tst_memTab.c
 
 }
 
+
+//================================================================
+// TESTFUNCTIONS
+//================================================================
+
+#ifdef DEB
+
+//=========================================================================
+  int MemTab_IndTab_test () {
+//=========================================================================
+// test MemTab_IndTab
+
+
+  int   irc, ii;
+  MemTab(IndTab)  intb1 = _MEMTAB_NUL;
+
+
+  irc = MemTab_ini__ (&intb1, sizeof(IndTab), Typ_IndTab, 16);
+  if(irc < 0) return MSG_ERROR (ERR_EOM, "");
+
+  for(ii=0; ii<10; ii+=3) 
+    MemTab_IndTab_add (&intb1, ii, 3, 12);
+
+    MemTab_dump (&intb1, "SMSH_split__-L_DONE:");
+
+
+  MemTab_free (&intb1);
+
+  return 0;
+
+}
+
+#endif
 
 // EOF

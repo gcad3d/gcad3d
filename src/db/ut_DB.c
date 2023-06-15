@@ -333,7 +333,7 @@ DB_allocModBas     mdb_dyn   ModelBas  mnam  DYN_MB_INC
 
 
 #include "../ut/ut_geo.h"              //
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_obj.h"              // UTO_obj_save
 #include "../ut/ut_txt.h"              //
 #include "../ut/ut_TX.h"
@@ -4188,7 +4188,11 @@ int DB_del_Mod__ () {
  
   printf("DB_clear_ModBas %ld\n",ind);
 
-  mdb_dyn[ind] = _MODELBAS_NUL;
+  if(mdb_dyn) {
+    mdb_dyn[ind] = _MODELBAS_NUL;
+  } else {
+    TX_Print ("**** DB_clear_ModBas E1");
+  }
 
   return 0;
 
@@ -5844,7 +5848,8 @@ long DB_StoreVector (long Ind, Vector* vc1) {
 // In NC gibts doch was ähnliches .. ?
 
 
-  static unsigned long actCseg = 0;
+  static long long actCseg = 0;
+  // static unsigned long actCseg = 0;
   
 
   // printf("DB_CSEG__ %d %ld act=%ld\n",mode,actCseg,
@@ -5854,11 +5859,13 @@ long DB_StoreVector (long Ind, Vector* vc1) {
   if(mode == 1) {
     // reset !
     // DB_CSEG.next = (char*)DB_CSEG.start + actCseg;
-    DB_CSEG.next = (void*)((unsigned long)DB_CSEG.start + actCseg);
+    DB_CSEG.next = (void*)((long long)DB_CSEG.start + actCseg);
+    // DB_CSEG.next = (void*)((unsigned long)DB_CSEG.start + actCseg);
 
   } else {
     // actCseg = (char*)DB_CSEG.next - DB_CSEG.start;
-    actCseg = (unsigned long)DB_CSEG.next - (unsigned long)DB_CSEG.start;
+    actCseg = (long long)DB_CSEG.next - (long long)DB_CSEG.start;
+    // actCseg = (unsigned long)DB_CSEG.next - (unsigned long)DB_CSEG.start;
   }
 
   return 0;
@@ -5902,15 +5909,14 @@ long DB_StoreVector (long Ind, Vector* vc1) {
 }
 */
 
+
 //====================================================================
   int DB_CSEG_ck () {
 //====================================================================
-/// \code
-/// testen, ob noch mind 25 K in CDAT frei sind;
-/// wenn nein: realloc UND stop !
-/// RC =  0: genug Platz vorhanden ...
-/// RC = -1: realloc done, restart.
-/// \endcode
+// testen, ob noch mind 25 K in CDAT frei sind;
+// wenn nein: realloc UND stop !
+// RC =  0: genug Platz vorhanden ...
+// RC = -1: realloc done, restart.
 
   unsigned long  freeSpc;
 
@@ -6413,19 +6419,18 @@ void* DB_cPos () {
 //====================================================================
 void* DB_cSav (long size, void *data) {
 //====================================================================
-/// \code
-/// <size> Bytes aus data nach DB_CDAT speichern.
-/// Output:
-///   RetCod:   the position in DB_CDAT AFTER storage  (unlike UME_save !)
-///             NULL is Error !
-/// Get active position with DB_cPos();
-/// \endcode
+// <size> Bytes aus data nach DB_CDAT speichern.
+// Output:
+//   RetCod:   the position in DB_CDAT AFTER storage  (unlike UME_save !)
+//             NULL is Error !
+// Get active position with DB_cPos();
 
 
   int    irc;
 
 
   // printf("DB_cSav siz=%ld free %d\n",size,UME_ck_free(&DB_CSEG));
+  // UME_dump(&DB_CSEG, "DB_cSav");
 
   // round up to 4
   size = UTI_round_4up (size);

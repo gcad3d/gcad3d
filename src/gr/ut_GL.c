@@ -613,15 +613,15 @@ cl -c ut_GL.c
 ==========================================================================
 */
 
-
-#ifdef _MSC_VER
-#include "../xa/MS_Def1.h"
-#define GL_COMBINE 0x8570
+#if defined _MSC_VER
+#include <windows.h>
 #endif
 
-#ifdef _MSC_VER
+
+#if defined _MSC_VER || __MINGW64__
 // wird von GL_VERSION_1_1 nicht geliefert; nur von V2 !
-#define GL_BGR          0x80E0
+#define GL_COMBINE 0x8570
+#define GL_BGR     0x80E0
 #endif
 
 
@@ -652,7 +652,7 @@ cl -c ut_GL.c
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"                // 
 #include "../ut/ut_TX.h"                 // TX_Error
-#include "../ut/ut_cast.h"               // INT_PTR
+#include "../ut/ut_cast.h"               // INT__PTR
 #include "../ut/ut_os.h"                 // AP_get_bas_dir
 #include "../ut/func_types.h"                 // ATT_LN_RAY
 
@@ -2142,7 +2142,7 @@ GLuint GL_fix_DL_ind  (long*);
 //================================================================
 // print with white background; for print and for "wait for menu"
  
-  printf("GL_Print_Redraw \n");
+  // printf("GL_Print_Redraw \n");
 
 
   GL_mode_draw_select = GR_MODE_PRINT1;
@@ -7182,6 +7182,12 @@ static double old_view_Z = 0.;
 
   GL_ScalBack (GL_Scale_back);
 
+  
+  //----------------------------------------------------------------
+  // set selection-zone
+  UT_TOL_sel = GL_Scale_back * 30;
+    // printf(" UT_TOL_sel=%lf\n",UT_TOL_sel);
+
 
   //----------------------------------------------------------------
   // set backScaling for Images
@@ -10061,7 +10067,7 @@ Die ruled Surf in GL_ptArr30 und GL_ptArr31 hinmalen.
     //---------------------------------------------------
     } else if(actPP->form == Typ_Int4) {
       if(actPP->typ == Typ_Texture) {
-        iTex = INT_PTR (actPP->data);
+        iTex = INT__PTR (actPP->data);
         // yet unused ..
         continue;
       } else if(actPP->typ == Typ_Color) {
@@ -10543,7 +10549,7 @@ glCallList (DL_shade_wire);
 
   // get polygon from curve
   oNr = 1;
-  irc = UT3D_mtpt_obj (&mtpa, NULL, form, obj, oNr, dbi, mdli, tol, grMode);
+  irc = UT3D_mtpt_obj (&mtpa, NULL, NULL, form, obj, oNr, dbi, mdli, tol, grMode);
   if(irc < 0) {TX_Error("GL_set_ocv E2"); goto L_exit;}
 
   ptNr = mtpa.rNr;

@@ -194,7 +194,7 @@ int GUI_TUT_m_CB (GtkWidget *widget, GdkEventExpose *event, gpointer userdata)
     } else {
       IcoTab[i1] = gdk_pixbuf_new_from_file(cbuf, &error);
       if (error) {
-        TX_Error ("Could not load icon: %s\n", error->message);
+        TX_Error ("Could not load icon: %s - %s\n", cbuf, error->message);
         g_error_free(error);
         error = NULL;
       }

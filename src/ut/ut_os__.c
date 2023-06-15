@@ -41,6 +41,13 @@ OS_file_sig_wait         wait for signalfile & get its content
 
 List_functions_end:
 =====================================================
+see also
+../ut/ut_os.h
+../ut/ut_os_uix.c
+../ut/ut_os_ms.c
+../ut/os_dll_uix.c
+../ut/os_dll_ms.c
+../ut/ctrl_os_ms.c
 
 \endcode *//*----------------------------------------
 
@@ -54,7 +61,7 @@ List_functions_end:
 #include <winspool.h>
 #else
 #include <dirent.h>        // f. DIR ..
-#include <sys/utsname.h>
+//#include <sys/utsname.h>   // ?
 #include <sys/time.h>
 #include <signal.h>
 #include <unistd.h>          ///f. access, R_OK .. 
@@ -72,7 +79,7 @@ List_functions_end:
 #include <float.h>                    // DBL_MAX
 #include <errno.h>
 
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_txt.h"              // UTX_..
 #include "../ut/ut_os.h"
 
@@ -81,7 +88,7 @@ List_functions_end:
 //================================================================
    int OS_setenv (char *var, char *dir) {
 //================================================================
-// returns -1 on error
+// returns -1 on error; 0=OK
 
   int   irc;
   char   s1[800], sDir[400];
@@ -92,9 +99,9 @@ List_functions_end:
   if(strlen(dir) >= 400) {TX_Error("OS_setenv dir too long"); return -1;}
   strcpy(sDir, dir);
 
-  // resolv OS-? in dir
-  irc = OS_osVar_eval (sDir, sizeof(sDir));
-  if(irc < 0) {TX_Error("OS_osVar_eval %s",dir); return -1;}
+  // expand shell variables in string
+  irc = OS_osVar_eval_1 (sDir, sizeof(sDir));
+  if(irc < 0) {TX_Error("OS_osVar_eval_1 %s",dir); return -1;}
 
   // printf(" OS_setenv-1 |%s|\n",sDir);
 
@@ -116,10 +123,12 @@ List_functions_end:
 
 #else
   // Unix
-  irc = setenv (var, sDir, 1);
+  // irc = setenv (var, sDir, 1);
+  sprintf(s1, "%s=%s", var, sDir);
+  irc = putenv (s1);
 #endif
 
-    // printf("OS_setenv irc=%d |%s|%s|\n",irc,var,dir);
+    printf("OS_setenv irc=%d |%s|%s|\n",irc,var,dir);
 
   L_exit:
     if(irc < 0) printf("****** error OS_setenv |%s|%s|\n",var,dir);
@@ -143,7 +152,7 @@ List_functions_end:
 //   if(!os_tmp_dir[0]) {
 //     p1 = getenv ("TEMP");           // %TEMP%
 //     strcpy(os_tmp_dir, p1);
-//     UTX_add_fnam_del (os_tmp_dir);
+//     UTX_fdir_add_del (os_tmp_dir);
 // 
 //       // TESTBLOCK
 //       // printf(" OS_get_tmp_dir |%s|\n",os_tmp_dir);
@@ -185,7 +194,7 @@ List_functions_end:
   if(fNam[0] == '/') return 0;
 
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   if(fNam[0] == '\\') return 0;
   if(fNam[1] == ':') return 0;
 #endif
@@ -273,8 +282,8 @@ List_functions_end:
         // printf(" wr s |%s|\n",TXT_PTR(data));
 
     } else if(mode ==  2) {
-      fprintf(fpo, "%d", INT_PTR(data));
-        printf(" wr int %d\n",INT_PTR(data));
+      fprintf(fpo, "%d", INT__PTR(data));
+        printf(" wr int %d\n",INT__PTR(data));
 
 
     } else if(mode == -1) {

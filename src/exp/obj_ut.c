@@ -140,23 +140,16 @@ illum 2
 // #include <windows.h>
 // #endif
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
+
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-
-#ifdef _MSC_VER
-// die folgenden Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main (void*);
-__declspec(dllexport) int obj_read__ (char*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
 
 
 // #include <GL/gl.h>                     // GL_TRIANGLE_FAN
@@ -165,7 +158,7 @@ __declspec(dllexport) int obj_read__ (char*);
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // UTX_db_tx
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_txTab.h"            // TxtTab
 #include "../ut/ut_os.h"                 // AP_get_tmp_dir
@@ -173,6 +166,14 @@ __declspec(dllexport) int obj_read__ (char*);
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 #include "../xa/mdl__.h"               // SIZMFTot
 
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main (void*);
+export int obj_read__ (char*);
+
+
+//
 // MS-Win:
 // static char mem_cbuf1[512];
 // static int mem_cbuf1_SIZ = 512;
@@ -227,7 +228,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
   oTab   = ((ObjGX*)fdat)->data;
-  mode   = INT_PTR(oTab[0].data);  // 1) Typ_Int4   mode; 1=work, 3=free.
+  mode   = INT__PTR(oTab[0].data);  // 1) Typ_Int4   mode; 1=work, 3=free.
   fnam   = oTab[1].data;           // 2) Typ_Txt    filename
   impSpc = oTab[2].data;           // 3) Typ_Memspc outSpc
 
@@ -516,7 +517,8 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
       if(colInd < 0) col1 = AP_defcol;
       else col1 = colTab.data[colInd];
       // add color-record
-      oxc.data = (void*)(*((long*)&col1));
+      oxc.data = (void*)(*((long long*)&col1));
+      // oxc.data = (void*)(*((long*)&col1));
       ((ObjGX*)pp)[fNr] = oxc;   // write PP-Record
       ++fNr;
       continue;
@@ -554,9 +556,9 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
   //================================================================
   // size setzen ..
-  ox1->data = (void*)((long)((char*)impSpc->next - (char*)ox1 -
-              sizeof(ObjGX)));  // - size-record
-    // printf(" recSiz = %d\n",INT_PTR(ox1->data));
+  ox1->data = (void*)((long long)((char*)impSpc->next - (char*)ox1 - sizeof(ObjGX)));
+  // ox1->data = (void*)((long)((char*)impSpc->next - (char*)ox1 - sizeof(ObjGX)));
+    // printf(" recSiz = %d\n",INT__PTR(ox1->data));
 
 
   // alle ?

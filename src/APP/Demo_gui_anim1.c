@@ -52,9 +52,9 @@ Weiter:
 */
 
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def1.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -64,26 +64,9 @@ Weiter:
 #include <stdarg.h>       // fuer Variad. Funktionen (...)
 #include <time.h>         // f clock
 
-/*
-#include <GL/gl.h>
-#include <GL/glu.h>
-*/
-
-
-
-#ifdef _MSC_VER
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
-
-
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_os.h"               // AP_get_bas_dir ..
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 
 #include "../gui/gui__.h"
 
@@ -94,6 +77,13 @@ __declspec(dllexport) int gCad_fini ();
 
 
 
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main ();
+export int gCad_fini ();
+
+
+//----------------------------------------------------------------
 static int anim_stat;
   //  0  uninitialized
   // -1  stop is active
@@ -465,7 +455,7 @@ static MemObj    win0;
 
 
   i1 = GUI_DATA_I1;
-  // i1 = INT_PTR(data);
+  // i1 = INT__PTR(data);
 
   printf("Ani_win__ %d\n",i1);
 

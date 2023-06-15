@@ -158,7 +158,7 @@ APT_work_PrgCodTab
 
 #include "../ut/ut_geo.h"             // ModelRef
 #include "../ut/ut_txt.h"             // fnam_del
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 
 #include "../ut/func_types.h"              // UI_FuncSet
 #include "../ut/ut_os.h"              // AP_get_bas_dir
@@ -220,7 +220,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
 
   // let user select catPart or other catalog
   i1 = GUI_listf1__ (s1, sizeof(s1), cpn,
-                     "\"- select part or change catalog -\"", "\"x40,y40,a\"");
+                     "- select part or change catalog -", "x40,y40,a");
   if(i1 < 0) return -1;  // cancel or error
     // printf(" ctlg-part-select |%s|\n",s1);
 
@@ -232,7 +232,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   L_sel_ctlg:
   sprintf(cfn,"%sCatalog.lst",AP_get_tmp_dir());
   i1 = GUI_listf1__ (s1, sizeof(s1), cfn,
-                     "\"- select catalogpart -\"", "\"x40,y40,a\"");
+                     "- select catalogpart -", "x40,y40,a");
   if(i1 < 0) return -1;  // cancel or error
     // printf(" ctlg-select |%s|\n",s1);
 
@@ -729,7 +729,7 @@ static const char* CATLG_DATFIL_TYP = "ctlg_dat";
   
 
   // list dir/*.typ
-  if(UTX_dir_listf (fnam, dirNam, NULL, ".ctlg") < 0) {
+  if(UTX_dir_listf (fnam, dirNam, NULL, ".ctlg", 0) < 0) {
     TX_Error("CTLG_Lst_write E001");
     return 0;
   }

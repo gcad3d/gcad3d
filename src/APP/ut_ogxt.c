@@ -40,8 +40,8 @@ OXMT_init_mm         malloc ox-space, malloc variable-length-space
 OXMT_init_mx         malloc ox-space, existing variable-length-space
 OXMT_free
 
-OXMT_add_oxt         add obj-tree (<oNr> complex-objects with data)
-OXMT_add_ume         add all data to OgxTab.spc, return address
+OXMT_add_oxt         add obj-tree (<oNr> complex-objects) into MemTab OgxTab.spc
+OXMT_add_ume         add all data into Memspc OgxTab.spc
 OXMT_reserve_osp     reserve space in OgxTab.spc (occupy, do not write)
 
 OXMT_MEMTAB_IND      nr of root-objects in OgxTab.ogx
@@ -52,6 +52,7 @@ OXMT_dump__
 OXMT_dump_1
 OXMT_test_1
 OXMT_test_2
+OXMT_test_3
 
 
 List_functions_end:
@@ -74,7 +75,7 @@ OgxTab is a container of a MemTab .ogx plus a Memspc .spc -
   MemTab is a list of Fixed-Length-Records                           see INF_MemTab
   Memspc is a list of Variable-Length-Records                        see INF_Memspc
 
-
+See also INF_ObjTab
 
 Examples:
   OgxTab otb1 = _OGXTAB_NUL;
@@ -107,9 +108,11 @@ Files:
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_ogxt.h"             // OgxTab ..
-#include "../xa/xa_msg.h"              // MSG_*
 #include "../ut/ut_ox_base.h"          // OGX_SET_OBJ
 
+#include "../db/ut_DB.h"               // DB_GetObjGX
+
+#include "../xa/xa_msg.h"              // MSG_*
 
 // ../ut/ut_memTab.h MemTab
 // ../ut/ut_umem.h
@@ -221,7 +224,7 @@ typedef_MemTab(ObjGX);
 //==================================================================
   void* OXMT_add_ume (OgxTab *oxtb, int form, int oNr, void *data) {
 //==================================================================
-// OXMT_add_ume         add all data to OgxTab.spc
+// OXMT_add_ume         add all data into Memspc OgxTab.spc
 //   DOES ADD ObjGX-RECORDS ALSO INTO OgxTab.spc !
 //
 // Input:
@@ -246,6 +249,8 @@ typedef_MemTab(ObjGX);
   // // get startPos of siblings in oxtb.spc
   // os = UME_get_next (&oxtb->spc);
 
+
+  //----------------------------------------------------------------
   // copy all records into oxtb->spc
   os = UME__copy (&oxtb->spc, &l1, data, ils * oNr);
   if(os == NULL) return NULL;
@@ -268,18 +273,22 @@ typedef_MemTab(ObjGX);
         // TODO: integrate ObjGX into UME_cp_obj (recursion)
         return NULL;
       }
-      oo += ils;
+      // oo += ils;
+      oo = (char*)oo + ils;
     }
     goto L_exit;
   }
 
   oo = os;
 
-  // copy data for struct of type <form>
+
+  //----------------------------------------------------------------
+  // copy data for struct of type <form> -> oxtb->spc
   // loop tru records, store extern-data
   for(i1=0; i1<oNr; ++i1) {
     UME_cp_obj (&oxtb->spc, form, oo);
-    oo += ils;
+    // oo += ils;
+    oo = (char*)oo + ils;
   }
 
   //----------------------------------------------------------------
@@ -442,8 +451,13 @@ typedef_MemTab(ObjGX);
 
   printf("============================================== OXMT_test1 \n");
 
-  // get bMsh
+  //----------------------------------------------------------------
+  // create surf from 2 Circles
   irc = OXMT_test_2 (&bMsh, &otb1);
+
+  //----------------------------------------------------------------
+  // get bMsh
+  // irc = OXMT_test_3 (&bMsh, &otb1);
 
   //----------------------------------------------------------------
   // disp bMsh 
@@ -461,7 +475,105 @@ typedef_MemTab(ObjGX);
 //================================================================
   int OXMT_test_2 (ObjGX **bMsh, OgxTab *otb1) {
 //================================================================
-// OXMT_test1        create bMsh (tesselated surface) manually
+// OXMT_test_2            create surf from 2 Circles
+
+
+  int       irc, i1, i2;
+  long      dbiOB, dbiIB, dbiSu;
+  Point     ptc={130.,130.,100.};
+  Circ      ciOB, ciIB;
+  ObjGX     ox1, *pox1, *pox2, *poxSu;
+
+
+  printf("OXMT_test_2 \n");
+
+  // clear all
+  UI_men__ ("clear");
+
+
+  //----------------------------------------------------------------
+  // create binary obj circle ciOB from centerPt ptc and radius 40
+  UT3D_ci_ptvcr (&ciOB, &ptc, (Vector*)&UT3D_VECTOR_Z, 40.);
+
+  // create binary obj circle ciIB from centerPt ptc and radius 20
+  UT3D_ci_ptvcr (&ciIB, &ptc, (Vector*)&UT3D_VECTOR_Z, 20.);
+
+  // store circs in DB as dynamic objs
+  dbiOB = DB_StoreCirc (-1L, &ciOB);
+  dbiIB = DB_StoreCirc (-1L, &ciIB);
+    printf(" dbiOB=%ld dbiIB=%ld\n",dbiOB,dbiIB);
+
+//   // create PRCV for new bnd
+//   irc = PRCV_set_dbo__ (Typ_CV, iOB1);
+//   if(irc < 0) return -1;
+
+
+  //----------------------------------------------------------------
+  // get space for n output-surfaces in otps (automatic reallocating)
+  i1 = 16;     // i1 = nr of ObjGX-records
+  i2 = 512;    // nr of bytes for ObjGX-data
+  // get space of wrkSpc = memspc for surface-components (invalidates wrkSpc)
+  OXMT_init_mm (otb1, i1, i2);
+
+    // TESTBLOCK
+    OXMT_dump__ (otb1, "SMSH_ope__-OXMT_init_mx");
+    // return MSG_ERR__ (ERR_TEST, "");
+    // END TESTBLOCK
+
+
+  //----------------------------------------------------------------
+  // copy the supportSurface of sm1 into otb1.Memspc
+  OGX_SET_INDEX (&ox1, Typ_PLN, (long)DB_VCZ_IND);
+  pox1 = OXMT_add_ume (otb1, Typ_ObjGX, 1, &ox1);
+  if(!pox1) return MSG_ERR__ (ERR_internal, "");
+
+  // add ciOB as outer boundary -> otb1.Memspc
+  OGX_SET_INDEX (&ox1, Typ_CI, dbiOB);
+  pox2 = OXMT_add_ume (otb1, Typ_ObjGX, 1, &ox1);
+  if(!pox2) return MSG_ERR__ (ERR_internal, "");
+
+  // add ciIB as inner boundary -> otb1.Memspc
+  OGX_SET_INDEX (&ox1, Typ_CI, dbiIB);
+  pox2 = OXMT_add_ume (otb1, Typ_ObjGX, 1, &ox1);
+  if(!pox2) return MSG_ERR__ (ERR_internal, "");
+
+  // get ox1 = surf (root-obj) 1.Rec=support; 2.Rec=OB, 3.Rec=IB;
+  OGX_SET_OBJ (&ox1, Typ_SUTP, Typ_ObjGX, 3, pox1);
+
+  // add surf as ObjGX - copy ox1 -> otps.MemTab;
+  irc = OXMT_add_oxt (otb1, (ObjGX**)&poxSu, &ox1, 1);   // 
+  if(irc < 0) return MSG_ERR__ (ERR_internal, "");
+
+  // store surf in DB
+  dbiSu = -1L;
+  irc = DB_StoreSur (&dbiSu, poxSu);
+  if(irc < 0) return MSG_ERR__ (ERR_internal, "");
+
+    // TESTBLOCK
+    DEB_dump_obj__ (Typ_ObjGX, &ox1, "ox1");
+    OXMT_dump__ (otb1, "SMSH_ope__-OXMT_init_mx");
+    printf(" ogx.rNr=%d\n",otb1->ogx.rNr);
+    printf(" spc-used=%ld\n",UME_get_used(&otb1->spc));
+    printf(" dbiSu=%ld\n",dbiSu);
+    // return MSG_ERR__ (ERR_TEST, "");
+    // END TESTBLOCK
+
+
+  //----------------------------------------------------------------
+  // disp surf
+  APT_Draw__ (0, Typ_SUR, dbiSu);
+  DL_Redraw ();
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int OXMT_test_3 (ObjGX **bMsh, OgxTab *otb1) {
+//================================================================
+// OXMT_test_3       create bMsh (tesselated surface) manually
 // create a surface and add into otb1; return the pointer to bMsh
 // Result is:
 // typ=SurGL_(70) form=ObjGX(205) siz=2 dir=0        bMsh
@@ -487,7 +599,7 @@ typedef_MemTab(ObjGX);
 
   ObjGX  *pSur, *pPat, *dPat, oxa[2];
 
-  printf("============================================== OXMT_test_21 \n");
+  printf("============================================== OXMT_test_3 \n");
 
   // get space for 10 ObjGX and 16k data
   OXMT_init_mm (otb1, 10, 16000);        //, MEMTYP_STACK__);
@@ -527,7 +639,7 @@ typedef_MemTab(ObjGX);
 
     // OXMT_dump__ (otb1, "\nOXMT_tst1__-L2");
     // DEB_dump_ox_s1 (OXMT_MEMTAB_DAT(otb1), "sur-tess:");
-    DEB_dump_ox_s_ (pSur, "ex-OXMT_test_2");
+    DEB_dump_ox_s_ (pSur, "ex-OXMT_test_3");
 
 
   *bMsh = pSur;

@@ -755,7 +755,8 @@ const Fac3 FAC3_NUL = { 0, 0, 0, 16, 0, 0, 0 };
   Fac3  *fac1;
   
 
-  // printf("UFA_ife_getNf_ife iFac=%d iEdg=%d\n",iFac,iEdg);
+  // printf("UFA_ife_getNf_ife iFac=%d iEdg=%d fNr=%d\n",iFac,iEdg,fNr);
+  // if((iFac==2)&&(iEdg==2)&&(fNr==2)) DEB_stop();
 
 
   // get nfc = index neighbourFace
@@ -791,9 +792,9 @@ const Fac3 FAC3_NUL = { 0, 0, 0, 16, 0, 0, 0 };
 
       // TESTBLOCK
       if(irc < 0) {
-        printf("ex-UFA_if_getNf_ife iFac=%d iEdg=%d irc=%d nfc=%d nec=%d\n",
-               iFac, iEdg, irc, *nfc, *nec);
-        DEB_stop();
+        // printf("ex-UFA_if_getNf_ife iFac=%d iEdg=%d irc=%d nfc=%d nec=%d\n",
+               // iFac, iEdg, irc, *nfc, *nec);
+        // DEB_stop();
       }
       // END TESTBLOCK
 
@@ -5277,7 +5278,7 @@ UNUSED; ersetzt durch UFA_opt_ckOpt
 
 
   // TESTBLOCK
-  // printf("UFA_4fac_2fac_pt ipt=%d f00=%d e00=%d\n",ipt,f00,e00);
+  printf("UFA_4fac_2fac_pt ipt=%d f00=%d e00=%d\n",ipt,f00,e00);
   // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "UFA_4fac_2fac_pt");
   // UFA_nfb_ck__ (fTab->data, fnb, fTab->rNr, "UFA_4fac_2fac_pt");
   // UFA_fnb_dump__ (fTab->data, fnb, fTab->rNr, "4fac"); }

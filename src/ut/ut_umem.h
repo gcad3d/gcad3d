@@ -25,15 +25,13 @@
                       (char)0, (char)0, (char)0, (char)0 }
 
 
-/// \brief Typ_Memspc (a class for variable-length-records in memory)
-/// \code
-/// start   startpos of memspc
-/// next    first free pos of memspc
-/// end     position of start + memspcSiz
-/// spcTyp  type of space for oSpc; see MEMTYP_* in ../ut/ut_types.h
-///         see also INF_MEM_ORG_TYP
-/// incSiz  if Memspc is too small: add UTI_round_b2i(incSiz) bytes
-/// \endcode
+// \brief Typ_Memspc (a class for variable-length-records in memory)
+// start   startpos of memspc
+// next    first free pos of memspc
+// end     position of start + memspcSiz
+// spcTyp  type of space for oSpc; see MEMTYP_* in ../ut/ut_types.h
+//         see also INF_MEM_ORG_TYP
+// incSiz  if Memspc is too small: add UTI_round_b2i(incSiz) bytes
 typedef struct {void *start, *next, *end;
                 unsigned char spcTyp, incSiz, u3, u4;}                 Memspc;
 // size 32

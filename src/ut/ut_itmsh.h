@@ -21,6 +21,7 @@
 #define MSH_PATCH      10  // patch = group of faces (eg from GLU)
 #define MSH_SURF       11  // surface =  group of patches
 #define MSH_SKIN       12  // skin = group of surfaces; body if closed.
+#define MSH_SUPP_SUR   12  // supporting-surface
 #define MSH_ISEG_B     14  // segmentNrs for boundaries; aux=bndNr
 
 

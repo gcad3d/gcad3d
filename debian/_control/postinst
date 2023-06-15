@@ -40,6 +40,7 @@ if [ ! -z "$iVar" ]; then
 fi
 
 
+
 echo "Done."
 echo "Start program with \"gcad3d\" or from Graphics-menu or select its icon."
 

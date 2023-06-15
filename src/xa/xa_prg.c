@@ -55,6 +55,7 @@ PRG_inp_nxt                change Inputfield
 PRG_dec_defLn              check if Line cBuf is a Definitionline & decode
 PRG_eval_subst             evaluate String; eg change ""P<V1>=.." -> "P5=.."
 PRG_eval_expr              evaluate IF-expression
+PRG_clear              clear and unload plugin <APP_act_nam>
 
 PRG_update                 read data from form; copy data -> prog.
 PRG_dlg__                  fill FormTab
@@ -120,7 +121,7 @@ APP_act_nam
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txfil.h"            // UTF_GetnextLnPos
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_TX.h"               // TX_Print
 #include "../ut/func_types.h"          // UI_Func...
@@ -356,13 +357,13 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   sprintf(fnam,"%sProgram.lst",AP_get_tmp_dir());
 
   // list dir/*.typ
-  if(UTX_dir_listf (fnam, AP_dir_prg, NULL, ".gcap") < 0) {
+  if(UTX_dir_listf (fnam, AP_dir_prg, NULL, ".gcap", 0) < 0) {
     TX_Error("PRG_Del__ E001");
     return 0;
   }
 
   // display Liste of <symDir-CATALOG>/*.ctlg for userSelection
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"delete Application\"", "\"x40,y30\"");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "- delete Application -", "x40,y30");
   if(i1 < 0) return -1;
     // printf(" PRG_Del__-L1 |%s|\n",s1);
 
@@ -389,7 +390,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   }
 
   // unload active prg, clear
-  PLU_clear ();
+  PRG_clear ();
 
 
   L_exit:
@@ -399,8 +400,28 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
 //================================================================
+   int PRG_clear () {
+//================================================================
+// PRG_clear       clear and unload plugin <APP_act_nam>
+
+  printf("PRG_clear \n");
+
+  // unload active prg, clear
+  DLL_plu_unl ();
+  APP_act_typ = 0;
+  UI_Set_typPrg ();
+  strcpy(APP_act_nam, "-");
+  UI_Set_actPrg (APP_act_nam, 0);  // reset active program-name
+
+  return 0;
+
+}
+
+
+//================================================================
   int PRG_win__ (MemObj *mo, void **data) {
 //================================================================
+// PRG_win__             kill active Form ???
  
   static long dlAct;
   static long lnAct;
@@ -411,8 +432,6 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
   iFunc = GUI_DATA_I1;
-
-  PRG_get_prgDir ();
 
   // printf("PRG_win__ %d %d\n",iFunc,PRG_stat);
 
@@ -427,6 +446,9 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
       // return 0;
       GUI_Win_kill (&PRG_win0);
     }
+
+    PRG_get_prgDir ();   // get symDir "APPLI"
+
     PRG_stat = 1;
     
     dlAct = DL_get__ (NULL);
@@ -1257,7 +1279,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 //================================================================
   int PRG_start () {
 //================================================================
-// (re)run program <AP_dir_prg>/<APP_act_nam>.gcap
+// (re)run application <AP_dir_prg>/<APP_act_nam>.gcap
 // Wird von PRG_CB (selection of program in List) gerufen.
 // Wird auch vom Update-Button (UCB1) gerufen.
 // Wird vom core via Keyb-CB von Ctrl-P gerufen.
@@ -1329,9 +1351,9 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   // create filename
   // get full-filename from AP_dir_prg
   strcpy(s1, AP_dir_prg);
-  UTX_add_fnam_del (s1);          // add '/'
+  UTX_fdir_add_del (s1);          // add '/'
   MDLFN_ffNam_fNam (cbuf, s1);
-  UTX_add_fnam_del (cbuf);
+  UTX_fdir_add_del (cbuf);
   strcat(cbuf, APP_act_nam);
   strcat(cbuf, ".gcap");
   // sprintf(cbuf, "%s%s.gcap",AP_dir_prg,APP_act_nam);
@@ -1663,7 +1685,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 //================================================================
    int PRG_Loa () {
 //================================================================
-// make List of all available programs.
+// PRG_Loa                make/display List of all available *.gcap application
 // Add selected Application to list app.lst.
 // Activate selected Application.
 
@@ -1713,7 +1735,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
   // Liste mit Dir-Auswahl
-  i1 = AP_fnam_get_user_1 (2, cbuf1, AP_dir_prg, "select program", "\"*.gcap\"");
+  i1 = AP_fnam_get_user_1 (2, cbuf1, AP_dir_prg, "select program", "*.gcap");
   if(i1 < 0) return -1;
 
   return PRG_CB (cbuf1);

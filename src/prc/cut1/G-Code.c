@@ -36,7 +36,7 @@ cd ..\prc\cut1 && nmake -f G-Code.nmak
 
 
 /// FilenamedelimiterChar
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
 #define  fnam_del '\\'
 #define  fnam_del_s "\\"
 #else
@@ -63,11 +63,19 @@ cd ..\prc\cut1 && nmake -f G-Code.nmak
     TX_Error ("G-Code: 1.Parameter must be inputfilename");
     return -1;
   }
-    printf(" a0=|%s|\n",argv[0]);
-    printf(" a1=|%s|\n",argv[1]);
+
+
+  printf("\n");
+
+
+
+  printf("************************  gcad3d - PP G-Code -2023-04-17\n");
+    printf("  |%s|\n",argv[0]);
+    printf("  |%s|\n",argv[1]);
 
 
   strcpy(inFilnam, argv[1]);
+// strcpy(inFilnam, "../../gCAD3D/tmp/nc.apt");
   if((fpi=fopen(inFilnam,"r")) == NULL) {
     TX_Error("G-Code: OPEN ERROR FILE %s **********\n",inFilnam);
     return -1;
@@ -190,13 +198,13 @@ cd ..\prc\cut1 && nmake -f G-Code.nmak
 
   //================================================================
   printf("===================================== \n");
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   sprintf(cbuf, "CMD /C \"TYPE \"%s\"\"",outFilnam);
-  OS_system (cbuf);
 #else
   sprintf(cbuf, "cat %s",outFilnam);
-  system (cbuf);
 #endif
+  printf(" - %s\n",cbuf);
+  system (cbuf);
 
 
   return 0;

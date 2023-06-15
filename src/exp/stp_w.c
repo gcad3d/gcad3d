@@ -533,6 +533,9 @@ TODO:
 */
 
 
+// definition "export"
+#include "../xa/export.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -542,25 +545,12 @@ TODO:
 #include <setjmp.h>              // longjmp
 #include <time.h>                // localtime
 
+#include <GL/gl.h>                        // GL_TRIANGLES ..
+// #define GL_TRIANGLES        0x0004
+// #define GL_TRIANGLE_STRIP   0x0005
+// #define GL_TRIANGLE_FAN     0x0006
 
-// #include <GL/gl.h>                        // GL_TRIANGLES ..
-// CANNOT include <GL/gl.h>
-// /usr/include/GL/gl.h
-#define GL_TRIANGLES        0x0004
-#define GL_TRIANGLE_STRIP   0x0005
-#define GL_TRIANGLE_FAN     0x0006
-
-
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int STP_w__ (char*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
-
-#include "../ut/ut_cast.h"             // LONG_PTR
+#include "../ut/ut_cast.h"             // LONG__PTR
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
 #include "../ut/ut_txt.h"              // fnam_del
@@ -588,6 +578,11 @@ __declspec(dllexport) int STP_w__ (char*);
 #define STP_VERSION "V0.2"
 //----------------------------------------------------------------
 
+
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int  STP_w__ (char*);
 
 
 
@@ -5190,7 +5185,7 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
   //----------------------------------------------------------------
   } else {
     STP_w_log_err (
-      "NOT-YET-IMPLEMENTED - %s - typ = %d",typ,oid);
+      "NOT-YET-IMPLEMENTED - %s - typ = %d",oid,typ);
     return -1;
   }
 
@@ -5466,7 +5461,7 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
 
       } else if(oxs->typ == Typ_Texture) {
         // sCol = NULL;
-        iTex = INT_PTR (oxs->data);
+        iTex = INT__PTR (oxs->data);
           // printf(" facTex=%d\n",iTex);
 
 

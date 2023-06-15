@@ -24,15 +24,15 @@ OS_exec                  Perform OS-Command; do not wait for completion.
 OS_stdout__              direct console-output into file
 OS_checkFilExist         check if File or Directory exists
 OS_sys1                  get systemCommand (popen); skip if starting with "##"
-OS_osVar_eval        expand shell variables in string
-OS_get_tmp_dir                get directory for temporary files
-OS_edit__                 edit file with system-editor
-OS_get_edi                get system-editor
+OS_get_tmp_dir           get directory for temporary files
+OS_edit__                edit file with system-editor
+OS_get_edi               get system-editor
+OS_osVar_eval__          expand shell variables in string
+OS_osVar_eval_1          expand shell variables in string
 
 
 List_functions_end:
 =====================================================
-// OS_filnam_eval    DO-NOT-USE  - replaced by OS_osVar_eval
 
 see also
 ../ut/ut_os_w32.c    APP-specif. OS-functions
@@ -42,7 +42,9 @@ see also
 
 
 
-#include "../xa/MS_Def1.h"
+// #include "../xa/MS_Def1.h"
+#define _CRT_SECURE_NO_DEPRECATE
+#include <windows.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,6 +72,25 @@ see also
 // errno.h:
 extern int errno;
 
+
+//================================================================
+  char* OS_get_edi  () {
+//================================================================
+//  liefert bei Linux "gedit "
+//  strcpy(txbuf, OS_get_edi());
+
+
+  // static char os_edi[]="gedit ";
+
+  // XP: geht, wartet aber nicht auf Ende !
+  // static char os_edi[]="start notepad ";
+
+
+  static char os_edi[]="notepad ";
+
+  return os_edi;
+
+}
 
 
 //======================================================================
@@ -104,40 +125,6 @@ extern int errno;
 
   // exit(0);
 
-  return 0;
-
-}
-
-
-//========================================================================
-  int OS_file_rename (char *fnOld, char *fnNew) {
-//========================================================================
-// rename File; keine Wildcards !
-// MS u Unix gleich.
-
-  // printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
-
-  remove (fnNew);    // delete File (sonst get das rename ned ..)
-                     // ACHTUNG: keine Wildcards mit remove !
-
-  rename (fnOld, fnNew);
-
-  return 0;
-
-}
-
-
-//========================================================================
-  int OS_file_delete (char *fNam) {
-//========================================================================
-// delete File; keine Wildcards !
-// MS u Unix gleich.
-
-
-  // printf("OS_file_delete |%s|\n",fNam);
-
-  remove (fNam);    // delete File (sonst get das rename ned ..)
-                    // ACHTUNG: keine Wildcards mit remove !
   return 0;
 
 }
@@ -304,26 +291,6 @@ extern int errno;
     // printf(" ex-OS_exec %d\n",irc);
 
   return irc;
-
-}
-
-
-//================================================================
-  char* OS_get_edi  () {
-//================================================================
-//  liefert bei Linux "gedit "
-//  strcpy(txbuf, OS_get_edi());
-
-
-  // static char os_edi[]="gedit ";
-
-  // XP: geht, wartet aber nicht auf Ende !
-  // static char os_edi[]="start notepad ";
-
-
-  static char os_edi[]="notepad ";
-
-  return os_edi;
 
 }
 
@@ -506,49 +473,48 @@ extern int errno;
 
 
 //================================================================
-  int OS_osVar_eval (char *fn, int fnSiz) {
+  int OS_osVar_eval_1 (char *sio, int sSiz) {
 //================================================================
-// OS_osVar_eval        expand shell variables in string
+// OS_osVar_eval_1        expand shell variables in string
 // retCode:  0=OK; -1=error, -2=string-too-log
-// On Windows, you can use ExpandEnvironmentStrings.
-// preReq: <wordexp.h>
-//
-// Example: in  "${DIR_DEV}cadfiles/gcad/" 
-//          out "/mnt/serv2/devel/cadfiles/gcad/"
-//
-// was OS_filnam_eval
+// Input:
+//   si     string to expand; eg "${DIR_DEV}cadfiles/gcad/"
+//   soSiz  size of so
+// output:
+//   so     expanded text; eg "/mnt/serv2/devel/cadfiles/gcad/"
 
-  int    ii;
+
+  int    irc;
   char   *s1;
 
-  s1 = _alloca (fnSiz + 32);
-  strcpy(s1, fn);
+  s1 = _alloca (sSiz + 32);
+  strcpy(s1, sio);
 
-  ii = ExpandEnvironmentStrings (s1, fn, fnSiz);
-  if(!ii) ii = -1;
-  else    ii = 0;
+  irc = OS_osVar_eval__ (sio, s1, sSiz);
 
-    // printf(" ex-OS_osVar_eval %d |%s|%s|\n",ii,s1,fn);
+    // printf(" ex-OS_osVar_eval_1 %d |%s|%s|\n",irc,s1,sio);
 
-  return ii;
+  return irc;
 
 }
 
 
 //================================================================
-  int OS_filnam_eval (char *fno, char *fni, int fnoSiz) {
+  int OS_osVar_eval__ (char *so, char *si, int soSiz) {
 //================================================================
-// OS_filnam_eval        expand shell variables in filenames
+// OS_osVar_eval__        expand shell variables in filenames
 // ExpandEnvironmentStrings.
 
   int    ii;
 
 
-  ii = ExpandEnvironmentStrings (fni, fno, fnoSiz);
+  ii = ExpandEnvironmentStrings (si, so, soSiz);
+  if(!ii) ii = -1;
+  else    ii = 0;
 
-    // printf(" ex-OS_filnam_eval %d |%s|%s|\n",ii,fno,fni);
+    // printf(" ex-OS_osVar_eval_1 %d |%s|%s|\n",ii,s1,fn);
 
-  return 0;
+  return ii;
 
 }
 

@@ -1,4 +1,4 @@
-# make -f APP_GIS1.mak
+# make -f APP_GIS1.mak    mmak = MSYS
 
 
 DLLNAM = APP_GIS1

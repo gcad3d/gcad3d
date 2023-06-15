@@ -15,28 +15,30 @@ Meshing-exe:
 */
 
 
-
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _MSC_VER
-// export this functions
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// import functions exported from the core (see gCAD3D.def)
-#define extern __declspec(dllimport)
-#endif
-
 
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../xa/mdl__.h"               // SIZMF*
 
 
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main ();
+export int gCad_fini ();
+
+
+
 // ext aus xa.c:
 // extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
+
+// extern int OS_edit__ (char*);
 
 
 
@@ -123,28 +125,21 @@ __declspec(dllexport) int gCad_fini ();
   // do menu - 'GUI_gMsh1 "directory-dataFiles" "commandFilename"'
 
   // get s2 = filename executable GUI-menu
-#ifdef _MSC_VER
-  sprintf(s2, "%sGUI_gMsh1_gtk2_MS.exe",AP_get_bin_dir());
+#if defined _MSC_VER || __MINGW64__
+  sprintf(s2, "%sGUI_gMsh1_gtk2.exe",OS_bin_dir_get());
 #else
-  sprintf(s2, "%sGUI_gMsh1_gtk2",AP_get_bin_dir());
+  sprintf(s2, "%sGUI_gMsh1_gtk2",OS_bin_dir_get());
 #endif
 
   irc = OS_checkFilExist (s2, 1);
   if(!irc) {TX_Print("**** executable %s does not exist",s2); goto L_exit;}
 
   // do GUI_gMsh1 = create commandFile
-  // - in: s2 = exe-name; sDir = directory gMsh; 
-  //       fnCmd = filename infofile 
-  // - out: 2.line of file 
+  // - in: s2 = exe-name;
   // - makes testfile /tmp/debug.dat
-#ifdef _MSC_VER
-  // sDir is a directory, ending with '\'; for MS words must be included into  "..";
-  // - to avoid removing the last '\ ' must add a blank or a \ !!!!
-  // sprintf(s1,  "START \"\" /WAIT /B \"%s\" \"%s\\\" \"%s\"",s2,sDir,fnCmd);
-  // sprintf(s1,  "CMD /C \"\"%s\" \"%s\\\" \"%s\"\"",s2,sDir,fnCmd);
+#if defined _MSC_VER || __MINGW64__
   sprintf(s1,  "CMD /C \"\"%s\" \"%s\"\"",s2,fnTmp);
 #else
-  // sprintf(s1, "%s \"%s\" \"%s\"",s2,sDir,fnCmd);   // Linux
   sprintf(s1, "%s \"%s\"",s2,fnTmp);   // Linux
 #endif
   // sprintf(s1, "%s %s %s",s2,sDir,fnCmd);
@@ -201,18 +196,18 @@ __declspec(dllexport) int gCad_fini ();
     printf(" gMsh1-fnLog |%s|\n",fnLog);
 
   // set s2 = exe
-#ifdef _MSC_VER
-  // sprintf(s2, "%sgcad3d_gMsh.exe",AP_get_bin_dir());
-  sprintf(s2,  "%sgcad3d_gMsh.exe",AP_get_bin_dir());
+#if defined _MSC_VER || __MINGW64__
+  // sprintf(s2, "%sgcad3d_gMsh.exe",OS_bin_dir_get());
+  sprintf(s2,  "%sgcad3d_gMsh.exe",OS_bin_dir_get());
 #else
-  sprintf(s2, "%sgcad3d_gMsh",AP_get_bin_dir());
+  sprintf(s2, "%sgcad3d_gMsh",OS_bin_dir_get());
 #endif
   irc = OS_checkFilExist (s2, 1);
   if(!irc) {TX_Print("**** executable %s does not exist",s2); goto L_exit;}
 
   // s2 = full-exeFileName
   // fnCmd = commandfileName
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   sprintf(s1, "\"%s\" \"%s\"",s2,fnCmd);
 #else
   sprintf(s1, "%s %s",s2,fnCmd);
@@ -229,7 +224,7 @@ __declspec(dllexport) int gCad_fini ();
   if(!irc) goto L_exit;
 
   // find line "ENR <nrErrors> "
-  irc = UTX_setup_get__ (s2, "ENR", fnLog);
+  irc = UTX_setup_get (s2, "ENR", fnLog);
   if(irc) return -1;
     printf(" ENR= |%s|\n",s2);
 
@@ -240,7 +235,8 @@ __declspec(dllexport) int gCad_fini ();
   // display with sysEd
   if(i1) {
     TX_Print ("***** %d errors - check errorLog",i1);
-    OS_edit__ (fnLog);
+    // OS_edit__ (fnLog); - MSYS - unres. ??
+    APP_edit (fnLog, 0);
   }
 
 

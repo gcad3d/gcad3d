@@ -43,9 +43,9 @@ for info see in file ../ut/ut_gsrc.c   section  INF_GSRC
 
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def1.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -57,16 +57,13 @@ for info see in file ../ut/ut_gsrc.c   section  INF_GSRC
 #include "../gui/gui_types.h"          // GUI_Key*
 
 
-
-#ifdef _MSC_VER
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main ();
+export int gCad_fini ();
 
 
+//----------------------------------------------------------------
 // prototypes:
 
 

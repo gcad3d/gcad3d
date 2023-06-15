@@ -210,6 +210,7 @@ static char   TX_buf1[1024];
   UTX_CleanCR (TX_buf1);
 
   TX_Write (TX_buf1);
+  printf("%s\n",TX_buf1); fflush (stdout);
 
   AP_errStat_set (1);
 
@@ -231,17 +232,17 @@ static char   TX_buf1[1024];
   // printf("TX_Write %s\n",txt);
 
 
-#ifdef DEB
-  if(AP_stat.debStat) {
-    // printf("DEB: |%s|\n", txt);
-    fprintf(AP_deb_fp, "%s\n", txt);
-    fflush (AP_deb_fp);
-    return;
-  } else {
-    printf("%s\n",txt);
-    fflush (stdout);
-  }
-#endif
+// #ifdef DEB
+//   if(AP_stat.debStat) {
+//     // printf("DEB: |%s|\n", txt);
+//     fprintf(AP_deb_fp, "%s\n", txt);
+//     fflush (AP_deb_fp);
+//     return;
+//   } else {
+//     printf("%s\n",txt);
+//     fflush (stdout);
+//   }
+// #endif
 
   // if gui is not up yet:
   if(AP_stat.sysStat < 1) {

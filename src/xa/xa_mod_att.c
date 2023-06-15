@@ -82,7 +82,7 @@ cl -c /I ..\include xa_sur_mod.c
 #include "../ut/ut_os.h"
 #include "../ut/ut_txt.h"         // fnam_del
 #include "../ut/ut_txfil.h"       // UTF_FilBuf0Siz
-#include "../ut/ut_cast.h"        // INT_PTR
+#include "../ut/ut_cast.h"        // INT__PTR
 
 #include "../gui/gui__.h"
 
@@ -372,7 +372,7 @@ extern ColRGB     AP_defcol;
   // char       *p1, cbuf[32];
 
 
-  // i1 = INT_PTR(data);
+  // i1 = INT__PTR(data);
   i1 = GUI_DATA_I1;
 
 

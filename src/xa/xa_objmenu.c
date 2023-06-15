@@ -64,8 +64,9 @@ add new commands:
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txTab.h"            // TxtTab
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/os_dll.h"              // DLL_*
 
 #include "../gui/gui__.h"              // Gtk3
 
@@ -678,7 +679,9 @@ extern int       IE_modify;
 //      TYP_EventUnmap = 407 = unmap (widget disappears)
 // isel   selected rowNr or -1=Unmap;   -2=select; <-2=disactivate-row
 
-  static int isel=-1;
+static void *dll = NULL;
+static int  isel=-1;
+
   char   *namMain = "";
   char   s1[128];
 
@@ -699,7 +702,7 @@ extern int       IE_modify;
   // unhilite last hilited bj (IE_cad_inp_prev__())
   // if(iEv == TYP_EventUnmap) UI_prev_remove ();  // done by Ec-key ..
 
-  // if(event->type == GDK_ENTER_NOTIFY) {isel = LONG_PTR(data); return 0;} // 10
+  // if(event->type == GDK_ENTER_NOTIFY) {isel = LONG__PTR(data); return 0;} // 10
   // if(event->type == GDK_LEAVE_NOTIFY) {isel = -1L; return 0;}        // 11
   // if(event->type != GDK_BUTTON_RELEASE) return 0;                   // 7
   if(iEv != TYP_EventPress) return 0; 
@@ -892,9 +895,9 @@ extern int       IE_modify;
         // reBuild plugin
         if(AP_stat.comp) {
 #ifdef _MSC_VER
-          irc = OS_dll_build ("xa_edmpt.dll");
+          irc = DLL_build ("xa_edmpt.dll");
 #else
-          irc = OS_dll_build ("xa_edmpt.so");
+          irc = DLL_build ("xa_edmpt.so");
 #endif
             printf(" build=%d\n",irc);
           if(irc != 0) return -1;
@@ -905,7 +908,8 @@ extern int       IE_modify;
         pa[1] = &actObj.dbInd;
         pa[2] = &actObj.dlInd;
         // load, start, do not unload dll until button exit.
-        OS_dll_do ("xa_edmpt", "EDMPT__", &pa, 1);
+        // OS_dll_do ("xa_edmpt", "EDMPT__", &pa, 1);
+        AP_kex_exec (&dll, "xa_edmpt", "EDMPT__", &pa, DLL_LOAD_EXEC);
       }
 // TX_Print("********** see ../xa/tst_edmpt.c *** ");
       break;
@@ -967,6 +971,10 @@ extern int       IE_modify;
       // init delete obj & depending objs
       // ii = Del_init (actObj.typ, actObj.dbInd, actObj.dlInd); // old version
       Del_obj__ (actObj.typ, actObj.dbInd);
+
+      // unload dll
+      AP_kex_exec (&dll, "xa_edmpt", NULL, NULL, DLL_UNLOAD);
+
       break;
 
 

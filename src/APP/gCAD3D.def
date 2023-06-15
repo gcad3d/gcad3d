@@ -413,8 +413,6 @@ APT_solv3d_LOY
 APT_solv3d_LOZ
 APT_solv3D_mod
 APT_solv_ln_parl_mod
-APT_solv_mod
-APT_solv_mod_1
 APT_solv_vc_mod
 APT_solv_x_max
 APT_solv_x_min
@@ -2150,6 +2148,7 @@ IN_Dreh
 INDTAB_NUL
 INF_GSRC
 INF_IntTab
+INF_TODO_PntCV
 INF_tstf__
 INF_TxtTab
 IN_Mod2In
@@ -2411,9 +2410,11 @@ MemTab_dump
 MemTab_free
 MemTab_get
 MemTab_IndTab_add
+MemTab_IndTab_test
 MemTab_ini__
 MemTab_ini_add
 MemTab_ini_fixed
+MemTab_ini_UME
 MemTab_ins
 MemTab_int_add_range
 MemTab_load
@@ -2547,7 +2548,6 @@ OS_file_sig_wait
 OS_files_join
 OS_file_waitExist
 OS_file_zip
-OS_filnam_eval
 OS_FilSiz
 OS_filterff
 OS_get_bits
@@ -2569,7 +2569,8 @@ OS_get_user
 OS_get_vwr_ps
 OS_Init_
 OS_jpg_bmp
-OS_osVar_eval
+OS_osVar_eval__
+OS_osVar_eval_1
 OS_prc__
 OS_prc_dll
 OS_prc_time_diff
@@ -3962,6 +3963,7 @@ UT3D_cv_srbspU
 UT3D_cv_srbspV
 UT3D_cv_sru_
 UT3D_cv_sruCv
+UT3D_dir_ell_cvt
 UT3D_du_bsplTol
 UT3D_dump_add
 UT3D_el_ci
@@ -4620,7 +4622,6 @@ UTO_copy_obj
 UTO_copy_stru
 UTO_copy_tab
 UTO_CUT__
-UTO_cv_ck_clo
 UTO_cv_ck_dir_clo
 UTO_cv_cvtrm
 UTO_cv_set_unl
@@ -4760,6 +4761,7 @@ UT_TOL_min1
 UT_TOL_min2
 UT_TOL_PAR
 UT_TOL_pt
+UT_TOL_sel
 UT_VAL_MAX
 UT_VAL_MIN
 UTX_2db_tx

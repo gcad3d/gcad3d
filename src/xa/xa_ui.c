@@ -16,7 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+  see UI_PRI__ - cannot unload print window ..
 
 -----------------------------------------------------
 Modifications:
@@ -79,6 +79,7 @@ AP_User_reset         alle reset-funcs, die bei MS-Win u Linux gleich sind
 PLU_appNamTab_set   provide names for application-objects
 UI_CAD_activate
 UI_PRI__              export / print
+UI_PRI_unl            unload dll xa_print__
 UI_vwz__
 UI_vwz_CB
 UI_loadImg_CB
@@ -186,7 +187,7 @@ cl -c /I ..\include xa_ui.c
 
 
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
 #include "../xa/MS_Def1.h"
 #else
 #include <dlfcn.h>           // Unix: dlopen
@@ -209,12 +210,13 @@ cl -c /I ..\include xa_ui.c
 #include "../ut/ut_os.h"
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_txfil.h"            // UTF_FilBuf0Siz
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_col.h"              // COL_INT32
 #include "../ut/func_types.h"          // FUNC_DispWire
 #include "../ut/ut_memTab.h"           // MemTab
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
+#include "../ut/os_dll.h"              // DLL_*
 
 #include "../gui/gui__.h"              // Gtk3
 
@@ -336,7 +338,7 @@ extern Vector *GL_eyeZ;
          box1C2,
          box1V, box1V1, box1V2,
          box1A, box1X, box1Y,
-         box2B1, box2B2,
+box2Ap, box2Bp,
          but_go, but_step, but_end,
          menu_bar, men_fil, men_mod, men_opt, men_mdf, men_ins, men_sel,
          men_cat, men_exp1, men_exp2, men_hlp, men_app, men_prc, men_plu, men_rpc,
@@ -382,6 +384,8 @@ int    UI_Focus      = 0;      // wer Focus hat; 0=GL, 1=Edit, 2=ViewZ-Entryfeld
 
 int    (*UI_UserKeyFunc) ();        // ob KeyIn an eine UserFunction geht
 
+void   *dll_pri = NULL;        // dll for print pdf
+
 // // table of user-defined names of application-objects
 // APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
 
@@ -414,8 +418,9 @@ int UI_EditMode = UI_EdMode_Add;
 int xa_fl_TxMem;
 
 
-// char    UI_fnamFilt[80] = "*";               // filenamefilter
-char    UI_fnamFilt[80] = "\"*\"";   // filenamefilter (needs \" else expands
+// char    UI_fnamFilt[80] = "*";       // filenamefilter
+// char    UI_fnamFilt[80] = "\"*\"";   // filenamefilter (needs \" else expands
+char    UI_fnamFilt[80] = "";           // C MSYS: expands "*"
 
 
 // static char txbuf[10000];
@@ -1439,7 +1444,7 @@ box1C1v, box1X, box1Y, wTx->view, ckb_mdel, boxRelAbs, ckb_Iact
     isel = -1;
 
   } else if (event->type == GDK_ENTER_NOTIFY) {
-    isel = LONG_PTR(data);
+    isel = LONG__PTR(data);
 
   } else if (event->type == GDK_UNMAP) {
     UI_sur_act_CB1 (NULL, isel);
@@ -1470,7 +1475,7 @@ static char LstBuf[LstSiz][32];
 
 
 
-  i1 = INT_PTR(data);
+  i1 = INT__PTR(data);
 
   // printf("UI_wcg_CBprog %d\n",(int)data);
   printf("UI_sur_act_CB1 %d\n",i1);
@@ -1574,7 +1579,7 @@ static char LstBuf[LstSiz][32];
 //   iCol      0=black; 1=red, 2=blue, -1=do_not_modify_color
 
 
-  // printf("UI_Set_actPrg |%s| %d\n",prgNam,iCol);
+  printf("UI_Set_actPrg |%s| %d\n",prgNam,iCol);
 
 
   if(iCol >= 0)
@@ -1638,7 +1643,7 @@ static char LstBuf[LstSiz][32];
   static char *spTyp[] = {"-","Application","Process","Plugin","RemoteProcess"};
 
 
-  // printf("UI_Set_typPrg\n");
+  printf("UI_Set_typPrg %d\n",APP_act_typ);
 
   if(APP_act_typ > 0) {
     GUI_label_mod (&UIw_typPrg, spTyp[APP_act_typ]);
@@ -1849,7 +1854,7 @@ static char LstBuf[LstSiz][32];
   gchar     *gtxt;
   GtkWidget *w_nam;
 
-  typ = INT_PTR(data);
+  typ = INT__PTR(data);
 
 
   // printf("UI_creObjHdr %d\n",typ);
@@ -2448,51 +2453,57 @@ static char LstBuf[LstSiz][32];
 }
 
 
+
 //================================================================
-  int UI_PRI__ (int mode) {
+  int UI_PRI_unl () {
 //================================================================
-//
-/// Input:
-///   mode       FUNC_EXEC   = load & start dll
-///              FUNC_UNLOAD = unload dll
+// UI_PRI_unl             unload dll xa_print__ if not active
+
+  printf("UI_PRI_unl AP_stat.fVwr = %d\n",AP_stat.fVwr);
+return 0;
+
+  if(AP_stat.fVwr) {
+      printf("- unload print-dll\n");
+    // PRI_UI__ (NULL, GUI_SETDAT_EI(TYP_EventPress, UI_FuncExit));
+    AP_kex_exec (&dll_pri, "xa_print__", "PRI__", NULL, DLL_LOAD_EXEC);
+    DLL_dyn__ (&dll_pri, DLL_UNLOAD, NULL);
+    AP_stat.fVwr = 0;
+  }
+
+  return 0;
+
+}
 
 
-  static void  *dll1 = NULL; // pointer to loaded dll "xa_print__.so"
+//================================================================
+  int UI_PRI__ () {
+//================================================================
+// UI_PRI__                activate printing dll xa_print__
 
+  printf("UI_PRI__ AP_stat.fVwr = %d dll_pri = %p\n",AP_stat.fVwr,dll_pri);
 
-  // printf("UI_PRI__ %d\n",mode);
+  if(AP_stat.fVwr) {
+    // active; do nothing
+    return 0;
 
-
-  //----------------------------------------------------------------
-  if(mode == FUNC_EXEC) {   // load & start
-    // TESTBLOCK
-    if(dll1 != NULL) OS_dll__ (&dll1,  FUNC_RECOMPILE, "xa_print__");  // rebuild
-    // END TESTBLOCK
-
-    // load dll
-    if(dll1 == NULL) OS_dll__ (&dll1,  FUNC_LOAD_only, "xa_print__");
-
-    // connect func
-    OS_dll__ (&dll1,  FUNC_CONNECT, "PRI__");
-
-    // start func
-    OS_dll__ (&dll1,  FUNC_EXEC, NULL);
-
-
-  //----------------------------------------------------------------
-  } else if(mode == FUNC_UNLOAD) {   // unload
-    if(dll1 != NULL) {
-      // test if window is active
-      if(GUI_Win_exist ("Export/Print")) {
-        printf("**** UI_PRI__ E001\n");
-        return -1;
-      }
-      OS_dll__ (&dll1,  FUNC_UNLOAD, NULL); // unload
-    }
+  } else {
+    // load and start print-menu
+    return AP_kex_exec (&dll_pri, "xa_print__", "PRI__", NULL, DLL_LOAD_EXEC);
   }
 
 
-  return 0;
+// TODO:
+// cannot unload plugin before window is closed;
+// - cannot close window by program (eg PRI_UI__ .. UI_FuncExit in PRI__
+// - so keep it loaded permanent ..
+// - plugins sperren top-menu; ("File" ..)
+//   if(!AP_stat.fVwr) {
+//       printf("- unload print-dll\n");
+//     // PRI_UI__ (NULL, GUI_SETDAT_EI(TYP_EventPress, UI_FuncExit));
+//     // AP_kex_exec (&dll_pri, "xa_print__", "PRI__", NULL, DLL_LOAD_EXEC);
+//     DLL_dyn__ (&dll_pri, DLL_UNLOAD, NULL);
+//   }
+
 
 }
 
@@ -2814,10 +2825,10 @@ static char LstBuf[LstSiz][32];
 //
   int idat;
 
-  printf("UI_del_CB %d\n",INT_PTR(data));
+  printf("UI_del_CB %d\n",INT__PTR(data));
 
 
-  if(INT_PTR(data)== UI_FuncOK) {
+  if(INT__PTR(data)== UI_FuncOK) {
     // del. file ...
     printf(" delete |%s|\n",memspc011);
     TX_Print("delete %s",memspc011);
@@ -2890,11 +2901,11 @@ static char LstBuf[LstSiz][32];
   int    idat;
   char   cbuf[256];
 
-  printf("UI_cpyMdl3 %d\n",INT_PTR(data));
+  printf("UI_cpyMdl3 %d\n",INT__PTR(data));
 
-  idat = INT_PTR(data);
+  idat = INT__PTR(data);
 
-  if(INT_PTR(data )== UI_FuncOK) {
+  if(INT__PTR(data )== UI_FuncOK) {
     // extract filname from old
     UTX_fnam_s (cbuf, memspc011);
     TX_Print ("copy file  %s --> %s",cbuf, memspc012);  // memspc011
@@ -3074,7 +3085,7 @@ static char LstBuf[LstSiz][32];
 
 
   if(typ == Typ_Index) {
-    pt1 = DB_GetPoint(LONG_PTR(data));
+    pt1 = DB_GetPoint(LONG__PTR(data));
 
 
   } else if(typ == Typ_Txt) {
@@ -3718,7 +3729,7 @@ static char LstBuf[LstSiz][32];
 
   if(typ == Typ_Index) {
     // vc1 = DB_GetVector(*((long*)data));
-    vc1 = DB_GetVector(LONG_PTR(data));
+    vc1 = DB_GetVector(LONG__PTR(data));
       // DEB_dump_obj__ (Typ_VC, &vc1, " vc1 UI_prev_vc");
     if(&vc1 == &UT3D_VECTOR_Z) return -1;
 
@@ -4889,8 +4900,8 @@ static char LstBuf[LstSiz][32];
   cp1 = GUI_DATA_S1;
 
     // TESTBLOCK
-    printf("UI_butCB |%s|\n",cp1);
-    printf("  UI_InpMode=%d sysStat=%d\n",UI_InpMode,AP_stat.sysStat);
+    // printf("UI_butCB |%s|\n",cp1);
+    // printf("  UI_InpMode=%d sysStat=%d\n",UI_InpMode,AP_stat.sysStat);
     // END TESTBLOCK
 
 
@@ -5775,7 +5786,7 @@ static char LstBuf[LstSiz][32];
 
 
   // // wenn AP_mod_dir kein closing "/" hat, eins zufuegen.
-  // UTX_add_slash (AP_mod_dir);
+  // UTX_fdir_add_del (AP_mod_dir);
 
 
 /*
@@ -6165,7 +6176,7 @@ static char LstBuf[LstSiz][32];
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "AppUnl")) {
-    PLU_unl ();
+    DLL_plu_unl ();
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "AppHlp")) {        // HELP Application
@@ -6193,7 +6204,7 @@ static char LstBuf[LstSiz][32];
 
   //==========================================================
   } else if(!strcmp(cp1, "PluLoa")) {
-    PLU_Loa ();
+    AP_plu_start ();
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "PluHlp")) {        // HELP Application
@@ -6245,9 +6256,7 @@ static char LstBuf[LstSiz][32];
 
   //-------------------------------------------------
   } else if(!strcmp(cp1, "print")) {
-    UI_PRI__ (FUNC_EXEC);
-    // OS_dll_do ("xa_print__", "PRI__", "abc", 0);
-    // UI_WinPrint1 (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
+    UI_PRI__ ();
 
 
   //-------------------------------------------------
@@ -6375,6 +6384,11 @@ static char LstBuf[LstSiz][32];
   //-------------------------------------------------
   } else if(!strcmp(cp1, "DirSel")) {
     AP_symDirSel ();
+
+
+  //-------------------------------------------------
+  } else if(!strcmp(cp1, "DirHelp")) {
+    APP_Help ("Settings", "");
 
 
   //-------------------------------------------------
@@ -6635,7 +6649,9 @@ static char LstBuf[LstSiz][32];
     cbuf1[0] = '\0';
     strcpy(cbuf2, AP_mod_dir);
     strcpy(sTit, APP_MSG_get_0("MMfDel"));
-    i1 = AP_fnam_get_user_1 (2, cbuf1, cbuf2, sTit, "\"*\""); // returns 2=dNam, 1=fNam
+    // i1 = AP_fnam_get_user_1 (2, cbuf1, cbuf2, sTit, "\"*\""); // returns 2=dNam, 1=fNam
+    // i1 = AP_fnam_get_user_1 (2, cbuf1, cbuf2, sTit, "\"*\"");
+    i1 = AP_fnam_get_user_1 (2, cbuf1, cbuf2, sTit, ""); // // MSYS: expands "*"
     if(i1 < 0) return -1;
     sprintf(s1, "%s/%s",cbuf2,cbuf1);
     // get abs. filename
@@ -6664,7 +6680,8 @@ static char LstBuf[LstSiz][32];
 */
     strcpy(sTit, APP_MSG_get_0("MMfRen"));
     // Liste mit Dir-Auswahl
-    i1 = AP_fnam_get_user_1 (1, cbuf1, cbuf2, sTit, "\"*\"");
+    // i1 = AP_fnam_get_user_1 (1, cbuf1, cbuf2, sTit, "\"*\"");
+    i1 = AP_fnam_get_user_1 (1, cbuf1, cbuf2, sTit, "");  // MSYS: expands "*"
     if(i1 < 0) return -1;
     AP_open__ (cbuf1, cbuf2, sTit, 2);
 
@@ -6683,7 +6700,8 @@ static char LstBuf[LstSiz][32];
 */
     strcpy(sTit, APP_MSG_get_0("MMfCpy"));
     // Liste mit Dir-Auswahl
-    i1 = AP_fnam_get_user_1 (1, cbuf1, cbuf2, sTit, "\"*\"");
+    // i1 = AP_fnam_get_user_1 (1, cbuf1, cbuf2, sTit, "\"*\"");
+    i1 = AP_fnam_get_user_1 (1, cbuf1, cbuf2, sTit, "");       // MSYS: expands "*"
     if(i1 < 0) return -1;
     AP_open__ (cbuf1, cbuf2, sTit, 3);
 
@@ -6894,7 +6912,7 @@ static char LstBuf[LstSiz][32];
     DEB_dump_txt("Language:      %s",AP_lang);
     DEB_dump_txt("Basedirectory: %s",AP_get_bas_dir());
     DEB_dump_txt("Tempdirectory: %s",AP_get_tmp_dir());
-    DEB_dump_txt("Bin.directory: %s",AP_get_bin_dir());
+    DEB_dump_txt("Bin.directory: %s",OS_bin_dir_get());
     DEB_dump_txt("Model:         %s",AP_mod_fnam);
     DEB_dump_txt("Modelsize:     %f",APT_ModSiz);
     DEB_dump_txt("Tol.Points:    %f",UT_TOL_pt);
@@ -7095,7 +7113,7 @@ static char LstBuf[LstSiz][32];
   // if(i1 == 0) return 0;
 
 
-  // lNr = INT_PTR(data )+ 1;
+  // lNr = INT__PTR(data )+ 1;
   lNr = GUI_DATA_I1;
   strcpy (prgNam, GUI_DATA_S2);
 
@@ -7110,7 +7128,7 @@ static char LstBuf[LstSiz][32];
   TX_Print(cbuf1);
 
   UTX_ftyp_cut  (prgNam);     // remove the filetyp (.so|.dll)
-  AP_exec_dll (prgNam);
+  AP_plu_exec (prgNam);
   
   return 0;
 
@@ -7159,7 +7177,7 @@ box1h
 winED                         winGR
 (Editorfenster)               (Grafikfenster)
 
-Box3
+winTX
 (Textausgabefenster)
 
 
@@ -7170,22 +7188,24 @@ box1
   |-----------------------------------------------------------------|
   |1                                                                |
   |                                                                 |
-  |-----|---------|-------------------------------------------------|
-  |2    |         |                                                 |
-  |2A   |2B       |                                                 |
-  |     |2B1      |                                                 |
-  |     |2B1A     |2B1B                                             |
-  |     |         |                                                 |
-  |     |         |                                                 |
-  |     |         |                                                 |
-  |     |         |                                                 |
-  |     |         |                                                 |
-  |     |         |                                                 |
-  |     |---------|-------------------------------------------------|
-  |     |2B2                                                        |
-  |     |                                                           |
-  |     |                                                           |
+  |-----------------|-----------------------------------------------|
+  |2Ap              |2Bp winGR                                      | 
+  |win_brw|         |                                               | 
+  |       |win_edi  |                                               | 
+  |       |         |                                               | 
+  |       |         |                                               | 
+  |       |         |                                               | 
+  |       |         |                                               | 
+  |       |         |                                               | 
+  |       |         |                                               | 
   |-----------------------------------------------------------------|
+  |UIw_Box_TB (toolbars for CAD, plugins)                           |
+  |-----------------------------------------------------------------|
+  |ToolBar2 winTX                                                   |
+  |                                                                 |
+  |                                                                 |
+  |-----------------------------------------------------------------|
+
 
 
 
@@ -7604,18 +7624,20 @@ box1
       // MSG_Tip ("MMstEdi"); //
         // GUI_Tip  ("define Editor");
 
-      GUI_menu_entry   (&wtmp4, "---",     NULL,       NULL);
+      // GUI_menu_entry   (&wtmp4, "---",     NULL,       NULL);
 
-      GUI_menu_entry   (&wtmp4, "edit directory-path-group",
+      GUI_menu_entry   (&wtmp4, "edit directory-path-file",
                         UI_menCB,  (void*)"DirEd");
       MSG_Tip ("MMstDir"); //
         // GUI_Tip  ("define Modeldirectories");
 
-      GUI_menu_entry   (&wtmp4, "select directory-path-group",
+      GUI_menu_entry   (&wtmp4, "select directory-path-file",
                         UI_menCB,  (void*)"DirSel");
       MSG_Tip ("MMstSelDir"); //
         // GUI_Tip  ("select Modeldirectories");
 
+      GUI_menu_entry   (&wtmp4, "HELP Standards",
+                        UI_menCB,  (void*)"DirHelp");
 
 
       //----------------------------------------------------------------
@@ -7857,15 +7879,19 @@ box1
       MSG_Tip ("MMapEdi"); //
         // GUI_Tip  ("edit the active  application");
 
-      GUI_menu_entry(&men_app,"Create Application", UI_menCB, (void*)"AppCre");
+      GUI_menu_entry(&men_app,"Create Application",
+                     UI_menCB, (void*)"AppCre");
       MSG_Tip ("MMapCre"); //
 
-      GUI_menu_entry(&men_app,"Delete Application", UI_menCB, (void*)"AppDel");
+      GUI_menu_entry(&men_app,"Delete Application",
+                     UI_menCB, (void*)"AppDel");
       MSG_Tip ("MMapDel"); //
 
-      GUI_menu_entry(&men_app,"Unload Application", UI_menCB, (void*)"AppUnl");
+      GUI_menu_entry(&men_app,"Unload Application",
+                     UI_menCB, (void*)"AppUnl");
 
-      GUI_menu_entry(&men_app,"HELP Application",  UI_menCB, (void*)"AppHlp");
+      GUI_menu_entry(&men_app,"HELP Application",
+                     UI_menCB, (void*)"AppHlp");
 
 
 
@@ -8288,54 +8314,20 @@ box1
 
 
       //================================================================
-      // CAD und NC-Toolbar; anfangs hidden.
-      // tbCad = UI_cad (UIw_Box_TB, NULL);
-      // gtk_widget_hide (tbCad);
-      // gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (ckb_cad), TRUE);
-      // UI_InpMode = UI_MODE_CAD;
-
-
-      // tbWcGeo  = UI_wcg__  (UIw_Box_TB, NULL);
-      // gtk_widget_hide (tbWcGeo);
-      // gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (ckb_wcGeo), TRUE);
-      // UI_InpMode = UI_MODE_WCGEO;
-
-
-      // tbWcTec  = UI_wcTec__ (UIw_Box_TB, NULL);
-      // gtk_widget_hide (tbWcTec);
-      // gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (ckb_wcTec), TRUE);
-      // UI_InpMode = UI_MODE_WCTEC;
-
-
-      // tbNc  = UI_nc  (UIw_Box_TB, NULL);
-      // gtk_widget_hide (tbNc);
-      // gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (ckb_nc), TRUE);
-      // UI_InpMode = UI_MODE_NC;
-
-
-
-
-
-
-
-      //================================================================
       // create box for Browser & GraficWindow
-      //das Edit-Fenster und das Grafik-fenster nebeneinender = 2B1A / 2B1B
-      // hpaned = gtk_hpaned_new ();      // horizontal paned
-      // gtk_container_add (GTK_CONTAINER(box00), hpaned);
-      // gtk_widget_show (hpaned);
-      win_paned = GUI_box_paned__ (&box2B1, &wtmp1, &box00,
-                                 0, 0, 200);  // 0,0,200
+      // left box2Ap right box2Ap; paned
+      win_paned = GUI_box_paned__ (&box2Ap, &box2Bp, &box00,
+                                 0, 0, 200);  // 0,0, 200=size
 
 
       //----------------------------------------------------------------
-      // links das Browser/Editorfenster; into box; hide one of it
+      // links das Browser/Editorfenster; into box box2A; hide one of it
 
-      // create a notebook in left paned (box2B1)
-      UI_box_ntb = GUI_notebook__ (&box2B1, UI_paned_CB);
-      win_brw = GUI_notebook_add (&UI_box_ntb, "Browse");
+      // create a notebook in left paned (box2A)
+      UI_box_ntb = GUI_notebook__ (&box2Ap, UI_paned_CB);
 
       // TreeBrowser
+      win_brw = GUI_notebook_add (&UI_box_ntb, "Browse");
       winBrw = GUI_tree1__ (&win_brw, Brw_CB_sel, "e,e");
       AP_stat.brw_stat = BRWSTAT_init;
 
@@ -8349,14 +8341,11 @@ box1
 
 
       //----------------------------------------------------------------
-      // setUp OpenGL-window
-      // winGR = UI_GR_Init (600, 0);
-      // gtk_container_add (GTK_CONTAINER (wtmp1), winGR);
-      // gtk_widget_show (winGR);
+      // setUp winGR = OpenGL-window, below the message-window
       // defaultsize 600x400 pixels; cannot be made smaller (no GL-callback !)
       // winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, "-600e,-400e");
       sprintf(cbuf1, "-%de,-%de", WinSizMinX, WinSizMinY);    // "-800e,-240e"
-      winGR = GUI_gl__ (&wtmp1, UI_GL_draw__, cbuf1);
+      winGR = GUI_gl__ (&box2Bp, UI_GL_draw__, cbuf1);
       // sscanf(AP_winSiz,"%d,%d",&i1,&i2);
       // sprintf(cbuf1, "%de,%de",i1,i2);
         // printf(" GUI_gl__-winSiz |%s| %d %d |%s|\n",AP_winSiz,i1,i2,cbuf1);
@@ -8373,30 +8362,38 @@ box1
 
 
 
-
-      //----------------------------------------------------------------
-      // box for the application-toolbars
+      //================================================================
+      // box for the application-toolbars (toolbars for plugins)
       UIw_Box_TB = GUI_box_v (&box00, "");
         // GUI_obj_dump_mo (&UIw_Box_TB);
+
 
 
       //================================================================
       // auch das TextausgabeWin in eine Toolbox
       // ToolBar2 = GUI_toolbar__ (&box00);
       ToolBar2 = GUI_toolbox__ (&box00);
+      wtmp1 = GUI_box_h (&ToolBar2, "e,6");   // -150
+      winTX = GUI_msgwin__ (&wtmp1, "e,e");   // 96,6
 
+/*
       GUI_get_version (cbuf1, &i1, &i2);
       if(i1 == 2) {
         // Gtk2
-        box2B2 = GUI_box_h (&ToolBar2, "e,e");  //"e,6");
+        // box2B2 = GUI_box_h (&ToolBar2, "e,e");  //"e,6");
+							// printf(" box2B2 -----------------\n");
+        box2B2 = GUI_box_h (&ToolBar2, "e,6");  // 6 lines of text ..
         // winTX = GUI_Tx_Win (&box2B2, -400, -80);
         // gtk2-problem: image on the left takes full box !
+        // winTX = GUI_msgwin__ (&box2B2, "e,e");   // 96,6
         winTX = GUI_msgwin__ (&box2B2, "e,e");   // 96,6
         // disp. Logo rechts neben dem Textwindow.
-        wtmp1 = GUI_box_v (&box2B2, "a,6a");   // 6 lines high
-        // ../icons/xa_logo.xpm 127x46 pixels
-        sprintf(cbuf1, "%sxa_logo.xpm", AP_get_ico_dir ());
-        GUI_img__ (&wtmp1, cbuf1, "-127,-64");   // min = 46; 2013-10-05
+							// printf(" wtmp1 -----------------\n");
+        // wtmp1 = GUI_box_v (&box2B2, "-2,6");   // 6 lines high
+//         wtmp1 = GUI_box_v (&box2B2, "a,a");
+//         // ../icons/xa_logo.xpm 127x46 pixels
+//         sprintf(cbuf1, "%sxa_logo.xpm", AP_get_ico_dir ());
+//         GUI_img__ (&wtmp1, cbuf1, "a,a");   // min = 46; 2013-10-05
   
       } else {
         // Gtk3
@@ -8405,69 +8402,12 @@ box1
         // gtk2-problem: image on the left takes full box !
         winTX = GUI_msgwin__ (&box2B2, "e,e");   // 96,6
         // disp. Logo rechts neben dem Textwindow.
-        wtmp1 = GUI_box_v (&box2B2, "a,a");   // -150
-        // ../icons/xa_logo.xpm 127x46 pixels
-        sprintf(cbuf1, "%sxa_logo.xpm", AP_get_ico_dir ());
-        GUI_img__ (&wtmp1, cbuf1, "a,a");
+//         wtmp1 = GUI_box_v (&box2B2, "a,a");   // -150
+//         // ../icons/xa_logo.xpm 127x46 pixels
+//         sprintf(cbuf1, "%sxa_logo.xpm", AP_get_ico_dir ());
+//         GUI_img__ (&wtmp1, cbuf1, "a,a");
       }
-
-
-
-
-      //================================================================
-      // connect KeyPress und -Release am Textwin
-/*
-      gtk_widget_set_events (GTK_WIDGET(winED.view),
-                             GDK_BUTTON_PRESS_MASK|
-                             GDK_BUTTON_RELEASE_MASK|
-                             GDK_KEY_PRESS_MASK|
-                             GDK_KEY_RELEASE_MASK
-                             );
 */
-
-
-/*
-      // die Mausbuttons
-      gtk_signal_connect (GTK_OBJECT(winED.view),"button_press_event",  // GTK2
-                          GTK_SIGNAL_FUNC(UI_EdButtonPress), NULL);
-
-      // weil nach dem Press kann die Pos nicht richtig gelesen werden ..
-      // vor dem Press ist die Curpos falsch !!
-      gtk_signal_connect (GTK_OBJECT(winED.view),"button_release_event",  // GTK2
-                          GTK_SIGNAL_FUNC(UI_EdButtonRelease), NULL);
-
-
-      gtk_signal_connect (GTK_OBJECT(winED.view),"key_press_event",  // GTK2
-                           GTK_SIGNAL_FUNC(UI_EdKeyPress), NULL);
-
-
-      gtk_signal_connect (GTK_OBJECT(winED.view),"key_release_event",  // GTK2
-                          GTK_SIGNAL_FUNC(UI_EdKeyRelease), NULL);
-*/
-
-    // g_signal_connect (G_OBJECT(winED.view), "focus-in-event",
-                        // G_CALLBACK (UI_winEd_enter), NULL);
-
-
-
-
-      // size_allocate u realize u show u expose_event geht; aber zu frueh.
-      // draw geht; aber viel zu oft !
-      // gtk_signal_connect (GTK_OBJECT (tbCad),
-                    // "draw",
-                    // (GtkSignalFunc) GUI_ToolboxCB, NULL);
-      // unmap kommt zu frueh
-
-
-      // gtk_signal_connect (GTK_OBJECT (tbCad),
-                    // "draw",
-                    // (GtkSignalFunc) GUI_ToolboxCB, NULL);
-
-
-// hpaned winBrw.win
-
-
-
 
 
 
@@ -8477,16 +8417,11 @@ box1
       // gtk_widget_show (GTK_WIDGET(UI_MainWin));
       // GUI_Win_go (&winMain);
 
-      // wait until win is up !
+      // wait until win is up
       // GUI_update__ ();
 
       // Focus aufs EditWindow
       // UI_focEdCB (NULL, NULL);
-
-      // UI_butCB (ckb_wcTec, (void*)"DE_TEC");
-      // UI_butCB (NULL, (void*)"MAN");
-
-      // ED_work_END get no ned !
 
       // Init Textfensterparameter; into GUI_Ed_Init genommen.
       // GUI_Ed_Init1 (&winED);
@@ -8535,26 +8470,15 @@ box1
     case UI_FuncExit:
       // printf("UI_win_main UI_FuncKill\n");
 
-      // if(UI_InpMode == UI_MODE_WCTEC) {
-        // if(UI_wcTec_askExit(NULL, "") != 0) return 0;
-
-      // } else if(UI_InpMode == UI_MODE_WCGEO) {
-        // if(UI_wcg_askExit(NULL, "") != 0) return 0;
-      // }
-
-      // // akt. Datei als tmp/xa.apt rausschreiben
-      // strcpy(AP_mod_fnam, AP_get_bas_dir ());
-      // strcat(AP_mod_fnam,"tmp/xa.apt");
-
       // model in tmp saven
       // UI_save_ ();
       // Mod_sav_tmp (); // save the active Submodel AP_modact_nam -> TempFile
 
-      // unload active Application
+      // unload all active DLL's
       if(AP_stat.APP_stat) {
-        strcpy (cbuf1, APP_act_nam);
-        DLL_run2 ("", -1);                // see PLU_unl
-        strcpy (APP_act_nam, cbuf1);
+        MDL_load_unl ();
+        UI_PRI_unl ();
+        DLL_plu_unl ();
       }
 
       // gtk_widget_destroy ((GtkWidget*)UI_MainWin);
@@ -8738,7 +8662,7 @@ box1
   //----------------------------------------------------------------
   // user-select from list of last-used models
   sprintf(fnam, "%sMdlLst.txt", AP_get_tmp_dir());
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"select model\"", "\"x40,y30\"");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "- select model -", "x40,y30");
   if(i1 < 0) return -1;
     printf("UI_open_last-sel |%s|\n",s1);
 
@@ -8760,35 +8684,40 @@ box1
   int UI_file_open__ (char *sOut, int siz_so) {
 //================================================================
 // UI_file_open__                   get new filename (and directory) from user
-//   retCode       -1   error or cancel
+// Input:
+//   siz_so     size of sOut
+// Output:
+//   sOut       filename selected 
+//   retCode    0=OK; -1   error or cancel
 
   int     irc;
-  char    s1[408], s2[400], sTit[128];
+  char    fnSym[408], s2[400], sTit[128];
 
 
-  // printf("UI_file_open__ |%s|\n",AP_mod_dir);
+  printf("UI_file_open__ |%s|\n",AP_mod_dir);
 
   // title "Model open"
   // strcpy(sTit, MSG_const__(MSG_open));
   // strcpy(sTit, MSG_const__(MSG_open));
-  sprintf(sTit, "\"%s\"", MSG_const__(MSG_open));
-  // strcpy(sTit, "open file ..");
+  // sprintf(sTit, "\"%s\"", MSG_const__(MSG_open));
+  strcpy(sTit, "OPEN MODEL ..");
 
   // get filename of cfg_<os>/dir.lst
 
-#ifdef _MSC_VER
-  MDLFN_syFn_f_name (s2);            // get filNam of list of symbolic directories
-  sprintf(s1, "\"%s\"", s2);
-  sprintf(sOut, "\"%s\\\"", AP_mod_dir);  // |\"| makes BUG in MS 
-#else
-  MDLFN_syFn_f_name (s1);           // get filNam of list of symbolic directories
+// #if defined _MSC_VER || __MINGW64__
+//   MDLFN_syFn_f_name (s2);            // get filNam of list of symbolic directories
+//   sprintf(fnSym, "\"%s\"", s2);
+//   // sprintf(sOut, "\"%s\\\"", AP_mod_dir;  // |\"| makes BUG in MS 
+//   sprintf(sOut, "\"%s\"", AP_mod_dir);  // |\"| makes BUG in MS 
+// #else
+  MDLFN_syFn_f_name (fnSym);           // get filNam of list of symbolic directories
   strcpy(sOut, AP_mod_dir);
-#endif
+// #endif
 
 
     // TESTBLOCK
     // printf(" UI_file_open__ sOut=|%s|\n",sOut);
-    // printf(" UI_file_open__ s1=|%s|\n",s1);
+    // printf(" UI_file_open__ fnSym=|%s|\n",fnSym);
     // printf(" UI_file_open__ UI_fnamFilt=|%s|\n",UI_fnamFilt);
     // printf(" UI_file_open__ sTit=|%s|\n",sTit);
     // END TESTBLOCK
@@ -8796,10 +8725,11 @@ box1
 
   // get filename for "open file" from user, waiting.
   // call GUI_file/save
-  irc = AP_GUI__ (sOut, siz_so, "GUI_file", "open",
-                  sOut,
-                  s1,
-                  "\"*\"",             // UI_fnamFilt makes errors ..
+  irc = OS_exe_file__ (sOut, siz_so, "GUI_file",
+		              "open",
+                  sOut,          // mdlDir
+                  fnSym,         // symFilnam
+                  "*",           // MSYS expands .."\"*\"", UI_fnamFilt makes errors ..
                   sTit,
                   NULL);
   if(irc < 0) return -1;
@@ -8944,9 +8874,9 @@ box1
 
 
   strcpy(s1, "License: GPL-3");
-  strcat(s1, "\nCopyright: 1999-2022 CADCAM-Services Franz Reiter");
+  strcat(s1, "\nCopyright: 1999-2023 CADCAM-Services Franz Reiter");
   strcat(s1, "\n(support@gcad3d.org)");
-  GUI_AboutInfo (INIT_TXT, s1, "http://www.gcad3d.org", "xa_logo.xpm");
+  GUI_AboutInfo (INIT_TXT, s1, "https://gcad3d.org", "xa_logo.xpm");
 
   return 0;
 
@@ -9018,7 +8948,7 @@ box1
 
 
       // GUI_label__(&box0," 1999-2015 CADCAM-Services Franz Reiter ","");
-      GUI_label__(&box0," http://www.gCAD3D.org ","");
+      GUI_label__(&box0," https://gCAD3D.org ","");
       GUI_label__(&box0," support@gcad3d.org","");
 
       GUI_Win_up (NULL, &win0, 0);
@@ -9093,7 +9023,7 @@ return 0;
   // if(GTK_TOGGLE_BUTTON (parent)->active == 0) return 0;  // 1=ON;0=OFF
   if(GUI_DATA_EVENT == TYP_EventRelease) return 0;
 
-  // i1 = INT_PTR(data);
+  // i1 = INT__PTR(data);
   i1 = GUI_DATA_I1;
 
   printf("UI_RelAbsCB %d\n",i1);
@@ -9131,9 +9061,9 @@ return 0;
 
 
 
-  printf("UI_WinIgeImp %d\n",INT_PTR(data));
+  printf("UI_WinIgeImp %d\n",INT__PTR(data));
 
-  i1 = INT_PTR(data));
+  i1 = INT__PTR(data));
 
 
   switch (i1) {
@@ -9325,25 +9255,25 @@ return 0;
     case UI_FuncUCB2:                   // Reset
       sprintf(cbuf3,"%sgCAD3D.rc",AP_get_cfg_dir());
       printf(" setupFile=|%s|\n",cbuf3);
-        i1 = UTX_setup_get (cbuf1, "NTEXTSIZ", cbuf3, 1);
+        i1 = UTX_setup_get (cbuf1, "NTEXTSIZ", cbuf3);
         if(i1 >= 0) {
           GUI_entry_set (&ent1, cbuf1);
           AP_txsiz = atof(cbuf1);
         }
 
-        i1 = UTX_setup_get (cbuf1, "DIMTEXTSIZ", cbuf3, 1);
+        i1 = UTX_setup_get (cbuf1, "DIMTEXTSIZ", cbuf3);
         if(i1 >= 0) {
           GUI_entry_set (&ent2, cbuf1);
           AP_txdimsiz = atof(cbuf1);
         }
 
-        i1 = UTX_setup_get (cbuf1, "GTEXTSIZ", cbuf3, 1);
+        i1 = UTX_setup_get (cbuf1, "GTEXTSIZ", cbuf3);
         if(i1 >= 0) {
           GUI_entry_set (&ent3, cbuf1);
           GR_tx_scale = atof(cbuf1);
         }
 
-        i1 = UTX_setup_get (cbuf1, "DNTEXT", cbuf3, 1);
+        i1 = UTX_setup_get (cbuf1, "DNTEXT", cbuf3);
         if(i1 >= 0) {
           GUI_entry_set (&ent4, cbuf1);
           AP_txNkNr = atoi(cbuf1);
@@ -9528,9 +9458,9 @@ return 0;
 
 
 
-  printf("UI_WinDxfImp %d\n",INT_PTR(data));
+  printf("UI_WinDxfImp %d\n",INT__PTR(data));
 
-  i1 = INT_PTR(data);
+  i1 = INT__PTR(data);
 
 
   switch (i1) {
@@ -9746,7 +9676,7 @@ return 0;
       // APT_ModSiz = 500.;
       sprintf(cbuf3,"%sgCAD3D.rc",AP_get_cfg_dir());
       printf(" setupFile=|%s|\n",cbuf3);
-        i1 = UTX_setup_get (cbuf1, "MODELSIZ", cbuf3, 1);
+        i1 = UTX_setup_get (cbuf1, "MODELSIZ", cbuf3);
         if(i1 >= 0) {
           GUI_entry_set (&ent_msiz, cbuf1);
           APT_ModSiz = atof(cbuf1);
@@ -10002,7 +9932,7 @@ return 0;
 //================================================================
 // Bei Retcod=0 wird idle_CB nicht mehr aufgerufen !
 
-  printf("UI_idle_CB %d\n",INT_PTR(data));
+  printf("UI_idle_CB %d\n",INT__PTR(data));
 
 
   // gtk_idle_add (UI_idle_CB, (void*)0);
@@ -10352,7 +10282,7 @@ return 0;
           // if(AP_src == AP_SRC_EDI) l1 = GUI_Ed_getEof (&winED);
           // else  l1 = UTF_FilBuf0Len;
         // } else {
-          // l1 = INT_PTR(data);
+          // l1 = INT__PTR(data);
         }
           // printf("UI_AP UID_Edit_Cpos: CurPos -> %ld\n",l1);
         GUI_edi_setCpos (&winED, l1);
@@ -10362,14 +10292,14 @@ return 0;
 
       case UID_ckb_search:
         // Checkbox ein/ausschalten
-        // gtk_toggle_button_set_state (&ckb_mdel, INT_PTR(data));
+        // gtk_toggle_button_set_state (&ckb_mdel, INT__PTR(data));
         return;
 */
 
 
       case UID_ckb_comp:
         // Checkbox ein/ausschalten
-        GUI_menu_checkbox_set (&ckb_compl, INT_PTR(data));
+        GUI_menu_checkbox_set (&ckb_compl, INT__PTR(data));
         return;
 
 
@@ -10398,7 +10328,7 @@ return 0;
 
       case UID_inf_sip:
         // den StartIndex Points setzen
-        sprintf(cbuf, "%6ld", LONG_PTR(data)); // 999999 rechtsbuendig mit blanks
+        sprintf(cbuf, "%6ld", LONG__PTR(data)); // 999999 rechtsbuendig mit blanks
         // GUI_entry_set ((GtkEntry*) (UI_inf_sip), cbuf);
         return;
 
@@ -10415,7 +10345,7 @@ return 0;
       case UID_ouf_lNr:
         // Ausgabefeld ZeilenNummer setzen
           // printf(" set LineNr=%d\n",(long)data);
-        sprintf(cbuf, "%6ld", LONG_PTR(data));
+        sprintf(cbuf, "%6ld", LONG__PTR(data));
         GUI_label_mod (&UI_lNr, cbuf);
           // printf(" UI_AP-f-GUI_label_mod |%s|\n",cbuf);
         return;
@@ -10424,7 +10354,7 @@ return 0;
       case UID_ouf_grpNr:
         // Ausgabefeld Anzahl objs in group setzen
           // printf(" set LineNr=%d\n",(long)data);
-        sprintf(cbuf, "%6ld", LONG_PTR(data));
+        sprintf(cbuf, "%6ld", LONG__PTR(data));
         GUI_label_mod (&UI_grpNr, cbuf);
         return;
 

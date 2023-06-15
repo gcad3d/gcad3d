@@ -1174,7 +1174,7 @@ int UTF_ut_dispDat () {
     if(*cp2 == '&') goto L_nxtLn;
 
   //----------------------------------------------------------------
-    printf("ex-UTF_wri_f_del %d\n",ii);
+    // printf("ex-UTF_wri_f_del %d\n",ii);
 
   return ii;
 

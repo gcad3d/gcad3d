@@ -6,18 +6,17 @@
 # DIR_DEV     home of sourcefiles, scripts, linkjobs, packages
 # DIR_BIN     home of objects, executables, libraries
 
+$(info -)
+$(info - entering GUI_file.mak)
+
 
 # get VGUI  - eg gtk2
 VGUI := $(shell cat ../gcad_gui_version)
 
 
-# ../gui_gtk3/GUI_file.c
-# ../gui_gtk2/GUI_file.c
-# ../gui_gtk2_MS/GUI_file.c
 SRC1 =\
- ../gui_gtk2/GUI_file.c
-#../gui_$(VGUI)/GUI_file.c
-# ../ut/deb_prt.c
+ ../gui_$(VGUI)/GUI_file.c\
+ ../ut/deb_prt.c
 
 # get SRCOS
 SRCOS = ../ut/os_uix.c
@@ -30,7 +29,7 @@ OBJ1 = $(patsubst %.c,%.o, $(notdir $(SRC1)))
 OBJOS = $(patsubst %.c,%.o, $(notdir $(SRCOS)))
 
 
-# get SRCGUI GUICP GUILIB
+# get GUICP GUILIB
 include ../gui/gui_$(VGUI).mak
 
 # get debug-settings DEB CPDEB LKDEB

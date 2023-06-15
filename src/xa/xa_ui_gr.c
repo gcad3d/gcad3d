@@ -150,7 +150,7 @@ cl -c /I ..\include xa_ui_gr.c
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_TX.h"
 #include "../ut/ut_os.h"               // AP_get_bas_dir
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_err.h"              // ERR_SET1
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_txfil.h"            // UTF_GetLinNr
@@ -481,6 +481,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
 
     // Title oben auf den Mainwinrahmen
     UI_AP (UI_FuncSet, UID_Main_title, NULL);
+
+    UNDO_set_bt (2);         // update (dim) do/undo-buttons
 
     //----------------------------------------------------------------
     // set radiobuttons VWR|CAD|MAN
@@ -1818,8 +1820,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   case 'P':
       // printf("APP_act_typ = %d APP_act_nam = |%s|\n",APP_act_typ,APP_act_nam);
     if(APP_act_typ == 1)  PRG_start ();      // applic.
-    if(APP_act_typ == 2)  PRC_restart ();    // process
-    if(APP_act_typ == 3)  PLU_restart ();    // plugin
+    if(APP_act_typ == 2)  PRC_exit ();       //PRC_restart ();    // process
+    if(APP_act_typ == 3)  AP_plu_restart ();    // plugin
     if(APP_act_typ == 4)  RPC_restart ();    // remote
     // reset the Ctrl-key
     goto Reset_Ctrl;
@@ -1834,6 +1836,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     goto Reset_Ctrl;
 
 
+  case 't':                     // Ctrl Shift t
   case 'T':                     // Ctrl Shift t
     if(AP_stat.tstDllStat) {
       AP_testdll__ (1);         // rebuild & reload testdll.so
@@ -3558,7 +3561,7 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // printf("UI_popSel_CB__ ev=%d isel=%d\n",iEv,isel);
 
 
-  // printf("UI_popSel_CB__ type=%d %d\n",event->type,INT_PTR(data));
+  // printf("UI_popSel_CB__ type=%d %d\n",event->type,INT__PTR(data));
   // printf("UI_popSel_CB__ mode=%d stat=%d data=%d\n",
             // event->mode,event->state,(int)data);
 

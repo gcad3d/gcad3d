@@ -22,6 +22,17 @@
  int MEM_cmp__       (void *obj1, void *obj2, int size);
  int MEM_swap_nrec   (void *na, int rNr, int rSiz);
 
+  int MEM_str__ (char **sOut, char *sNew);
+  int MEM_str_get (char *sOut);
+  int MEM_str_free (char *sOut);
+
+
+// MEM_str_get          get existing string from memSpc
+#define MEM_str_get(st1) MEM_str__(&st1, "")
+
+// MEM_str_free         free memSpc for string
+#define MEM_str_free(st1) MEM_str__(&st1, NULL)
+
 
 //----------------------------------------------------------------
 /// compare memoryspaces (n bytes); returns 0 for equal.
@@ -64,6 +75,11 @@ void MEM_swap_2vp    (void **v1, void **v2);
 #define MEM_swap_2vp(v1,v2){\
   void *_v3 = *(v1); *(v1) = *(v2); *(v2) = _v3;}
 // void MEM_swap_2vp (void **p1, void **p2)
+
+// MEM_INV_INT            invert int; 
+// iNr=3 (0,1,2);  0 -> 2;  1 -> 1;  2 -> 0;
+#define MEM_INV_INT(ii,iNr) (iNr - 1 - ii)
+
 
 /// \code
 /// MEM_ptr_mov         move a pointer <dist> bytes

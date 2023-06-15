@@ -90,6 +90,18 @@ void INF_surf_opers(){                   /*! \code
 +---+     .   .      +---+          +---+        +---+        .   .
 
 
+NOT: new-surfs = in area of su1 not covered by su2;
+- new-OB is area of su1 excluding area su2
+- new-OB is IB of su2 in area covered by su1 and also covered by su2
+
+
+OR: areas of su1 and su2 or both;
+
+
+AND: only areas where su1 covers su2;
+
+
+
 OPE = operation - NOT or OR or NAD
 IPT = intersectionpoint on surf1 and surf2
 FWD = following CCW the active boundary-segment
@@ -117,14 +129,14 @@ X  startpoint boundary surf1, surf2
 x  intersectionPoint and startpoint new boundary surf3
 +  intersectionPoint
 
-For all opTypes:                                              /\ SI0
------- get intersectionpoints IP# and side SI#;                |
-  SI0 if intersection goes to the left side;                ---|----->
-  SI1 if intersection goes to the left side;                   |
-                                                               v SI1
+For all opTypes:                                              | SID_CCW
+------ get intersectionpoints IP# and side SI#;               |
+  SID_CCW if intersection goes to the left side;  0      >----x------
+  SID_CW  if intersection goes to the right side; 1           |
+                                                              | SID_CW
 
 Intersectiontypes:
- DO1_O2   is intersection of OB (outerBoundary) of surf1 with OB of surf2;
+ O2_O1   is intersection of OB (outerBoundary) of surf1 with OB of surf2;
  - coming on O1 (OB surf1) turning into O2 - following O2.
 
 
@@ -139,72 +151,32 @@ NOT:    (surf1 NOT surf2)    (FSUB, CUT)
 
       O1
  X------------------------------------------------o
- V                                                |
- |          I1                        sur3        |
- |   X--------------------------.                /\
- |   V                          |D               A|
+ V   X    X        X         X       X       X    |
+ |      X   I1          X             sur3        |
+ |   X--------------------------.            X   /\
+ |X  V                          |D       X       A|
  |   |   X-----------O2---------3->---------------1-----------o
  |   |   V                      |                 |           |
+ |X  |   |                      |                 |           |
  |   |   |                      |                 |           |
- |   |   |                      |                 |           |
- |   o-<-2----------I1----------o                 |           |
+ |   o---2----------I1----------o                 |           |
  |      C|                                        |           |
- |       |                                        |           |
- |      /\                                        |           |
+ |X  X   |                                        |           |
+ |X  X  /\                                        |           |
  |      B|                                        |           |
  o-------0-------------------O1-------------------o           |
          |                                                    |
          |                                                    |
          o-------------------------O2-------------------------o
                                                  
-O1 X O2: find SI1
-I1 X O2: find SI1
+- find first intersectionpoint along O1 X O2 with SID_CCW
+O2 X O1: SID_CCW, find point B;
 
-A  DO1_O2  FWD following O1 at intersectionPoint O1 X O2
 B  DO2_O1  BWD following O2 at intersectionPoint O2 X O1
-
 C  DI1_O2  BWD following I1 at intersectionPoint I1 X O2
 D  DO2_I1  BWD following O2 at intersectionPoint O2 X I1
+A  DO1_O2  FWD following O1 at intersectionPoint O1 X O2
 
-- find startpoint O1 X O2 = first intersectionpoint along O1 with SI1 = IP0
-  - start along O2
-  at IP0  B=DO2_O1  BWD  to IP2
-  at IP2  C=DI1_O2  BWD  to IP3
-  at IP3  D=DO2_I1  BWD  to IP1
-  at IP1  A=DO1_O2  FWD  to endOfBnd. No more IPs.
-
-
---------------------------------
-TODO:
-  set BDI=0
-  set BD2=0
-
-- do Get_ACTPT 
-
-- L1: 
-  Loop tru all surf1-bounds (BDI1=0,1,..)
-    loop tru all surf2-bounds (BDI2=0,1,..)
-      Get_NXTPT: 
-        OB1 X OB2: follow sur2 from ACTPT REV; get endpt or next IPT as NXTPT;
-        IB1 X OB2: 
-        IB1 X IB2: ignore if OPE=NOT
-        - next IPT found: 
-          - follow surf1 FWD to next IPT;
-        - add ACTPT - NXTPT as new curve to sur3;
-        ACTPT = NXTPT;
-        if no ACTPT: break (next surf2-bound)
-          if no surf2-bound: break; BDI1 += 1; next surf1-bound.
-        goto L1.
-
-Get_ACTPT: Input BDI1
-  get startpoint on new boundary - OB or IB of surf1
-  OB (BDI1=0):
-    O1: find first IPT DIR_O1 (FWD) along OB of surf1;
-  IB (BDI1>1):
-    I1: if no IPT on OB: find first IPT REV on IBx
-
-
-Get_NXTPT:
 
 
 ------------------------------------------------------------------

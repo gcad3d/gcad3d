@@ -41,8 +41,9 @@ void MEMTAB(){}
 =====================================================
 List_functions_start:
 
-MemTab_ini_fixed      init memory-table with fixed memoryspace; no realloc, no free.
 MemTab_ini__          init memory-table (malloc)
+MemTab_ini_fixed      init memory-table with fixed memoryspace; no realloc, no free.
+MemTab_ini_UME        init MemTab inside Memspc (UME_malloc or UME_init)
 MemTab_ini_temp       get memspace for rTot records                          INLINE
 MemTab_ini_add        init, malloc, add data into MemTab
 MemTab_free           free memspace from MemTab_ini_temp                     INLINE
@@ -87,122 +88,17 @@ OXMT_..               ../APP/ut_ogxt.c        OgxTab  (MemTab(ObjGX) + Memspc)
   TODO: add ../ut/itab.c  ->  ../ut/ut_memTab1.c als MemTab_IndInt_..
 =====================================================
 
-see also ../ut/ut_umem.c     (MEM_CAN[NOT]_..
-
-
-- OFFLINE tests:
-main
-dumpTab
-
+see also:
+../ut/ut_umem.c     (MEM_CAN[NOT]_..
+INF_MemTab
+Examples / Testprogs: see ../APP/Test_MEM.c  - plugin Test_MEM.mak
+INF_MEM__
 
 - external functionreferences:
 UTI_round_i2b
 UTI_round_b2i
 MEM_del_nrec
 MEM_ins_nrec
-
-
------------------------------------------------------
------------------------------------------------------
-- usage examples:
-
-#include "../ut/ut_memTab.h"          // MemTab_..
-#include "../ut/ut_geo.h"             // Point
-// typedef struct {double x, y, z;} Point;
-
-typedef_MemTab(Point);
-
-int f1 () {
-  MemTab(Point) pTab = _MEMTAB_NUL;
-  long          ld;
-  Point         pt1, pta[]={{0,0,0},{1,0,0},{1,1,0}};
-
-  // alloc for 100 points
-  MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, 100);
-  // add records to pTab
-  MemTab_sav (&pTab, &ld, &pta[0], 1);   // add 1 record
-  MemTab_sav (&pTab, &ld, &pta[1], 2);   // add 2 records
-
-  printf("recNr = %d\n",pTab.rNr);       // nr of records in pTab (Count)
-
-  // get 1 record starting with record # 2
-  ii = 0;
-  MemTab_get (&pt1, &pTab, 2, 1);
-    // dumpTab (&pTab, 2);
-    printf(" pt1=%f,%f,%f\n",pt1.x,pt1.y,pt1.z);
-
-  // get 1 record direct out of tab.data:
-  // pt1 = pTab.data[ii];
-
-  // insert 1 record before record # 2
-  pt1.x = 3; pt1.y = 4; pt1.z = 5;
-  MemTab_ins (&pTab, &ld, &pt1, 2, 1);
-
-  // modify 1 record starting with record # 2
-  pt1.x = 5; pt1.y = 4; pt1.z = 3;
-  MemTab_mod (&pTab, &pt1, 2, 1);
-
-  // delete 1 record starting with record # 2
-  MemTab_del (&pTab, 2, 1);
-
-  // print nr of records stored:
-  printf(" nr of records: %d\n",pTab.rNr);
-
-  // reset the data (clear)
-  // MEMTAB_CLEAR (&pTab);         // memTab->rNr = 0; 
-
-  f2 (&pTab);
-
-  // free memory
-  MemTab_free (&pTab);
-
-  printf(" sizof = %d\n",sizeof(MemTab));
-}
-
-
-
-
-//----------------------------------------------------------------
-// how to loop tru MemTabs:
-int f2 (MemTab(Point) *mTb) {
-  // mTab->data has type Point* !
-  int    i1;
-  Point  *pTab;
-  
-  for(i1=0; i1 < mTb->rNr; ++i1) {
-    // data is (Point*) !
-    printf(" rec[%d]=%f,%f,%f\n",i1,
-            mTb->data[i1].x,
-            mTb->data[i1].y,
-            mTb->data[i1].z);
-  }
-
-  pTab = mTb->data;
-
-  return 0;
-
-}
-
-
-
-//----------------------------------------------------------------
-// get the pointer to record nr. 5 out of MemTab:
-typedef_MemTab(IndTab);
-  MemTab(IndTab) mt = ..
-
-  IndTab *recX;
-  recX = MEMTAB__ (&mt, 5);
-
-
-
-
-
-
-
-\endcode *//*----------------------------------------
-
-Testprog: ../ut/tst_memTab.c
-
 
 */
 
@@ -219,12 +115,12 @@ Testprog: ../ut/tst_memTab.c
 #include "../ut/AP_types.h"
 #include "../ut/ut_memTab.h"
 #include "../ut/ut_uti.h"              // UTI_round_32up
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_types.h"            // UINT_8_MAX
 #include "../ut/ut_mem.h"              // MEM_*
+#include "../ut/ut_umem.h"                // Memspc - only for MemTab_ini_UME
 
 #include "../xa/xa_msg.h"              // MSG_* ERR_*
-
 
 MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
@@ -357,6 +253,71 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 }
 
 
+//===============================================================================
+  int MemTab_ini_UME (Memspc *mSpc, MemTab **mtb, int rSiz, int typ, int rNr) {
+//===============================================================================
+// MemTab_ini_UME              make MemTab indside Memspc
+//   MemTab CANNOT REALLOCATE.
+// Input
+//   mSpc       Memspc
+//   rSiz       recordsize in bytes
+//   typ        info; Typ_PT=Point Typ_Int4=int Typ_Float8=double Typ_Int1=char;
+//   rNr        nr of records to occupy; -1 = complete space of mSpc;
+// Output
+//   mtb        pointer to MemTab mtb inside Memspc mSpc
+
+// MemTab_add
+
+
+  int       sizTot, sizDat, rMax;
+  MemTab    mtx = _MEMTAB_NUL;
+
+
+  // printf("MemTab_ini_UME rSiz=%d typ=%d rNr=%d\n",rSiz,typ,rNr);
+
+  sizTot = UME_ck_free (mSpc) - sizeof(MemTab);
+
+  if(rNr > 0) {
+    sizDat = rSiz * rNr;
+    if(sizDat > sizTot)
+      return MSG_ERROR (ERR_EOM, "MemTab_ini_UME - not enough space");
+  } else {
+    rNr = sizTot / rSiz;
+    if(rNr >sizTot) --rNr;
+    sizDat = rSiz * rNr;
+  }
+    // printf(" sizTot=%d sizDat=%d rNr=%d\n",sizTot,sizDat,rNr);
+
+
+  mtx.typ  = typ;
+  mtx.rMax = rNr;
+  mtx.rSiz = rSiz;
+  mtx.tSiz = sizDat;
+  // set spcTyp = MEMTYP_STACK__ - realloc - NO,    malloc - NO;
+  mtx.spcTyp = MEMTYP_STACK__;
+  mtx.data   = (char*)mSpc->next + sizeof(MemTab);
+    // MemTab_dump (&mtx, "MemTab-mtx");
+
+
+  // copy out pointer to MemTab mtx -> mSpc
+  *mtb = mSpc->next;
+
+  // copy MemTab-header into mSpc
+  memcpy (mSpc->next, &mtx, sizeof(MemTab));
+
+  // occupy space in Memspc mSpc
+  mSpc->next = (char*)mtx.data + sizDat;
+  // mSpc->next += sizeof(MemTab) + sizDat;
+
+
+    // UME_dump (mSpc, "Memspc-mSpc");
+    // MemTab_dump (*mtb, "MemTab-mtb");
+
+  return 0;
+
+}
+
+
 //=========================================================================
   int MemTab_add (void *mtbv, long *spcOff,
                   void* objDat, int recNr, int mode) {
@@ -438,8 +399,9 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
   //----------------------------------------------------------------
   // test if enough space ..
-  iAddr = memTab->rNr + recNr + 1;          // keep 1 records free
-  if(iAddr < memTab->rMax) goto L_save;
+  iAddr = memTab->rNr + recNr;
+  // if(MEM_CAN_ALLOC(memTab->spcTyp)) iAddr += 1;  // can realloc: keep 1 records free
+  if(iAddr <= memTab->rMax) goto L_save;
 
 
 
@@ -800,6 +762,8 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 //================================================================
 // write MemTab to file
 
+  printf("MemTab_wrf rSiz=%d rNr=%d\n",mt->rSiz, mt->rNr);
+
 
   fwrite(mt, sizeof(MemTab), 1, fp1);
 
@@ -881,9 +845,10 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
   ityp = memTab->typ;
 
-  if(!ityp) {printf(".. objTyp undef ..\n");     return -1;}
+  if(!ityp) {printf(".. objTyp undef ..\n"); return -1;}
+  if(ityp == Typ_unknown) {printf(".. objTyp unknown ..\n"); return -1;}
 
-  isiz = UTO_siz_stru (memTab->typ);
+  isiz = UTO_siz_stru (ityp);
     printf(" ityp=%d isiz=%d rNr=%d\n",ityp,isiz,memTab->rNr);
 
 

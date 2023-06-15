@@ -65,9 +65,11 @@ MDL_load_scan__         create list of subModels (tmp/Mod_<safMnam>.lst)
 MDL_load_scan_prim      create list of subModels of primary-model
 MDL_load_import__       model import (write file tmp/Model_<safMnam>)
 MDL_load_import_ext     import as file tmp/Model_ gcad,dxf,stp,igs ..
+MDL_load_import_mock    import mockup
 MDL_load_import_ctlg    import catalogPart as file tmp/Model_<ctlgPart>
 MDL_load_import_attr    write attributes and model (UTF-buffer1)
 MDL_load_load           create baseModels, load into DL
+MDL_load_unl            unload  dll_imp dll_exp
 MDL_load_lst            let user select internal model from list, activate
 MDL_load_flst           userSelect new primary-model from list
 
@@ -324,6 +326,7 @@ see INF_basModels__
 #include "../ut/ut_txt.h"              // UTX_*
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
 #include "../ut/ut_deb.h"              // DEB_*
+#include "../ut/os_dll.h"              // DLL_*
 
 #include "../xa/xa_msg.h"              // MSG_* ERR_*
 #include "../xa/xa.h"                  // AP_modact_nam AP_modact_tmp
@@ -430,6 +433,10 @@ extern int       GA_recNr;             // die aktuelle Anzahl von Records
 // static char       mdl_nam_tmp[SIZMFNam];   // temp. modelname
 
 static char       sSecEnd[]="SECTIONEND";
+
+
+static void *dll_imp = NULL;
+static void *dll_exp = NULL;
 
 
 //================================================================
@@ -1224,7 +1231,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
 
   // let user select from list of Submodelnames
   sprintf(fn,"%sMod.lst",AP_get_tmp_dir());
-  irc = GUI_listf1__ (s1, sizeof(s1), fn, "\"select model\"", "\"x40,y40\"");
+  irc = GUI_listf1__ (s1, sizeof(s1), fn, "- select modelxxi -", "x40,y40");
   if(irc < 0) goto L_exit;
 
   // activate selected model
@@ -2083,7 +2090,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
     // let user select from list of Submodelnames
     sprintf(s1,"%sMod.lst",AP_get_tmp_dir());
-    irc = GUI_listf1__ (fNam,sizeof(fNam),s1,"\"select model\"","\"x40,y40\"");
+    irc = GUI_listf1__ (fNam,sizeof(fNam),s1,"- select model -","x40,y40");
     if(irc < 0) return -1;
 
 //   // save the active Submodel AP_modact_nam -> TempFile
@@ -2574,7 +2581,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   // get a list of files "<temp>/*.appdat" -> sTab
   sprintf(cbuf, "%slst.dat", AP_get_tmp_dir());
-  ii = UTX_dir_listf (cbuf, AP_get_tmp_dir(), NULL, ".appdat");
+  ii = UTX_dir_listf (cbuf, AP_get_tmp_dir(), NULL, ".appdat", 0);
   if(ii < 1) goto L_main;
     // printf("add -appDat-\n");
 
@@ -3218,7 +3225,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   } else if((ofm->iTyp == Mtyp_WRL)&&(AP_stat.subtyp == 1)){
     // printf(" Export VRML1 |%s|\n",AP_mod_fnam);
-    OS_dll_do ("xa_vr2_exp", "VR2_exp__", fno, 0);
+    // OS_dll_do ("xa_vr2_exp", "VR2_exp__", fno, 0);
+    AP_kex_exec (&dll_exp, "xa_vr2_exp", "VR2_exp__", fno, DLL_LOAD_EXEC_UNLOAD);
     // cp <tmpDir>export.exp AP_mod_dir.AP_mod_fnam.ofm->fTyp
     sprintf(s1, "%sexport.exp",AP_get_tmp_dir());
     irc = OS_file_copy (s1, fno);
@@ -3229,13 +3237,15 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   } else if(ofm->iTyp == Mtyp_DXF) {
     // printf(" Export DXF |%s|\n",AP_mod_fnam);
-    OS_dll_do ("xa_dxf_w", "DXFW__", fno, 0);
+    // OS_dll_do ("xa_dxf_w", "DXFW__", fno, 0);
+    AP_kex_exec (&dll_exp, "xa_dxf_w", "DXFW__", fno, DLL_LOAD_EXEC_UNLOAD);
     goto L_fertig;
 
 
   } else if(ofm->iTyp == Mtyp_SVG) {
     // printf(" Export SVG |%s|\n",AP_mod_fnam);
-    OS_dll_do ("xa_svg_w", "SVG_w__", fno, 0);
+    // OS_dll_do ("xa_svg_w", "SVG_w__", fno, 0);
+    AP_kex_exec (&dll_exp, "xa_svg_w", "SVG_w__", fno, DLL_LOAD_EXEC_UNLOAD);
     goto L_fertig;
 
 
@@ -3246,7 +3256,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   } else if(ofm->iTyp == Mtyp_Step) {
-    OS_dll_do ("xa_stp_w", "STP_w__", fno, 0);
+    // OS_dll_do ("xa_stp_w", "STP_w__", fno, 0);
+    AP_kex_exec (&dll_exp, "xa_stp_w", "STP_w__", fno, DLL_LOAD_EXEC_UNLOAD);
     goto L_fertig;
 
 
@@ -5154,6 +5165,29 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 }
 
 
+//================================================================
+  int MDL_load_unl () {
+//================================================================
+// MDL_load_unl          unload  dll_imp dll_exp
+
+  DLL_dyn__ (&dll_imp, DLL_UNLOAD, NULL);
+  DLL_dyn__ (&dll_exp, DLL_UNLOAD, NULL);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int MDL_load_import_mock (char *dllnam, void *data) {
+//================================================================
+// MDL_load_import_mock           import mockup
+
+    // load dll, exec "gCad_main"
+    return AP_kex_exec (&dll_imp, dllnam, "gCad_main", data, DLL_LOAD_EXEC);
+
+}
+
 
 //================================================================
   int MDL_load_import_ext (int mTyp, char *mnam) {
@@ -5183,9 +5217,12 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // resolv fileName
   irc = MDLFN_oFn_fNam (&ofn, mnam);
   if(irc < 0) goto L_exit;
+    // MDLFN_dump_ofn (&ofn, "MDL_load_import_ext-1");
 
   // get fNam = full filename for mnam
   MDLFN_ffNam_oFn (fNam, &ofn);
+    // printf(" MDL_load_import_ext-fNam |%s|\n",fNam);
+
 
   // Test if file exists
   irc = OS_checkFilExist (fNam, 2);  // 1=yes, 0=no
@@ -5227,7 +5264,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // - no title, no rescale;
     pa[0] = fNam;
     pa[1] = fno;
-    irc = OS_dll_do ("xa_dxf_r", "DXF_r__", pa, 0);
+    // irc = OS_dll_do ("xa_dxf_r", "DXF_r__", pa, 0);
+    irc =  AP_kex_exec (&dll_imp, "xa_dxf_r", "DXF_r__", pa, DLL_LOAD_EXEC_UNLOAD);
       // printf(" f.OS_dll_do %d |%s|\n",irc,fNam);
     if(irc < 0) {irc = -3; goto L_exit;}
     goto L_exit;
@@ -5240,7 +5278,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // create native model <tmpDir>Model_ + all subModels (Model_<smNam>)
     pa[0] = fNam;
     pa[1] = fno;
-    irc = OS_dll_do ("xa_ige_r", "IGE_r__", pa, 0);
+    // irc = OS_dll_do ("xa_ige_r", "IGE_r__", pa, 0);
+    irc = AP_kex_exec (&dll_imp, "xa_ige_r", "IGE_r__", pa, DLL_LOAD_EXEC_UNLOAD);
       // printf(" f.OS_dll_do %d |%s|\n",irc,fNam);
     if(irc < 0) {irc = -3; goto L_exit;}
     AP_stru_2_txt (NULL, 0, (void*)lTab, 1L); // ask last index
@@ -5257,7 +5296,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // - no title, no rescale;
     pa[0] = fNam;
     pa[1] = fnSub;
-    irc = OS_dll_do ("xa_stp_r", "STP_r__", pa, 0);
+    // irc = OS_dll_do ("xa_stp_r", "STP_r__", pa, 0);
+    irc = AP_kex_exec (&dll_imp, "xa_stp_r", "STP_r__", pa, DLL_LOAD_EXEC_UNLOAD);
       // printf(" f.OS_dll_do %d |%s|\n",irc,fNam);
     if(irc < 0) {irc = -3; goto L_exit;}
     goto L_exit;
@@ -5285,7 +5325,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // printf(" _load_import_ext-lxml-fno=|%s|\n",fno);
     pa[0] = fNam;
     pa[1] = fno;
-    irc = OS_dll_do ("xa_lxml_r", "LXML_r__", pa, 0);
+    // irc = OS_dll_do ("xa_lxml_r", "LXML_r__", pa, 0);
+    irc = AP_kex_exec (&dll_imp, "xa_lxml_r", "LXML_r__", pa, DLL_LOAD_EXEC_UNLOAD);
       // printf(" f.OS_dll_do %d |%s|\n",irc,fNam);
     if(irc < 0) {irc = -3; goto L_exit;}
     // AP_mdl_init (0);
@@ -7902,9 +7943,8 @@ static char noNam[] = "-";
   int MDL_mNam_usr (char *smNam) {
 //================================================================
 // MDL_mNam_usr            get new subModelname from user (safe)
-/// MDL_mNam_usr       get new subModelname from user (safe)
-//// Output smNam       size must be >= 64
-///        retCod      -1=cancel;    0=OK
+// Output smNam       size must be >= 64
+//        retCod      -1=cancel;    0=OK
 
   int    irc;
   char   s1[256], newNam[256];
@@ -7929,7 +7969,7 @@ static char noNam[] = "-";
   strcpy(smNam, s1);
 
 
-  // test if subModel mNam already exists 
+  // test if subModel smNam already exists 
   sprintf(newNam,"%sModel_%s",AP_get_tmp_dir(),smNam);
   if(OS_checkFilExist(newNam,1) == 1) {
     // sprintf(newNam,"  overwrite submodel %s ?  ",mNam);
@@ -7937,6 +7977,8 @@ static char noNam[] = "-";
     irc = GUI_dlg_2b (newNam, "OK", "Cancel");
     if(irc != 0) goto L_name;
   }
+
+    printf(" ex-MDL_mNam_usr |%s|\n",smNam);
 
 
   return 0;

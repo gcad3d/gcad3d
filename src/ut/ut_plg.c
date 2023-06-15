@@ -1593,25 +1593,23 @@ Returncodes:
   int UT3D_pt_projptplg (int *nxp, Point *pto, double *ttab,
                          CurvPoly *plg, Point *pt) {
 //===========================================================================
-/// \code
-/// UT3D_pt_projptplg          proj PT -> PolygonCurve
-///
-/// Input:
-///   nxp          size of outputarry pto and ttab
-///   plg          polygon
-///   pt           point; find nearest points to this point on polygon.
-/// Output:
-///   nxp          nr of outputpoints in pto and values in ttab
-///   pto          nearest points on polygon; first=nearest.
-///   ttab         distance from start of curve for points in pto (v)
-///                NULL = no parameters
-///   Returncodes:
-///                0 = OK
-///                1 = no projectionpoint exists; nearest point selected
-///               -1 = out of tempSpace
-///
-/// Nearest point to <pt> is in pto[0];
-/// \endcode
+// UT3D_pt_projptplg          proj PT -> PolygonCurve
+//
+// Input:
+//   nxp          size of outputarry pto and ttab
+//   plg          polygon
+//   pt           point; find nearest points to this point on polygon.
+// Output:
+//   nxp          nr of outputpoints in pto and values in ttab
+//   pto          nearest points on polygon; first=nearest.
+//   ttab         distance from start of curve for points in pto (v)
+//                NULL = no parameters
+//   Returncodes:
+//                0 = OK
+//                1 = no projectionpoint exists; nearest point selected
+//               -1 = out of tempSpace
+//
+// Nearest point to <pt> is in pto[0];
 
 
   int    i1, ii, irc, iOut, nxMax;
@@ -1715,7 +1713,6 @@ Returncodes:
     // printf("PPPPPPPPPPPPPPPPPPP ex UT3D_pt_projptplg nxp=%d\n",*nxp);
     // for(i1=0; i1 < *nxp; ++i1) printf(" pa[%d] = %f %f %f ttab = %f\n",
                                // i1,pto[i1].x,pto[i1].y,pto[i1].z,ttab[i1]);
-
     // END TESTBLOCK
 
 

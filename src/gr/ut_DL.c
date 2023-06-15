@@ -276,7 +276,7 @@ cc -c -g3 -Wall ut_DL.c
 
 
 #include "../ut/ut_geo.h"              // Point-def 
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_memTab.h"           // MemTab
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_TX.h"               // TX_Error
@@ -2215,10 +2215,11 @@ static long   DL_hidden = -1L;
 //============================================================
    void DL_InitAttTab () {
 //============================================================
-/// \code
-/// DL_InitAttTab       load file ltyp.rc into GR_AttLnTab and create DL-record
-/// Create line-attributes. File is  ~/gCAD3D/cfg_Linux/ltyp.rc
-/// \endcode
+// DL_InitAttTab       load file ltyp.rc into GR_AttLnTab and create DL-record
+// Create line-attributes. File is  ~/gCAD3D/cfg_Linux/ltyp.rc
+// Format infile - 4 values:
+//  "colorID  RGBcolor  dashTyp  thickness  // comments"
+
 
 //  wird schon früher als DL_Init gebraucht !!!
 

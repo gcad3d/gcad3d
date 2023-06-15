@@ -670,9 +670,9 @@ IGS/tisler_01.igs
 
 
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -682,22 +682,11 @@ IGS/tisler_01.igs
 #include <ctype.h>                    // isdigit
 
 
-// NUR FUER DLL  (nicht im Batch):
-// geht leider interaktiv ned mit ifdef; was anderes erfinden ?
-// #ifdef GTK2
-// die folgenden Funktionen exportieren (werden vom Main gerufen):
-// ACHTUNG: geht nur fuer DLL's !
-// #ifdef _MSC_DLL
-#ifdef _MSC_VER
-__declspec(dllexport) int IGE_r__ (void*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
 
 
 // #include "../ut/ut_umem.h"             // UME_save
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_cast.h"                // INT_PTR
+#include "../ut/ut_cast.h"                // INT__PTR
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 
 #include "../ut/ut_txt.h"              // fnam_del
@@ -720,10 +709,17 @@ __declspec(dllexport) int IGE_r__ (void*);
 
 
 
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int  IGE_r__ (void**);
+
+
+
+
+
 // // ex ../gr/ut_GLU.c
 // extern Point     *GLT_pta;
 // extern long      GLT_pta_SIZ;
-
 
 
 #define ENT_ERR  1        // EnytityNr fro not supported entities
@@ -1460,7 +1456,7 @@ static  int oCnt1, oCnt2;
     } else {
       oxp1 = (ObjGX*)ox1.data;
       oxp2 = &oxp1[0];
-      i1 = INT_PTR(oxp2->data);
+      i1 = INT__PTR(oxp2->data);
       if(impTab[i1].typ == Typ_Error) goto L_err1;
         // printf(" SRU ind1=%d %d %d\n",i1,impTab[i1].typ,impTab[i1].ind);
       oxp2->typ  = impTab[i1].typ;
@@ -1470,7 +1466,7 @@ static  int oCnt1, oCnt2;
       // printf(" impTab[%d].ind1=%d\n",i1,impTab[i1].ind);
 
       oxp2 = &oxp1[1];
-      i1 = INT_PTR(oxp2->data);
+      i1 = INT__PTR(oxp2->data);
       if(impTab[i1].typ == Typ_Error) goto L_err1;
         // printf(" SRU ind2=%d %d %d\n",i1,impTab[i1].typ,impTab[i1].ind);
       oxp2->typ  = impTab[i1].typ;
@@ -3881,7 +3877,8 @@ static Plane      pl1;
   for(i1=0; i1<ox1->siz; ++i1) {
     // bei Size==1 ist Index in data !
     if(ox1->siz == 1) {
-      i2 = IGE_r_dNr2ind ((long)iTab);
+      i2 = IGE_r_dNr2ind (LONG__PTR(iTab));
+      // i2 = IGE_r_dNr2ind ((long)iTab);
     } else {
       i2 = IGE_r_dNr2ind (iTab[i1]);
     }

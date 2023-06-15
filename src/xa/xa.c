@@ -40,10 +40,7 @@ Modifications:
 =====================================================
 List_functions_start:
 
-AP_GUI__              start gui-exe
-AP_GUI_get            get full filename for GUI_executable
-APUI_test1            test AP_GUI__
-
+AP_init_xa_h          init global variables of ../xa/xa.c
 AP_MemTab_init        connect static memspace eg memspc251 - MemTab_spc251
 AP_MemTab_get         occupy static - MemTab
 AP_MemTab_rel         release static - MemTab
@@ -82,7 +79,11 @@ AP_Mod_lstAdd         add active model to list <tmpDir>MdlLst.txt
 AP_Mod_lst_fn         add filename to list <tmpDir>MdlLst.txt
 AP_mod_sav_ok         rename Mod_.mod_out -> Mod_.mod_in
 
-AP_exec_dll
+AP_ck_build           test if reBuild wanted, test if compiler exists 
+AP_plu_start          get plugin-name from user; start plugin ..
+AP_plu_restart        restart plugin - DLL
+AP_plu_exec           start plugin - DLL
+AP_kex_exec           start gcad-kernel-extension
 
 AP_APT_sysed          modify line ED_lnr_act with system-editor
 AP_SRC_mem_edi        copy Editor --> memory (if necessary)
@@ -248,9 +249,9 @@ DL_GetTrInd
 */
 
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-#endif
+// #if defined _MSC_VER || __MINGW64__
+// #include <windows.h>
+// #endif
 
 
 #include <stdio.h>
@@ -281,7 +282,7 @@ DL_GetTrInd
 #include "../ut/func_types.h"          // SYM_CROSS
 #include "../ut/ut_txTab.h"            // TxtTab
 #include "../ut/ut_deb.h"              // DEB_*
-
+#include "../ut/os_dll.h"      // DLL_LOAD_only DLL_CONNECT DLL_EXEC ..
 
 #include "../gui/gui__.h"              // GUI_SETDAT_EI ..
 #include "../gr/ut_gr.h"               // GR_TMP_I0
@@ -430,6 +431,11 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 // MemTab MemTab_spc251 = _MEMTAB_NUL;
 
 
+// active kernel-extension-dll
+void *kex_dll = NULL;
+
+
+
 //========= Prototypen: =============================================
   int AP_typ_typChar (char typChar);
   int AP_tmr_CB__ (void *data);
@@ -439,13 +445,26 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //================================================================
 //================================================================
 
+//================================================================
+  int AP_init_xa_h () {
+//================================================================
+// AP_init_xa_h          init global variables of ../xa/xa.c
 
+  AP_fVwr = NULL;
+
+  return 0;
+
+}
+
+
+
+/* replaced by OS_exe_file__
 //================================================================
   int AP_GUI__ (char *guiOut, int outSiz, char *exenam, ...) {
 //================================================================
-// AP_GUI__                        start gui-exe
+// AP_GUI__                        start GUI_exe with parameters
 //
-// exenam     par1
+// gui-exe    par1
 // GUI_file - open      get filenam from user for open (see GUI_file_open__
 // GUI_file - save      get filenam from user for save (see GUI_file_save__I
 // GUI_dlg1 - info      infoText + close-button, not waiting (see also MsgBox)
@@ -453,15 +472,12 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 // GUI_dlg1 - dlgbe     infoText, 1-10 buttons, optional entryField
 //                      see also GUI_dlg_2b GUI_dlg_e2b
 //
-//   ATT: if a string-parameter contains blank: enclose with double-apostroph
-//
 // Input:
-//   guiOut    for exenam = GUI_file - open or save: directory
 //   outSiz    size of output-string guiOut
 //   exenam    filename of exe, without gtk-version; eg "GUI_file" or "GUI_dlg1"
 //   ...       parameters, must end with a NULL; 
 //             Parameters with blanks must be limited with \"
-//
+// 
 //   parameters for exenam = GUI_file - open or save
 //           1 open | save
 //           2 outDir/outfilename
@@ -486,16 +502,17 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //             --ent \"entPreset\" 16    // text in entry, size of entry in chars
 //
 // Output:
+//   guiOut    output-string
+//             guiOut of GUI_file - open / save
+//               full filename; empty for Cancel;
+//               guiOut of GUI_dlg1 - list1
+//               full text of selected line; empty for Cancel;
+//             guiOut of GUI_dlg1 - dlgbe
+//               empty = Cancel
+//               first char is index of selected button; 0=first ..
+//               string of a given entryFieled starts at second character
 //   retCode   -1   exe with name <exenam> not found
 //             -2   error in GUI_<exe>; see /tmp/debug.dat
-//   guiOut of GUI_file - open / save
-//             full filename; empty for Cancel;
-//   guiOut of GUI_dlg1 - list1
-//             full text of selected line; empty for Cancel;
-//   guiOut of GUI_dlg1 - dlgbe
-//             empty = Cancel
-//             first char is index of selected button; 0=first ..
-//             string of a given entryFieled starts at second character
 //
 // Examples: see AP_GUI_test1() ../APP/GUI_file.sh ../APP/GUI_dlg1.sh
 //
@@ -504,123 +521,158 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 #define siz_sPar 1600
 
-  int      irc, ii;
-  char     sPar[siz_sPar], sEnam[SIZFNam], sCmd[siz_sPar+siz_sPar],
-           fnTmp[400], s1[256], *sx;
-  va_list  va;
+//   int      irc, ii;
+//   char     sPar[siz_sPar], sEnam[SIZFNam], sCmd[siz_sPar+siz_sPar],
+//            fnTmp[400], s1[256], *sx;
+//   va_list  va;
+
+  int   irc;
+  char  fnTmp[SIZFNam], s2[2048], *p1;
+  FILE  *fpo;
+  va_list va;
 
 
-  // printf("AP_GUI__ |%s|%s| %d\n",guiOut,exenam,outSiz);
-  // printf("AP_GUI__ |%s| %d\n",exenam,outSiz);
+  printf("AP_GUI__ |%s|%s| %d\n",guiOut,exenam,outSiz);
+  printf("AP_GUI__ |%s| %d\n",exenam,outSiz);
 
 
+  //----------------------------------------------------------------
+  // create filename outputFile
+  GUI_file_in (fnTmp);
 
-  // get full filename for GUI_executable
-  irc = AP_GUI_get (sEnam, exenam);
 
-  // test if exe exists
-  if(!OS_checkFilExist(sEnam,1)) {
-    TX_Print("**** GUI-exefile %s does not exist ..", sEnam);
-    return -1;
+  //----------------------------------------------------------------
+  // write parameters into outFile fnOut
+  if((fpo=fopen(fnTmp,"w")) == NULL) {
+    printf("***** Error OS_exe__ Open %s\n",fnTmp);
+    exit(1);
   }
-
-  sPar[0] = '\0';
-  // strcpy (sPar, "\"");
 
   va_start (va, exenam);
 
-  // add all parameters -> sPar
-  ii = 0;
-  L_s_nxt:
-    sx = va_arg(va, char *);
-    if(sx) {
-        // printf(" AP_GUI__-nxt |%s|\n",sx);
-      // enclose between quotes if containes a blank and add a blank
-      UTX_cp_str_quotes (s1, sx, " ");
-      ii += strlen(s1);
-      if(ii > siz_sPar) {TX_Print("**** AP_GUI__ E-parSiz"); return -2;}
-      strcat(sPar, s1);
-      // strcat(sPar, " ");     // delimit with a blank
-      goto L_s_nxt;
-    }
-
+  L_nxt_arg:
+     p1 = (void*)va_arg (va, char*);
+     if(p1) {
+       fprintf(fpo, "%s\n",p1);
+       goto L_nxt_arg;
+     }
   va_end (va);
 
-  // filename outputFile
-  sprintf (fnTmp, "%stemp_%d",AP_get_tmp_dir(),rand());
-
-    // printf(" AP_GUI__-sEnam |%s|\n",sEnam);   // exenam
-    // printf(" AP_GUI__-sPar  |%s|\n",sPar);    // parameters
-    // printf(" AP_GUI__-fnTmp |%s|\n",fnTmp);   // outputFile
+  fclose(fpo);
 
 
+  //----------------------------------------------------------------
+  // call "exe <inputFileName>"
+  sprintf(s2, "%s %s", exenam, fnTmp);   // Linux
+  // sprintf(s2,  "CMD /C \"\"%s\" \"%s\"\"",fnExe,fnTmp);
+    printf(" AP_GUI__-s2 |%s|\n",s2);
 
-  // set s1 = command (exefilnam parameters)
-  // parameters: save outDir symDirFilnam filter title
-#ifdef _MSC_VER
-  sprintf(sCmd,"CMD /C \"\"%s\" %s \"%s\"", sEnam, sPar, fnTmp);
-#else
-  sprintf(sCmd,"%s %s %s", sEnam, sPar, fnTmp);
-#endif
-    printf(" AP_GUI__ do |%s|\n",sCmd);
+  irc = OS_system (s2);
+  if(irc) {printf("***** AP_GUI__ - Error OS_system %d\n",irc); return -1;}
 
-  // execute
-  irc = OS_system (sCmd);
-  if(irc) {printf("***** AP_GUI__ - E1\n"); return -2;}
-
-  // info does not have outFile
-  if(!strncmp (sPar, "info", 4)) goto L_exit;
-
-  // read file <tmp>/tmp_<iRnd>, delete file, return filecontent:
-  irc = UTX_fgetLine (guiOut, outSiz, fnTmp, 1);
-  if(irc) {printf("***** AP_GUI__ - E2-%d\n",irc); return -3;}
+  // remove inputFile of exe
   OS_file_delete (fnTmp);
 
-  // UTX_CleanCR (guiOut);
+  // create outFilnam of exe
+  GUI_file_out_in (fnTmp, fnTmp);
+
+  // read output of exe (in outFilnam)
+  irc = UTX_fgetLine (guiOut, outSiz, fnTmp, 1);
+    printf("AP_GUI__-out %d |%s|\n",irc,guiOut);
+
+  // remove outFile of GUI_dlg1
+  OS_file_delete (fnTmp);
+
+    printf(" ex-P_GUI__ %d |%s|\n",irc,guiOut);
+
+  return irc;
+
+
+/
+//   // get full filename for GUI_executable
+//   irc = AP_GUI_get (sEnam, exenam);
+// 
+//   // test if exe exists
+//   if(!OS_checkFilExist(sEnam,1)) {
+//     TX_Print("**** GUI-exefile %s does not exist ..", sEnam);
+//     return -1;
+//   }
+// 
+//   // execute
+// /
+
+/
+//   sPar[0] = '\0';
+//   // strcpy (sPar, "\"");
+// 
+//   va_start (va, exenam);
+// 
+//   // add all parameters -> sPar
+//   ii = 0;
+//   L_s_nxt:
+//     sx = va_arg(va, char *);
+//     if(sx) {
+//         printf(" AP_GUI__-nxt |%s|\n",sx);
+//       // MSYS: "*" is expande in all versions; do NOT skip ""
+//       if(strlen(sx) == 0) {strcat(sPar, " \"\" "); goto L_s_nxt;}
+//       // enclose between quotes if containes a blank and add a blank
+//       UTX_cp_str_quotes (s1, sx, " ");
+//       ii += strlen(s1);
+//       if(ii > siz_sPar) {TX_Print("**** AP_GUI__ E-parSiz"); return -2;}
+//       strcat(sPar, s1);
+//       // strcat(sPar, " ");     // delimit with a blank
+//       goto L_s_nxt;
+//     }
+// 
+//   va_end (va);
+// 
+//   // filename outputFile
+//   sprintf (fnTmp, "%stemp_%d",AP_get_tmp_dir(),rand());
+// 
+//     printf(" AP_GUI__-sEnam |%s|\n",sEnam);   // exenam
+//     printf(" AP_GUI__-sPar  |%s|\n",sPar);    // parameters
+//     printf(" AP_GUI__-fnTmp |%s|\n",fnTmp);   // outputFile
+// 
+// 
+// 
+//   // set s1 = command (exefilnam parameters)
+//   // parameters: save outDir symDirFilnam filter title
+// #if defined _MSC_VER || __MINGW64__
+//   sprintf(sCmd,"CMD /C \"\"%s\" %s \"%s\"", sEnam, sPar, fnTmp);
+// #else
+//   sprintf(sCmd,"%s %s %s", sEnam, sPar, fnTmp);
+// #endif
+//     printf(" AP_GUI__ do |%s|\n",sCmd);
+// 
+//   // execute
+//   irc = OS_system (sCmd);
+//   if(irc) {printf("***** AP_GUI__ - E1\n"); return -2;}
+// 
+//   // info does not have outFile
+//   if(!strncmp (sPar, "info", 4)) goto L_exit;
+// 
+//   // read file <tmp>/tmp_<iRnd>, delete file, return filecontent:
+//   irc = UTX_fgetLine (guiOut, outSiz, fnTmp, 1);
+//   if(irc) {printf("***** AP_GUI__ - E2-%d\n",irc); return -3;}
+//   OS_file_delete (fnTmp);
+// 
+//   // UTX_CleanCR (guiOut);
+/
 
   L_exit:
-    // printf("ex-AP_GUI__ |%s|\n",guiOut);
+    printf("ex-AP_GUI__ |%s|\n",guiOut);
   return 0;
 
 }
-
-
-//================================================================
-  int AP_GUI_get (char* sEnam, char *sNam) {
-//================================================================
-// AP_GUI_get             get full filename for GUI_executable
-// Input:
-//   Nami           eg GUI_dlg1 or GUI_open
-// Output:
-//   sEnam          get full filename; size must be SIZFNam
-//                  eg /home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk2
-
-  int      irc, vGtk;
-  char     sGui[32];
-
-  // get gtk-major-version
-  GUI_get_version (sGui, &vGtk, &irc);
-
-
-  // sEnam = exeFilename
-#ifdef _MSC_VER
-  sprintf(sEnam,"%s%s_%s%d_MS.exe", AP_get_bin_dir(), sNam, sGui, vGtk);
-#else
-  sprintf(sEnam,"%s%s_%s%d", AP_get_bin_dir(), sNam, sGui, vGtk);
-#endif
-
-    // printf(" ex-AP_GUI_get |%s|\n",sEnam);
-
-  return 0;
-
-}
+*/
 
 
 //================================================================
   int AP_symDirSel () {
 //================================================================
-// AP_symDirSel        select directory-path-group (file cfg/dir*.lst)
+// AP_symDirSel        select directory-path-file (file cfg/dir*.lst)
 // - select <cfgDir>/dir*.lst and copy -> <cfgDir>/dir.lst
+// - set AP_symDir_fnam = new active directory-path-file
 
 
   int    irc, fNr, ii;
@@ -631,7 +683,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
   // printf("AP_symDirSel \n");
 
 
-  // - list all dir*.lst but exclude dir.lst
+  // - list all dir_*.lst but exclude dir.lst
   UtxTab_init__ (&fnLst);
   fNr = UTX_dir_list__ (&fnLst, AP_get_cfg_dir(), "dir", ".lst", 0);
 
@@ -663,7 +715,7 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 
   // - provide this list for selection
-  irc = GUI_listf1__ (s1, sizeof(s1), fn1, "\"select file\"", "\"x40,y10\"");
+  irc = GUI_listf1__ (s1, sizeof(s1), fn1, "- select file -", "x40,y10");
   if(irc < 0) goto L_exit;
     // printf(" _lst_mshi-sel |%s|\n",s1);
 
@@ -685,52 +737,6 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
     UtxTab_free (&fnLst);
       // printf(" ex-AP_symDirSel |%s|\n",AP_symDir_fnam);
     return 0;
-
-}
-
-
-//================================================================
-  int AP_GUI_test1 () {
-//================================================================
-
-
-  int    irc;
-  char   filNam[SIZFNam], s1[SIZFNam];
-
-
-  printf(" AP_GUI_test1\n");
-
-
-//----------------------------------------------------------------
-// test open
-  strcpy(filNam, "/mnt/serv2/devel/cadfiles/gcad/");
-
-  // call GUI_file/save
-  irc = AP_GUI__ (filNam,                // directory/filename in and out
-                  SIZFNam,                  // size if filNam
-                  "GUI_file",            // exenam without directory;GUI_file|GUI_dlg1
-                  "open",                // for GUI_file: open | save
-                  filNam,                // outDir/outfilename
-                  "/mnt/serv2/devel/gcad3d/gCAD3D/cfg_Linux/dir.lst",  // filnam symDir
-                  "\"*\"",               // filterText
-                  "sTit",                // window-title
-                  "\"x40,y30\"",         // window-size
-                  NULL);
-
-
-
-
-//----------------------------------------------------------------
-// test save
-//   // call GUI_file-save
-//   AP_GUI__ (s1, sizeof(s1), "GUI_file", "save",
-//              "/mnt/serv2/devel/cadfiles/gcad/unknown.gcad",
-//              "/mnt/serv2/devel/gcad3d/gCAD3D/cfg_Linux/dir.lst",
-//              "*",
-//              "Speichern",
-//              NULL);
-
-  return 0;
 
 }
 
@@ -776,10 +782,6 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 
 }
 
-
-
-
- 
 
 //================================================================
   int AP_mdlbox_invalid_ck () {
@@ -1497,14 +1499,18 @@ char      AP_ED_oNam[128];   ///< objectName of active Line
 //================================================================
 // AP_sav_as           File / save as ".gcad"
 
+  int    irc, stat;
 
+  stat = AP_stat.mdl_stat;
   AP_stat.mdl_stat = MDLSTAT_save_as;
-  AP_save__ (0, 0, 2, "gcad");
+  irc = AP_save__ (0, 0, 2, "gcad");
+  if(irc < 0) {AP_stat.mdl_stat = stat; return irc;}
+
   MDL_ren_sav ();  // update new modelname in browser
+
   AP_stat.mdl_stat = MDLSTAT_loaded;
 
-
-    printf(" ex-AP_sav_as\n");
+    // printf(" ex-AP_sav_as\n");
 
   return 0;
 
@@ -2108,6 +2114,7 @@ static stru_FN  fnLast;
 }
 */
 
+
 //=================================================================
   int AP_mdl_init (int mode) {
 //=================================================================
@@ -2133,7 +2140,12 @@ static stru_FN  fnLast;
 
 
   // unload unused DLLs
-  UI_PRI__ (FUNC_UNLOAD);
+  MDL_load_unl ();
+  UI_PRI_unl ();   // unload print/export if not active
+
+  // do NOT unload plugins; remoteCtrl makes new = unload from plugin = crash.
+  // DLL_plu_unl ();
+
 
   // close files
   if(AP_stat.jntStat) {
@@ -3054,39 +3066,39 @@ ED_Run
   char  s1[128];
 
 
-  // printf("AP_testdll__ %d\n",mode);
+  printf("AP_testdll__ %d\n",mode);
 
 
-  //----------------------------------------------------------------
-  if(mode != 1) goto L_load;
-
-  // unload dll
-  irc = OS_dll__ (&dll1, FUNC_UNLOAD, NULL);
-  if(irc < 0) {
-    TX_Error("AP_testdll__: cannot close dyn. Lib.");
-    return -1;
-  }
-
-
-  // recompile
-  OS_dll__ (&dll1,  FUNC_RECOMPILE, dllNam);  // rebuild
-
-
-
-  //----------------------------------------------------------------
-  L_load:
-  // sprintf(cBuf, "%s%s",AP_get_bin_dir(),dllNam);
-    // printf("   _dll_load |%s|\n",cBuf);
-  // exit if dll does not exist;  else load DLL
-  // if(OS_checkFilExist(cBuf, 1) == 0) return 0;
-
-
-  // load DLL (dlopen); RTLD_GLOBAL: load all funcs in dll.
-  if(&dll1) {
-    irc = OS_dll__ (&dll1, FUNC_LOAD_all, (void*)dllNam);
-    if(irc < 0) return irc;
-  }
-
+//   //----------------------------------------------------------------
+//   if(mode != 1) goto L_load;
+// 
+//   // unload dll
+//   irc = OS_dll__ (&dll1, FUNC_UNLOAD, NULL);
+//   if(irc < 0) {
+//     TX_Error("AP_testdll__: cannot close dyn. Lib.");
+//     return -1;
+//   }
+// 
+// 
+//   // recompile
+//   OS_dll__ (&dll1,  FUNC_RECOMPILE, dllNam);  // rebuild
+// 
+// 
+// 
+//   //----------------------------------------------------------------
+//   L_load:
+//   // sprintf(cBuf, "%s%s",OS_bin_dir_get(),dllNam);
+//     // printf("   _dll_load |%s|\n",cBuf);
+//   // exit if dll does not exist;  else load DLL
+//   // if(OS_checkFilExist(cBuf, 1) == 0) return 0;
+// 
+// 
+//   // load DLL (dlopen); RTLD_GLOBAL: load all funcs in dll.
+//   if(&dll1) {
+//     irc = OS_dll__ (&dll1, FUNC_LOAD_all, (void*)dllNam);
+//     if(irc < 0) return irc;
+//   }
+// 
 
   return 0;
 
@@ -3384,10 +3396,9 @@ remote control nur in VWR, nicht MAN, CAD;
   }
 
 
-  // line 1: Open-baseDir
+  // line 1: Open-baseDir (symbolic or full; without filename)
   strcpy(txbuf, AP_mod_dir);
-  if(txbuf[strlen(txbuf)-1] != fnam_del) strcat(txbuf, fnam_del_s);
-  strcat(txbuf, "   // Dir for open");
+  UTX_fdir_add_del (txbuf);  // add closing "/"
   fprintf(fp1, "%s\n", txbuf);
 
 
@@ -3497,14 +3508,13 @@ remote control nur in VWR, nicht MAN, CAD;
 
   fprintf(fp1, "# symbolic_name     path\n");
 
-
-  sprintf(txbuf, "Data     %sdat%c",AP_get_loc_dir(),fnam_del);
+  sprintf(txbuf, "Data     %sdat%c",AP_get_loc_dir(),fnam_os_del);
   fprintf(fp1, "%s\n", txbuf);
 
-  sprintf(txbuf, "CATALOG  %sctlg%c",AP_get_loc_dir(),fnam_del);
+  sprintf(txbuf, "CATALOG  %sctlg%c",AP_get_loc_dir(),fnam_os_del);
   fprintf(fp1, "%s\n", txbuf);
 
-  sprintf(txbuf, "APPLI  %sprg%c",AP_get_loc_dir(),fnam_del);
+  sprintf(txbuf, "APPLI  %sprg%c",AP_get_loc_dir(),fnam_os_del);
   fprintf(fp1, "%s\n", txbuf);
 
   // sprintf(txbuf, "PLUGIN  %sprg%c",AP_get_loc_dir(),fnam_del);
@@ -3676,7 +3686,7 @@ remote control nur in VWR, nicht MAN, CAD;
   if(strlen(AP_mod_dir) < 2) sprintf(AP_mod_dir, "%sdat%c",AP_get_loc_dir(),fnam_del);
 
   // // add closing '/' if necessary
-  // UTX_add_slash (sOut);
+  // UTX_fdir_add_del (sOut);
 
 
   // Zeile 2: Language
@@ -3813,11 +3823,11 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // Searchpath
-  sprintf(cbuf1, "%splugins%c",AP_get_bin_dir(),fnam_del);
+  sprintf(cbuf1, "%splugins%c",OS_bin_dir_get(),fnam_del);
     // printf(" path-plugins=|%s|\n",cbuf1);
 
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
       ftyplen = 4; // ".dll"
 #else
       ftyplen = 3; // ".so"
@@ -3838,7 +3848,7 @@ remote control nur in VWR, nicht MAN, CAD;
       // filter filetyp
       i1 = strlen(cbuf1);
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
       for(i2=i1-3; i2<i1; ++i2) cbuf1[i2] = tolower (cbuf1[i2]);
       if(strncmp(&cbuf1[i1-4], ".dll", 4)) continue;
 #else
@@ -3848,13 +3858,18 @@ remote control nur in VWR, nicht MAN, CAD;
       // skip directories
       if(OS_check_isDir(cbuf1) == 0) continue;
 
-      // strip directory - find last "/" (makes |t1| aus |/mnt/x/t1|)
-      p1 = strrchr (cbuf1, fnam_del);
+      // strip directory - find last '/' or '\'(makes |t1| aus |/mnt/x/t1|)
+#if defined _MSC_VER || __MINGW64__
+      p1 =  UTX_find_strrchrn (cbuf1, "/\\");
+#else
+      p1 = strrchr (cbuf1, fnam_os_del);
+#endif
+
       if(p1) ++p1;
       else p1 = cbuf1;
 
-      // "xa_*" ausfiltern ...
-      if(!strncmp(p1, "xa_", 3)) continue;
+//       // "xa_*" ausfiltern ...
+//       if(!strncmp(p1, "xa_", 3)) continue;
 
       // skip all processes
       if(!strncmp(p1, "PRC_", 4)) continue;
@@ -4081,7 +4096,7 @@ remote control nur in VWR, nicht MAN, CAD;
   // test if has filetype; if not: start plugin.
   if(UTX_ftyp_s (s1, cmd, 0) < 0) {
     TX_Print ("*** no filetype - start plugin %s", cmd);
-    return AP_exec_dll (cmd);
+    return AP_plu_exec (cmd);
   }
 
 
@@ -4135,74 +4150,204 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
 //================================================================
-  int AP_exec_dll (char *cbuf) {
+  int AP_ck_build () {
 //================================================================
-/// start DLL
-/// Input: name of the dll without directory & filetyp
-
-  int       i1, iComp;
-  long      l1;
-  char      txbuf[SIZFNam], s2[SIZFNam];
+// AP_ck_build     test if reBuild wanted, test if compiler exists 
+// retCode:    1=yes,build;  0=no; -1=Error-compmiler
 
 
-  printf("AP_exec_dll |%s|\n",cbuf);
+  int    iComp;
 
 
   // compile_DLL - test Checkbox UID_ckb_comp 
-  iComp = ICHG01(AP_stat.comp);
-    printf(" exec_dll-comp=%d\n",iComp);
+  iComp = AP_stat.comp;   // 1=yes,build;  0=no;
+    printf(" AP_ck_build-iComp=%d\n",iComp);
 
 
   // if compile is on: test if compiler & Linker exists
-  if(iComp == 0) {
-    if(AP_stat.build == 0) {   // not yet checked !
-      i1 = OS_dev_ck ();       // exists compiler ?
-      if(i1 < 0) {
-        MSG_pri_0("pluginErr0");
-        iComp = -1;
-      } else {
-        AP_stat.build = 1;
-      }
+  if(iComp) {
+    // yes, do compile ..
+    if(AP_stat.build < 1) {
+      TX_Print("**** cannot build - cannot locate compiler ...");
+      iComp = -1;
     }
   }
 
 
+    printf(" ex-AP_ck_build %d\n",iComp);
+
+  return iComp;
+
+}
 
 
-  strcpy(txbuf, cbuf);
-#ifdef _MSC_VER
-  strcat(txbuf, ".dll");
-#else
-  strcat(txbuf, ".so");
-#endif
+//======================================================================================
+  int AP_kex_exec (void **kex_dll, 
+                   char *dllNam, char *fncNam, void *fncDat, int mode) {
+//======================================================================================
+// AP_kex_exec          start gcad-kernel-extension-dll
+// Input:
+//   mode     DLL_LOAD_EXEC_UNLOAD
+//            DLL_LOAD_EXEC            - do not unload
+//            DLL_UNLOAD               - unload
+// Output:
+//   kex_dll  NULL = dll not loaded;
+//
+// see also 
+// was OS_dll_do
 
-    printf(" exec_dll |%s|\n",txbuf);
 
+  int     irc;
+
+
+  printf("AP_kex_exec |%s|%s| mode=%d\n",dllNam,fncNam,mode);
+
+
+  if((mode == DLL_LOAD_EXEC_UNLOAD)  ||
+     (mode == DLL_LOAD_EXEC))                {
+
+    // load dll
+    if(*kex_dll) {
+      // already a dll loaded; unload
+      irc = DLL_dyn__ (kex_dll, DLL_UNLOAD, NULL);
+      if(irc < 0) return -1;
+    }
+    irc = DLL_dyn__ (kex_dll, DLL_LOAD_only, dllNam);
+    if(irc < 0) return irc;
+  }
+
+
+  if((mode == DLL_LOAD_EXEC_UNLOAD)  ||
+     (mode == DLL_LOAD_EXEC))                {
+    // connect to function PRCE__
+    irc = DLL_dyn__ (kex_dll, DLL_CONNECT, fncNam);
+    if(irc < 0) return irc;
+
+
+    // execute function
+    irc = DLL_dyn__ (kex_dll, DLL_EXEC, fncDat);
+    if(irc < 0) return -1;
+  }
+
+
+  // unload active dll
+  if((mode == DLL_LOAD_EXEC_UNLOAD)  ||
+     (mode == DLL_UNLOAD))                {
+    irc = DLL_dyn__ (kex_dll, DLL_UNLOAD, NULL);
+    if(irc < 0) return -1;
+  }
+
+
+    printf(" ex-AP_kex_exec 0\n");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int AP_plu_start () {
+//================================================================
+// AP_plu_start          get plugin-name from user; start plugin ..
+// was PLU_Loa
+
+  int   i1;
+  char  fnam[256], s1[256];
+
+
+  printf("AP_plu_start \n");
+
+
+  // no addOn-prog may be active.
+  if(AP_stat.APP_stat != 0) {
+    // ask user unload active plugin - yes / no
+    sprintf(s1, "  unload active plugin - yes / no ? ");
+    i1 = GUI_dlg_2b (s1, MSG_const__(MSG_ok), MSG_const__(MSG_no));
+    if(i1 == 0) {
+      DLL_plu_unl ();
+    } else {
+      return -1;
+    }
+  }
+
+
+  // display list of plugins (see AP_DllLst_write ) let user select
+  sprintf(fnam, "%splugins.lst", AP_get_tmp_dir());
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "- select program -", "x40,y40");
+  if(i1 < 0) return -1;
+
+  UTX_ftyp_cut  (s1);     // remove the filetyp (.so|.dll)
+
+  APP_act_typ = 3;
+  UI_Set_typPrg ();
+  strcpy(APP_act_nam, s1);
+
+  // PLU_restart ();
+  AP_plu_exec (APP_act_nam);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int AP_plu_restart () {
+//================================================================
+// AP_plu_restart                restart plugin - DLL
+
+
+  return  AP_plu_exec (APP_act_nam);
+
+}
+
+
+
+//================================================================
+  int AP_plu_exec (char *dllNam) {
+//================================================================
+// AP_plu_exec               start plugin - DLL
+// Input: name of the dll without directory & filetyp
+
+  int       irc, iComp;
+  long      l1;
+  char      txbuf[SIZFNam], s2[SIZFNam];
+
+
+  printf("AP_plu_exec |%s|\n",dllNam);
+
+  // check if plugin is active ..
 
 
   //----------------------------------------------------------------
-
-  i1 = ERR_SET1 ();
-  if(i1) {
-    MSG_get_1 (s2, 256, "pluginErr1", "%s", txbuf);
+  // set error-returnAdress
+  irc = ERR_SET1 ();
+  if(irc) {
+    MSG_get_1 (s2, 256, "pluginErr1", "%s", dllNam);
     printf("*****  %s *****\n",s2);
     // unload plugin <APP_act_nam>
-    DLL_run2 ("", -1);
+    DLL_plu_unl ();
     // redraw
     DL_Redraw ();
     TX_Print("*****  %s *****\n",s2);
-    return 0;
+    return irc;
     // GUI_MsgBox (" Error in protected_routine1");    // if gtk not yet active
     // gtk_exit(1);
   }
 
 
-  // DLL starten
-  DLL_run2 (txbuf, iComp);
+
+  // disp active program-name; col 2=blue
+  UI_Set_actPrg (APP_act_nam, 2);
+  // AP_stat.APP_stat = 1;
+
+  // DLL starten (rebuild, load, connect gCad_main)
+  irc = DLL_plu__ (dllNam, NULL);
+  // inactivate is done by AP_User_reset
+
 
   ERR_RESET ();
 
-  return 0;
+  return irc;
 
 }
 
@@ -5565,7 +5710,9 @@ remote control nur in VWR, nicht MAN, CAD;
   printf("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA AP_test__\n");
   TX_Print("AP_test__");
 
-  MDL_dump__ ("AP_test__");
+  // PRC__ (-1, "EXIT__");
+  // PRC_exit ();
+  // MDL_dump__ ("AP_test__");
   // AP_GUI_test1 ();
 
 return -1;
@@ -5700,10 +5847,10 @@ return -1;
 
   sprintf(cbuf3,"%sgCAD3D.rc",AP_get_cfg_dir());
 
-  printf("AP_Get_Setup %s |%s|\n",cbuf3,ctyps);
+  // printf("AP_Get_Setup %s |%s|\n",cbuf3,ctyps);
 
 
-  return UTX_setup_get (cbufo, ctyps, cbuf3, 1);
+  return UTX_setup_get (cbufo, ctyps, cbuf3);
 
 }
 

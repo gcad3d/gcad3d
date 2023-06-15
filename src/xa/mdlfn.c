@@ -17,7 +17,7 @@
 =====================================================
 TODO:
 -----------------------------------------------------
-- add "expand shell variables ("$" -> OS_filnam_eval)"
+- add "expand shell variables ("$" -> OS_osVar_eval__)"
   // resolve shell variables
     // test if dir has "$"
     strcpy (s2, p1);
@@ -25,7 +25,7 @@ TODO:
     p2 = strchr (s2, '$');
     if(p2) {
       // expand shell variables
-      irc = OS_filnam_eval (s2, s2, sizeof(s2));
+      irc = OS_osVar_eval__ (s2, s2, sizeof(s2));
     }
 
 -----------------------------------------------------
@@ -42,7 +42,7 @@ Modifications:
 #endif
 /*!
 \file  ../xa/mdlfn.c
-\brief ModeL-FileName processing functions                     see INF_symDir
+\brief ModeL-FileName processing functions
 \code
 =====================================================
 List_functions_start:
@@ -76,6 +76,8 @@ MDLFN_ffNam_syFn       get full-filename from symbolic-filename
 MDLFN_get__            get a copy of AP_mod_*
 MDLFN_set__            set AP_mod_* (eg restore)
 
+MDLFN_ck_abs_rel_sym   check if path is absolut, relativ or symbolic
+
 MDLFN_dump__           dump AP_mod_*
 MDLFN_dump_ofn         dump struct stru_FN
 MDLFN_test1
@@ -83,34 +85,18 @@ MDLFN_test2            test MDLFN_ffNam_fNam
 
 List_functions_end:
 =====================================================
+OS_ck_DirAbs
 UU:
 Mod_fNam_set           get symbolic-filename or absolute-filename from global-vars
 MDLFN_fNam_resolv      get sym,dir,fnam,ftyp from symbolic|rel|abs.filename
 
+=========================================================
+
 See also functions Mod_sym_*
 
-
-=========================================================
-struct stru_FN  has separate spaces for symbolic-directory, filename, filetyp ..
-
- ffnam  full-filename (/path/filename.filetyp)
- syFn   symbolic-filename, eg "Data/Niet1.gcad";  "Data" = syDir
- syDir  symbolic-directory; list is ../../gCAD3D/cfg_Linux/dir.lst
- oFn    filename-obj (stru_MDLFN)
-
-
-Extrapath:
- eg. Data/symEl1/res1.gcad
-   .symDir AP_mod_sym   Data/symEl1            symbolic-directory + extrapath
-   .fDir   AP_mod_dir   ~/gCAD3D/dat/symEl1/   full-directory + extrapath
-   .fNam   AP_mod_fnam  res1                   filename
-   .fTyp   AP_mod_ftyp  gcad                   filetyp
-
-
-
-Sizes of filenamefields: see ../xa/mdl__.h
-complete filename            320
-symbolic|safe-modelnames     SIZMFTot   256
+Symbolic-file-name    - see INF_symDir
+Size of filenamefield - see INF_symDir
+filename-object       - struct stru_FN   - see INF_stru_FN
 
 
 =========================================================
@@ -134,6 +120,7 @@ symbolic|safe-modelnames     SIZMFTot   256
 #include "../ut/ut_txt.h"                 // fnam_del
 #include "../ut/ut_os.h"                  // AP_get_bas_dir ..
 #include "../xa/mdl__.h"                  // SIZMFSym stru_FN
+#include "../xa/xa_msg.h"                  // ERR_USER_ABORT
 
 
 
@@ -148,6 +135,75 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 
 
 
+
+//================================================================
+  int MDLFN_ck_abs_rel_sym (char *fNam) {
+//================================================================
+// MDLFN_ck_abs_rel_sym   check if path is absolut, relativ or symbolic
+// Input:
+//   fNam    filename; string, 0-terminated
+// Output:
+//   retCode 0=absolut; 1=relative; 2=symbolic: i1=no-filename-directory
+//           absolut   (0)  "/xy/fn.ftyp"  or "C:\xy\fn.ftyp"
+//           relative  (1)  "./fn.ftyp" or fn.ftyp" or "../xy/fn.ftyp"
+//                          "submodel1" - not relative; internal-subModel !
+//           symbolic  (2)  "Data/fn.ftyp"
+//                          "Schrauben/SKM_6.ctlg" catalog-part !
+// TODO: for functions using internal-subModel or catalog-parts make new function
+//       checking first for internal-subModel (no filetype, no directory), then
+//       for catalog-part (filetype ".ctlg"). APT_decode_model/MDL_mTyp_mNam ??
+
+
+  int    irc, i1;
+  char   *p1, *p2;
+
+  
+  // printf("MDLFN_ck_abs_rel_sym |%s|\n",fNam);
+
+
+  // skip blanks
+  p1 = fNam;
+  UTX_pos_skipLeadBlk (p1);
+
+
+  // check for rel
+  if(*p1 == '.') {irc = 1; goto L_exit;}
+
+
+  // check for abs
+#if defined _MSC_VER || __MINGW64__
+  // - MS: if second char == ':'   - absPath
+  if((p1[0] == '\\')  ||       // UNC-filenames
+     (p1[1] == ':'))      {irc = 0; goto L_exit;}
+#endif
+  // MS & UIX: if first char is '/'
+  if(p1[0] == '/')  {irc = 0; goto L_exit;}
+
+
+  // check for symbolic. must have a '/'
+#if defined _MSC_VER || __MINGW64__
+  // MS
+  p2 = UTX_find_strrchrn (p1, "/\\");
+#else
+  // Unix
+  p2 = strrchr (p1, '/');
+#endif
+
+  if(!p2) {irc = 1; goto L_exit;} // no '/' at all = relative
+
+  // have *p2 = '/'; may not be last char (directory only)
+  ++p2;
+  if(!p2) {irc = -1; goto L_exit;} // p2 was the last char. ERR. 
+
+  irc = 2;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+      // printf(" ex-MDLFN_ck_abs_rel_sym %d |%s|\n",irc,fNam);
+    return irc;
+
+}
 
 
 //================================================================
@@ -221,20 +277,55 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 // was Mod_get_path
 // see also UTX_ffnam_fNam
 
+  int       irc;
+  char      *p1;
   stru_FN   ofn;
 
   // printf("MDLFN_ffNam_fNam |%s|\n",fn);
 
+  // test if symPath is abs - rel - symbolic
+  irc = MDLFN_ck_abs_rel_sym (fn);    // 0=no-symbolic-path; else yes
+  // irc: 0=absolut; 1=relative; 2=symbolic: i1=no-filename-directory
+
+  if(irc == 0) {
+    // absolute
+    strcpy(ffNam,fn);
+    goto L_abs;
+  }
+
+
+  if(irc == 1) {
+    // relative; change relative fnam to absolute fnam
+    irc = UTX_fnam_abs_rel (ffNam, SIZMFTot, fn, NULL);
+    if(irc < 0) goto L_exit;
+    goto L_abs;
+  }
+
+
+  // symbolic filename 
   // get fileName-obj from (unknown) filename
-  MDLFN_oFn_fNam (&ofn, fn);
+  irc = MDLFN_oFn_fNam (&ofn, fn);
+  if(irc < 0) goto L_exit;
     // MDLFN_dump_ofn (&ofn, "ffNam_fNam");
 
   // get full-filename from filenameObject
-  MDLFN_ffNam_oFn (ffNam, &ofn);
+  irc = MDLFN_ffNam_oFn (ffNam, &ofn);
+  goto L_exit;
 
-    // printf(" ex-MDLFN_ffNam_fNam |%s|\n",ffNam);
 
-  return 0;
+  L_abs:
+    irc = 0;  // absDir OK
+    // test if absDir has "$"
+    p1 = strchr (ffNam, '$');
+    if(p1) {
+      // expand shell variables
+      irc = OS_osVar_eval__ (ffNam, ffNam, SIZMFTot);
+    }
+
+
+  L_exit:
+    // printf(" ex-MDLFN_ffNam_fNam %d |%s|\n",irc,ffNam);
+  return irc;
 
 }
 
@@ -268,22 +359,27 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   int MDLFN_ffNam_syFn (char *ffNam, char *syFn) {
 //================================================================
 // MDLFN_ffNam_syFn       get full-filename from symbolic-filename
-
+// Input:
+//   syFn     eg: "Data"  or "Data/tmp/" - without filename !
+// see MDLFN_fDir_syDir
 
   int    irc;
   char   s1[320], path[256], *fNam, *p1;
 
-  // printf("MDLFN_ffNam_syFn-in |%s|\n",syFn);
+
+  printf("MDLFN_ffNam_syFn-in |%s|\n",syFn);
+
 
   // cut symDir / fileNam
   strcpy(s1, syFn);
-#ifdef _MSC_VER
-  fNam = UTX_find_strrchrn(s1, "/\\");
+#if defined _MSC_VER || __MINGW64__
+  // fNam = UTX_find_strrchrn(s1, "/\\");
+  fNam = UTX_find_nchr(s1, "/\\");
 #else
-  fNam = strrchr(s1, fnam_del);
+  fNam = strchr(s1, fnam_del);
 #endif
   if(!fNam) {
-      // printf("*** internal modelname\n");
+      printf ("*** MDLFN_ffNam_syFn - internal modelname\n");
     sprintf(ffNam, "%s%s",AP_get_tmp_dir(),syFn);
     goto L_exit;
   }
@@ -295,12 +391,12 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   irc = MDLFN_fDir_syFn (path, s1);
   if(irc < 0) goto L_exit;
 
-  // full-filename = path + filename
+  // full-filename = path + [extrapath/]filename
   sprintf(ffNam, "%s%s", path, fNam);
 
 
   L_exit:
-    // printf(" ex-MDLFN_ffNam_syFn %d |%s|\n",irc,ffNam);
+    printf(" ex-MDLFN_ffNam_syFn %d |%s|\n",irc,ffNam);
   return irc;
 
 }
@@ -454,7 +550,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   //  - copy model into existing modelDirectory
   strcpy(s2, "\" - give symbolic-name for new symDir or copy model into existing modelDirectory \"");
 
-  irc = AP_GUI__ (s1, 120, "GUI_dlg1", "dlgbe",
+  irc = OS_exe_file__ (s1, 120, "GUI_dlg1", "dlgbe",
                   s2,
                   "key-symDir",
                   "copy-file",
@@ -473,7 +569,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   // strcpy(s2, "\" key name for directory %s \"",mfn->fDir);
   sprintf(s2, "\" key name for directory %s \"",mfn->fDir);
 
-  irc = AP_GUI__ (s1, 120, "GUI_dlg1", "dlgbe",
+  irc = OS_exe_file__ (s1, 120, "GUI_dlg1", "dlgbe",
                   s2,
                   "Cancel",
                   "OK",
@@ -549,8 +645,8 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 
   return GUI_listf1__ (sSym, 120,
                        sLst,
-                       "\"select symbolic directory \"",
-                       "\"x40,y30\"");
+                       "- select symbolic directory -",
+                       "x40,y30");
   return 0;
 
 }
@@ -603,7 +699,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
     // printf(" _dirAbs_symDir-fn=|%s|\n",fn);
 
   // get absDir from symDir out of file
-  irc = UTX_setup_get__ (absDir, symDir, fn);
+  irc = UTX_setup_get (absDir, symDir, fn);
   if(irc) goto L_err1;
     // printf(" _dirAbs_symDir-absDir1=|%s|\n",absDir);
 
@@ -611,7 +707,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   p2 = strchr (absDir, '$');
   if(p2) {
     // expand shell variables
-    irc = OS_filnam_eval (absDir, absDir, 128);
+    irc = OS_osVar_eval__ (absDir, absDir, 128);
   }
     // printf(" _dirAbs_symDir-absDir2=|%s|\n",absDir);
 
@@ -629,7 +725,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
     return irc;
 
   L_err1:
-    TX_Print("***** symbolic dir. %s not found ..",symDir);
+    TX_Print("***** symbolic dir. %s not found ..",symPath);    // symDir);
     goto L_exit;
 
   L_err2:
@@ -643,11 +739,11 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   int MDLFN_fDir_syDir (char *absDir, char *symPath) {
 //====================================================================
 // MDLFN_fDir_syDir    get absolute-direcory from symbolic-directory
-// symdir must be terminated with '/' or '\0'
 // Input:
-//   symPath   eg: "Data"  or "Data/tmp/" - without filename !
+//   symPath   symbolic-path; eg: "Data" "Data/tmp/" - without filename !
 // Output:
 //   absDir:   full path (from file xa/dir.lst)     Size must be >= SIZMFTot
+//             - without extrapath !
 //   RetCod
 //     >= 0    OK; path in out_path; Linenumber of symbol in path.
 //     -1      Symbol <symDir> not found in file
@@ -655,7 +751,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 //
 // was MDLFN_fDir_syFn
 
-  int     irc=0, i1;
+  int     irc, i1;
   char    fn[SIZFNam], symDir[SIZMFSym], *p1, *p2;
 
 
@@ -663,14 +759,15 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 
 
   // get symDir out of symPath (ending with first '/')
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   p1 = strpbrk(symPath, "/\\");
 #else
   p1 = strchr(symPath, '/');
 #endif
 
+  // get symDir = symbolic-directory (without extraPath)
   if(p1) {
-    // cut off extraPath !
+    // cut off extraPath
     i1 = p1 - symPath;
     if(i1 > SIZMFSym) goto L_err2;
     strncpy(symDir, symPath, i1);
@@ -683,28 +780,31 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
     // printf(" symDir=|%s|\n",symDir);
 
 
-  // get filename of dir.lst
+  // get filename of active directory-path-file (file has list of "symDir   fullPath")
   MDLFN_syFn_f_name (fn);
     // printf(" _dirAbs_symDir-fn=|%s|\n",fn);
 
   // get absDir from symDir out of file
-  irc = UTX_setup_get__ (absDir, symDir, fn);
+  irc = UTX_setup_get (absDir, symDir, fn);
   if(irc) goto L_err1;
     // printf(" _dirAbs_symDir-absDir1=|%s|\n",absDir);
 
-  // test if absDir has "$"
-  p2 = strchr (absDir, '$');
-  if(p2) {
-    // expand shell variables
-    irc = OS_filnam_eval (absDir, absDir, SIZMFTot);
-  }
+
+  L_abs:
+    irc = 0;  // absDir OK
+    // test if absDir has "$"
+    p2 = strchr (absDir, '$');
+    if(p2) {
+      // expand shell variables
+      irc = OS_osVar_eval__ (absDir, absDir, SIZMFTot);
+    }
 
   L_exit:
       // printf("ex-MDLFN_fDir_syDir %d |%s|%s|\n",irc,absDir,symPath);
     return irc;
 
   L_err1:
-    TX_Print("***** symbolic dir. %s not found ..",symDir);
+    TX_Print("***** symbolic dir. %s not found ..",symPath);   // symDir);
     goto L_exit;
 
   L_err2:
@@ -739,7 +839,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 //   RetCod:    -1=no-symDir, dir=path; -2=internal-error 
 //              >0=length of symbolic-path
 //
-// TODO: expand opsys-vars (eg $HOME) - see Mod_sym_get2 OS_filnam_eval
+// TODO: expand opsys-vars (eg $HOME) - see Mod_sym_get2 OS_osVar_eval__
 
 
   int    irc;
@@ -915,8 +1015,8 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 
 
   // expand shell variables in fnIn
-  p2 = strchr (fnIn, '$');
-  if(p2) irc = OS_osVar_eval (fnIn, SIZFNam);
+  p2 = strchr (fnIn, shell_var_del);
+  if(p2) irc = OS_osVar_eval_1 (fnIn, SIZFNam);
 
   // get lsi = length of path of fnIn
   p0 = strrchr(fnIn, fnam_del);
@@ -950,11 +1050,11 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
     p1 = UTX_pos_1n (p1);
       // printf(" symDir__fnAbs-s_act=|%s|\n",p1);
 
-    // test if symbolPath has "$"-variable
-    p2 = strchr (p1, '$');
+    // test if symbolPath has shell-variable
+    p2 = strchr (p1, shell_var_del);
     // expand shell variables in symbolPath
-    if(p2) irc = OS_osVar_eval (p1, sizeof(s1) - (p1 - &s1[0]));
-    // if(p2) irc = OS_filnam_eval (s2, p1, sizeof(s2));
+    if(p2) irc = OS_osVar_eval_1 (p1, sizeof(s1) - (p1 - &s1[0]));
+    // if(p2) irc = OS_osVar_eval__ (s2, p1, sizeof(s2));
     // else strcpy (s2, p1);
       // printf(" symDir__fnAbs-eval-p1 |%s|\n",p1);
 
@@ -1019,6 +1119,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   // printf("MDLFN_ofn_user |%s|%s|\n",wTit,filter);
   // printf(" |%s|\n",AP_mod_dir);
 
+
   // get filename of dir.lst (<cfg>/dir.lst)
   MDLFN_syFn_f_name (dirLst);
 
@@ -1026,7 +1127,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   strcpy(filNam, AP_mod_dir);
 
   // call GUI_file/save
-  irc = AP_GUI__ (filNam, FNSIZ, "GUI_file", "open",
+  irc = OS_exe_file__ (filNam, FNSIZ, "GUI_file", "open",
                   filNam,    // outDir/outfilename
                   dirLst,    // filename of symbolic-directories
                   filter,    // filterText  (eg "*")
@@ -1050,6 +1151,261 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 }
 
 
+//================================================================
+  int MDLFN_oFn_fNam (stru_FN *ofn, char *fNam) {
+//================================================================
+// MDLFN_oFn_fNam         get fileName-obj from (unknown) filename
+// - also expands shell-variables, internal-modelnames, catalog-parts,
+//   and  symbolic-directories
+// - internal-modelnames:  (no directory, no filetype) MBTYP_INTERN
+// - catalog-parts: eg "fast/bolt/SKS_10x45.ctlg" ([dir/]catalog/part) MBTYP_CATALOG
+// Input:
+//   fnIn       any filename; not static (following blanks are removed)
+// Output:
+//   RetCod:    -1=no-symDir, dir=path; -2=internal-error; -3=filetyp-too-long
+//               0=no-symDir;
+//              >0=length of symbolic-path
+//
+// Example:    "Data/Niet1.gcad"  sets:
+//   ofn->symDir |Data|                                   may NOT have ending '/'
+//   ofn->fDir   |/home/fwork/devel/cadfiles/gcad/|       must have ending '/'
+//   ofn->fNam   |Niet1|
+//   ofn->fTyp   |gcad|
+//   ofn->iTyp    0                  // Mtyp_Gcad
+//
+// Example:     "${gcad_dir_bas}cadfiles/gcad/symEl1/res1.gcad"
+//   ofn->symDir |Data/symEl1|                            syDirNam/[extraPath/]
+//   ofn->fDir   |/home/fwork/devel/cadfiles/gcad/|       directory/[extraPath/]
+//   ofn->fNam   |res1|
+//   ofn->fTyp   |gcad|
+//   ofn->iTyp    0                  // Mtyp_Gcad
+//
+// CatalogPart:    "fast/bolt/SKS_10x45.ctlg"
+// symDir |fast/bolt|                                     [extraPath/]catalogName
+// fDir   |/mnt/serv2/devel/gcad3d/gCAD3D/ctlg/|          directory CATALOG
+// fNam   |SKS_10x45|                                     partName
+// fTyp   |ctlg|
+// iTyp    -2            MBTYP_CATALOG
+//
+// Example: internal subModel "sm1"
+//  symDir ||
+//  fDir   |/mnt/serv2/devel/gcad3d/gCAD3D/tmp/|          tmpdir
+//  fNam   |Model_sm1|
+//  fTyp   ||
+//  iTyp    -1                                            MBTYP_INTERN
+//
+// Example: // file in relative-path:
+// symDir ||
+// fDir   |<pwd>[additional-path/]|
+//
+// Tests: see MDLFN_test2()
+// was Mod_sym_get2 MDLFN_fNam_resolv
+
+
+  int    irc, ls, sln;
+  char   *pft, // fileType
+         *pfn, // filename
+         *pfx, // extrapath
+         *pfp, *p1, *fnIn;
+  char   sNam[SIZFNam];
+
+
+  // printf("\n_________________________________________________ \n");
+  // printf("MDLFN_oFn_fNam |%s|\n",fNam);
+
+
+  ofn->symDir[0] = '\0';
+  ofn->fDir[0] = '\0';
+  ofn->fNam[0] = '\0';
+  ofn->fTyp[0] = '\0';
+  ofn->iTyp    = MBTYP_ERROR;   // no filetyp found
+  irc = 0;
+
+
+  //----------------------------------------------------------------
+  // copy filename -> sNam = fnIn
+
+  // skip leading blanks
+  UTX_pos_skipLeadBlk (fNam);
+  sln = strlen(fNam);
+  if(sln >= SIZFNam) {TX_Error("MDLFN_oFn_fNam string too long"); return -1;}
+  strcpy(sNam, fNam);
+  fnIn = sNam;
+
+  // remove following blanks ..
+  sln = UTX_del_follBl (fnIn);
+
+  // remove a leading and a following '"'
+  p1 = &sNam[strlen(sNam) - 1];
+  if((sNam[0] == '"')&&(*p1 == '"')) {
+    *p1 = '\0';
+    ++fnIn;
+  }
+    // printf(" oFn_fNam-fnIn=|%s|\n",fnIn);
+
+
+  //----------------------------------------------------------------
+  // expand shell variables
+  p1 = strchr (fnIn, shell_var_del);
+  if(p1) {
+    // expand shell variables
+    irc = OS_osVar_eval_1 (fnIn, sizeof(sNam));
+    if(irc < 0) {TX_Error("MDLFN_oFn_fNam OS_osVar_eval_1"); return -1;}
+      // printf(" oFn_fNam-exp=|%s|\n",fnIn);
+  }
+
+
+  //----------------------------------------------------------------
+  // get fileType (set iTyp, copy into fTyp, cut away)
+  pft = strrchr (fnIn, '.');        // pft = position-last-point
+
+  if(pft) {
+    // test for starting '.' - relative filepath without fileTyp
+    if(pft > &fnIn[0]) {
+      *pft = '\0';
+      // skip '.'
+      ++pft;
+      if(strlen(pft) >= SIZMFTyp) {irc = -1; goto L_exit;}
+      // copy filetyp
+      strcpy(ofn->fTyp, pft);
+      ofn->iTyp = AP_iftyp_ftyp (ofn->fTyp);
+    }
+  }
+
+
+  //----------------------------------------------------------------
+  // get filename (set fNam, cut filename); find internal-model (MBTYP_INTERN)
+  pfn = OS_FIND_STRR_DELI (fnIn); // find pfn = last delimiter
+    // printf(" oFn_fNam-1 |%s|%s|%s|\n",fnIn,pfn,pft);
+  if(!pfn) {
+    if(!pft) {
+      // no name-delimiter, no type-delimiter = internal-model
+      strcpy(ofn->fDir, AP_get_tmp_dir());
+      sprintf(ofn->fNam, "Model_%s",fnIn);
+      ofn->iTyp = MBTYP_INTERN;
+      goto L_exit;
+    }
+    // no name-delimiter; eg "fnam.dxf"
+    strcpy(ofn->fNam, fnIn);
+    goto L_rel__;
+  }
+
+
+  // copy filename
+  ++pfn;
+  strcpy(ofn->fNam, pfn);
+  *pfn = '\0';   // cut ctring, do NOT YET remove ending '/' from path
+                 //  absolute path needs that
+    // printf(" oFn_fNam-fNam=|%s| fTyp=|%s| iTyp=%d\n",ofn->fNam,ofn->fTyp,ofn->iTyp);
+
+
+  //----------------------------------------------------------------
+  // check abs - rel -symbolic
+  irc = MDLFN_ck_abs_rel_sym (fnIn);    // 0=abs; 1=rel; 2=sym;
+  if(irc == 0) goto L_abs__;
+  if(irc == 1) goto L_rel__;
+  if(irc == 2) goto L_sym__;
+
+
+  //================================================================
+  L_abs__:
+      // printf(" L_abs__: |%s|\n",fnIn);
+    strcpy(ofn->fDir, fnIn);
+
+    // test if path starts with a symbolicPath; if yes: write into ofn->symDir
+    irc = MDLFN_symDir__fnAbs (ofn->symDir, fnIn);
+
+    goto L_exit;
+
+
+  //================================================================
+  L_rel__:
+    // relativ; fnIn = "./[extrapath]
+      // printf(" L_rel__: |%s|\n",fnIn);
+
+    // abs -> fDir
+    irc = UTX_fnam_abs_rel (ofn->fDir, SIZMFTot, fnIn, OS_get_dir_pwd ());
+    goto L_exit;
+
+
+  //================================================================
+  L_sym__:
+      // printf(" L_sym__: |%s|\n",fnIn);
+
+    // remove last char = '/'
+    fnIn[strlen(fnIn) - 1] = '\0';
+
+    // get extraPath into pfx
+    pfx = OS_FIND_STR_DELI (fnIn); // find pfn = last delimiter
+    if(pfx) {
+      *pfx = '\0';    // cut
+      ++pfx;          // startpos of extraPath
+    }
+
+    // check if its a catalogpart - fileTyp "ctlg"
+    if(ofn->iTyp == MBTYP_CATALOG) goto L_ctlg;
+
+    // copy symbolicPath + extraPath -> fDir
+    if(pfx) {
+      sprintf(ofn->symDir, "%s%c%s", fnIn, fnam_del, pfx);
+      } else {
+      strcpy(ofn->symDir, fnIn);
+    }
+
+    // get fDir from <symPath> + extrapath
+    irc = MDLFN_fDir_syDir (ofn->fDir, fnIn);
+    if(irc < 0) goto L_exit; // 0=found; must have closing '/'
+
+    // add extraPath to fDir
+    if(pfx) {strcat(ofn->fDir, pfx); strcat(ofn->fDir, fnam_del_s);}
+    goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_ctlg:
+    // catalogpart; 
+      // printf(" L_ctlg: |%s|%s|\n",fnIn,pfx);
+
+    // get fDir = <CATALOG>/[dir/]
+    irc = MDLFN_fDir_syFn (ofn->fDir, "CATALOG");
+    if(irc < 0) {irc = -3; goto L_exit;}
+      // printf("  oFn_fNam-L_ctlg2: fDir=|%s|\n",ofn->fDir); fflush (stdout);
+
+//     // add extraPath to fDir
+//     if(pfx) {strcat(ofn->fDir, pfx); strcat(ofn->fDir, fnam_del_s);}
+//       // printf("  oFn_fNam-L_ctlg3: fDir=|%s|\n",ofn->fDir);
+
+    // add extraPath to symDir
+    strcpy(ofn->symDir, fnIn);
+    if(pfx) {strcat(ofn->symDir, fnam_del_s); strcat(ofn->symDir, pfx);}
+    goto L_exit;
+
+
+
+  //================================================================
+  L_exit:
+
+      // TESTBLOCK
+      // MDLFN_dump_ofn (ofn, "ex-MDLFN_oFn_fNam");
+      // printf(" ex-MDLFN_oFn_fNam irc=%d |%s|\n",irc,fnIn);fflush(stdout);
+      // printf("--------------------------------------------------\n\n");
+      // if(ofn->fNam[0] == 'R') exit(MSG_ERR__ (ERR_USER_ABORT, "testexit"));
+      // END TESTBLOCK
+
+
+    return irc;
+
+
+  //----------------------------------------------------------------
+  L_err_ls:
+    TX_Print("***** MDLFN_oFn_fNam string too long %s",fnIn);
+    irc = -1;
+    goto L_exit;
+
+}
+
+
+/*
 //================================================================
   int MDLFN_oFn_fNam (stru_FN *ofn, char *fnIn) {
 //================================================================
@@ -1107,7 +1463,9 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 
 
   // printf("_________________________________________________ \n");
-  // printf("MDLFN_oFn_fNam |%s|\n",fnIn);
+  printf("MDLFN_oFn_fNam |%s|\n",fnIn);
+
+
 
   ofn->symDir[0] = '\0';
   ofn->fDir[0] = '\0';
@@ -1119,15 +1477,14 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   // skip leading blanks
   UTX_pos_skipLeadBlk (fnIn);
 
-  // copy filename
+  // copy filename -> s1
   sln = strlen(fnIn);
   if(sln >= SIZFNam) {TX_Error("MDLFN_oFn_fNam string too long"); return -1;}
   strcpy(s1, fnIn);
   fnIn = s1;
 
   // remove following blanks ..
-  ls = UTX_del_follBl (fnIn);
-  if(ls >= SIZFNam) goto L_err_ls;
+  sln = UTX_del_follBl (fnIn);
 
   // remove a leading and a following '"'
   p1 = &s1[strlen(s1) - 1];
@@ -1135,14 +1492,14 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
     *p1 = '\0';
     ++fnIn;
   }
-    // printf(" oFn_fNam-fnIn=|%s|\n",fnIn);
+    printf(" oFn_fNam-fnIn=|%s|\n",fnIn);
 
   // expand shell variables
   p1 = strchr (fnIn, '$');
   if(p1) {
     // expand shell variables
-    irc = OS_osVar_eval (fnIn, sizeof(s1));
-    if(irc < 0) {TX_Error("MDLFN_oFn_fNam OS_osVar_eval"); return -1;}
+    irc = OS_osVar_eval_1 (fnIn, sizeof(s1));
+    if(irc < 0) {TX_Error("MDLFN_oFn_fNam OS_osVar_eval_1"); return -1;}
       // printf(" oFn_fNam-exp=|%s|\n",fnIn);
   }
 
@@ -1154,12 +1511,9 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   if(pfn) {
     sln = strlen(fnIn);
     // is pfn last char of string -
-    if(pfn == &fnIn[sln - 1]) {
-      *pfn = '\0';
-      goto L_dir;
-    }
+    if(pfn == &fnIn[sln - 1]) goto L_dir;
   }
-    // printf(" oFn_fNam-1 |%s|%s|\n",fnIn,pfn); fflush (stdout);
+    printf(" oFn_fNam-1 |%s|%s|\n",fnIn,pfn); fflush (stdout);
 
 
   //----------------------------------------------------------------
@@ -1204,16 +1558,18 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   strcpy(ofn->fNam, pfn);
   *pfn = '\0';   // cut ctring, do NOT YET remove ending '/' from path
                  //  absolute path needs that
+    printf(" oFn_fNam-fNam=|%s| fTyp=|%s| iTyp=%d\n",ofn->fNam,ofn->fTyp,ofn->iTyp);
 
 
   //----------------------------------------------------------------
   // check for absolute path ..
   L_dir:
+    // printf(" oFn_fNam-sym-L_dir |%s|\n",fnIn);
   // unix: starting with '/'; MS: second char ':'
   if(!OS_ck_DirAbs(fnIn)) {
     goto L_abs;    // MS-Win-compat !
   }
-    // printf(" oFn_fNam-L_dir |%s|\n",fnIn); fflush (stdout);
+    printf(" oFn_fNam-L_dir |%s|\n",fnIn); fflush (stdout);
 
   // check for relative path
   if(fnIn[0] == '.') goto L_rel;
@@ -1236,7 +1592,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 
   // <symbol[/path]>      or <symbol>
   //  pfs    pfp              pfs,    pfp=""
-    // printf(" oFn_fNam-sym fnIn=|%s| pfp=|%s|\n",fnIn,pfp);
+    printf(" oFn_fNam-sym fnIn=|%s| pfp=|%s|\n",fnIn,pfp);
 
 
   // check for catalog-part    eg <[dir/]catalog>/<part>.ctl
@@ -1246,21 +1602,25 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   //----------------------------------------------------------------
   // get path for symbol (without extraPath) -> ofn->fDir
   irc = MDLFN_fDir_syDir (ofn->fDir, fnIn);
-  if(irc < 0) irc = -1; // no symbol, (relative) path - forbidden without "./"
+  if(irc < 0) irc = -1; // 0=found; else not, (relative) path - forbidden without "./"
 
   // add extraPath to fDir
-  if((pfp)&&(strlen(pfp))) {strcat(ofn->fDir, &pfp[1]); strcat(ofn->fDir, fnam_del_s);}
+  if((pfp)&&(strlen(pfp))) {
+    strcat(ofn->fDir, &pfp[1]);
+    strcat(ofn->fDir, fnam_del_s);
+  }
 
   // get symDir (with extraPath)
   strcpy(ofn->symDir, fnIn);
-    // printf(" oFn_fNam-symDir=|%s| fDir=|%s|\n",ofn->symDir,ofn->fDir);
+    printf(" oFn_fNam-symDir=|%s| fDir=|%s|\n",ofn->symDir,ofn->fDir);
+
   goto L_exit;
 
 
   //----------------------------------------------------------------
   L_ctlg:
     // catalogpart; 
-      // printf(" oFn_fNam-ctlg fnIn=|%s| pfp=|%s|\n",fnIn,pfp); fflush (stdout);
+      printf(" oFn_fNam-L_ctlg fnIn=|%s| pfp=|%s|\n",fnIn,pfp); fflush (stdout);
 
     // get fDir = <CATALOG>/[dir/]
     irc = MDLFN_fDir_syFn (ofn->fDir, "CATALOG");
@@ -1279,12 +1639,12 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   //----------------------------------------------------------------
   // get absolute path - starting at fnIn, ending at at pfn;
   L_abs:
-      // printf(" oFn_fNam-L_abs: |%s|\n",fnIn);
+      printf(" oFn_fNam-L_abs: |%s|\n",fnIn);
     // test if filename-absolute starts with a symbolPath  (<symDir>[/path])
 
     irc = MDLFN_symDir__fnAbs (ofn->symDir, fnIn);
     if(irc < 0) {irc = -1; goto L_exit;}
-      // printf(" oFn_fNam-abs-irc=%d fnIn=|%s| symDir=|%s|\n",irc,fnIn,ofn->symDir);
+      printf(" oFn_fNam-abs-irc=%d fnIn=|%s| symDir=|%s|\n",irc,fnIn,ofn->symDir);
 
     strcpy(ofn->fDir, fnIn);
     goto L_exit;
@@ -1293,10 +1653,10 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   //----------------------------------------------------------------
   L_rel:
     // relative path - starts at fnIn and ends at pfp;
-      // printf("  oFn_fNam-L_rel: fnIn=|%s| pfp=|%s|\n",fnIn,pfp);
+      printf("  oFn_fNam-L_rel: fnIn=|%s|\n",fnIn);
 
     strcpy(ofn->fDir, OS_get_dir_pwd ());
-    UTX_add_fnam_del (ofn->fDir);  // add closing "/"
+    UTX_fdir_add_del (ofn->fDir);  // add closing "/"
       // printf("  oFn_fNam-L_rel: pfs=|%s| pfp=|%s|\n",pfs,pfp);
 
     // add additional-path; no path: pfp="/"
@@ -1310,8 +1670,12 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
   //================================================================
   L_exit:
 
-      // MDLFN_dump_ofn (ofn, "ex-MDLFN_oFn_fNam");
-      // printf(" ex-MDLFN_oFn_fNam irc=%d |%s|\n",irc,fnIn);fflush(stdout);
+      // TESTBLOCK
+      MDLFN_dump_ofn (ofn, "ex-MDLFN_oFn_fNam");
+      printf(" ex-MDLFN_oFn_fNam irc=%d |%s|\n",irc,fnIn);fflush(stdout);
+      // if(ofn->fNam[0] == 'R') exit(MSG_ERR__ (ERR_USER_ABORT, "testexit"));
+      // END TESTBLOCK
+
 
     return irc;
 
@@ -1323,7 +1687,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
     goto L_exit;
 
 }
-
+*/
 
 //================================================================
   int MDLFN_get__ (stru_FN *smfn) {
@@ -1361,7 +1725,7 @@ extern char AP_symDir_fnam[128];  // filename active SymbolDirFile
 
 
   // add closing '/' if necessary
-  UTX_add_slash (AP_mod_dir);
+  UTX_fdir_add_del (AP_mod_dir);
 
 
   return 0;

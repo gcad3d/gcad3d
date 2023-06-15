@@ -355,9 +355,9 @@ The method of getting the Ay vector would be:
 -------------------------------------------------------------------
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def1.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
 
 #define DXFW_VERSION "gCAD3D-DXFW 2016-03-11"
 
@@ -365,13 +365,6 @@ The method of getting the Ay vector would be:
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-
-#ifdef _MSC_VER
-__declspec(dllexport) int DXFW__ (char*);
-#define extern __declspec(dllimport)
-#endif
-
 
 #include "../ut/ut_geo.h"
 #include "../ut/ut_txt.h"
@@ -396,7 +389,12 @@ __declspec(dllexport) int DXFW__ (char*);
 
 
 
-// typedef_MemTab(int);
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int DXFW__ (char*);
+
+
 
 
 //===========================================================================

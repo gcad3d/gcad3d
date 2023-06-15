@@ -96,7 +96,7 @@ Update: update TexRef-UserData; apply Texture.
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"               // OS_ ..
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 
 #include "../gui/gui__.h"              // Gtk3
 

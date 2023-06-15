@@ -212,7 +212,7 @@ Doku: ../exp/ige/version6.pdf
 
 
 #include "../ut/ut_geo.h"
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/ut_txt.h"
 #include "../ut/ut_TX.h"
@@ -1303,20 +1303,24 @@ Retour: der Index.
       IGE_w_obj (ox2, 0, 0, fp_o1, fp_o2);
 
     } else if(ox2->typ == Typ_CVELL) {
-      ox3 = DB_GetCurv ((long)ox2->data);
+      ox3 = DB_GetCurv (LONG__PTR(ox2->data));
+      // ox3 = DB_GetCurv ((long)ox2->data);
       IGE_w_obj (ox3, 0, 0, fp_o1, fp_o2);
 
     } else if(ox2->typ == Typ_CVCLOT) {
-      ox3 = DB_GetCurv ((long)ox2->data);
+      ox3 = DB_GetCurv (LONG__PTR(ox2->data));
+      // ox3 = DB_GetCurv ((long)ox2->data);
       IGE_w_obj (ox3, 0, 0, fp_o1, fp_o2);
 
     } else if(ox2->typ == Typ_CVBSP) {
-      ox3 = DB_GetCurv ((long)ox2->data);
+      ox3 = DB_GetCurv (LONG__PTR(ox2->data));
+      // ox3 = DB_GetCurv ((long)ox2->data);
       IGE_w_obj (ox3, 0, 0, fp_o1, fp_o2);
 
 
     } else if(ox2->typ == Typ_CVPOL) {
-      ox3 = DB_GetCurv ((long)ox2->data);
+      ox3 = DB_GetCurv (LONG__PTR(ox2->data));
+      // ox3 = DB_GetCurv ((long)ox2->data);
       IGE_w_obj (ox3, 0, 0, fp_o1, fp_o2);
 
 
@@ -1462,7 +1466,7 @@ Retour: der Index.
 
   if(obj1->form == Typ_Index) {
     typ = obj1->typ;
-    ind = LONG_PTR(obj1->data);
+    ind = LONG__PTR(obj1->data);
     // printf(" o1: typ=%d ind=%d\n",typ,ind);
     // get pointer to obj(typ/ind)
     dNr = IGE_w_getPtr (typ, ind);
@@ -1776,7 +1780,7 @@ Retour: der Index.
 
   if(obj1->form == Typ_Index) {
     typ = obj1->typ;
-    ind = LONG_PTR(obj1->data);
+    ind = LONG__PTR(obj1->data);
     printf(" o1: typ=%d ind=%ld\n",typ,ind);
     // get pointer to obj(typ/ind)
     dNr = IGE_w_getPtr (typ, ind);
@@ -1794,7 +1798,7 @@ Retour: der Index.
 
   if(obj1->form == Typ_Index) {
     typ = obj2->typ;
-    ind = LONG_PTR(obj2->data);
+    ind = LONG__PTR(obj2->data);
     printf(" o2: typ=%d ind=%ld\n",typ,ind);
     // get pointer to obj(typ/ind)
     dNr = IGE_w_getPtr (typ, ind);

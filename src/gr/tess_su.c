@@ -269,6 +269,7 @@ TSU_mSpc->mPos   ist die naechste freie Position
 #include <GL/glu.h>
 
 #include "../ut/ut_geo.h"                 // Point ...
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
@@ -525,7 +526,12 @@ static TSU_struct1 *TSU_mSpc;
 // free space
 // ATTENTION: MS-Win in dll MUST use this func
 
-  if(TSU_mSpc->mSpc) free (TSU_mSpc->mSpc);
+  // printf("TSU_free %p\n",TSU_mSpc->mSpc);
+
+  if(TSU_mSpc->mSpc) {
+    free (TSU_mSpc->mSpc);
+    TSU_mSpc->mSpc = NULL;
+  }
   return 0;
 
 }
@@ -590,6 +596,7 @@ static int oldMode = 0;
       // connect struct for Export-function
       TSU_mode   = 1;
       TSU_mSpc = &TSU_spc1;
+      TSU_mSpc->mSpc = NULL;
 
       // get nr of surfs -> irc
       irc = DL_GetNrSur() + DL_GetNrSol();
@@ -606,6 +613,7 @@ static int oldMode = 0;
       // connect struct for Intersect-function
       TSU_mode   = 2;
       TSU_mSpc = &TSU_spc2;
+      TSU_mSpc->mSpc = NULL;
       irc = 20;
     }
 
@@ -825,7 +833,8 @@ static int oldMode = 0;
 
   // erster Record muss size of following Record sein
   if(oxi->typ  != Typ_Size) goto L_Err2;
-  rSiz = (long)oxi->data;
+  rSiz = INT__PTR(oxi->data);
+  // rSiz = (long)oxi->data;
   // printf("Record %d size=%d\n",i1,rSiz);
 
   ++oxi;  //(char*)oxi += sizeof(ObjGX);
@@ -913,7 +922,8 @@ static int oldMode = 0;
 
   // erster Record muss size of following Record sein; kein siz fuer diesen Rec!
   if(oxi->typ != Typ_Size) goto L_Err2;
-  rSiz = (long)oxi->data;
+  rSiz = INT__PTR(oxi->data);
+  // rSiz = (long)oxi->data;
     // printf(" totSize=%d\n",rSiz);
   // (char*)oxi += sizeof(ObjGX);  // proceed to data - skip over size
   ++oxi;  // proceed to next ObjGX - skip over size
@@ -932,7 +942,8 @@ static int oldMode = 0;
 
     if(actPP->typ == Typ_Typ) {
       // markiert den Start einer neuen surface ..
-      surTyp = (long)actPP->data;
+      surTyp = INT__PTR(actPP->data);
+      // surTyp = (long)actPP->data;
 
     } else if(actPP->form == Typ_PT) {
       // add points in actCont to surTab and triTab
@@ -1549,7 +1560,8 @@ static int   patNr;     // nr of Patches
   HdrRec->form = Typ_Int4;
   HdrRec->siz  = 1;
   // (long)HdrRec->data = *((long*)&defCol);
-  HdrRec->data = (void*)(*((long*)&defCol));
+  HdrRec->data = (void*)(*((long long *)&defCol));
+  // HdrRec->data = (void*)(*((long*)&defCol));
 
   // (char*)TSU_mSpc->mPos += sizeof(ObjGX);
   TSU_mSpc->mPos = (char*)TSU_mSpc->mPos + sizeof(ObjGX);
@@ -1671,7 +1683,8 @@ static int   patNr;     // nr of Patches
 
 
   // Size-Info of Size-Record korrigieren
-  HdrRec->data = (void*)recSiz;
+  HdrRec->data = (void*)(long long)recSiz;
+  // HdrRec->data = (void*)recSiz;
     // printf(" -_stored recSiz=%d\n",(long)(HdrRec->data));
 
 
@@ -9790,7 +9803,8 @@ static Point pta;
 
     // Recordsize
     if(oxi->typ  != Typ_Size) goto L_Err2;
-    rSiz = (long)oxi->data;
+    rSiz = INT__PTR(oxi->data);
+    // rSiz = (long)oxi->data;
       // printf(" sizRec %d %d %d\n",oxi->typ,oxi->form,rSiz);
     ++oxi; // skip SizeRecord
       // DEB_dump_ox_s_ (oxi, "TSU_DrawSurTess");

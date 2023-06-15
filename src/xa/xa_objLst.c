@@ -78,7 +78,7 @@ List_functions_end:
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr ..
 #include "../ut/ut_txt.h"              // UTX_pos_skipLeadBlk
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txTab.h"            // TxtTab UtxTab
@@ -1025,7 +1025,7 @@ int UI_mcl_CBL (MemObj *mo, void **data) {
   int   i1, i2, ii;
 
 
-  // i1 = INT_PTR(data);
+  // i1 = INT__PTR(data);
   i1 = GUI_DATA_I1;
 
   // printf("UI_mcl_CBB %d %d\n",GUI_DATA_EVENT,i1);
@@ -1114,7 +1114,7 @@ int UI_mcl_CBL (MemObj *mo, void **data) {
   static UINT_8 txtNot=0, ignCas=1, mode=0, op1=Typ_ope_or, op2=0, grp=1;
 
 
-  // iCod = INT_PTR (data);
+  // iCod = INT__PTR (data);
   iCod = GUI_DATA_I1;
     // printf("UI_mcl_CB1 %d\n",iCod);
 

@@ -341,13 +341,8 @@ STYLED_ITEM SURFACE_STYLE_USAGE
 
 
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-// die folgenden Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int STP_r__ (void*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -357,12 +352,8 @@ __declspec(dllexport) int STP_r__ (void*);
 #include <ctype.h>               // isalpha
 
 
-// #ifdef _MSC_VER
-// #endif
-
-
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_cast.h"                // INT_PTR
+#include "../ut/ut_cast.h"                // INT__PTR
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 
 #include "../ut/ut_txt.h"              // fnam_del
@@ -382,6 +373,12 @@ __declspec(dllexport) int STP_r__ (void*);
 #include "../xa/xa_mem.h"              // memspc.., mem_cbuf1
 #include "../xa/xa.h"                  // AP_STAT printd
 #include "../xa/xa_obj_txt.h"          // AP_obj_add_dbo
+
+
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int  STP_r__ (void**);
 
 
 

@@ -96,7 +96,7 @@ cc -c xa_obj_txt.c
 
 
 #include "../ut/ut_geo.h"         // OFF, ON ..
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 
 #include "../db/ut_DB.h"           // APT_LN_SIZ
 #include "../xa/xa_obj_txt.h"      // AP_obj_blank
@@ -1394,7 +1394,7 @@ static long su_ind;
       AP_obj_add_dbo (ED_buf1, Typ_PT, ia[0]);
       AP_obj_add_dbo (ED_buf1, Typ_PT, ia[1]);
 */
-     AP_obj_add_dbo (ED_buf1, Typ_LN, LONG_PTR(o1->data)); // 2017-04-28
+     AP_obj_add_dbo (ED_buf1, Typ_LN, LONG__PTR(o1->data)); // 2017-04-28
 
 
 
@@ -2186,7 +2186,7 @@ static long su_ind;
       ox1 = &oTab[0];
       if(ox1->form == Typ_Index) {
         // printf(" o1 typ=%d ind=%d\n",ox1->typ,(long)ox1->data);
-        AP_obj_add_dbo (ED_buf1, ox1->typ, LONG_PTR(ox1->data));
+        AP_obj_add_dbo (ED_buf1, ox1->typ, LONG__PTR(ox1->data));
 
       } else if(ox1->form == Typ_LN) {
         ln1 = (Line*)ox1->data;
@@ -2208,7 +2208,7 @@ static long su_ind;
       ox1 = &oTab[1];
       if(ox1->form == Typ_Index) {
         // printf(" o2 typ=%d ind=%d\n",ox1->typ,(long)ox1->data);
-        AP_obj_add_dbo (ED_buf1, ox1->typ, LONG_PTR(ox1->data));
+        AP_obj_add_dbo (ED_buf1, ox1->typ, LONG__PTR(ox1->data));
 
       } else if(ox1->form == Typ_LN) {
         ln1 = (Line*)ox1->data;

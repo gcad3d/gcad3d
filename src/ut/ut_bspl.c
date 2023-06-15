@@ -1347,7 +1347,9 @@ once again, with U/V changed.
   //------------------------------------------
   L_done:
 
+    // TESTBLOCK
     // DEB_dump_obj__ (Typ_CVBSP, cbsp, "ex-UT3D_cbsp_ox:");
+    // END TESTBLOCK
 
   return irc;
 
@@ -2558,13 +2560,13 @@ Returncode:
   ObjGX    bezTab;
   CurvBez  *bcvtab;
   Point    pTab1[UT_BEZDEG_MAX+1];
-  double   d1, kvMin, kvMax, tTab1[UT_BEZDEG_MAX+1];
+  double   d1, kvMin, kvMax, tTab1[UT_BEZDEG_MAX+1], tol;
   void     *memPos0, *memPos1, *vp1;
 
   Memspc   tmpSpc=UME_NEW, *memSeg1;
 
 
-  // printf("UT3D_pt_projptbspl %d\n",bspl->ptNr);
+  // printf("\nUT3D_pt_projptbspl %d\n",bspl->ptNr);
   // DEB_dump_obj__ (Typ_PT, pt, "");
   // DEB_dump_obj__ (Typ_CVBSP, bspl, "");
   // printf(" free tmpSpc=%d\n",UME_ck_free(memSeg1));
@@ -2584,6 +2586,7 @@ Returncode:
   xptSiz  = *nxp;
   *nxp    = 0;
   memPos0 = memSeg1->next;
+  irc = 0;
 
 
   //----------------------------------------------------------------
@@ -2602,11 +2605,31 @@ Returncode:
   if(i1 > 0) {  // curve too small; use nearest point.
     UT3D_pt_nearptbspl (ptab, ttab, bspl, pt);
     *nxp = 1;
-    return 0;
+    goto L_exit;
   }
 
 
 
+//   //----------------------------------------------------------------
+//   // test startPt endPt                                  RF 2023-01-19
+//   // tol UT_TOL_cv; for older-catia-parts UT_DISP_cv
+//   tol = UT_DISP_cv;
+//   if(UT3D_comp2pt(pt,&bspl->cpTab[0], tol)) {   // 0=diff, 1=equal
+//     ptab[*nxp] = bspl->cpTab[0]; // add to pTab
+//     if(ttab) ttab[*nxp] = bspl->kvTab[0];
+//     ++(*nxp);
+//     goto Fertig;
+//   }
+// 
+//   if(UT3D_comp2pt(pt,&bspl->cpTab[bspl->ptNr - 1], tol)) { // 0=diff, 1=equal
+//     ptab[*nxp] = bspl->cpTab[bspl->ptNr - 1]; // add to pTab
+//     if(ttab) ttab[*nxp] = bspl->kvTab[bspl->ptNr + bspl->deg];
+//     ++(*nxp);
+//     goto Fertig;
+//   }
+
+
+  //----------------------------------------------------------------
   // Bezier curves from b-spline curve
   irc = UT3D_bez_bspl__ (&bezTab, memSeg1, bspl);
   if(irc < 0) goto L_exit;
@@ -2719,9 +2742,11 @@ Returncode:
   }
 
 
+  //----------------------------------------------------------------
+  L_exit:
 
     // TESTBLOCK:
-    // printf("ex UT3D_pt_projptbspl %d\n",*nxp);
+    // printf("ex UT3D_pt_projptbspl irc=%d nxp=%d\n",irc,*nxp);
     // for(i1=0; i1<*nxp; ++i1) {
       // DEB_dump_obj__ (Typ_PT, &ptab[i1],"  %d par %f",i1,ttab[i1]);
       // // GR_tDyn_symB__ (&ptab[i1], SYM_STAR_S, 2);
@@ -2729,8 +2754,6 @@ Returncode:
     // END TESTBLOCK:
 
 
-  //----------------------------------------------------------------
-  L_exit:
   // free tmpSpc
   free(vp1);
 

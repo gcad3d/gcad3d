@@ -193,7 +193,7 @@ ctags -f gui_base.tag gui_base.c
 int       UI_fontsizX, UI_fontsizY;
 // was ../xa/xa_ui.c
 // extern MemObj    winMain;
-void      *UI_MainWin;
+void      *UI_MainWin = NULL;
 void      *UI_act_wi;
 
 
@@ -244,21 +244,26 @@ char*   GUI_Win_tit     (void *gtkWin);
 //================================================================
 // GUI_MsgBox           display message with close-button, do not wait
  
-  int      irc;
-  char     sEnam[SIZFNam], s2[512];
-
-  // get full filename for GUI_executable
-  irc = AP_GUI_get (sEnam, "GUI_dlg1");
+//   int      irc;
+//   char     sEnam[SIZFNam], s2[512];
+  char     s1[64];
 
 
-  sprintf(s2,"%s info \"%s\"", sEnam, text);
-    printf("GUI_MsgBox |%s|\n",s2);
+  OS_exe_file__ (s1, sizeof(s1), "GUI_dlg1", "info", text);
 
-  // execute, wait
-  // OS_sys1 (sEnam, sizeof(sEnam), s2);
 
-  // execute, do not wait
-  OS_exec (s2);
+
+//   // get full filename for GUI_executable
+//   irc = OS_exe_file_fn (sEnam, "GUI_dlg1");
+// 
+//   sprintf(s2,"%s info \"%s\"", sEnam, text);
+//     printf("GUI_MsgBox |%s|\n",s2);
+// 
+//   // execute, wait
+//   // OS_sys1 (sEnam, sizeof(sEnam), s2);
+// 
+//   // execute, do not wait
+//   OS_exec (s2);
 
   return 0;
 }
@@ -288,12 +293,12 @@ char*   GUI_Win_tit     (void *gtkWin);
   // printf("GUI_listf1__ |%s|%s|%s|\n",fNam,sTit,opts);
 
   // get user-selection of list
-  irc = AP_GUI__ (sOut, sSiz, "GUI_dlg1", "list1",
+  irc = OS_exe_file__ (sOut, sSiz, "GUI_dlg1", "list1",
                   fNam,
                   sTit,
                   opts,
                   NULL);
-    printf(" f-AP_GUI__ %d |%s|\n",irc,sOut);
+    printf(" f-OS_exe_file__ %d |%s|\n",irc,sOut);
   if(irc < 0) return -1;
 
   // cancel ?
@@ -303,7 +308,7 @@ char*   GUI_Win_tit     (void *gtkWin);
 
 /*
   // get full filename for GUI_executable
-  irc = AP_GUI_get (sEnam, "GUI_dlg1");
+  irc = OS_exe_file_fn (sEnam, "GUI_dlg1");
 
   //      (exeNam, symfilNam title wSiz)
 #ifdef _MSC_VER
@@ -366,7 +371,7 @@ char*   GUI_Win_tit     (void *gtkWin);
 
 
   if(!sBt3) {
-    irc = AP_GUI__ (sOut, sizeof(sOut), "GUI_dlg1", "dlgbe", s1, b1, b2, NULL);
+    irc = OS_exe_file__ (sOut, sizeof(sOut), "GUI_dlg1", "dlgbe", s1, b1, b2, NULL);
     goto L_done;
   }
 
@@ -374,7 +379,7 @@ char*   GUI_Win_tit     (void *gtkWin);
   ii = strlen(sBt3);
   b3 = (char*) MEM_alloc_tmp (ii + 8);
   sprintf(b3, "\"%s\"", sBt3);
-  irc = AP_GUI__ (sOut, sizeof(sOut), "GUI_dlg1", "dlgbe", s1, b1, b2, b3, NULL);
+  irc = OS_exe_file__ (sOut, sizeof(sOut), "GUI_dlg1", "dlgbe", s1, b1, b2, b3, NULL);
 
 
   L_done:
@@ -407,16 +412,19 @@ char*   GUI_Win_tit     (void *gtkWin);
   // printf("GUI_dlg_2b |%s|%s|%s|\n",txt,tb1,tb2);
 
 
-  // enclose all strings into double-apostrophs
-  UTX_ENC_ApoD_TMP (&pa[0], txt);
-  UTX_ENC_ApoD_TMP (&pa[1], tb1);
-  UTX_ENC_ApoD_TMP (&pa[2], tb2);
+//   // enclose all strings into double-apostrophs
+//   UTX_ENC_ApoD_TMP (&pa[0], txt);
+//   UTX_ENC_ApoD_TMP (&pa[1], tb1);
+//   UTX_ENC_ApoD_TMP (&pa[2], tb2);
+   pa[0] = txt;
+   pa[1] = tb1;
+   pa[2] = tb2;
 
   // call GUI_dlg1/dlgbe
-  irc = AP_GUI__ (so, sizeof(so), "GUI_dlg1", "dlgbe",
+  irc = OS_exe_file__ (so, sizeof(so), "GUI_dlg1", "dlgbe",
                  pa[0], pa[1], pa[2],
                  NULL);
-    // printf(" f-AP_GUI__-irc = %d\n",irc);
+    // printf(" f-OS_exe_file__-irc = %d\n",irc);
 
   if(irc < 0) return -1;           // error
   if(UTX_IS_EMPTY(so)) return -1;  // cancel
@@ -447,15 +455,10 @@ char*   GUI_Win_tit     (void *gtkWin);
 
 
   int    irc;
-  char   *pa[3], so[8], sl[24], *pe;
+  char   *pe, sl[24];
 
-  // printf("GUI_dlg_e2b |%s|%s| %d |%s|%s|\n",txt,entry,eSiz,tb1,tb2);
+  printf("GUI_dlg_e2b |%s|%s| %d |%s|%s|\n",txt,entry,eSiz,tb1,tb2);
 
-
-  // enclose all strings into double-apostrophs
-  UTX_ENC_ApoD_TMP (&pa[0], txt);
-  UTX_ENC_ApoD_TMP (&pa[1], tb1);
-  UTX_ENC_ApoD_TMP (&pa[2], tb2);
 
   sprintf(sl, "%d", eSiz);
 
@@ -464,13 +467,13 @@ char*   GUI_Win_tit     (void *gtkWin);
   sprintf(pe, "\"%s\"", entry);
 
   // call GUI_dlg1/dlgbe
-  irc = AP_GUI__ (pe, eSiz, "GUI_dlg1", "dlgbe",
-                 pa[0], pa[1], pa[2],
+  irc = OS_exe_file__ (pe, eSiz, "GUI_dlg1", "dlgbe",
+                 txt, tb1, tb2, // pa[0], pa[1], pa[2],
                  "--ent",
-                 pe,
+                 entry, // pe,
                  sl,
                  NULL);
-    // printf(" f-AP_GUI__-irc = %d\n",irc);
+    // printf(" f-OS_exe_file__-irc = %d\n",irc);
 
   if(irc < 0) return -1;           // error
   if(UTX_IS_EMPTY(pe)) return -1;  // cancel
@@ -479,7 +482,7 @@ char*   GUI_Win_tit     (void *gtkWin);
 
   irc = ICHAR(pe[0]);
 
-    // printf("ex-GUI_dlg_e2b %d |%s|\n",irc,entry);
+    printf("ex-GUI_dlg_e2b %d |%s|\n",irc,entry);
 
   return irc;
 }
@@ -520,7 +523,7 @@ char*   GUI_Win_tit     (void *gtkWin);
   //----------------------------------------------------------------
   if(mode == 0) {
     // ask for overwrite yes|no
-    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", s1,
+    irc = OS_exe_file__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", s1,
                     MSG_const__(MSG_ok),      // "YES");
                     MSG_const__(MSG_no),
                     NULL);
@@ -530,7 +533,7 @@ char*   GUI_Win_tit     (void *gtkWin);
   //----------------------------------------------------------------
   } else {
     // ask for overwrite yes|no|cancel
-    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", s1,
+    irc = OS_exe_file__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", s1,
                     MSG_const__(MSG_ok),      // "YES");
                     MSG_const__(MSG_cancel),
                     MSG_const__(MSG_no),
@@ -582,23 +585,28 @@ char*   GUI_Win_tit     (void *gtkWin);
 
 
   // enclose button-text between ""
-  UTX_ENC_ApoD_TMP (&pa[0], MSG_const__(MSG_ok));
-  UTX_ENC_ApoD_TMP (&pa[1], MSG_const__(MSG_no));
-  UTX_ENC_ApoD_TMP (&pa[2], MSG_const__(MSG_cancel));
-  UTX_ENC_ApoD_TMP (&pa[3], s2);
+//   UTX_ENC_ApoD_TMP (&pa[0], MSG_const__(MSG_ok));
+//   UTX_ENC_ApoD_TMP (&pa[1], MSG_const__(MSG_no));
+//   UTX_ENC_ApoD_TMP (&pa[2], MSG_const__(MSG_cancel));
+//   UTX_ENC_ApoD_TMP (&pa[3], s2);
     // printf("  _file_smuu__-pa3=|%s|\n",pa[3]);
+   pa[0] = MSG_const__(MSG_ok);
+   pa[1] = MSG_const__(MSG_no);
+   pa[2] = MSG_const__(MSG_cancel);
+   pa[3] = s2;
+
 
   // get sel from user
   if(mode == 2) {
     // 2 yes|no|cancel
-    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", pa[3],
+    irc = OS_exe_file__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", pa[3],
                     pa[0], pa[1], pa[2], NULL);
     if(UTX_IS_EMPTY(s2)) {irc = 2; goto L_exit;}   // cancel
 
 
   } else {
     // 3 yes|no
-    irc = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", pa[3],
+    irc = OS_exe_file__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe", pa[3],
                     pa[0], pa[1], NULL);
     if(UTX_IS_EMPTY(s2)) {irc = 0; goto L_exit;}   // cancel
   }
@@ -651,10 +659,11 @@ char*   GUI_Win_tit     (void *gtkWin);
   // printf("GUI_file_save__ %d |%s|%s|%s|%s|\n",fSiz,filNam,dirLst,fTyp,sTit);
 
   // sprintf(sFilt, "\"*.%s\"", fTyp);
-  strcpy(sFilt, "\"*\"");
+  // strcpy(sFilt, "\"*\"");
+  strcpy(sFilt, "");     // MSYS: expands "*"
 
   // get filename for save from user
-  irc = AP_GUI__ (filNam, fSiz, "GUI_file", "save",
+  irc = OS_exe_file__ (filNam, fSiz, "GUI_file", "save",
                   filNam,
                   dirLst,
                   sFilt,
@@ -667,7 +676,7 @@ char*   GUI_Win_tit     (void *gtkWin);
   irc = strlen(filNam);
   if(irc < 2) return -1;
 
-    // printf(" f-AP_GUI__ |%s|\n",filNam);
+    // printf(" f-OS_exe_file__ |%s|\n",filNam);
 
   if(iOver) return irc;
 
@@ -679,14 +688,14 @@ char*   GUI_Win_tit     (void *gtkWin);
   // file already exists; ask overwrite ..
 
   // call GUI_dlg1/dlgbe
-  i1 = AP_GUI__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe",
+  i1 = OS_exe_file__ (s2, sizeof(s2), "GUI_dlg1", "dlgbe",
                  "\" model exists; overwrite ? \"",
                  "NO",
                  "YES",
                  NULL);
   if(i1 < 0) return -1;
   if(UTX_IS_EMPTY(s2)) return -1;
-    // printf(" f-AP_GUI__ |%s|\n",s2);
+    // printf(" f-OS_exe_file__ |%s|\n",s2);
              
   // yes confirm overwrite
   if(s2[0] != '1') return -1;
@@ -727,12 +736,12 @@ char*   GUI_Win_tit     (void *gtkWin);
   char     sEnam[256];
 
 
-  // printf("GUI_file_open__ |%s|%s|%s|\n",dirLst,filterI,sTit);
-  // printf("  fSiz=%d filNam |%s|\n",fSiz,filNam);
+  printf("GUI_file_open__ |%s|%s|%s|\n",dirLst,filterI,sTit);
+  printf("  fSiz=%d filNam |%s|\n",fSiz,filNam);
 
 
   // call GUI_file/save
-  irc = AP_GUI__ (filNam, fSiz, "GUI_file", "open",
+  irc = OS_exe_file__ (filNam, fSiz, "GUI_file", "open",
                   filNam,
                   dirLst,
                   filterI,

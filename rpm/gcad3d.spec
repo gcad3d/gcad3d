@@ -5,8 +5,8 @@
 # must have defined DIR_DEV and DIR_BIN
 
 %define hTyp %(echo "`uname -s`_`uname -i`")
-%define	gcad_version %(cat ${DIR_DEV}gcad3d/src/gcad_version)
-%define gcad_dir_dev "${DIR_DEV}gcad3d/"
+%define	gcad_version %(cat ${DIR_BAS}src/gcad_version)
+%define gcad_dir_dev "${DIR_BAS}"
 # gcad_dir_bin = ?
 %define gcad_dir_bin "${DIR_BIN}gcad3d/%{hTyp}/"
 %define outDir $RPM_BUILD_ROOT

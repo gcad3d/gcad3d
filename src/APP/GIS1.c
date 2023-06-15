@@ -295,7 +295,7 @@ __declspec(dllexport) int gCad_fini ();
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_face.h"              // MSH_EDGLN_BL
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_TX.h"               // TX_Print
 #include "../ut/ut_col.h"              // COL_DL_ATT
 
@@ -3369,7 +3369,7 @@ gis_edg_fwrite ("/mnt/serv1/Devel/dev/gCAD3D/dat/GIS1/bk2_ib2.dat",3,2);
 
 
   strcpy(cbuf, dirNam);
-  UTX_add_slash (cbuf);
+  UTX_fdir_add_del (cbuf);
   strcat(cbuf, fnam);
     printf(" fn=|%s|\n",cbuf);
 
@@ -3434,7 +3434,7 @@ gis_edg_fwrite ("/mnt/serv1/Devel/dev/gCAD3D/dat/GIS1/bk2_ib2.dat",3,2);
 
 
   strcpy(cbuf, dirNam);
-  UTX_add_slash (cbuf);
+  UTX_fdir_add_del (cbuf);
   strcat(cbuf, fnam);
     printf(" fn=|%s|\n",cbuf);
 
@@ -3729,7 +3729,7 @@ gis_edg_fwrite ("/mnt/serv1/Devel/dev/gCAD3D/dat/GIS1/bk2_ib2.dat",3,2);
 
 
   strcpy(cbuf, dirNam);
-  UTX_add_slash (cbuf);
+  UTX_fdir_add_del (cbuf);
   strcat(cbuf, fnam);
 
     printf("gis_etab_load |%s|\n",cbuf);
@@ -3856,7 +3856,7 @@ gis_edg_fwrite ("/mnt/serv1/Devel/dev/gCAD3D/dat/GIS1/bk2_ib2.dat",3,2);
 
 
   strcpy(cbuf, dirNam);
-  UTX_add_slash (cbuf);
+  UTX_fdir_add_del (cbuf);
   strcat(cbuf, fnam);
 
 

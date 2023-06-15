@@ -295,8 +295,8 @@ static MemTab(undoObj) undoTab = _MEMTAB_NUL;
     MSG_Tip ("MMredo");
 
 
-  // deaktivieren
-  UNDO_set_bt (0);
+  // deaktivieren - does not work yet
+  // UNDO_set_bt (2);
 
 
   return 0;
@@ -1219,7 +1219,7 @@ static long   dli, dbl;
 //   mode    0=lock; 1=unlock; 2=update
 
 
-static int uAct=0, rAct=0;           // 1=TRUE(active), 0=FALSE(locked)
+static int uAct=-1, rAct=-1;           // 1=TRUE(active), 0=FALSE(locked)
   int      uNew, rNew;
   int      uNr, rNr;
 

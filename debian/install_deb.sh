@@ -4,7 +4,7 @@
 # Using symbols DIR_DEV and DIR_BIN. See ../../doc/html/SW_layout_en.htm
 
 
-echo "gcad3d-install_deb.sh"
+echo "- entering gcad3d-install_deb.sh"
 
 
 bitNr=`getconf LONG_BIT`
@@ -13,20 +13,18 @@ echo "hTyp = " ${hTyp}   "bitNr = " ${bitNr}
 
 
 
-basDir=${DIR_DEV}gcad3d
-echo "basDir = " ${basDir}
-cd ${basDir}
+echo "gcad_dir_bas = " ${gcad_dir_bas}
+cd ${gcad_dir_bas}
 
 
-debDir=${DIR_DEV}gcad3d/debian
+debDir=${gcad_dir_bas}debian
 echo "debDir = " ${debDir}
 
 
-gcad_dir_dev=${DIR_DEV}gcad3d/
+gcad_dir_dev=${gcad_dir_bas}
 echo "gcad_dir_dev = " ${gcad_dir_dev}
 
 
-gcad_dir_bin=${DIR_BIN}gcad3d/${hTyp}/
 echo "gcad_dir_bin = " ${gcad_dir_bin}
 
 
@@ -42,7 +40,7 @@ echo "install -> \""${instDir}\"
 # copy startscript /usr/bin/gcad3d -> /usr/bin/gcad3d
 /bin/mkdir -p -m 755 ${instDir}/usr/bin
 
-/bin/cp ${gcad_dir_dev}src/gcad3d ${instDir}/usr/bin/.
+/bin/cp ${gcad_dir_bas}src/gcad3d ${instDir}/usr/bin/.
 
 chmod 0755 ${instDir}/usr/bin/gcad3d
 
@@ -84,16 +82,16 @@ chmod 0755 ${instDir}/usr/lib/gcad3d/${hTyp}/plugins/cut1/*
 /bin/mkdir -p -m 755 ${instDir}/usr/share/gcad3d/doc/html
 /bin/mkdir -p -m 755 ${instDir}/usr/share/gcad3d/doc/msg
 
-/bin/cp -f ${gcad_dir_dev}src/gcad3d.desktop   ${instDir}/usr/share/gcad3d/.
-/bin/cp -f ${gcad_dir_dev}packages/examples.gz ${instDir}/usr/share/gcad3d/.
-/bin/cp -f ${basDir}/icons/*.png               ${instDir}/usr/share/gcad3d/icons/.
-/bin/cp -f ${basDir}/icons/*.xpm               ${instDir}/usr/share/gcad3d/icons/.
-/bin/cp -f ${basDir}/icons/*.bmp               ${instDir}/usr/share/gcad3d/icons/.
-/bin/cp -f ${basDir}/doc/*.txt                 ${instDir}/usr/share/gcad3d/doc/.
-/bin/cp -f ${basDir}/doc/html/*.htm            ${instDir}/usr/share/gcad3d/doc/html/.
-/bin/cp -f ${basDir}/doc/html/*.png            ${instDir}/usr/share/gcad3d/doc/html/.
-/bin/cp -f ${basDir}/doc/html/*.js             ${instDir}/usr/share/gcad3d/doc/html/.
-/bin/cp -f ${basDir}/doc/msg/*.txt             ${instDir}/usr/share/gcad3d/doc/msg/.
+/bin/cp -f ${gcad_dir_bas}src/gcad3d.desktop   ${instDir}/usr/share/gcad3d/.
+/bin/cp -f ${gcad_dir_bas}examples.gz          ${instDir}/usr/share/gcad3d/.
+/bin/cp -f ${gcad_dir_bas}icons/*.png          ${instDir}/usr/share/gcad3d/icons/.
+/bin/cp -f ${gcad_dir_bas}icons/*.xpm          ${instDir}/usr/share/gcad3d/icons/.
+/bin/cp -f ${gcad_dir_bas}icons/*.bmp          ${instDir}/usr/share/gcad3d/icons/.
+/bin/cp -f ${gcad_dir_bas}doc/*.txt            ${instDir}/usr/share/gcad3d/doc/.
+/bin/cp -f ${gcad_dir_bas}doc/html/*.htm       ${instDir}/usr/share/gcad3d/doc/html/.
+/bin/cp -f ${gcad_dir_bas}doc/html/*.png       ${instDir}/usr/share/gcad3d/doc/html/.
+/bin/cp -f ${gcad_dir_bas}doc/html/*.js        ${instDir}/usr/share/gcad3d/doc/html/.
+/bin/cp -f ${gcad_dir_bas}doc/msg/*.txt        ${instDir}/usr/share/gcad3d/doc/msg/.
 
 chmod 0644 ${instDir}/usr/share/gcad3d/gcad3d.desktop
 chmod 0644 ${instDir}/usr/share/gcad3d/examples.gz
@@ -110,7 +108,7 @@ chmod 0644 ${instDir}/usr/share/gcad3d/doc/msg/*
 # copy icon for desktop-starter -> /usr/share/pixmaps/gCAD3D.xpm
 /bin/mkdir -p -m 755 ${instDir}/usr/share/pixmaps
 
-/bin/cp ${basDir}/icons/gCAD3D.xpm   ${instDir}/usr/share/pixmaps/gcad3d.xpm
+/bin/cp ${gcad_dir_bas}/icons/gCAD3D.xpm   ${instDir}/usr/share/pixmaps/gcad3d.xpm
 
 chmod 0644 ${instDir}/usr/share/pixmaps/*
 
@@ -123,10 +121,10 @@ chmod 0644 ${instDir}/usr/share/pixmaps/*
 #copy -> /usr/share/doc/gcad3d/
 /bin/mkdir -p -m 755 ${instDir}/usr/share/doc/gcad3d
 
-/bin/cp -f ${basDir}/LICENSE                ${instDir}/usr/share/doc/gcad3d/copyright
+/bin/cp -f ${gcad_dir_bas}/LICENSE          ${instDir}/usr/share/doc/gcad3d/copyright
 /bin/cp -f ${debDir}/changelog              ${instDir}/usr/share/doc/gcad3d/.
-/bin/cp -f ${basDir}/doc/gCAD3D_log.txt     ${instDir}/usr/share/doc/gcad3d/NEWS
-/bin/cp -f ${basDir}/README                 ${instDir}/usr/share/doc/gcad3d/README
+/bin/cp -f ${gcad_dir_bas}/doc/gCAD3D_log.txt ${instDir}/usr/share/doc/gcad3d/NEWS
+/bin/cp -f ${gcad_dir_bas}/README           ${instDir}/usr/share/doc/gcad3d/README
 
 gzip -f --best ${instDir}/usr/share/doc/gcad3d/changelog
 gzip -f --best ${instDir}/usr/share/doc/gcad3d/NEWS

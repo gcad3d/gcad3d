@@ -15,8 +15,16 @@
  *
  *
 -----------------------------------------------------
-TODO: all functions her should be "CI_*" (command-interpreter)
-  ..
+TODO:
+-----------------------------------------------------
+*/ void INF_TODO_PntCV(){} /*
+- create new objTyp "parametric-point-on-curve";
+  eg from P(S20 0.5)
+  struct (int dbiCV, int dbiPt, double par) PntCV; Typ_PntCV
+  struct (int dbiSU, int dbiPt, double parU, parV) PntSU; Typ_PntSU
+  ATO_ato_srcLn__ must provide Typ_PntCV from eg "P(S20 0.5)"
+  APT_CUT__ / UTO_CUT__ can use par for trimmed-curve output.
+
 
 -----------------------------------------------------
 Modifications:
@@ -433,7 +441,7 @@ Verbinden:
 
 #include "../gui/gui_types.h"              // UI_Func..
 #include "../ut/ut_geo.h"                 /* Point-def ..*/
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_gtypes.h"              // APED_dbo_oid
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 #include "../ut/ut_memTab.h"           // MemTab_..
@@ -445,6 +453,7 @@ Verbinden:
 #include "../ut/ut_txfil.h"               // UTF_GetLinNr
 #include "../ut/ut_os.h"                   // OS_Wait
 #include "../ut/func_types.h"              // UI_AP u UI_FuncGet
+#include "../ut/os_dll.h"         // DLLFUNC_LOAD_only DLLFUNC_CONNECT DLLFUNC_EXEC ..
 
 #include "../db/ut_DB.h"
 
@@ -464,6 +473,7 @@ Verbinden:
 #include "../xa/xa_ato.h"              // ATO_getSpc_tmp__
 #include "../xa/xa_uid.h"             // UID_ckb_nam, UID_ckb_txt
 #include "../xa/xa_msg.h"             // DEB_mcheck__
+#include "../xa/xa_app.h"             // PRC_IS_ACTIVE
 
 #include "../ci/NC_Main.h"
 #include "../ci/NC_apt.h"
@@ -2294,38 +2304,32 @@ static long     actDLi;
 //=======================================================================
   int WC_Work1 (int lNr, char* cbuf) {
 //=======================================================================
-/// \code
-/// main-interpreter-function
-/// Input:
-///   lNr
-///   cbuf      must be terminated with '\'; without objName.
-/// Output:
-///   retCod     0 = OK;
-///             -1 = Error, stop.
-///             -2 = invisible obj (joint, activity), continue
-///             -3 = obj not yet complete
-///
-/// subModels must be loaded (else use WC_Work1).
-/// \endcode
-/*
-Die Hautabarbeitungs routine.
-
-recTyp:
- - 0 = Kommentar/Leersaetze ..  (# Text)
- - 1 = CadDefinitionsaetze (P20=..)
- - 2 = NC-Saetze  (FROM ..)
-
-
-APT_stat_act:
- PrgMod_normal            0
- PrgMod_skip_until_label  2
- PrgMod_skip_until_macend 3
- PrgMod_skip_until_mac    4
- PrgMod_skip_until_line   5
- PrgMod_skip_until_file   6
-
-*/
-
+// main-interpreter-function
+// Input:
+//   lNr
+//   cbuf      must be terminated with '\'; without objName.
+// Output:
+//   retCod     0 = OK;
+//             -1 = Error, stop.
+//             -2 = invisible obj (joint, activity), continue
+//             -3 = obj not yet complete
+//
+// subModels must be loaded (else use WC_Work1).
+// 
+// recTyp:
+//  - 0 = Kommentar/Leersaetze ..  (# Text)
+//  - 1 = CadDefinitionsaetze (P20=..)
+//  - 2 = NC-Saetze  (FROM ..)
+// 
+// 
+// APT_stat_act:
+//  PrgMod_normal            0
+//  PrgMod_skip_until_label  2
+//  PrgMod_skip_until_macend 3
+//  PrgMod_skip_until_mac    4
+//  PrgMod_skip_until_line   5
+//  PrgMod_skip_until_file   6
+// 
 
 
   long      dli;
@@ -2703,8 +2707,8 @@ APT_stat_act:
 
 
     //-------------------------------------------------------
-    // Ist das erste Wort eine NC-Funktion oder ein Verfahrweg-
-    L_ck_prc:
+    // Ist das erste Wort eine NC-Funktion oder ein Verfahrweg-  (PRC__)
+    if(PRC_IS_ACTIVE) {
     if(process_CmdTab) {
       for (i1=0; i1<1000; i1++) {
         if (!process_CmdTab[i1]) break;
@@ -2714,6 +2718,7 @@ APT_stat_act:
           goto L_Done;
         }
       }
+    }
     }
 
 
@@ -4310,7 +4315,7 @@ APT_stat_act:
     case TAC_EXECM:
         printf(" EXECM |%s|\n",*data);
       // DLL-starten
-      return AP_exec_dll (*data);
+      return AP_plu_exec (*data);
 
     //----------------------------------------------------------------
     case TAC_PROCESS:
@@ -5319,7 +5324,7 @@ Ablauf Makro:
     printf(" EXECM |%s|\n",*data);
 
     // DLL-starten
-    AP_exec_dll (*data);
+    AP_plu_exec (*data);
 
     goto Fertig;
 

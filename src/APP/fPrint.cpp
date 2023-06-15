@@ -1,7 +1,7 @@
 // fPrint.exe       Print File
 // Usage: filename = parameter; eg:
 // fPrint.exe "D:\cpp\fPrint\Release\print.pcl"
-//
+// for use with MSVC only.
 
 #include "stdafx.h"
 #include <windows.h>

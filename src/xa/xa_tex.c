@@ -549,7 +549,7 @@ static TexBas *actTexBas;
 // see Tex_getBitmap
 
   int    irc;
-  char   fNam[256], safNam[128], fTyp[16], cbuf[1024];
+  char   fNam[256], safNam[128], fTyp[16], cbuf[1024], *jpg1;
 
 
   // printf("Tex_getBitmap |%s|\n",symNam);
@@ -615,16 +615,17 @@ static TexBas *actTexBas;
     return -2;
   }
 
+  jpg1 = OS_get_imgConv1();
+  if(!jpg1) return -1;
 
 
   // djpeg -bmp fnIn.jpg > fnOut.bmp
-#ifdef _MSC_VER
-  sprintf(cbuf, "CMD /C \"%s -bmp \"%s\" > \"%s\"\"",
-          OS_get_imgConv1(), fNam, bNam);
+#if defined _MSC_VER || __MINGW64__
+  sprintf(cbuf, "CMD /C \"\"%s\" -bmp \"%s\" > \"%s\"\"",jpg1,fNam,bNam);
 #else
-  sprintf(cbuf, "%s -bmp \"%s\" > \"%s\"",OS_get_imgConv1(),fNam,bNam);
+  sprintf(cbuf, "%s -bmp \"%s\" > \"%s\"",jpg1,fNam,bNam);
 #endif
-    // printf(" |%s|\n",cbuf);
+    // printf("Tex_getBitmap |%s|\n",cbuf);
   OS_system(cbuf);
 
 

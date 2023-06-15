@@ -1549,7 +1549,7 @@ Returncodes:
   Point    ppt, *p1;
   Polynom3 polb1, polb2;
   Polynom1 polb, polm;
-  double   *ztab;
+  double   *ztab, tol;
   void     *memPos1;
 
 
@@ -1561,8 +1561,9 @@ Returncodes:
 
 
   // zuerst Endpunkte testen (da macht UT3D_pt_projptbspl leider Fehler !)
+  tol = UT_TOL_cv;  // tol UT_TOL_cv; for older-catia-parts UT_DISP_cv
   p1 = &bcv->cptab[0];
-  if(UT3D_comp2pt(pt,p1,UT_TOL_cv) == 1) {
+  if(UT3D_comp2pt(pt,p1,tol) == 1) {
     // printf(" UT3D_pt_projptbez -start %f\n",bcv->va);
     *np = 1;
     ptab[0] = *p1;
@@ -1570,8 +1571,9 @@ Returncodes:
     // ttab[0] = bcv->va;
     return 0;
   }
+
   p1 = &bcv->cptab[bcv->ptNr-1];
-  if(UT3D_comp2pt(pt,p1,UT_TOL_cv) == 1) {
+  if(UT3D_comp2pt(pt,p1,tol) == 1) {
     // printf(" UT3D_pt_projptbez -end %f\n",bcv->vb);
     *np = 1;
     ptab[0] = *p1;

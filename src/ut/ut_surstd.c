@@ -94,7 +94,7 @@ List_functions_end:
 
 
 #include "../ut/ut_geo.h"
-#include "../ut/ut_cast.h"                // INT_PTR
+#include "../ut/ut_cast.h"                // INT__PTR
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 
 #include "../db/ut_DB.h"                  // DB_GetCurv
@@ -152,7 +152,7 @@ List_functions_end:
 //   if(ssTyp == Typ_SUR) {
 // 
 //     if(ssForm == Typ_Index) {  // 100
-//       l1 = LONG_PTR(sso->data);
+//       l1 = LONG__PTR(sso->data);
 //       // printf("  StuetzFl.A%d\n",i2);
 //       sso = DB_GetSur (l1, 0);
 //       goto L_1;
@@ -597,7 +597,7 @@ List_functions_end:
 
     // obj aus DB holen
     if(oxp1->form == Typ_Index) {
-      ind = LONG_PTR(oxp1->data);
+      ind = LONG__PTR(oxp1->data);
       ox1 = DB_GetObjGX (oxp1->typ, ind);
     } else ox1 =  *oxp1;
     // printf("   c1: typ=%d form=%d\n",ox1.typ,ox1.form);
@@ -838,7 +838,7 @@ List_functions_end:
     ox2p = &ox1p[1];   // Aussenkontur
       // DEB_dump_ox_0 (ox2p, "Boundary:");
     if(ox2p->form != Typ_Index) return -1;
-    dbi = LONG_PTR (ox2p->data);
+    dbi = LONG__PTR (ox2p->data);
 
     // load Boundary from DB
     oTyp = UTO__dbo (&o1, &i2, ox2p->typ, dbi);
@@ -1560,7 +1560,7 @@ List_functions_end:
     } else if(o2->typ == Typ_SUR) {
 
       if(o2->form == Typ_Index) {  // 100
-        i2 = LONG_PTR(o2->data);
+        i2 = LONG__PTR(o2->data);
         // printf("  StuetzFl.A%d\n",i2);
         os = DB_GetSur (i2, 0);
         // printf("  typ=%d form=%d\n",os->typ,os->form);

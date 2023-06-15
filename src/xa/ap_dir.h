@@ -6,7 +6,7 @@
   char*  AP_get_loc_dir   ();
   char*  AP_get_cfg_dir   ();
   char*  AP_get_ico_dir   ();
-  char*  AP_get_bin_dir   ();
+  char*  OS_bin_dir_get   ();
   char*  AP_get_doc_dir   ();
 
 // eof

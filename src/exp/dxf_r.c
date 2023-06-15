@@ -494,26 +494,15 @@ VPORT
 
 -------------------------------------------------------------------
 */
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
+
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-
-// NUR FUER DLL  (nicht im Batch):
-// geht leider interaktiv ned mit ifdef; was anderes erfinden ?
-// #ifdef GTK2
-// die folgenden Funktionen exportieren (werden vom Main gerufen):
-#ifdef _MSC_VER
-__declspec(dllexport) int DXF_r__ (void*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-// #endif
 
 
 
@@ -523,7 +512,7 @@ __declspec(dllexport) int DXF_r__ (void*);
 #include "../ut/ut_TX.h"
 #include "../ut/ut_txTab.h"               // UtxTab
 #include "../ut/ut_os.h"                  // OS_
-#include "../ut/ut_cast.h"                // INT_PTR
+#include "../ut/ut_cast.h"                // INT__PTR
 #include "../ut/ut_ox_base.h"             // OGX_SET_INDEX
 #include "../ut/func_types.h"              // SYM_SQUARE ..
 #include "../ut/ut_memTab.h"           // MemTab
@@ -539,6 +528,13 @@ __declspec(dllexport) int DXF_r__ (void*);
 
 
 #include "../exp/dxf_r.h"
+
+
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int DXF_r__ (void**);
+
 
 
 //================================================================

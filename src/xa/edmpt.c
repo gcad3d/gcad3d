@@ -163,9 +163,10 @@ Build: . ../options.sh && make -f xa_edmpt.mak
 
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-#endif
+
+
+// definition "export"
+#include "../xa/export.h"
 
 
 #include <math.h>
@@ -176,12 +177,6 @@ Build: . ../options.sh && make -f xa_edmpt.mak
 #include <ctype.h>                     // isdigit
 
 
-#ifdef _MSC_VER
-__declspec(dllexport) int EDMPT__ (void *pa[]);
-#define extern __declspec(dllimport)
-#endif
-
-
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_geo_const.h"        // _MAT_4x3
 #include "../ut/ut_txt.h"              // fnam_del
@@ -189,7 +184,7 @@ __declspec(dllexport) int EDMPT__ (void *pa[]);
 #include "../ut/ut_txTab.h"            // TxtTab
 #include "../ut/ut_memTab.h"           // MemTab
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/func_types.h"               // Typ_Att_hili
 
@@ -209,6 +204,14 @@ __declspec(dllexport) int EDMPT__ (void *pa[]);
 // #include "../xa/opar.h"                // MemTab(ObjSRC) MemTab_ini_temp
 
 
+
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int EDMPT__ (void *pa[]);
+
+
+//----------------------------------------------------------------
 #define   TRUE 1
 #define   FALSE 0
 
@@ -364,10 +367,10 @@ static FILE      *EDMPT_fp_dep = NULL;
   irc = EDMPT_init (*((int*)pa[0]), *((long*)pa[1]), *((long*)pa[2]));
     // printf("exit-EDMPT__ %d\n",irc);  fflush(stdout);
 
-  if(irc < 0) {
-    // unload plugin
-    GUI_idle__ (OS_dll_unload_idle, "xa_edmpt");
-  }
+//   if(irc < 0) {
+//     // unload plugin
+//     GUI_idle__ (OS_dll_unload_idle, "xa_edmpt");
+//   }
 
   return irc;
 
@@ -1950,8 +1953,8 @@ static FILE      *EDMPT_fp_dep = NULL;
     sele_set__ (Typ_goGeom);      // enable selection of all types
     EDMPT_mode = MODE_undefined;
 
-    // unload plugin
-    GUI_idle__ (OS_dll_unload_idle, "xa_edmpt");
+//     // unload plugin
+//     GUI_idle__ (OS_dll_unload_idle, "xa_edmpt");
   }
 
 

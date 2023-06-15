@@ -46,35 +46,20 @@ Compile/Link/Reload is done while gCad3D is up and running !!
 
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def1.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-
-
-
 // #include <GL/gl.h>                     // GL_TRIANGLE_FAN
 #define GL_TRIANGLE_FAN  6             // unsauber ..
 
-
-
-#ifdef _MSC_VER
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
-
-
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_ox_base.h"          // OGX_SET_OBJ
 #include "../ut/func_types.h"               // UI_Func...
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
@@ -91,6 +76,11 @@ __declspec(dllexport) int gCad_fini ();
 #include "../xa/xa_mem.h"              // memspc*
 
 
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main ();
+export int gCad_fini ();
 
 
 
@@ -644,7 +634,7 @@ char myMemspc[50000];
 
 
   // display points with symbols
-  GR_tDyn_npt__ (pp1, 5, ATT_PT_GREEN);
+  GR_tDyn_npt__ (5, pp1, ATT_PT_GREEN);
 
 
   // display numbers at points

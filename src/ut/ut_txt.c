@@ -76,8 +76,7 @@ UTX_add_fl_1uf         add double with max. 1 digit after dec.point; unformatted
 UTX_add_fl_f           add double with x digits after dec.point
 UTX_add_fl_10          add double with 10 signif digits
 UTX_add_fl_15          add double with 15 signif digits
-UTX_add_slash          add closing "/" to string (for dirs)
-UTX_add_fnam_del       add closing "/" or "\\" to string (filename-delimiter)
+UTX_fdir_add_del       add closing "/" or "\\" to string (filename-delimiter)
 
 UTX_ENC_ApoD_TMP       enclose string with double-apostrophs in stackSpace
 
@@ -87,6 +86,7 @@ UTX_Siz                get length of rest of string                  INLINE
 UTX_CleanCR            delete following Blanks, CRs and LFs
 UTX_CleanLF            change lineEnd (Cr|CrLf ..) to single LF
 UTX_CleanCommC         Clean C-Comments (remove foll. blanks & // comments)
+UTX_CleanCommS         Clean script-Comments (remove # comment and following blanks)
 UTX_Clean_db           clean doubles (change ',' into '.') See also UTX_chg_chr1
 UTX_CleanSC            Change SpecialChars into '?' (alle ÑîÅ -> ?)
 UTX_CleanAN            Change all chars not alpha or numeric into '_'
@@ -158,6 +158,7 @@ UTX_ck_uml_c           check for Umlaut (ƒ÷‹‰ˆ¸ﬂ); change to normal char
 UTX_ck_uml_s           change all umlaute of string
 UTX_cmp_word_wordtab   check if word wd1 is in list wdtab
 UTX_find_chr           find character in string (strchr)                     INLINE
+UTX_find_nchr          find one of n characters in string (strpbrk)          INLINE
 UTX_find_bwd_chr       find character in string going back
 UTX_find_Del1          // find next delimiter ' ' '=' ',' '\n' '\t' '{' ..
 UTX_find_word1         Wort in Zeile suchen
@@ -196,9 +197,12 @@ UTX_fdir_s             get fileDirectory from string
 UTX_ftyp_cut           remove Filetyp from string
 UTX_fnam_rem_dirLast   remove last dir
 UTX_safeName           make a safe modelname from a modelname
-UTX_fnam_fnrel         make absolute filename from relative Filename and basDir
-UTX_fnam_rel2abs       make absolute filename from relative Filename and actDir
+UTX_fnam_ms_uix        change UIX-filename into MS-filename
+UTX_fnam_abs_rel       make absolute filename from relative Filename
+// UTX_fnam_fnrel         make absolute filename from relative Filename and basDir
+// UTX_fnam_rel2abs       make absolute filename from relative Filename and actDir
 UTX_fnam_abs2rel       make relative filename from absolutFilename and actDir
+UTX_fnam_ck_abs        check if filename has absolute path
 UTX_fnam_ck_rel        test if fn is relativ; -1=no; else position
 UTX_fdir_cut           cut last subpath from path
 
@@ -218,8 +222,7 @@ UTX_wrf_app_str        append string to file
 UTX_f_lifo_add         add line as first line and uniq into file with maxLnr lines
 UTX_f_add_uniq         add line uniq to file
 
-UTX_setup_get__        get parameters (typ, value) from setup-file
-UTX_setup_get          get parameters (typ, value) from setup-file (1.word only)
+UTX_setup_get          get parameters (typ, value) from setup-file
 UTX_setup_set          add/replace parameter in file
 UTX_setup_modw         add/replace word of value in param-value-file
 UTX_setup_decs         decode setup-string; separates parameter, returns valPos.
@@ -249,6 +252,7 @@ UtxTab_*               Class for stacking Textstrings of variable length
 UTI_iNr_chrNr          give nr of ints for n characters
 APED
 SRC
+MDLFN                  functions for filenames (symbolic ..)
 
 \endcode *//*----------------------------------------
 
@@ -257,7 +261,7 @@ SRC
 */
 
 #ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
+#include "../xa/MS_Def1.h"
 #endif
 
 #include <string.h>
@@ -473,7 +477,10 @@ static char   TX_buf2[128];
   for(i1=0; i1<iNr; ++i1) wTab[i1] = UtxTab__(i1, &txTab1);
   wTab[iNr] = NULL;
 
+    // TESTBLOCK
     // UTX_wTab_dump (wTab);
+    // UtxTab_dump (&txTab1, "ex-UTX_wTab_file");
+    // END TESTBLOCK
 
   return wTab;
 
@@ -842,7 +849,7 @@ static char   TX_buf2[128];
   //----------------------------------------------------------------
   L_1:
     // mode 1,2
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
     iPos = strcspn (snam, " ./:\\");
 #else
     iPos = strcspn (snam, " ./\\");
@@ -902,6 +909,31 @@ static char   TX_buf2[128];
 
 
 //================================================================
+  int UTX_fnam_ck_abs (char *fn) {
+//================================================================
+// UTX_fnam_ck_abs                      check if filename has absolute path
+// retCode   1=path-is-absolute; 0=path-is-relative
+
+  int    irc;
+
+
+#if defined _MSC_VER || __MINGW64__
+  // - MS: if second char == ':'   - absPath
+  if((fn[0] == '\\')  ||       // UNC-filenames
+     (fn[1] == ':'))      {irc = 1; goto L_exit;}
+#endif
+  // MS & UIX: if first char is '/'
+  if(fn[0] == '/')  {irc = 1; goto L_exit;}
+
+  irc = 0; // rel.
+
+  L_exit:
+    return irc;
+
+}
+
+
+//================================================================
   int UTX_fnam_ck_rel (char *fn) {
 //================================================================
 // UTX_fnam_ck_rel           test if fn is relativ;
@@ -916,7 +948,7 @@ static char   TX_buf2[128];
 
   i1 = -1;
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   pfn = strchr(fn, '\\');
   if(!pfn) pfn = strchr(fn, '/');
 #else
@@ -933,6 +965,95 @@ static char   TX_buf2[128];
 }
 
  
+//=========================================================================
+  int UTX_fnam_abs_rel (char *fnAbs, int fSiz, char *fnRel, char *basDir) {
+//=========================================================================
+// UTX_fnam_abs_rel      make absolute filename from relative Filename
+// get baseDirectory eg from OS_get_dir_pwd (getenv ("PWD"))
+// Input:
+//   fnRel   relative filename;
+//           - Unix: "fn.typ" "./fn.typ" "../../fn";
+//           - MS:   "fn.typ" ".\fn"     "..\..\f.x"
+//   basDir  directory of file <fnRel>; if NULL - using getenv("PWD")
+// Output:
+//   fnAbs   basDir + fnRel
+
+
+  int     ls, irc;
+  char    *p1, *p2;
+
+
+  // get basDir
+  if(!basDir) basDir = OS_get_env ("PWD");
+
+
+  // copy basDir and add closing '/'
+  ls = strlen(basDir);   if(ls >= fSiz) goto L_err1;
+  strcpy (fnAbs, basDir);
+  UTX_fdir_add_del (fnAbs);   // add closing "/"
+
+
+  printf("UTX_fnam_abs_rel %d |%s|%s|\n",fSiz,fnRel,fnAbs);
+
+
+  // check  "add" or insert"; insert is if fnRel starts with ".."
+  p1 = fnRel;
+  if((p1[0] == '.')&&(p1[1] == '.')) goto L_insert;
+
+
+  // add fnRel to fnAbs
+  if(*p1 == '.') ++p1;
+  if(*p1 == '/') ++p1;
+#if defined _MSC_VER || __MINGW64__
+  if(*p1 == '\\') ++p1;
+#endif
+  goto L_add;  // fnAbs += p1
+
+
+  //----------------------------------------------------------------
+  L_insert:
+    // remove "../" or "..\" from fnRel
+    ++p1; ++p1;
+    if(*p1 == '/') ++p1;
+#if defined _MSC_VER || __MINGW64__
+    if(*p1 == '\\') ++p1;
+#endif
+
+
+    // remove last dir from fnAbs
+    fnAbs[strlen(fnAbs) - 1] = '\0';   // remove closing '/'
+    // get p2 = last '/'
+#if defined _MSC_VER || __MINGW64__
+    p2 = UTX_find_strrchrn (fnAbs, "/\\");
+#else
+    p2 = strrchr (fnAbs, '/');
+#endif
+    if(!p2) goto L_err1;
+    ++p2;
+    *p2 = '\0';
+
+
+    // ck if fnRel starts with ".."; yes - goto insert;
+    if((p1[0] == '.')&&(p1[1] == '.')) goto L_insert;
+    // no - fnAbs += p1
+
+
+  //----------------------------------------------------------------
+  L_add:   // fnAbs += p1
+    if(strlen(fnAbs) + strlen(p1) > fSiz) return MSG_ERR__(ERR_STRING_TOO_LONG,"fnAbs");
+    strcat (fnAbs, p1);
+
+      printf(" ex-UTX_fnam_abs_rel |%s|\n",fnAbs);
+    return 0;
+
+
+  L_err1:
+    return MSG_ERROR (-1, "fnAbs too short ..");
+
+}
+
+
+/*
 //=========================================================================
   int UTX_fnam_fnrel (char *fnAbs, int isiz, char *fnRel, char *basDir) {
 //=========================================================================
@@ -952,7 +1073,7 @@ static char   TX_buf2[128];
 
   ls = strlen(basDir);   if(ls >= isiz) return -1;
   strcpy (fnAbs, basDir);
-  UTX_add_fnam_del (fnAbs);   // add closing "/"
+  UTX_fdir_add_del (fnAbs);   // add closing "/"
 
 
   si = fnRel;
@@ -1044,13 +1165,13 @@ static char   TX_buf2[128];
     return -1;
   }
   strcat(fnAbs, p1);
-  UTX_add_fnam_del (fnAbs);   // add closing "/"
+  UTX_fdir_add_del (fnAbs);   // add closing "/"
 
 
   return 0;
 
 }
-
+*/
 
 //================================================================
   int UTX_fnam_abs2rel (char *fnRel, char *fnAbs, char *actDir) {
@@ -1070,7 +1191,7 @@ static char   TX_buf2[128];
 
 
   int  i1, ie, id, inr;
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   char sdir[4] = "..\\";
 #else
   char sdir[4] = "../";
@@ -1133,7 +1254,7 @@ static char   TX_buf2[128];
 
   // pfn = find last filename-delimiter
   // must check for '/' AND '\' (in MS '/' can come from out of source)
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   pfn = UTX_find_strrchrn(sIn, "/\\");
 #else
   pfn = strrchr(sIn, fnam_del);
@@ -1194,7 +1315,7 @@ static char   TX_buf2[128];
 
   // pfn = find last filename-delimiter
   // must check for '/' AND '\' (in MS '/' can come from out of source)
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   pfn = UTX_find_strrchrn(sDir, "/\\");
 #else
   pfn = strrchr(sDir, fnam_del);
@@ -1314,7 +1435,7 @@ static char   TX_buf2[128];
 
   // pfn = find last filename-delimiter
   // must check for '/' AND '\' (in MS '/' can come from out of source)
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   pfn = UTX_find_strrchrn(fnIn, "/\\");
 #else
   pfn = strrchr(fnIn, fnam_del);
@@ -1529,7 +1650,7 @@ static char   TX_buf2[128];
   if(cbuf[0] == '\\') goto L_abs;     // zB "\\ooserv\...."
   if(cbuf[0] == '/')  goto L_abs;     // zB "/xx/yy/fn"
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   if(cbuf[1] == ':')  goto L_abs;
 #endif
 
@@ -1750,6 +1871,8 @@ static char   TX_buf2[128];
 // Output:
 //   fLst
 //   retCode nr of filenames found
+//  
+// see also UTX_dir_listf
 
   int     irc, iNr, ip0, ldir, lfis, lfie;
   char    fnam[320];
@@ -1795,27 +1918,27 @@ static char   TX_buf2[128];
 }
 
 
-//==========================================================================
-  int UTX_dir_listf (char *outFilNam, char *fPath, char *fNam, char *fTyp) {
-//==========================================================================
-/// \code
-/// Create list of files into file; filters: filename and/or filetyp.
-/// Input:
-///   fPath     dir to search; can have closing "/"
-///   fNam      NULL or beginning part of the filename to search; do not use "*"
-///   fTyp      NULL or filetyp to search; do not use "*"
-/// Output:
-///   outFilNam list
-/// RetCode:    -1 = Error; else nr of files written.
-///
+//====================================================================================
+  int UTX_dir_listf (char *outFilNam, char *fPath, char *fNam, char *fTyp, int mode) {
+//====================================================================================
+// Create list of files into file; filters: filename and/or filetyp.
+// Input:
+//   fPath     dir to search; can have closing "/"
+//   fNam      NULL or beginning part of the filename to search; do not use "*"
+//   fTyp      NULL or filetyp to search; do not use "*"
+//   mode      0=ignore; 1=remove-filetyp (remove text following last '.')
+// Output:
+//   outFilNam list
+// RetCode:    -1 = Error; else nr of files written.
+//
 // Example:
 //   find all files with filenames starting with "xa_" and ending with ".c"
 //   i1 = UTX_dir_listf ("lst.dat", ".", "xa_", ".c");
 //   
-
+// see also UTX_dir_list__
 
   int   i1, ilenTyp, ilenNam, iNr, iOut;
-  char  cbuf[256], *p1;
+  char  cbuf[256], *p1, *p2;
   FILE  *fpo;
 
 
@@ -1868,7 +1991,13 @@ static char   TX_buf2[128];
       if(OS_check_isDir(cbuf) == 0) continue;
 
       // strip directory - find last "/" (makes |t1| aus |/mnt/x/t1|)
+#if defined _MSC_VER || __MINGW64__
+      // MS: check for last '/' or '\\'
+      p1 =  UTX_find_strrchrn (cbuf,"/\\");
+#else
+      // Linux
       p1 = strrchr (cbuf, fnam_del);
+#endif
       if(p1) ++p1;
       else p1 = cbuf;
         // printf(" dir_listf-fNam-p1=|%s|\n",p1);
@@ -1879,6 +2008,13 @@ static char   TX_buf2[128];
         if(strncmp(p1, fNam, ilenNam)) continue;
       }
 
+      // remove filetyp
+      if(mode) {
+	p2 = strrchr (p1, '.');
+	if(p2) *p2 = '\0';
+      }
+      
+      
         // printf(" fNam-out=|%s|%s|\n",cbuf,p1);
       fprintf(fpo,"%s\n",p1);
       ++iOut;
@@ -1887,7 +2023,11 @@ static char   TX_buf2[128];
 
   fclose(fpo);
 
+    // TESTBLOCK
     // printf("ex UTX_dir_listf %d |%s|%s|%s|\n",iOut,outFilNam,fPath,fTyp);
+    // sprintf(cbuf, "cat %s",outFilNam);
+    // system (cbuf);
+    // END TESTBLOCK
 
   return iOut;
 
@@ -2195,12 +2335,10 @@ static char   TX_buf2[128];
 //================================================================
   char *UTX_find_strrchrn (char *cbuf, char *str) {
 //================================================================
-/// \code
-/// UTX_find_strrchrn        find last occurence of one of the chars of str2
-/// returns NULL or the position of the last char in cbuf also found in str. 
-///  (see strpbrk = find first)
-/// NULL: nicht enthalten
-/// \endcode
+// UTX_find_strrchrn        find last occurence of one of the chars of str2
+// returns NULL or the position of the last char in cbuf also found in str. 
+//  (see strpbrk = find first)
+// NULL: nicht enthalten
 
   int    ii;
   char   *p1, *p2;
@@ -2211,7 +2349,9 @@ static char   TX_buf2[128];
   ii = 0;
   p1 = cbuf;
 
+  // test all chars of str
   while(str[ii]) {
+    // find last pos of char
     p2 = strrchr (p1, str[ii]);
     if(p2) {
       // found
@@ -2220,9 +2360,13 @@ static char   TX_buf2[128];
     ++ii;
   }
 
-  if(p1) --p1;
+  if(p1 == cbuf) {
+    p1 = NULL;
+  } else {
+    --p1;
+  }
 
-  // printf("ex-UTX_find_strrchrn |%s| \n",p1);
+    // printf("ex-UTX_find_strrchrn |%s| \n",p1);
 
   return p1;
 
@@ -2922,7 +3066,7 @@ static char   TX_buf2[128];
     
   // check if blank exists
   if(strchr(sIn, ' ')) {
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
     // BUG MS - execute with "START": |\"| removes the |\| - add a blank before |"|
     sprintf(sOut, "\"%s \"", sIn);
 #else
@@ -4259,55 +4403,47 @@ Das folgende ist NICHT aktiv:
 
 
 //================================================================
-  int UTX_add_fnam_del (char *cbuf) {
+  int UTX_fdir_add_del (char *cbuf) {
 //================================================================
-/// \code
-/// UTX_add_fnam_del       add closing "/" or "\\" to string (filename-delimiter)
-/// see also UTX_endAddChar
-/// \endcode
+// UTX_fdir_add_del       add closing "/" or "\\" to string (filename-delimiter)
+// see also UTX_endAddChar
 
-
+  
   char *ps;
 
-  // wenn cbuf kein closing "/" hat, eins zufuegen.
+  // printf("UTX_fdir_add_del in |%s|\n",cbuf);
+
   ps = &cbuf[strlen(cbuf)-1];
 
-#ifdef _MSC_VER
-  // MS: CR-LF !
+
+#if defined _MSC_VER || __MINGW64__
+  //------------------- MS: CR-LF ! --------------------------------
   if(*ps == '\r') --ps;
+  if(*ps == '/') goto L_exit;
+  if(*ps == '\\') goto L_exit;
+  // find delimiter '/' or '\'
+  ps = strpbrk (cbuf, "/\\");
+  if(ps) {
+    if(*ps == '/') {
+      strcat (cbuf, "/");
+      goto L_exit;
+    }
+  }
+  strcat (cbuf, "\\");
+
+#else
+  //------------------- Linux --------------------------------------
+  if(*ps != fnam_del) strcat(cbuf, fnam_del_s);
 #endif
 
 
-  if(*ps != fnam_del) strcat(cbuf, fnam_del_s);
-
-
-  return 0;
+  L_exit:
+      // printf("UTX_fdir_add_del out |%s|\n",cbuf);
+    return 0;
   
 }
 
   
-//================================================================
-  int UTX_add_slash (char *cbuf) {
-//================================================================
-/// \code
-/// UTX_add_slash          add closing "/" to string (for dir's)
-/// see also UTX_endAddChar UTX_add_fnam_del
-/// \endcode
-
-  char cl;
-
-  // wenn cbuf kein closing "/" hat, eins zufuegen.
-  cl = cbuf[strlen(cbuf)-1];
-
-  if((cl != '/')&&(cl != '\\')) {
-    strcat(cbuf,fnam_del_s);
-  }
-
-  return 0;
-
-}
-
-
 //================================================================
   int UTX_ins_add (char* s1, int sSiz, char* s2, char *s3) {
 //================================================================
@@ -4934,7 +5070,7 @@ L_exit:
 
     if(strncmp(sLn, txt1, lLen)) goto L_write;
     // line is ident, rest must be lf or crlf
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
     // MS-Win
     if(sLn[lLen] == '\r') goto L_found;
 #endif
@@ -5430,6 +5566,23 @@ L_exit:
 
 
 //================================================================
+  int UTX_CleanCommS (char *cBuf) {
+//================================================================
+// Clean script-Comments (remove # comment and following blanks)
+
+  char    *p1;
+
+  p1 = strstr (cBuf, " #");
+  if(p1) *p1 = '\0';
+
+  UTX_CleanCR (cBuf);
+
+  return 0;
+
+}
+
+
+//================================================================
   int UTX_Clean_db (char *cbuf) {
 //================================================================
 /// \code
@@ -5913,9 +6066,9 @@ L_exit:
   UTX_pos_skip_num  (&p1);
 
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
 
-  // ACHTUNG; MS-BUG; MS-Bug MS-bug :
+  // ACHTUNG MS-bug :
   // string muss mit 0 terminiert sein, sonst dauerts 1000-fach laenger !!!!!
   c1  = *p1;
   *p1 = '\0';
@@ -7310,33 +7463,34 @@ Example (scan line):
 
 }
 
-//=======================================================================
-  int UTX_setup_get__ (char *cval, char *ctyp, char *fnam) {
-//=======================================================================
-/// \code
-/// UTX_setup_get__        get parameters (typ, value) from setup-file
-///             skips lines starting with # in setup-file
-/// Input:
-///   ctyp      keyWord (1.word) in setupFile.
-/// Output:
-///   cval      copy of the value (the 2.word) in the file; size up to 250 chars.
-///             unmodified if keyWord not found
-/// RetCod:     0=OK; -1=ctyp not found.
-/// \endcode
 
+//=======================================================================
+  int UTX_setup_get (char *cval, char *ctyp, char *fnam) {
+//=======================================================================
+// UTX_setup_get          get parameters (typ, value) from setup-file
+//             skips lines starting with # in setup-file
+//             skip inline-comment starting with #
+// Input:
+//   ctyp      keyWord (1.word) in setupFile.
+//   fnam      filename of file with list "<symbol>  <value>"
+// Output:
+//   cval      copy of the value; size up to 250 chars.
+//             unmodified if keyWord not found
+// RetCod:     0=OK; -1=ctyp not found.
+//
+// example: setup-line "PROCESS proc1 PRC_cut1    # nameProcess nameProcessor"
+//          UTX_setup_get (cval, "PROCESS"
+//          returns cval = "proc1 PRC_cut1"
 
   int    irc, i1;
   char   cbuf[256], *p1;
   FILE  *fpi;
 
 
-  // printf("UTX_setup_get__ |%s|%s|\n",ctyp,fnam);
+  // printf("UTX_setup_get |%s|%s|\n",ctyp,fnam);
 
-
-  // datei neu oeffnen
-  // printf("UTX_setup_get fopen|%s|\n",fnam);
   if((fpi=fopen(fnam,"r")) == NULL) {
-    TX_Print("UTX_setup_get__ E001 %s",fnam);
+    TX_Print("UTX_setup_get E001 %s",fnam);
     goto L_err1;
   }
 
@@ -7345,8 +7499,8 @@ Example (scan line):
   L_read:
   for(;;) {
     if(fgets(cbuf, 250, fpi) == NULL) goto L_err2;
-    if(*cbuf == '#') continue;
-    if(cbuf[i1] != ' ') continue;
+    if(*cbuf == '#') continue;      // skip comments
+    if(cbuf[i1] != ' ') continue;   // skip eg ctyp "AB val" line is "ABC val"
     if(strncmp(cbuf, ctyp, i1)) continue;
     break;
   }
@@ -7355,15 +7509,16 @@ Example (scan line):
   ++i1;
   p1 = &cbuf[i1];
   while (*p1  == ' ') ++p1;
-  strcpy(cval, p1);
-  UTX_CleanCR (cval);
+  strcpy(cval, p1);       // copy out
+  UTX_CleanCommC (cval);  // Clean C-Comments (remove foll. blanks & " //" comments)
+  // UTX_CleanCommS (cval);  // Clean script-Comments (remove foll. blanks & # comments)
 
   fclose (fpi);
   irc = 0;
 
 
   L_exit:
-      // printf("ex UTX_setup_get__ %d |%s|%s|\n",irc,ctyp,cval);
+      // printf("ex UTX_setup_get %d |%s|%s|\n",irc,ctyp,cval);
     return irc;
 
 
@@ -7377,6 +7532,7 @@ Example (scan line):
 }
 
 
+/*
 //=======================================================================
   int UTX_setup_get (char *cval, char *ctyp, char *fnam, int mode) {
 //=======================================================================
@@ -7474,6 +7630,7 @@ Example (scan line):
     return -1;
 
 }
+*/
 
 
 //================================================================
@@ -7637,6 +7794,28 @@ Example (scan line):
   // OS_stdout__ (1, NULL);
 
   printf("ex UTX_htm_fcl\n");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UTX_fnam_ms_uix (char *fn) {
+//================================================================
+// UTX_fnam_ms_uix             change UIX-filename into MS-filename
+// TODO: ck cygpath
+
+  int     i1;
+
+
+  for(i1=0; i1<512; ++i1) {
+    if(!fn[i1]) break;
+    if(fn[i1] == '/') fn[i1] = '\\';
+  }
+
+
+  // printf(" ex-UTX_fnam_ms_uix |%s|\n",fn);
 
   return 0;
 

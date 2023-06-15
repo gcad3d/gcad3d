@@ -1,8 +1,6 @@
 #!/bin/sh
 #
 # get ${platform} - amd64|i386|armhf
-#
-# use with ". ${DIR_DEV}gcad3d/src/platform.sh"
 
 
 # get HOSTTYPE eg x86_64
@@ -23,7 +21,7 @@ echo "platform =" ${platform}
 
 
 # get SW-Version
-Version=`cat ${DIR_DEV}gcad3d/src/gcad_version`
+Version=`cat ${gcad_dir_bas}src/gcad_version`
 echo "Version =" ${Version}
 
 

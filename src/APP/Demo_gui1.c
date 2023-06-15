@@ -39,9 +39,10 @@ List_functions_end:
 
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def1.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
+
 
 #include <math.h>
 #include <stdio.h>
@@ -49,23 +50,20 @@ List_functions_end:
 #include <string.h>
 
 
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_types.h"               // INT_8 - UINT_64
 #include "../ut/ut_umem.h"                // Memspc MemObj UME_*
-
 
 #include "../gui/gui__.h"
 
 
-#ifdef _MSC_VER
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main ();
+export int gCad_fini ();
 
 
+//----------------------------------------------------------------
   static MemObj win0;
 
 

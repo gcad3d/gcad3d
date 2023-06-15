@@ -16,7 +16,8 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+2023-06-01   PCL and HPGL (AP_print_gl1) removed; unfinished;
+             resolv-model missing (see eg export dxf)
 
 -----------------------------------------------------
 Modifications:
@@ -77,44 +78,50 @@ PRI_UI__   ??
 */
 
 
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 // #include <errno.h>
 // #include <dlfcn.h>           // Unix: dlopen
 
+#include <GL/gl.h>
 
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_DEPRECATE
-__declspec(dllexport) int PRI__ (void**);
-#define extern __declspec(dllimport)
-#endif
-
-
-#define   TRUE 1
-#define   FALSE 0
-
-
+ 
 
 #include "../ut/ut_geo.h"
 #include "../ut/ut_os.h"       // AP_get_tmp_dir
 
 #include "../gui/gui__.h"
 #include "../xa/mdl__.h"               // SIZMFNam
+#include "../xa/ap_stat.h"             // AP_STAT
+
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int PRI__ (void**);
+
+
+
+
+#define   TRUE 1
+#define   FALSE 0
 
 
 // Externals aus ../xa/xa.c:
-extern char AP_mod_fnam[SIZMFNam];
-extern char AP_printer[80];       // Printer
-
+extern char      AP_mod_fnam[SIZMFNam];
+extern char      AP_printer[80];           // Printer
+extern char      *AP_fVwr;                 // fileViewer
+extern AP_STAT   AP_stat;                  // AP_stat.fVwr
 
 
 // Local vars:
 static MemObj win0 = GUI_OBJ_NEW;
 static void  *dll0;
+
 
 // Prototypes:
 int win1__ (MemObj *mo, void **data);
@@ -131,12 +138,18 @@ int win1__ (MemObj *mo, void **data);
   // char   fNam[256], *fNam;
 
 
+  printf("PRI__ AP_stat.fVwr=%d\n",AP_stat.fVwr);
+
   // fNam = (char*)dBlock[0];
   // dll0 = dBlock[1];
   // printf("PRI__ |%s|\n", fNam);
 
-
-  PRI_UI__ (NULL, GUI_SETDAT_EI(TYP_EventPress, UI_FuncInit));
+  if(!AP_stat.fVwr) {
+//     PRI_UI__ (NULL, GUI_SETDAT_EI(TYP_EventPress, UI_FuncExit));
+// 
+//   } else {
+    PRI_UI__ (NULL, GUI_SETDAT_EI(TYP_EventPress, UI_FuncInit));
+  }
 
   return 0;
 
@@ -164,19 +177,21 @@ int win1__ (MemObj *mo, void **data);
   void            GL_Print_Redraw ();
 
 
-  printf("PRI_UI__ \n"); fflush(stdout);
-
   i1 = GUI_DATA_I1;
-
 
   printf("PRI_UI__ %d\n",i1); fflush(stdout);
 
+
+  // codes UI_FuncUCB - UI_FuncUCB15: check activate / disactivate
+  if(i1 >= UI_FuncUCB) {
+    if(GUI_DATA_EVENT == TYP_EventRelease) return 0; // skip disactivation
+  }
 
 
   switch (i1) {
 
 
-    //---------------------------------------------------------
+    //================================================================
     case UI_FuncInit:
 
       if(GUI_OBJ_IS_VALID(&win0)) {           // Win schon vorhanden ?
@@ -195,11 +210,11 @@ int win1__ (MemObj *mo, void **data);
       wtmp3 = GUI_box_h (&box0, "");
         GUI_radiobutt__(&wtmp3,"PDF  ", 0,PRI_UI__, &GUI_FuncUCB6, "");
         GUI_radiobutt__(&wtmp3,"PS ",   1,PRI_UI__, &GUI_FuncUCB5, "");
-        GUI_radiobutt__(&wtmp3,"PCL5 ", 1,PRI_UI__, &GUI_FuncUCB1, "");
-        GUI_radiobutt__(&wtmp3,"HPGL ", 1,PRI_UI__, &GUI_FuncUCB2, "");
         GUI_radiobutt__(&wtmp3,"SVG  ", 1,PRI_UI__, &GUI_FuncUCB7, "");
         GUI_radiobutt__(&wtmp3,"JPG  ", 1,PRI_UI__, &GUI_FuncUCB8, "");
         GUI_radiobutt__(&wtmp3,"BMP  ", 1,PRI_UI__, &GUI_FuncUCB9, "");
+        // GUI_radiobutt__(&wtmp3,"PCL5 ", 1,PRI_UI__, &GUI_FuncUCB1, "");
+        // GUI_radiobutt__(&wtmp3,"HPGL ", 1,PRI_UI__, &GUI_FuncUCB2, "");
       mode = 0;  // 0=PDF
       strcpy(fTyp, "pdf");
 
@@ -215,6 +230,7 @@ int win1__ (MemObj *mo, void **data);
 
       wtmp2 = GUI_box_h (&box0, "e");
 
+      //  w_func1/2/3 = 3 radioButtons
       wtmp3 = GUI_box_v (&wtmp2, "");
         wtmp4 = GUI_box_h (&wtmp3, "");
         w_func1=GUI_radiobutt__(&wtmp4, "Preview       ", 0,NULL, NULL, "");
@@ -223,24 +239,21 @@ int win1__ (MemObj *mo, void **data);
         wtmp4 = GUI_box_h (&wtmp3, "");
         w_func3=GUI_radiobutt__(&wtmp4, "print direct  ", 1,NULL, NULL, "");
 
+      // new box for 3 entries
       wtmp3 = GUI_box_v (&wtmp2, "e");
-        wtmp4 = GUI_box_h (&wtmp3, "");
-        // w_cmd1 = Preview-commad OS_get_vwr_ps: get ps-viewer (gv|evince)
-        w_cmd1=GUI_entry__(&wtmp4, NULL, OS_get_vwr_ps(), NULL, NULL, "e");
+        // set w_cmd1 - viewer
+        wtmp4 = GUI_box_h (&wtmp3, "e");
+        w_cmd1 = GUI_entry__(&wtmp4, NULL, OS_fVwr_get(AP_fVwr), NULL, NULL, "e");
 
-      wtmp4 = GUI_box_h (&wtmp3, "e");
+	// set w_cmd2 - outfilename
+        wtmp4 = GUI_box_h (&wtmp3, "e");
         // w_cmd2 = filename w.o. filetyp
         sprintf(cbuf1, "%sprint",AP_get_tmp_dir());
-        w_cmd2=GUI_entry__(&wtmp4, NULL, cbuf1,   NULL,NULL, "e");
+        w_cmd2 = GUI_entry__(&wtmp4, NULL, cbuf1,   NULL,NULL, "e");
 
-      // w_cmd3 = printer | printcommand
-      wtmp4 = GUI_box_h (&wtmp3, "e");
-#ifdef _MSC_VER
-        w_cmd3=GUI_entry__(&wtmp4, NULL, OS_get_printer(),  NULL,NULL, "e");
-#else
-        sprintf(AP_printer, "lpr -P%s",OS_get_printer()); //2016-03-31 -l removed
-        w_cmd3=GUI_entry__(&wtmp4, NULL, AP_printer,        NULL,NULL, "e");
-#endif
+        // set w_cmd3 - printcommand    OS_get_printer()
+        wtmp4 = GUI_box_h (&wtmp3, "e");
+        w_cmd3 = GUI_entry__(&wtmp4, NULL, AP_printer,        NULL,NULL, "50e,e");
 
       GUI_sep_h (&box0, 2);
 
@@ -248,7 +261,7 @@ int win1__ (MemObj *mo, void **data);
       //----------------------------------------------------------------
       w_opts = GUI_box_h (&box0, "");
 
-      w_rot = GUI_ckbutt__ (&w_opts, "Landscape (rotate 90 deg)",
+      w_rot = GUI_ckbutt__ (&w_opts, "Landscape (rotate 90 deg)  ",
                           TRUE, NULL, NULL, "");
 
       wtmp1 = GUI_box_h (&w_opts, "");
@@ -269,7 +282,9 @@ int win1__ (MemObj *mo, void **data);
 
       GUI_Win_up (NULL, &win0, 0);  // always on top
       GUI_Win_go (&win0);
+      AP_stat.fVwr = 1;             // 1=print-window-is-active
       break;
+      // end UI_FuncInit:
 
 
 
@@ -278,11 +293,14 @@ int win1__ (MemObj *mo, void **data);
     case UI_FuncUCB3:   // A4
       strcpy(pgTyp, "A4");
       break;
+
     case UI_FuncUCB4:   // A3
       strcpy(pgTyp, "A3");
       break;
 
 
+    //================================================================
+    // get fTyp = type of output
     case UI_FuncUCB6:   // PDF
       mode = 0;
       strcpy(fTyp, "pdf");
@@ -290,36 +308,23 @@ int win1__ (MemObj *mo, void **data);
       GUI_set_enable (&w_func1, TRUE);  // Preview ein
       GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
       GUI_set_enable (&w_opts, TRUE);   // Landscape, Offset, Scale on
+      break;
 
     case UI_FuncUCB5:    // PS
       mode = 1;
       strcpy(fTyp, "eps");
       GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
+#if defined _MSC_VER || __MINGW64__
+      GUI_set_enable (&w_func1, FALSE); // Preview off
+#else
       GUI_set_enable (&w_func1, TRUE);  // Preview ein
+#endif
       GUI_set_enable (&w_cmd1, TRUE);   // PreviewCmd ein
       GUI_set_enable (&w_opts, TRUE);   // Landscape, Offset, Scale on
       break;
 
-    case UI_FuncUCB1:   // PCL5
-      mode = 2;
-      strcpy(fTyp, "pcl");
-      GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
-      GUI_set_enable (&w_func1, FALSE); // Preview aus
-      GUI_set_enable (&w_cmd1, FALSE);  // PreviewCmd aus
-      GUI_set_enable (&w_opts, TRUE);   // Landscape, Offset, Scale on
-      break;
-
-    case UI_FuncUCB2:   // HPGL
-      mode = 3;
-      strcpy(fTyp, "hpgl");
-      GUI_set_enable (&wb_form, FALSE); // A4/A3 aus
-      GUI_set_enable (&w_func1, FALSE); // Preview aus
-      GUI_set_enable (&w_cmd1, FALSE);  // PreviewCmd aus
-      GUI_set_enable (&w_opts, TRUE);   // Landscape, Offset, Scale on
-      break;
-
     case UI_FuncUCB7:   // SVG
-      mode = 4;
+      mode = 2;
       strcpy(fTyp, "svg");
       GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
       GUI_set_enable (&w_func1, TRUE);  // Preview ein
@@ -328,7 +333,7 @@ int win1__ (MemObj *mo, void **data);
       break;
 
     case UI_FuncUCB8:   // JPG
-      mode = 5;
+      mode = 3;
       strcpy(fTyp, "jpg");
       GUI_set_enable (&wb_form, FALSE); // A4/A3 aus
       GUI_set_enable (&w_func1, TRUE);  // Preview ein
@@ -337,7 +342,7 @@ int win1__ (MemObj *mo, void **data);
       break;
 
     case UI_FuncUCB9:   // BMP
-      mode = 6;
+      mode = 4;
       strcpy(fTyp, "bmp");
       GUI_set_enable (&wb_form, FALSE); // A4/A3 aus
       GUI_set_enable (&w_func1, TRUE);  // Preview ein
@@ -345,25 +350,57 @@ int win1__ (MemObj *mo, void **data);
       GUI_set_enable (&w_opts, FALSE);  // Landscape, Offset, Scale off
       break;
 
+//     case UI_FuncUCB1:   // PCL5
+//       mode = 2;
+//       strcpy(fTyp, "pcl");
+//       GUI_set_enable (&wb_form, TRUE);  // A4/A3 ein
+//       GUI_set_enable (&w_func1, FALSE); // Preview aus
+//       GUI_set_enable (&w_cmd1, FALSE);  // PreviewCmd aus
+//       GUI_set_enable (&w_opts, TRUE);   // Landscape, Offset, Scale on
+//       break;
+// 
+//     case UI_FuncUCB2:   // HPGL
+//       mode = 3;
+//       strcpy(fTyp, "hpgl");
+//       GUI_set_enable (&wb_form, FALSE); // A4/A3 aus
+//       GUI_set_enable (&w_func1, FALSE); // Preview aus
+//       GUI_set_enable (&w_cmd1, FALSE);  // PreviewCmd aus
+//       GUI_set_enable (&w_opts, TRUE);   // Landscape, Offset, Scale on
+//       break;
+// 
 
-    //---------------------------------------------------------
-    case UI_FuncWork:
+
+    //================================================================
+    case UI_FuncWork:     // OK-button pressed
       // set cmdTyp = P(review), F(ile), D(irect)
       if(GUI_radiobutt_get (&w_func1)) {
+        // do preview
+#if defined _MSC_VER || __MINGW64__
+	if(mode == 1) {
+	  TX_Print("***** cannot display PS on Windows; display PDF.");
+	  break;
+	}
+#endif
         cmdTyp = 'P';
+        // get preview-progName
+        txcmd1 = GUI_entry_get (&w_cmd1);  // preview-command
+        // save preview-progName in AP_fVwr
+        AP_fVwr = OS_fVwr_set (AP_fVwr, txcmd1);
+
       } else if(GUI_radiobutt_get (&w_func2)) {
+        // do write-file
         cmdTyp = 'F';
+
       } else if(GUI_radiobutt_get (&w_func3)) {
+        // do print
         cmdTyp = 'D';
       }
 
       // irot = rotate 
       irot = GUI_ckbutt_get (&w_rot);
-
-        printf("Print work %c mode= %d rot=%d\n",cmdTyp,mode,irot);
+        // printf("Print work %c mode= %d rot=%d\n",cmdTyp,mode,irot);
 
       // cmd's, Offset, Scale
-      txcmd1 = GUI_entry_get (&w_cmd1);
       txcmd2 = GUI_entry_get (&w_cmd2);  // filename printfile
       txcmd3 = GUI_entry_get (&w_cmd3);  // printer | printcommand
       txoff  = GUI_entry_get (&w_off);
@@ -376,11 +413,20 @@ int win1__ (MemObj *mo, void **data);
       // if(AP_print__() < 0) break;
 
       // set outfilename - without \"
-      // sprintf(fNam,"\"%sprint.%s\"", AP_get_tmp_dir(), fTyp);
-      sprintf(fNam,"%sprint.%s", AP_get_tmp_dir(), fTyp);
-        printf(" fNam=|%s|\n",fNam);
+      sprintf(fNam,"%s.%s", txcmd2, fTyp);
+
+        // TESTBLOCK
+        // printf(" preView AP_fVwr = |%s|\n",AP_fVwr);
+        // printf(" filename txcmd2 = |%s|\n",txcmd2);
+        // printf(" printCmd txcmd3 = |%s|\n",txcmd3);
+        // printf(" fNam = |%s|\n",fNam);
+        // printf(" cmdTyp = %c\n",cmdTyp);
+        // printf(" mode   = %d\n",mode);
+        // END TESTBLOCK
 
 
+      //----------------------------------------------------------------
+      // create outfile fNam
       //------------------------------
       if(mode == 0) {    // PDF:
         // create <tempDir>/print.eps
@@ -403,21 +449,7 @@ int win1__ (MemObj *mo, void **data);
 
 
       //------------------------------
-      } else if(mode == 2) {   // PCL5
-        // create <tempDir>/print.pcl 
-        // ptyp "A4" od "A5"
-        // rot=0=normal,1=90Grad_drehen.
-        AP_print_gl1 (2, pgTyp, irot, txoff, txscl);
-
-
-      //------------------------------
-      } else if(mode == 3) {   // HPGL
-        // create <tempDir>/print.hpgl
-        AP_print_gl1 (1, pgTyp, irot, txoff, txscl);
-
-
-      //------------------------------
-      } else if(mode == 4) {   // SVG
+      } else if(mode == 2) {   // SVG
         // create <tempDir>/print.hpgl
         // SVG from gl2ps
         gl2ps_print3 (fNam, AP_mod_fnam, "gCAD3D", GL_Print_Redraw);
@@ -427,72 +459,87 @@ int win1__ (MemObj *mo, void **data);
 
 
       //------------------------------
-      } else if(mode == 5) {   // JPG
+      } else if(mode == 3) {   // JPG
         // create file <fNam>
         sprintf(cbuf1, "%s-tmp", fNam);
-        bmp_save__ (cbuf1);
-        OS_jpg_bmp (fNam, cbuf1);
+        bmp_save__ (cbuf1);                   // create bmp-file
+        OS_jpg_bmp (fNam, cbuf1);             // create jpg-file from bmp-file
         
 
-
       //------------------------------
-      } else if(mode == 6) {   // BMP
+      } else if(mode == 4) {   // BMP
         // create file <fNam>
         bmp_save__ (fNam);
-      }
 
 
+//       //------------------------------
+//       } else if(mode == 2) {   // PCL5
+//         // create <tempDir>/print.pcl 
+//         // pgTyp "A4" od "A5"
+//         // rot=0=normal,1=90Grad_drehen.
+//         AP_print_gl1 (2, pgTyp, irot, txoff, txscl);
+// 
+// 
+//       //------------------------------
+//       } else if(mode == 3) {   // HPGL
+//         // create <tempDir>/print.hpgl
+//         AP_print_gl1 (1, pgTyp, irot, txoff, txscl);
+// 
 
-      //..............................................
-      // preView PDF|PS
-      // if(GTK_TOGGLE_BUTTON (w_func1)->active) {
-      if(GUI_radiobutt_get (&w_func1)) {
-        // AP_Print0 (1,txcmd1,irot,txoff,txscl);
-        if((mode == 2)||(mode == 3)) {
-          TX_Print ("***** cannot view PCL5 / HPGL");
-          return -1;
-        }
-#ifdef _MSC_VER
-        // MS: GSview or .. ??; start direkt with "<fNam.ps>"
-        // sprintf(cbuf1,"move \"%sprint.dat\" \"%sprint.eps\"",
-                // AP_get_tmp_dir(),AP_get_tmp_dir());
-          // printf("system %s\n",cbuf1);
-        // system(cbuf1);
-        sprintf(cbuf1,"%s", fNam);
+      } else printf("***** PRI_UI__ E001\n");
 
+      TX_Print("- %s - exported into %s",fTyp,fNam);
+
+       
+
+      //================================================================
+      // preView 
+      //
+      if(cmdTyp == 'P') {
+//         if((mode == 2)||(mode == 3)) {
+//           TX_Print ("***** cannot view PCL5 / HPGL");
+//           return -1;
+//         }
+        // fix preview-command
+#if defined _MSC_VER || __MINGW64__
+        sprintf(cbuf1,"%s \"file:///%s\" &", AP_fVwr, fNam);
 #else
         // Linux: system "evince <fNam.eps>"
-        sprintf(cbuf1,"%s %s &", txcmd1, fNam);
+        sprintf(cbuf1,"%s %s &", AP_fVwr, fNam);
 #endif
-          printf("OS_system %s\n",cbuf1);
+
+          printf("system %s\n",cbuf1);
         OS_system(cbuf1);
-        TX_Print("- exported into %s",fNam);
 
 
 
-      //..............................................
-      // copy -> file
-      // } else if(GTK_TOGGLE_BUTTON (w_func2)->active) {
-      } else if(GUI_radiobutt_get (&w_func2)) {
-        // AP_Print0 (2,txcmd2,irot,txoff,txscl);
-        // get outfilename from txcmd2 = w_cmd2;
+      //================================================================
+      // create file - alread done; do nothing ..
+      //
+//       } else if(cmdTyp == 'F') {
+//       } else if(GUI_radiobutt_get (&w_func2)) {
+//         // AP_Print0 (2,txcmd2,irot,txoff,txscl);
+//         // get outfilename from txcmd2 = w_cmd2;
+// 
+// #if defined _MSC_VER
+//         sprintf(cbuf1,"CMD /C \"COPY /Y \"%s\" \"%s.%s\"\"", fNam, txcmd2, fTyp);
+// #elif defined __MINGW64__
+//         sprintf(cbuf1,"cp -f %s %s.%s", fNam, txcmd2, fTyp);
+// #else
+//         sprintf(cbuf1,"cp -f %s %s.%s", fNam, txcmd2, fTyp);
+// #endif
+//           printf("%s\n",cbuf1);
+//         OS_system (cbuf1);
 
-#ifdef _MSC_VER
-        sprintf(cbuf1,"CMD /C \"COPY /Y \"%s\" \"%s.%s\"\"", fNam, txcmd2, fTyp);
-#else
-        sprintf(cbuf1,"cp -f %s %s.%s", fNam, txcmd2, fTyp);
-#endif
-          printf("%s\n",cbuf1);
-        OS_system (cbuf1);
-        TX_Print("- exported into %s",fNam);
 
-
-      //..............................................
+      
+      //================================================================
       // print direct
-      // } else if(GTK_TOGGLE_BUTTON (w_func3)->active) {
-      } else if(GUI_radiobutt_get (&w_func3)) {
+      //
+      } else if(cmdTyp == 'D') {
+//       } else if(GUI_radiobutt_get (&w_func3)) {
         // AP_Print0 (3,txcmd3,irot,txoff,txscl);
-#ifdef _MSC_VER
+#if defined _MSC_VER
         // MS: gtk: GUI_printer__ - no gtk_print_unix_dialog..
         // (gtk_print_job_new,gtk_print_job_set_source,gtk_print_job_send)
         // .NET: MS_print.vb - LocalPrintServer - no supported ..
@@ -500,6 +547,8 @@ int win1__ (MemObj *mo, void **data);
         // copy "C:\temp\print.eps" "\\FWORK\Brother MFC-7360N Printer"
         // sprintf(cbuf1,"copy/b %s %s", fNam, txcmd3);  // OS_get_printer not OK
         sprintf(cbuf1,"%s", fNam);
+#elif defined __MINGW64__
+        sprintf(cbuf1,"%s %s", txcmd3, fNam);
 #else
         // Linux: "lpr -PMFC7360N <fNam>"
         sprintf(cbuf1,"%s %s", txcmd3, fNam);
@@ -509,7 +558,7 @@ int win1__ (MemObj *mo, void **data);
         OS_exec (cbuf1);
         TX_Print("- printing file %s",fNam);
 
-      }
+      } else printf("***** PRI_UI__ E002\n");
 
 
       break;
@@ -520,9 +569,11 @@ int win1__ (MemObj *mo, void **data);
     case UI_FuncExit:  // 102
     case UI_FuncKill:
       // EXIT
+        printf(" - do UI_FuncExit -\n");
       if(GUI_OBJ_IS_VALID(&win0)) {  
         GUI_Win_kill (&win0);
         win0 = GUI_OBJ_INVALID();
+        AP_stat.fVwr = 0;
       }
 
   }

@@ -55,7 +55,7 @@ List_functions_end:
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_os.h"               // AP_get_bas_dir
 
 // #include "../xa/xa_uid.h"              // UID_ouf_vwz

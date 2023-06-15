@@ -112,7 +112,7 @@ see tst_UTO.c
 
 
 // #include "../ut/ut_umem.h"   is in ut_heo.h
-#include "../ut/ut_cast.h"          // INT_PTR
+#include "../ut/ut_cast.h"          // INT__PTR
 #include "../ut/ut_geo.h"
 #include "../ut/ut_gtypes.h"
 #include "../ut/ut_obj.h"
@@ -317,7 +317,7 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
     if(sForm == Typ_Index) {                 // DB-Link
       if(isolate == 0) goto L_objn_nxt;
       // get data-struct of DB-obj
-      sForm = UTO__dbo (&sDat, &rNr, sTyp, LONG_PTR(oTab[i1].data));
+      sForm = UTO__dbo (&sDat, &rNr, sTyp, LONG__PTR(oTab[i1].data));
         // printf(" resDB: typ=%d\n",sForm);
       if(sForm <= Typ_Error) goto L_err;
       // fix form & data
@@ -488,7 +488,7 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
       if(sForm == Typ_Index) {                 // DB-Link
         if(isolate == 0) goto L_GX_nxt;
         // get data-struct of DB-obj
-        sForm = UTO__dbo (&sDat, &rNr, sTyp, LONG_PTR(((ObjGX*)po)->data));
+        sForm = UTO__dbo (&sDat, &rNr, sTyp, LONG__PTR(((ObjGX*)po)->data));
         if(sForm == Typ_Error) goto L_err_ex;
           // printf(" resDB: typ=%d\n",sForm);
         // fix form & data
@@ -811,19 +811,19 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
   if(rd->mode == 0) {
     // delocate
     // move pointer
-      // printf("OGX_reloc_adr - %ld -> %ld\n",*vpt, *vpt - LONG_PTR(rd->oPos));
-    *vpt = MEM_ptr_mov (*vpt, - LONG_PTR(rd->oPos));
+      // printf("OGX_reloc_adr - %ld -> %ld\n",*vpt, *vpt - LONG__PTR(rd->oPos));
+    *vpt = MEM_ptr_mov (*vpt, - LONG__PTR(rd->oPos));
 
 //     // test if inside mSiz
-//     if(ILIMCK1(LONG_PTR(*vpt), rd->mSiz)) return 1;
+//     if(ILIMCK1(LONG__PTR(*vpt), rd->mSiz)) return 1;
 
 
   //----------------------------------------------------------------
   } else {
     // relocate
     // move pointer
-      // printf("OGX_reloc_adr + %ld -> %ld\n",*vpt, *vpt + LONG_PTR(rd->oPos));
-    *vpt = MEM_ptr_mov (*vpt, LONG_PTR(rd->oPos));
+      // printf("OGX_reloc_adr + %ld -> %ld\n",*vpt, *vpt + LONG__PTR(rd->oPos));
+    *vpt = MEM_ptr_mov (*vpt, LONG__PTR(rd->oPos));
 
   }
 
@@ -916,7 +916,7 @@ typedef struct {void *oPos; long mSiz; int mode;}                 Relocdat;
       if(sForm == Typ_Index) {                 // DB-Link
         if(isolate == 0) goto L_GX_nxt; 
         // get data-struct of DB-obj
-        sForm = UTO__dbo (&sDat, &rNr, sTyp, LONG_PTR(((ObjGX*)po)->data));
+        sForm = UTO__dbo (&sDat, &rNr, sTyp, LONG__PTR(((ObjGX*)po)->data));
         if(sForm == Typ_Error) goto L_err_ex;
           // printf(" resDB: typ=%d\n",sForm);
         // add size of DB-obj

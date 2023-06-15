@@ -71,7 +71,7 @@ List_functions_end:
 
 #include <gtk/gtk.h>
 
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_umem.h"                     // Memspc
 
 #include "../gui/gui_types.h"                   // TYP_Event..
@@ -280,7 +280,7 @@ static int UI_but_noCB = 0;
 
 
   // printf("GUI_button__ |%s|%s|\n",ltext,opts);
-  // printf("  data=%p %d\n",data, INT_PTR(data));
+  // printf("  data=%p %d\n",data, INT__PTR(data));
 
 
   // get gtk-widget for parentBox from MemObj

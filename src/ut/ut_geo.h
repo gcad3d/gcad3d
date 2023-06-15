@@ -78,16 +78,16 @@ Korr:
 #define SR_PI     1.7724538509055159       ///< SQRT(PI) = SQRT(RAD_180)
 
 
-#define CCW                1             ///< counterclockwise
-#define CW                -1             ///< clockwise
+#define CCW                1             // counterclockwise
+#define CW                -1             // clockwise
 
-#define NOT                !             /// "0 ==" or "!"
+#define NOT                !             // "0 ==" or "!"
 
-#define YES                0             ///< FALSE
-#define NO                 1             ///< TRUE
+#define YES                0             // FALSE
+#define NO                 1             // TRUE
 
-#define ON                 0             ///< FALSE
-#define OFF                1             ///< TRUE
+#define ON                 0             // FALSE
+#define OFF                1             // TRUE
 
 #define DIR_FWD            0
 #define DIR_BWD            1
@@ -95,15 +95,12 @@ Korr:
 #define LIMITED            0
 #define UNLIMITED          1
 
+#define OPE_AND            0             // boolean operation AND (surface, body)
+#define OPE_OR             1             // boolean operation OR  (surface, body)
+#define OPE_NOT            2             // boolean operation NOT (surface, body)
 
 
-
-
-
-#define UT_BEZDEG_MAX       50        ///< maximal degree of Bezier curve
-
-
-
+#define UT_BEZDEG_MAX       50           // maximal degree of Bezier curve
 
 
 
@@ -691,23 +688,21 @@ typedef struct {long dbi; int mdli, ptNr, siz;
 
 
 /// \brief Trimmed curve      CurvCCV        Typ_CVTRM   _CCV_NUL
-/// \code
-/// typ        type baseCurv (L,C,S)
-/// dbi        database index baseCurv (0=undef)
-/// is0        segmentNr of start-parameter (for CurvCCV in CurvCCV only)
-/// is1        segmentNr of end-parameter (for CurvCCV in CurvCCV only)
-/// v0         start-parameter on baseCurv (UT_VAL_MAX=undefined)
-///            v0 gives the startpoint even if dir=bwd.      See INF_struct_par
-/// v1         end-parameter on baseCurv (UT_VAL_MAX=undefined)
-/// ip0        db-index of startpoint on baseCurv (0=undefined)
-///            ip0 gives the startpoint even if dir=bwd.
-/// ip1        db-index of endpoint on baseCurv (0=undefined)
-/// dir        0=forward, curve along ascending parameters;  See INF_struct_dir
-///            1=backward, reverse; curve along descending parameters.
-/// clo        closed; 0=yes, 1=not_closed; -1=undefined; see INF_struct_closed
-//  trm        trimmed; 0=yes, 1=not_trimmed, -1=undef; see INF_struct_closed
-/// stat       0=uninitialized; 1=baseCurvePRCV-exists;
-/// \endcode
+// typ        type baseCurv (L,C,S)
+// dbi        database index baseCurv (0=undef)
+// is0        segmentNr of start-parameter (for CurvCCV in CurvCCV only)
+// is1        segmentNr of end-parameter (for CurvCCV in CurvCCV only)
+// v0         start-parameter on baseCurv,normalized (UT_VAL_MAX=undefined)
+//            v0 gives the startpoint even if dir=bwd.      See INF_struct_par
+// v1         end-parameter on baseCurv,normalized (UT_VAL_MAX=undefined)
+// ip0        db-index of startpoint on baseCurv (0=undefined)
+//            ip0 gives the startpoint even if dir=bwd.
+// ip1        db-index of endpoint on baseCurv (0=undefined)
+// dir        0=forward, same direction as basic-curve (typ,dbi); See INF_struct_dir
+//            1=backward, reverse direction as basic-curve
+// clo        is baseCurve closed; 0=yes, 1=not_closed; -1=undef; see INF_struct_closed
+// trm        trimmed; 0=yes, 1=not_trimmed, -1=undef; see INF_struct_closed
+// stat       0=uninitialized; 1=baseCurvePRCV-exists;
 typedef struct {double v0, v1; long dbi, ip0, ip1; 
                 unsigned short is0, is1; 
                 short typ, us1; char dir, clo, trm, stat;}          CurvCCV;

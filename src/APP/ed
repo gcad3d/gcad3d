@@ -8,7 +8,7 @@
 # set EDITOR = name of script-file with editor-call
 #EDITOR="${DIR_DEV}gcad3d/src/vi.sh"
 EDITOR=vim
-export EDITOR
+export CSCOPE_EDITOR
 
 # get OS (eg "Linux32")
 #bitNr=`getconf LONG_BIT`

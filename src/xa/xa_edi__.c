@@ -93,9 +93,10 @@ AP_APT_*
 
 #include "../ut/ut_geo.h"
 // #include "../ut/ut_umem.h"                // Memspc MemObj UME_*
-#include "../ut/ut_cast.h"                // INT_PTR
+#include "../ut/ut_cast.h"                // INT__PTR
 #include "../ut/ut_txfil.h"               // UTF_*
 #include "../ut/ut_os.h"          // AP_get_tmp_dir
+#include "../ut/os_dll.h"         // DLLFUNC_LOAD_only DLLFUNC_CONNECT DLLFUNC_EXEC ..
 
 #include "../gui/gui__.h"         // GUI_ UI_Func..
 
@@ -814,7 +815,8 @@ static long cPos;
         if(ED_lnr_act >= l1) ED_lnr_act = l1 - 1;
         // l1 = ED_lnr_act; --ED_lnr_act;
           // printf(" ED_lnr_act=%d l1=%ld\n",ED_lnr_act,l1);
-        UI_AP (UI_FuncSet, UID_ouf_lNr, (void*)l1);
+        UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_LONG(l1));
+        // UI_AP (UI_FuncSet, UID_ouf_lNr, (void*)l1);
         GL_temp_del_all ();    // remove circle
         WC_set_obj_stat (0);  // 0=perm
         ED_work_CurSet (l1);

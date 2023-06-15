@@ -445,7 +445,7 @@ cl -c /I ..\include xa_cad_ui.c
 #include "../ut/ut_txt.h"              // term_buf
 #include "../ut/ut_TX.h"
 #include "../ut/ut_txfil.h"            // UTF_GetLinNr
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_os.h"               // OS_beep
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
 #include "../ut/ut_ox_base.h"          // OGX_SET_OBJ OGX_NUL
@@ -1206,7 +1206,7 @@ static IE_rec_stru IE_cad_s[]={
 //    2, Typ_PT,      "(Points)",
 //    2, Typ_VC,      "[Vector/Line]",
 //    2, Typ_Val,     "[Distance]",
-  // "S Polygon < Points..."
+  // "S Polygon < Points...",                   "POL",   // 2
    2, Typ_PT,       "<Points...>",
   // "S Polygon 4-side quadrilateral",          "REC"
    3, Typ_PT,       "CornerPoint",
@@ -1624,10 +1624,10 @@ static IE_rec_stru IE_cad__[]={
   10, Typ_goGeom,    "Surface",
   10, Typ_goGeo8,    "Parameter/Point",
   10, Typ_modCX,     "[across]",
-  // "Surf-OPEration cut,join,..",    "OPE",  // 11
+  // "Surf-OPEration cut,join,..",    "FOPE",  // 11
   11, Typ_SUR,       "Surface",
   11, Typ_goGeom,    "Curv,Pln,Surf",
-  11, Typ_ope__,     "[AND/OR/NOT]",
+  11, Typ_ope__,     "AND/OR/NOT",
   11, Typ_mod1,      "[solutionNr]",
   -1, -1,            ""};
 
@@ -1764,7 +1764,7 @@ static int IE_first, IE_last;
   int     ii;
  
 
-  printf("IE_cad_set_OK iStat=%d IE_inpErr=%d\n",iStat,IE_inpErr);
+  // printf("IE_cad_set_OK iStat=%d IE_inpErr=%d\n",iStat,IE_inpErr);
   // if(iStat) AP_debug__("IE_cad_set_OK");
 
 
@@ -1988,16 +1988,16 @@ static int IE_first, IE_last;
 //============================================================================
   int IE_decode_Ln (int *typTab, char txtTab[][256], int tabSiz, char *lnIn) {
 //============================================================================
+// IE_decode_Ln              reorder words to srcObjs
 // Zerlegen der Inputzeile lnIn und subTyp IE_ftyp_act setzen.
 // Es werden Anzahl, Typ und Wert(als String!) ausgegeben.
 // Input:
-//   IE_lst_act   (global)
+//   lnIn         srcCode
 // Output:
 //   typTab       typ
 //   txtTab       string (part of lnIn)
-//   IE_ftyp_act  (global) 
-// RetCod:
-//   nr of records (typTab, txtTab)
+//   IE_ftyp_act  (global) subTyp (first word in srcCode; eg "ARC1" or "POL")
+//   RetCod       nr of records (typTab, txtTab)
 
 // ACHTUNG: braucht IE_lst_act !
 //    sollte man rausnehmen; ev via ObjCodTab (ohne ANALYZ*) !
@@ -2260,21 +2260,21 @@ static int IE_first, IE_last;
 
 
 
-
-  //----------------------------------------------------------------
-  // TESTAUSGABEN:
-  // printf("ex IE_decode_Ln: %d\n",objNr);
-  // for(i1=0; i1<objNr; ++i1)
-    // printf("  aus-rec %d %d |%s|\n",i1,typTab[i1],txtTab[i1]);
-  // printf("  Subtyp=|%s|\n",IE_ftyp_act);
   //----------------------------------------------------------------
 
+    // TESTBLOCK
+    // printf("ex IE_decode_Ln: %d\n",objNr);
+    // for(i1=0; i1<objNr; ++i1)
+      // printf("  aus-rec %d %d |%s|\n",i1,typTab[i1],txtTab[i1]);
+    // printf("  Subtyp=|%s|\n",IE_ftyp_act);  // srcCode-typText; eg "ARC1"
+    // END TESTBLOCK
 
 
   return objNr;
 
 
 
+  //----------------------------------------------------------------
   L_err1:
     printf("IE_decode_Ln: Err dec |%s|\n",cBuf);
   return -1;
@@ -2315,12 +2315,12 @@ static int IE_first, IE_last;
   if(UTO_ck_symTyp(typ)) {
 
     APED_oid_dbo__ (oNam, typ, dbi);
-      // printf("IE_edit_dbo %d %d oNam=|%s|\n",typ,dbi,oNam);
+      printf("IE_edit_dbo typ=%d dbi=%ld oNam=|%s|\n",typ,dbi,oNam);
 
     // search definition-line 
     irc = APED_search_defLn (&cp1, &lNr, &lLen, oNam, -1, 0);
       // printf(" irc=%d lNr=%d |%s|\n",irc,lNr,oNam);
-    if(irc < 0) {TX_Print("IE_edit_dbo E003"); return -1;}
+    if(irc < 0) goto L_err1;
   
     goto L_exit;
   }
@@ -2335,7 +2335,7 @@ static int IE_first, IE_last;
 
   // irc = APED_search_defLn (&cp1, &lNr, &lLen, oNam, -1, 0);
   irc = DL_Get_lNr_dli (&lNr, dli);
-  if(irc < 0) {TX_Print("IE_edit_dbo E001"); return -1;}
+  if(irc < 0) goto L_err1;
 
 
   //----------------------------------------------------------------
@@ -2345,6 +2345,13 @@ static int IE_first, IE_last;
   IE_activate ();
 
   return 0;
+
+
+  //----------------------------------------------------------------
+  L_err1:
+    TX_Print("***** no definition-code exists; use dump Obj");
+    return -1;
+
 
 }
 
@@ -2384,7 +2391,8 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
 
   // disp LineNr
-  UI_AP (UI_FuncSet, UID_ouf_lNr, (void*)lNr);
+  UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_LONG(lNr));
+  // UI_AP (UI_FuncSet, UID_ouf_lNr, (void*)lNr);
   
 
   // charpos zu lNr errechnen
@@ -3148,7 +3156,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 //   IE_inpErr  index inputfield with error, static
 
 
-  printf("IE_inp_set_err iEnt=%d IE_inpErr=%d\n",iEnt,IE_inpErr);
+  // printf("IE_inp_set_err iEnt=%d IE_inpErr=%d\n",iEnt,IE_inpErr);
 
   if(iEnt >= 0) {
     // set ERROR = ON
@@ -3437,9 +3445,9 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 // filename aus Liste selected
 
 
-  printf("IE_cad_selM2_CB1 %d\n",INT_PTR(data));
+  printf("IE_cad_selM2_CB1 %d\n",INT__PTR(data));
 
-  IE_cad_selM2 (INT_PTR(data));
+  IE_cad_selM2 (INT__PTR(data));
 
   IE_cad_test__ ();
 
@@ -3469,7 +3477,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
   //---------------------------------------------------
   if(actTyp == TYP_FilNam) {  // 238
     strcpy(cbuf,dirNam);
-    UTX_add_slash (cbuf);
+    UTX_fdir_add_del (cbuf);
     strcat(cbuf,fnam);
 
 
@@ -3536,7 +3544,8 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
     // 2015-07-06 filetyp removed (N=IMG needs jpg,bmp..)
     fNam[0] = '\0';
     strcpy(dNam, AP_mod_dir);
-    i1 = AP_fnam_get_user_1 (1, fNam, dNam, cbuf1, "\"*.*\"");
+    // i1 = AP_fnam_get_user_1 (1, fNam, dNam, cbuf1, "\"*.*\"");
+    i1 = AP_fnam_get_user_1 (1, fNam, dNam, cbuf1, "");   // MSYS: expands "*"
     UI_GR_ButtonM1Release ();   // else KeyM1=ON ! 2013-05-01
     if(i1 < 0) return -1;
     IE_cad_selM2_CB (fNam, dNam);
@@ -3559,7 +3568,7 @@ die aktuelle Zeile auslesen, analysieren, eintragen.
 
     // let user select from list of Submodelnames
     sprintf(cbuf1,"%sMod.lst",AP_get_tmp_dir());
-    i1 = GUI_listf1__ (fNam,sizeof(fNam),cbuf1,"\"select model\"","\"x40,y40\"");
+    i1 = GUI_listf1__ (fNam,sizeof(fNam),cbuf1,"- select model -","x40,y40");
     if(i1 < 0) return -1;
 
     // selected smNam into intputfield ..
@@ -3642,7 +3651,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   ModelBas  *modb1;
 
 
-  printf("SSSSSSSSSS IE_sel_CB_1 typSel=%d ind=%ld |%s|\n",typSel,ind,buf);
+  // printf("SSSSSSSSSS IE_sel_CB_1 typSel=%d ind=%ld |%s|\n",typSel,ind,buf);
   // printf(" IE_delete=%d\n",IE_delete);
 
 
@@ -4736,7 +4745,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
   int i1;
 
-  printf("CCCCCCCCCCCCCC IE_cad_ClearInputs %d\n",iNr);
+  // printf("CCCCCCCCCCCCCC IE_cad_ClearInputs %d\n",iNr);
   // printf("  IE_ed1_win.stat=%d\n",IE_ed1_win.stat);
 
   if(IE_inpErr >= 0) IE_inp_set_err (-1);
@@ -4812,8 +4821,8 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
 
   // printf("11111111111111111111111111111111111111111111111111111111111\n");
-  printf("IE_cad_init1 IE_FuncTyp=%d IE_FuncSubTyp=%d IE_modify=%d\n",
-         IE_FuncTyp,ind,IE_modify);
+  // printf("IE_cad_init1 IE_FuncTyp=%d IE_FuncSubTyp=%d IE_modify=%d\n",
+         // IE_FuncTyp,ind,IE_modify);
   // printf(" IE_cad_typ=%d\n",IE_cad_typ);
 
   IE_stat__ = 2;    // 2=createPhase; create Menu & empty inputFields.
@@ -5043,7 +5052,7 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
   L_exit:
   
     // TESTBLOCK
-    printf("ex-IE_cad_init1 irc=%d IE_cad_typ=%d\n",irc,IE_cad_typ);
+    // printf("ex-IE_cad_init1 irc=%d IE_cad_typ=%d\n",irc,IE_cad_typ);
     // END TESTBLOCK
 
   return irc;
@@ -5169,12 +5178,10 @@ static int _do_not = 0;
 //=====================================================================
   int IE_cad_test__ () {
 //=====================================================================
-/// \code
-/// IE_cad_test__        test if input complete, create sourcline, activate OK-butt
-/// RetCode:     0  OK
-///             -3  input not yet complete
-///             -2  error execute-sourcline
-/// \endcode
+// IE_cad_test__        test if input complete, create sourcline, activate OK-butt
+// RetCode:     0  OK
+//             -3  input not yet complete
+//             -2  error execute-sourcline
 
 
   static Vector    vc1;  // keep last vcs
@@ -5196,11 +5203,11 @@ static int _do_not = 0;
 
 
 
-  printf(">>>>-IE_cad_test__ anz=%d first=%d\n",IE_inpAnz,IE_first);
-  printf("     IE_FuncTyp=%d IE_FuncSubTyp=%d\n",IE_FuncTyp,IE_FuncSubTyp);
-  printf(" IE_buf=|%s|\n",IE_buf);
-  printf(" IE_EdFnc=%d\n",IE_EdFnc);
-  printf(" IE_cad_typ=%d IE_objInd=%ld\n",IE_cad_typ,IE_objInd);
+  // printf(">>>>-IE_cad_test__ anz=%d first=%d\n",IE_inpAnz,IE_first);
+  // printf("     IE_FuncTyp=%d IE_FuncSubTyp=%d\n",IE_FuncTyp,IE_FuncSubTyp);
+  // printf(" IE_buf=|%s|\n",IE_buf);
+  // printf(" IE_EdFnc=%d\n",IE_EdFnc);
+  // printf(" IE_cad_typ=%d IE_objInd=%ld\n",IE_cad_typ,IE_objInd);
 
 
   if(!IE_lst_act) return 0;         // Drama - woher ??
@@ -5401,7 +5408,7 @@ static int _do_not = 0;
   if(IE_save == 1) l1 = IE_objInd;   // 1=save perm.
   else l1 = 0;
 
-    printf(" IE_cad_test__ IE_cad_typ=%d ind=%ld\n",IE_cad_typ,l1);
+    // printf(" IE_cad_test__ IE_cad_typ=%d ind=%ld\n",IE_cad_typ,l1);
 
 
   if(IE_FuncTyp == IE_Func_CADEnv) {             // ActiveCADEnv
@@ -6764,7 +6771,7 @@ static int _do_not = 0;
   char  *s2, *s3, s0='\0';
 
 
-  printf("IE_cad_msg_obj_ko |%s| %d\n",sObj,typ);
+  // printf("IE_cad_msg_obj_ko |%s| %d\n",sObj,typ);
 
   // get typTxt from typ 
   s3 = &s0;
@@ -9414,7 +9421,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   ObjGX     ox1; // = OGX_NUL;
 
 
-  printf("IE_cad_prev__ typ=%d dbi=%ld dli=%ld |%s|\n",typ,dbi,dli,src);
+  // printf("IE_cad_prev__ typ=%d dbi=%ld dli=%ld |%s|\n",typ,dbi,dli,src);
   // printf(" _cad_prev__ UI_InpMode=%d IE_FuncTyp=%d\n",UI_InpMode,IE_FuncTyp);
 
 
@@ -9496,7 +9503,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
     irc = SRC__add_dynTyp (sSrc, sizeof(sSrc), rTyp, src, 1);
     if(irc < 0) goto L_err_dyn;
   }
-    printf(" _Inp_disp__-sSrc|%s|\n",sSrc);
+    // printf(" _Inp_disp__-sSrc|%s|\n",sSrc);
 
 
   //----------------------------------------------------------------
@@ -9507,13 +9514,13 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   // get atomicObjects from sourceLine p1; full evaluated.
   irc = ATO_ato_srcLn__ (&ato1, sSrc);
   if(irc < 0) goto L_err_dyn;
-    ATO_dump__ (&ato1, "_Inp_disp__-ato1");
+    // ATO_dump__ (&ato1, "_Inp_disp__-ato1");
 
 
   // test if obj is useful (eg in = point, requested = groupcode Typ_go_PD)
   // get rTyp from basicType or groupType (eg Typ_go_PD)
   oTyp = AP_typ__ck_ato__ (&ato1, rTyp);
-    printf(" _Inp_disp__-oTyp=%d iind=%d\n",oTyp,iind);
+    // printf(" _Inp_disp__-oTyp=%d iind=%d\n",oTyp,iind);
   if(oTyp <= 0) {
     // msg obj not useful -
     IE_cad_msg_obj_ko (sSrc, 0);
@@ -11973,7 +11980,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   tabSiz = IMIN (i1, i2);
 
 
-
+  // get objects of srcCode p1 into aus_typ,aus_tab;
   aus_anz = IE_decode_Ln (aus_typ, (void*)aus_tab, tabSiz, p1);
   typ1 = aus_typ[0];
 

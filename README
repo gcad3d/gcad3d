@@ -1,4 +1,4 @@
-gCAD3D                                                     2.50.00 / 2022-11-12
+gCAD3D                                                     2.60.00 / 2023-06-06
 
 
 provides functions for -
@@ -40,9 +40,9 @@ The program interface makes possible -
       automatic compiling, link and reload at execution time
 
 
-__________________________________________________________________
-Send bug reports, suggestions for improvements to
-support@gcad3d.org
+For examples, videos, binary-packages see gcad3d.org
+
+Send bug reports, suggestions for improvements to support@gcad3d.org
 
 
 
@@ -51,13 +51,7 @@ support@gcad3d.org
 Installation
 ==================================================================
 
-see doc/install_en.txt for:
-  Linux-Installation-binary
-  Linux-Installation-source
-  Linux-uninstall
-  MS-Win-Installation-binary
-  MS-Win-uninstall
-
+see doc/install_en.txt
 
 
 ==================================================================
@@ -72,18 +66,17 @@ Development:
 ==================================================================
 
 see doc/html/dev_doc_en.htm      for:
-  INSTALLING-DEVELOPMENT-TOOLS
-  CUSTOMIZING-DEVELOPMENT-TOOLS
-  USING-DEVELOPMENT-TOOLS
+  Install gCAD3D
+  Build gCAD3D
+  Directories
+  Development - documentation
+  Create new plugin
 
 
-see doc/html/dev_inf_en.txt      for:
+see doc/html/dev_inf_en.htm      for:
   USING-DEVELOPMENT-DOCUMENTATION
   UPDATE-DEVELOPMENT-DOCUMENTATION
 
-
-see doc/html/Plugin_en.htm  for:
-  Create new plug-in
 
 
 ==================================================================

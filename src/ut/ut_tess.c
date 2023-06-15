@@ -100,7 +100,7 @@ wrl_reloc__         see also tess_reloc_f_
 
 
 #include "../ut/ut_geo.h"              // Point ...
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"               // OS_ ..
 #include "../ut/func_types.h"               // SYM_STAR_S
@@ -289,7 +289,8 @@ int tess_analyz_CB (ObjGX*);
 
   // erster Record muss size of following Record sein
   if(oxi->typ  != Typ_Size) goto L_Err2;
-  rSiz = (long)oxi->data;
+  rSiz = (long long)oxi->data;
+  // rSiz = (long)oxi->data;
     // printf("Record %d size=%d\n",i1,rSiz);
 
   fwrite (oxi, sizeof(ObjGX), 1, fpo);     // write Size-Record
@@ -366,7 +367,8 @@ int tess_analyz_CB (ObjGX*);
 
   // erster Record muss size of following Record sein
   if(oxi->typ  != Typ_Size) goto L_Err2;
-  rSiz = (long)oxi->data;
+  rSiz = INT__PTR(oxi->data);
+  // rSiz = (long)oxi->data;
     // printf("Record %d size=%d\n",rNr,rSiz);
 
   ++oxi;  //(char*)oxi += sizeof(ObjGX);
@@ -419,7 +421,8 @@ int tess_analyz_CB (ObjGX*);
 
   // erster Record muss size of following Record sein
   if(oxi->typ  != Typ_Size) goto L_Err2;
-  rSiz = (long)oxi->data;
+  rSiz = INT__PTR(oxi->data);
+  // rSiz = (long)oxi->data;
   // printf("Record %d size=%d\n",i1,rSiz);
 
   ++oxi;  //(char*)oxi += sizeof(ObjGX);  // skip prim. Obj ?
@@ -522,7 +525,8 @@ int tess_analyz_CB (ObjGX*);
 
   // erster Record muss size of following Record sein
   if(oxi->typ  != Typ_Size) goto L_Err;
-  rSiz = (long)oxi->data;
+  rSiz = INT__PTR(oxi->data);
+  // rSiz = (long)oxi->data;
     // printf("Record size=%d\n",rSiz);
 
   ++oxi;  //(char*)oxi += sizeof(ObjGX);
@@ -542,7 +546,8 @@ int tess_analyz_CB (ObjGX*);
     if(actPP->typ == Typ_Typ) {
       // markiert den Start einer neuen surface ..
       ++(*surNr);
-      surTyp = (long)actPP->data;
+      surTyp = INT__PTR(actPP->data);
+      // surTyp = (long)actPP->data;
 
     } else if(actPP->form == Typ_PT) {
       // find nr of tringles for actPP
@@ -923,14 +928,14 @@ int tess_analyz_CB (ObjGX*);
 
         } else if(oxs->typ == Typ_Texture) {
           // sCol = NULL;   form = Typ_Int4 ?
-          iTex = INT_PTR (oxs->data);
+          iTex = INT__PTR (oxs->data);
           fprintf(fpo, "   %d facTex=%d\n",iPat,iTex);
 
         
         } else if(oxs->typ == Typ_Typ) {
           // markiert den Beginn einer neuen Surf - dzt nur f Intersect used
           // Typ_Typ, Typ_Int4, Typ_SURPLN (58) - supporting surface is planar
-          iTyp = INT_PTR (oxs->data);
+          iTyp = INT__PTR (oxs->data);
           fprintf(fpo, "   %d typ=%d\n",iPat,iTyp);
         }
 
@@ -1317,7 +1322,8 @@ use in GL_disp_cone
   L_next:
     // erster Record muss size of following Record sein
     if(ox1->typ != Typ_Size) goto L_Err2;
-    rSiz = (long)ox1->data;
+    rSiz = INT__PTR(ox1->data);
+    // rSiz = (long)ox1->data;
     // printf("Recordsize=%d\n",rSiz);
 
     // next record
@@ -1605,7 +1611,8 @@ use in GL_disp_cone
   L_next:
     // erster Record muss size of following Record sein
     if(ox1->typ != Typ_Size) goto L_Err2;
-    rSiz = (long)ox1->data;
+    rSiz = INT__PTR(ox1->data);
+    // rSiz = (long)ox1->data;
     // printf("Record %d size=%d\n",i1,rSiz);
 
     // next record
@@ -1785,7 +1792,8 @@ use in GL_disp_cone
   L_next:
     // erster Record muss size of following Record sein
     if(ox1->typ != Typ_Size) goto L_Err2;
-    rSiz = (long)ox1->data;
+    rSiz = INT__PTR(ox1->data);
+    // rSiz = (long)ox1->data;
     // printf("Recordsize=%d\n",rSiz);
 
     // next record
@@ -1924,7 +1932,7 @@ use in GL_disp_cone
         //----------------------------------------------------------------
         } else if(oxs->typ == Typ_Texture) {
           // sCol = NULL;   form = Typ_Int4 ?
-          iTex = INT_PTR (oxs->data);
+          iTex = INT__PTR (oxs->data);
           // fprintf(fpo, "   %d facTex=%d\n",iPat,iTex);
             printf("****** tess_res_CB_sur UNUSED RECORD Typ_Texture\n");
 
@@ -1933,7 +1941,7 @@ use in GL_disp_cone
         } else if(oxs->typ == Typ_Typ) {
           // markiert den Beginn einer neuen Surf - dzt nur f Intersect used
           // Typ_Typ, Typ_Int4, Typ_SURPLN (58) - supporting surface is planar
-          iTyp = INT_PTR (oxs->data);
+          iTyp = INT__PTR (oxs->data);
           // fprintf(fpo, "   %d typ=%d\n",iPat,iTyp);
         }
 

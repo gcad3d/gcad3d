@@ -1,6 +1,8 @@
-# GUICP GUILIBS SRCGUI OBJGUI
+# CPGUI LIBGUI SRCGUI OBJGUI
+# using DIR_EXE
 
 !MESSAGE - enter ../gui/gui_gtk2_MS.nmak
+!MESSAGE - DIR_EXE = $(DIR_EXE)
 
 
 SRCGUI=\
@@ -30,7 +32,7 @@ OBJGUI = $(OBJGUI:/=\)
 
 
 #-------------------------------------------
-GTK_BAS_DIR=$(OUTDIR)
+GTK_BAS_DIR=$(DIR_EXE)
 gtk_inc_dir=\
       /I $(GTK_BAS_DIR)\include\gtk-2.0\
       /I $(GTK_BAS_DIR)\include\glib-2.0\
@@ -40,23 +42,23 @@ gtk_inc_dir=\
       /I $(GTK_BAS_DIR)\include\gdk-pixbuf-2.0\
       /I $(GTK_BAS_DIR)\include
 
-GUICP  = -Dgtk2 $(gtk_inc_dir)
+CPGUI = -Dgtk2 $(gtk_inc_dir)
 
 
 #-------------------------------------------
-GTK_LIB_DIR=$(GTK_BAS_DIR)lib
+GTK_LIB_DIR=$(GTK_BAS_DIR)\lib
 
 LIBGUI=$(GTK_LIB_DIR)\gtk-win32-2.0.lib\
        $(GTK_LIB_DIR)\gdk-win32-2.0.lib\
        $(GTK_LIB_DIR)\gdk_pixbuf-2.0.lib\
        $(GTK_LIB_DIR)\glib-2.0.lib\
        $(GTK_LIB_DIR)\gobject-2.0.lib\
-       $(OUTDIR)libgui_$(VGUI).lib
+       $(GTK_BAS_DIR)\libgui_$(VGUI).lib
 
 
-!MESSAGE - ex ../gui/gui_gtk2_MS.nmak
-!MESSAGE GTK_BAS_DIR is $(GTK_BAS_DIR)
-!MESSAGE GTK_LIB_DIR is $(GTK_LIB_DIR)
-!MESSAGE LIBGUI is |$(LIBGUI)|
+!MESSAGE ex ../gui/gui_gtk2_MS.nmak
+!MESSAGE - OBJGUI = $(OBJGUI)
+!MESSAGE - CPGUI = $(CPGUI)
+!MESSAGE - LIBGUI = $(LIBGUI)
 
 # eof

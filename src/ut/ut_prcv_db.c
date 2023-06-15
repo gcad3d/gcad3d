@@ -460,7 +460,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
 //================================================================
 // PRCV_DB_dump
 
-  int       i1, i2;
+  int       i1, i2, pNr;
   CurvPrcv  *cv_act;
   Point     *pta;
   double    *par;
@@ -472,6 +472,7 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
 
   DEB_dump_obj__ (Typ_MemTab, &PRCV_GRP, "PRCV_GRP");
 
+  pNr = 0;
 
   // loop tru PRCV_GRP.grp and dump pta-groups
   for(i1=0; i1<PRCV_GRP.rNr; ++i1) {
@@ -489,7 +490,10 @@ static MemTab(CurvPrcv) PRCV_GRP = _MEMTAB_NUL;
       DEB_dump_txt ("%5d    %9.3f,%9.3f,%9.3f      %9.3f      %3ld", i2,
                     pta[i2].x, pta[i2].y, pta[i2].z, par[i2], ipt[i2]);
     }
+    pNr += cv_act->ptNr;
   }
+
+  printf(" total points %d\n",pNr);
 
   printf("========================================= ex-PRCV_DB_dump %s\n",s1);
 

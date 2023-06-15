@@ -24,32 +24,23 @@ TODO:
 Modifications:
 2020-01-10 Created. RF.
 
------------------------------------------------------
-
-nmake -f GUI_dlg1.nmak
-
-/home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_dlg1_gtk2_MS list1 /mnt/serv2/devel/gcad3d/gCAD3D/tmp/MdlLst.txt "select model" "40,30"
-
-/home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_dlg1_gtk2_MS list1 /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst title "20,16"
-
-START /B /WAIT "" "X:\devel\gcad3d\binMS32\GUI_dlg1_gtk2_MS.exe" list1 C:\Users\freiter\AppData\Roaming\gCAD3D\tmp\plugins.lst "select program" "40,40"|
+=============================================================================
+Using:  see INF_GUI_dlg1   (../inf/../inf/GUI.c)
 
 
-/home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_dlg1_gtk2_MS info "Directory does not exist"
+=============================================================================
+// ReBuild:
+. ../options.sh && make -f GUI_dlg1.mak
 
 
-type %TMP%\debug.dat
+// ReBuild and test:
+./GUI_test_dlg1.sh
 
 
-
-gdb\
- /home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_dlg1_gtk2 ..
-
-
-gcc `pkg-config --cflags gtk+-3.0` ../gui/GUI_dlg1_gtk3.c `pkg-config --libs gtk+-3.0` && ./a.out
-
+cat /tmp/debug.dat
 
 */
+
 
 
 #include <stdio.h>
@@ -59,117 +50,36 @@ gcc `pkg-config --cflags gtk+-3.0` ../gui/GUI_dlg1_gtk3.c `pkg-config --libs gtk
 
 #include <gtk/gtk.h>
 
-#include "../ut/deb_prt.h"          // printd
+#include "../ut/ut_umem.h"          // Memspc
+#include "../ut/ut_txTab.h"         // UtxTab_NEW
+// #include "../ut/deb_prt.h"          // printd
+
+// activate printd
+// #define printd printf
+// disable printd
+#define printd if(0) printf
+
 
 
 // #include "../gui/gui__.h"
 
 
-// GLOBAL:
-// static char *sGui = "gtk2";
-int        nArg, upState=0, iEnt=0, lEnt=64;
-char       **paArg;
-GtkWidget  *wEnt;
-
-
-
+//----------------------------------------------------------------
+// prototypes
   void UTX_CleanCR (char* string);
-  int OS_filnam_eval (char *fno, char *fni, int fnoSiz);
+  int OS_osVar_eval__ (char *fno, char *fni, int fnoSiz);
   int GUI_dlg1_cancel (void *parent, void *data);
+  char** UTX_wTab_file (char *memspc, int memSiz, char *fnam);
+  char** OS_wTab_file (char **memspc, char *fnam);
 
+//----------------------------------------------------------------
+// GLOBAL:
+  int        nArg, upState=0, iEnt=0, lEnt=64;
+  char       **parLst, *wTabSpc, fnOut[400], *fnIn;
 
+  GtkWidget  *wEnt;
 
-//================================================================
-void TX_Error (char* txt, ...) { printf("%s\n",txt); }
-// see also ../ut/ut_TX.c
-
-
-//================================================================
-void TX_Print (char* txt, ...) { printf("%s\n",txt); }
-// see also ../ut/ut_TX.c
-
-
-//================================================================
-  int MSG_err_1 (char *key, char *fmt, ...) {
-  printf("%s\n",key);
-  return 0;
-}
-
-
-//================================================================
-  int MSG_get_1 (char *msg, int msgSiz, char *key, char *fmt, ...) {
-  printf("%s\n",key); 
-  return 0;
-}
-
-
-//================================================================
-  char* AP_get_tmp_dir () {
-//================================================================
-/// returns tempDir (with closing '/')  <gcad_dir_local>tmp/
-
-static char* AP_tmp_dir = "/tmp/";
-
-  return AP_tmp_dir;
-
-}
-
-
-///===========================================================
-  void UTX_CleanCR (char* string) {
-///===========================================================
-/// UTX_CleanCR                  Delete Blanks, CR's u. LF's am Ende.
-///   Ersetzung von Blanks, Carriage Returns und Linefeeds durch
-///   Nullzeichen von hinten nach vorne bis zum ersten von diesen
-///   verschiedenen Zeichen.
-  
-
-  int  ilen;
-  char *tpos; 
-    
-  ilen = strlen (string);
-    
-  if(ilen < 1) goto L_exit;
-    
-  tpos = &string[ilen];
-  --tpos;
-  
-  
-  while ((*tpos  == ' ')  ||
-         (*tpos  == '\t') ||          /* tab */
-         (*tpos  == '\n') ||          /* newline */
-         (*tpos  == '\r'))   {        /* CR */
-
-    *tpos    = '\0';
-    --tpos;
-    if(tpos < string) break;
-  }
-
-  L_exit:
-  // printf("ex UTX_CleanCR |%s|\n", string);
-
-  return;
-}
-
-
-//================================================================
-  int GUI_update__ () {
-//================================================================
-/// update all windows
-
-// Achtung: löscht events !
-
-  printd("GUI_update__ \n");
-
-
-  // Display zwischendurch updaten
-  while (gtk_events_pending()) {
-    gtk_main_iteration();
-  }
-
-  return 0;
-
-}
+  char *AP_bin_dir;         // dir binaries
 
 
 //================================================================
@@ -194,9 +104,13 @@ static char* AP_tmp_dir = "/tmp/";
 //   UI_fontsizY = gdk_char_height (UI_style_act->font, '0');
 // #endif
 
+
   // Style hat farben, Font GdkFont *font, BackgrndPixmap usw
   UI_style_act = gtk_widget_get_style (win1);
+
+
   wFont = gtk_style_get_font (UI_style_act);
+  // wFont = (GdkFont*) UI_style_act->font_desc;
 
   // Breite/Hoehe eines einzelnen Char einlesen. = 7,21
   UI_fontsizX = gdk_char_width (wFont, '0');
@@ -204,15 +118,18 @@ static char* AP_tmp_dir = "/tmp/";
   *isx += *isx / 2;   // + space between 2 chars
 
 
-  // UI_fontsizY = gdk_char_height (wFont, '0') + wFont->ascent + wFont->descent;
+  UI_fontsizY = gdk_char_height (wFont, '0'); // + wFont->ascent + wFont->descent;
   // funktioniert in MS-Win leider nicht; liefert 21 statt 10
-  UI_fontsizY = wFont->ascent + wFont->descent;
+  // UI_fontsizY = wFont->ascent - wFont->descent;
 
 
   *isy = UI_fontsizY;
   *isy += *isy / 2;   // + space between 2 lines
 
-    printd("##  ex-GUI_get_fontSiz isx = %d isy = %d\n",*isx,*isy);
+	// *isx = 10;
+	// *isy = 20;
+
+    printf("##  ex-GUI_get_fontSiz isx = %d isy = %d\n",*isx,*isy);
 
   return 0;
 
@@ -227,6 +144,7 @@ static char* AP_tmp_dir = "/tmp/";
   char   sOut[256];
 
   printd(" GUI_dlg_dlgbe1_CB %d\n",*((int*)data));
+
 
   sprintf(sOut, "%d", *((int*)data));
 
@@ -245,12 +163,18 @@ static char* AP_tmp_dir = "/tmp/";
 //================================================================
   int GUI_dlg_dlgbe1__ () {
 //================================================================
-// dialog with n buttons and optianl entry
+// dlgbe = dialog with optional entry and 1 - 9 buttons
+// returns index of selected button as first char of output; followed by entry-text.
+// Cancel returns empty output.
+// first button returns "0".
+// - entrysize max 256
+// 
 //
-// Input:  parameters paArg[nArg]
+// Input:  parameters parLst[nArg]
 //   exenam dlgbe "infText" Cancel  NO    YES  --ent "entPreset" 16
 //     0      1    infText  btNr+3  ..                entTxt     entSiz
-// Output: a single line via stdout;
+//
+// Output: a single line via file;
 //   output empty = cancel 
 //   first character is the selected button-nr; 0=first-button; 1=second ..
 //   second char until EOL-char ist the content of the entry.
@@ -264,30 +188,31 @@ static char* AP_tmp_dir = "/tmp/";
 static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 
-  printd("GUI_dlg_dlgbe1__  %d\n",nArg);
+  printf("GUI_dlg_dlgbe1__  %d\n",nArg);
 
   // prepare filename, title
-  ii = 2;
-  if(nArg < 5)  return GUI_dlg1_err1 ();
-  infTxt = paArg[ii];
+  if(nArg < 2)  return GUI_dlg1_err1 ();
 
   btNr = 0;
   entTxt = NULL;
+  ii = 1;
+  infTxt = parLst[ii];
 
+  //----------------------------------------------------------------
   // find "--ent"
   for(;;) {
     ++ii;
     if(ii >= nArg) break;
-    if(!strcmp(paArg[ii],"--ent")) {
+    if(!strcmp(parLst[ii],"--ent")) {
       // next parameter must be entry-preset
       ++ii;
       if(ii >= nArg) return GUI_dlg1_err1 ();
-      entTxt = paArg[ii];
+      entTxt = parLst[ii];
       iEnt = 1;
       // next parameter can be size of entry
       ++ii;
       if(ii >= nArg) break;
-      lEnt = atoi(paArg[ii]);
+      lEnt = atoi(parLst[ii]);
       if((lEnt < 2)||(lEnt > 256)) {
         printf(" *** ERROR GUI_dlg_dlgbe1__ - entSiz not 2-256 chars ..\n");
         return GUI_dlg1_err1 ();
@@ -297,17 +222,26 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     if(ii >= nArg) return GUI_dlg1_err1 ();
     ++btNr;
   }
+    printf(" btNr=%d\n",btNr);
 
-  if(!btNr) GUI_dlg1_err1 ();
+
+
+  //----------------------------------------------------------------
+  // set 0-9 buttons
+  // if(!btNr) GUI_dlg1_err1 ();
   if(btNr > 9) {
     printf(" *** ERROR GUI_dlg_dlgbe1__ - max 9 buttons ..\n");
     return GUI_dlg1_err1 ();
   }
 
-
-  printd("  btNr = %d\n",btNr);
-  for(ii=0; ii < btNr; ++ii) printd(" bt %d |%s|\n",ii,paArg[ii+3]);
-  printd(" infTxt |%s| entTxt |%s| lEnt = %d\n",infTxt,entTxt,lEnt);
+    // TESTBLOCK
+    if(iEnt) {
+      printf(" entTxt=|%s| siz=%d\n",entTxt,lEnt);
+    } else printf(" no-entry;\n");
+    printd("  btNr = %d\n",btNr);
+    for(ii=0; ii < btNr; ++ii) printf(" bt %d |%s|\n",ii,parLst[ii+2]);
+    printf(" infTxt |%s| entTxt |%s| lEnt = %d\n",infTxt,entTxt,lEnt);
+    // END TESTBLOCK
 
 
   //----------------------------------------------------------------
@@ -353,7 +287,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   gtk_container_add (GTK_CONTAINER (box0), box1);
 
   for(ii=0; ii < btNr; ++ii) {
-    bt1 = gtk_button_new_with_label (paArg[ii+3]);
+    bt1 = gtk_button_new_with_label (parLst[ii+2]);
     g_signal_connect (bt1, "clicked",
                       G_CALLBACK(GUI_dlg_dlgbe1_CB),
                       &btNra[ii]);
@@ -392,7 +326,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   char         sOut[256];
 
 
-  printd("GUI_dlg1_list1_cbSel state = %d\n",upState);
+  printd("## GUI_dlg1_list1_cbSel state = %d\n",upState);
 
   if(!upState) return (FALSE);    // startup must be complete
 
@@ -401,7 +335,6 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     // get nr of columns
     nCol = gtk_tree_model_get_n_columns (model);
-      printd(" nCol=%d\n", nCol);
 
 
     // // get treePath as string (LineNr)
@@ -466,7 +399,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   FILE        *fpi;
 
 
-  printd("GUI_dlg1_list1_f |%s|\n",fnam);
+  printd("## GUI_dlg1_list1_f |%s|\n",fnam);
 
 
   if ((fpi = fopen (fnam, "r")) == NULL) {
@@ -492,7 +425,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
     //----------------------------------------------------------------
     // 1 col-
-    if(cnr == '1') {
+    if(cnr == 1) {
       if(p1) { *p1 = '\0'; ++p1;}
       else { UTX_CleanCR (cbuf); p1 = cbuf;}
         // printd(" _list1_f-add-1 |%s|\n",cbuf);
@@ -525,8 +458,6 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   fclose(fpi);
 
-    printd(" ex-list1_f\n");
-
   return 0;
 
 }
@@ -537,6 +468,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 //================================================================
   int GUI_dlg1_list1__ () {
 //================================================================
+// Cancels returns empty output.
 
   int          wsx, wsy, isx, isy, cnr;
   GtkWidget    *UI_list1_win=NULL, *box0;
@@ -549,14 +481,12 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   char         *p1, *p2, *fNam, *wTit, *opts;
 
 
-  printd("GUI_dlg1_list1__\n");
-
 
   // prepare filename, title
-  if(nArg < 5)  return GUI_dlg1_err1 ();
-  fNam = paArg[2];
-  wTit = paArg[3];
-  opts = paArg[4];
+  if(nArg < 4)  return GUI_dlg1_err1 ();
+  fNam = parLst[1];
+  wTit = parLst[2];
+  opts = parLst[3];
 
 
   //----------------------------------------------------------------
@@ -577,7 +507,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   goto L_nxt__;
 
   L_nxt_e:
-    // printd(" %d %d %d\n",wsx,wsy,cnr);
+    // printf(" dlg1_list1__ wsx=%d wsy=%d cnr=%d\n",wsx,wsy,cnr);
 
 
   //----------------------------------------------------------------
@@ -690,27 +620,79 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 //================================================================
   int GUI_dlg1_info1__ () {
 //================================================================
- 
-  // int          iRes;     // response
-  GtkWidget    *wdlg;
-  char         *sTxt;  // *wTit;
+// display infotext in messageWindow with close-Button.
+// 1,2 or 3 lines; separated with "\n".
+// Example: \"Line1\nLine2\nLine3 \n- ERR: NOT DISPLAYED; ONLY 3 LINES !\"
 
-  printd("## GUI_dlg1_info1__\n");
+ 
+  int          i1, lNr, sl;
+  GtkWidget    *wdlg;
+  char         sTxt[1024], *p0, *p1, *pa[4], *pe;
+
+  printf("## GUI_dlg1_info1__\n");
 
   // prepare text, title
-  if(nArg < 3)  return GUI_dlg1_err1 ();
-  sTxt = paArg[2];
-  // wTit = paArg[3];
+  if(nArg < 2)  return GUI_dlg1_err1 ();
+  
+  sl = strlen(parLst[1]);
+  if(sl > 1020) {
+    printf("ERROR GUI_dlg1_info1__ text too long\n");
+    exit(1);
+  }
+
+  strcpy(sTxt, parLst[1]);
+
+  p0 = &sTxt[0];
+  pe = &sTxt[strlen(sTxt)-1];
+  lNr = 0;
+    // printf(" p0-1=|%s|\n",p0);
+  for(i1=0; i1<3; ++i1) {
+    if(p0 >= pe) break;
+    p1 = strstr(p0, "\\n");
+    if(p1) {
+      *p1 = '\0';
+      p1 += 2;
+      pa[i1] = p1;
+      ++lNr;
+        // printf(" i1=%d p0|p1=|%s|%s|\n",i1,p0,p1);
+      p0 = p1;
+      continue;
+    }
+    pa[i1] = p0;
+    ++lNr;
+    break;
+  }
+    // printf(" lNr=%d\n",lNr);
+
 
 
   //----------------------------------------------------------------
   // open window
-  wdlg = gtk_message_dialog_new (
+  if(lNr == 1) {
+    wdlg = gtk_message_dialog_new (
            NULL, // GTK_WINDOW (UI_MainWin),  // keep on top of this else NULL
            GTK_DIALOG_DESTROY_WITH_PARENT,
            GTK_MESSAGE_OTHER, // .._INFO .._WARNING .._ERROR
            GTK_BUTTONS_CLOSE,
-           "%s",sTxt);           // format, formatParameters
+           "%s",sTxt);
+
+  } else if(lNr == 2) {
+    wdlg = gtk_message_dialog_new (
+           NULL, // GTK_WINDOW (UI_MainWin),  // keep on top of this else NULL
+           GTK_DIALOG_DESTROY_WITH_PARENT,
+           GTK_MESSAGE_OTHER, // .._INFO .._WARNING .._ERROR
+           GTK_BUTTONS_CLOSE,
+           "%s\n%s",sTxt,pa[0]);
+
+  } else {      //if(lNr == 2) {
+    wdlg = gtk_message_dialog_new (
+           NULL, // GTK_WINDOW (UI_MainWin),  // keep on top of this else NULL
+           GTK_DIALOG_DESTROY_WITH_PARENT,
+           GTK_MESSAGE_OTHER, // .._INFO .._WARNING .._ERROR
+           GTK_BUTTONS_CLOSE,
+           "%s\n%s\n%s",sTxt,pa[0],pa[1]);
+  }
+
 
   // which icon:
   //   GTK_MESSAGE_INFO,GTK_MESSAGE_QUESTION
@@ -727,7 +709,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
   gtk_widget_destroy (wdlg);
 
-  GUI_dlg1_exit ("");
+  GUI_dlg1_exit ("-");
 
   return 0;
 
@@ -739,15 +721,33 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 //================================================================
 // exit - provide selection to caller via stdout
 
-  printf("%s\n", sOut);  // to provide to caller via stdout
-  fflush(stdout);
+  int     i1;
+  FILE    *fpo;
 
-#ifdef DEB
-  printd("exit-GUI_dlg1_exit |%s|\n",sOut);
-  DEB_prt_init (0); // close "printd"-file
-#endif
+  printf("## GUI_dlg1_exit |%s|\n",sOut);
 
-  // gtk_widget_destroy (wfl1);
+  // info has no output ..
+  if(!strcmp(parLst[1],"info")) goto L_exit;
+
+  i1 = nArg - 1;
+  if((fpo=fopen(fnOut,"w")) == NULL) {
+    printf("***** symdir__ - Error GUI_file GUI_dlg1_exit Open %s\n",fnOut);
+    exit(1);
+  }
+
+  fprintf(fpo, "%s\n",sOut);
+  fclose(fpo);
+
+
+  L_exit:
+    // gtk_widget_hide (UI_list1_win);
+    // gtk_signal_emit_by_name (GTK_OBJECT(UI_list1_win),"destroy");
+    // gtk_widget_destroy (UI_list1_win);
+
+
+  // remove inputFile
+  OS_file_delete (fnIn);
+ 
 
   exit(0);
 
@@ -769,47 +769,60 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 }
 
+  
 
 //================================================================
   int main (int argc, char *argv[]) {
 //================================================================
 // Input:
-//   argv[1]    type of dialog, "list1"
-//   argv       max 2 parameters
+//   argv[1]    inputfilename
 // Output:
 //   stdout     full selected filename; empty for Cancel;
 
 
-  int        i1;
+  int    irc,i1;
 
 
-  paArg = argv;
   nArg = argc;
 
-  if(argc < 3) return GUI_dlg1_err1 ();
+  printf("## start exe GUI_dlg1 V1.1 .. %d\n",argc);
 
+  if(argc < 2) goto L_exit;
 
-#ifdef DEB
-  DEB_prt_init (1); // init "printd"-file
-  printd("***** start exe GUI_dlg1 V1.0 .. %d\n",argc);
-  for(i1=0; i1<argc; ++i1) printd("## GUI_dlg1 argv[%d]=|%s|\n",i1,argv[i1]);
-#endif
-
+  for(i1=0; i1<argc; ++i1) printf("## GUI_dlg1 argv[%d]=|%s|\n",i1,argv[i1]);
 
   gtk_disable_setlocale ();  // sonst Beistrich statt Decimalpunkt !! (LC_ALL)
 
   i1 = 0;
   gtk_init (&i1, NULL);
 
-  if(!strcmp(argv[1],"list1")) return GUI_dlg1_list1__ ();
-  if(!strcmp(argv[1],"info"))  return GUI_dlg1_info1__ ();
-  if(!strcmp(argv[1],"dlgbe")) return GUI_dlg_dlgbe1__ ();
+  // get filename fnOut from fnIn (argv[1])
+  fnIn = argv[1];
+  irc = GUI_file_out_in (fnOut, fnIn);
+
+  // get parLst = content of file argv[1]
+  parLst = OS_wTab_file (&wTabSpc, fnIn);
+
+  nArg = 0;
+  while(parLst[nArg]) {
+    printf("## %d = %s\n",nArg,parLst[nArg]);
+    ++nArg;
+  }
+
+  // parLst[0] is list1 info or dlgbe
+  if(!strcmp(parLst[0],"list1")) return GUI_dlg1_list1__ ();
+  if(!strcmp(parLst[0],"info"))  return GUI_dlg1_info1__ ();
+  if(!strcmp(parLst[0],"dlgbe")) return GUI_dlg_dlgbe1__ ();
 
 
-
-  printf("ERROR - unknown dialogtype %s \n",argv[1]);
-
+  L_exit:
+    printf("ERROR - unknown dialogtype |%s| \n",parLst[0]);
   return -1;
+
+
+  L_inpErr:
+    printf("***** error input parameter %d .. \n",i1);
+    return -1;
 
 }
 
@@ -821,7 +834,7 @@ static int  btNra[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   int   i1;
 
   printf("ERROR GUI_dlg1 error parameters\n");
-  for(i1=0; i1<nArg; ++i1) printf("## GUI_file argv[%d]=|%s|\n",i1,paArg[i1]);
+  for(i1=0; i1<nArg; ++i1) printf(" GUI_file argv[%d]=|%s|\n",i1,parLst[i1]);
   
   exit(1);
 

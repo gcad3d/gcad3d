@@ -295,7 +295,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
   char      *actBuf, s1[80];
 
 
-  printf("SRC__add_dynTyp %d |%s|\n",typ,si);
+  // printf("SRC__add_dynTyp %d |%s|\n",typ,si);
 
   sLen = strlen(si);
   if(sLen < 1) return -1;
@@ -406,7 +406,7 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
 
   //----------------------------------------------------------------
   L_exit:
-      printf(" ex-SRC__add_dynTyp %d |%s|\n",irc,so);
+      // printf(" ex-SRC__add_dynTyp %d |%s|\n",irc,so);
   return irc;
 
 

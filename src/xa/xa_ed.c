@@ -187,7 +187,8 @@ cl -c /I ..\include xa_ed.c
 #include "../ut/ut_txfil.h"    // UTF_add_file
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
+#include "../ut/os_dll.h"         // DLLFUNC_LOAD_only DLLFUNC_CONNECT DLLFUNC_EXEC ..
 
 #include "../ut/func_types.h"
 #include "../gr/ut_DL.h"
@@ -397,7 +398,7 @@ long   UI_Ed_fsiz;      // Textsize
 
   // LineNr ins Menu
   l1 = lNr;
-  UI_AP (UI_FuncSet, UID_ouf_lNr, (void*)l1);
+  UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_LONG(l1));
 
 
 /*
@@ -2144,10 +2145,14 @@ static int lnr1, lnr2;
 //===========================================================================
   int ED_work_CAD (int lNr, char *cbuf) {
 //===========================================================================
-/// 1) bei jedem Tab wenn alle Inputs fertig
-/// 2) mit OK (CR) wenn alle Inputs fertig
-/// RetCod:
-///   -3     obj not yet complete
+// -) bei jedem Tab wenn alle Inputs fertig
+// -) mit OK (CR) wenn alle Inputs fertig
+// Input:
+//   lNr      active source-lineNr; 
+//   cbuf     
+// Output:
+//   RetCod:    0     OK
+//              -3    obj not yet complete
 
 
   int      irc, tmpStat;
@@ -2156,17 +2161,17 @@ static int lnr1, lnr2;
 
   tmpStat = WC_get_obj_stat();
 
-  printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
-  printf("ED_work_CAD %d |%s| tmpStat=%d\n",lNr,cbuf,tmpStat);
+  // printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
+  // printf("ED_work_CAD %d |%s| tmpStat=%d\n",lNr,cbuf,tmpStat);
 
 
 
   // LineNr ins Menu
   l1 = lNr;
-  UI_AP (UI_FuncSet, UID_ouf_lNr, (void*)l1);
+  UI_AP (UI_FuncSet, UID_ouf_lNr, PTR_LONG(l1));
 
 
-  // delete alles von der aktiven zeile weg -
+  // delete displayed objects following srcLine lNr
   DL_disp_reset (lNr);
 
 
@@ -2319,7 +2324,7 @@ static int lnr1, lnr2;
   //=========================================================
   // abarbeiten von ED_lnr_act (incl)  bis new_lnr_act; 
   //=========================================================
-  // gleiche Zeile: nur diese eine diese Zeile abarbeiten !
+  // gleiche Zeile: nur diese eine Zeile abarbeiten !
   L_work:
   mode = 0;
 
@@ -2334,13 +2339,13 @@ static int lnr1, lnr2;
 
   if(TSU_get_mode() == 0) {       // 0=Normal 1=Store
     UI_CursorWait (0);            // display watch
-    if(PRC_IS_ACTIVE) {
-      // reset process
-      sprintf(s1,"RESET %d",ED_lnr_act);
-      PRC__ (-1, s1);
-    } else  {      
-      DL_disp_reset (ED_lnr_act);   // alles nach incl.Line "new_lnr_act" loeschen
-    }
+//     if(PRC_IS_ACTIVE) {
+//       // // reset process
+//       sprintf(s1,"RESET %d",ED_lnr_act);
+//       PRC__ (-1, s1);
+//     } else  {      
+//       DL_disp_reset (ED_lnr_act);   // alles nach incl.Line "new_lnr_act" loeschen
+//     }
 
   } else {
     i1 = TSU_exp_Open ("");            // Start export mainModel

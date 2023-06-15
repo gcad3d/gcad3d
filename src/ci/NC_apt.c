@@ -157,8 +157,6 @@ APT_mir_obj
 
 APT_solv_ln_parl_mod     parallel line from DB-line, mod, offset
 APT_solv_vc_mod          perp. vector from vector, normal-vector, mod
-APT_solv_mod
-APT_solv_mod_1
 APT_solv_x_max
 APT_solv_y_max
 APT_solv_x_min
@@ -172,6 +170,8 @@ APT_solv3d_HIX
 
 List_functions_end:
 =====================================================
+// APT_solv_mod
+// APT_solv_mod_1
 
 \endcode *//*----------------------------------------
 
@@ -211,7 +211,7 @@ cc -c NC_apt.c
 #include "../ut/ut_elli.h"             // UT3D_angr_par1_ell
 #include "../ut/ut_plg.h"              // UT3D_par_par1plg
 #include "../ut/ut_ox_base.h"          // OGX_SET_INDEX
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_os.h"               // OS_..
 #include "../ut/func_types.h"                  // Typ_Att_hili
 #include "../ut/ut_gtypes.h"           // AP_src_typ__
@@ -1832,7 +1832,7 @@ static  CurvPoly plg1;
   // das Polygon holen
   cv2 = DB_GetCurv (icv);
   if(cv2->typ != Typ_CVPOL) {
-    TX_Error("nur mit Polygon!");
+    TX_Error("is not Polygon!");
     return -1;
   }
 
@@ -1851,6 +1851,12 @@ static  CurvPoly plg1;
   } else {          // iTyp: 1=Controlpoints
     i1 = UT3D_cbsp_ptn (cv1, tbuf1, plg1->cpTab, plg1->ptNr, deg);
   }
+
+
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_CVBSP, &cv1, "ex-APT_decode_conv_cv");
+    // END TESTBLOCK
 
 
   return i1;
@@ -2764,10 +2770,13 @@ S24=CCV2,S23,0.2        - Circ/Line from 2D-Polygon, tol
     if(i1 < 0) {TX_Error("UT3D_cbsp_ptn E001"); return -1;}
   }
 
-  cv1->clo = -1;
+  cv1->clo = UT3D_bsp_ck_closed__ (cv1);
 
 
   L_exit:
+      // TESTBLOCK
+      // DEB_dump_obj__ (Typ_CVBSP, cv1, "ex-APT_decode_pt2bsp");
+      // END TESTBLOCK
     return 0;
 
 }
@@ -3045,7 +3054,8 @@ int APT_BLEND__  (ObjGX *oxo,
   cv1.v0    = fTab[i1];
   ++i1;
   cv1.v1    = fTab[i1];
-  cv1.clo   = -1;
+
+  cv1.clo   = UT3D_bsp_ck_closed__ (&cv1);
 
 
 
@@ -3064,7 +3074,9 @@ int APT_BLEND__  (ObjGX *oxo,
   }
 
 
-  // DEB_dump_obj__ (Typ_CVBSP, &cv1, "decode_bsp");
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_CVBSP, &cv1, "ex-APT_decode_bsp_");
+    // END TESTBLOCK
 
 
   return 0;
@@ -6975,6 +6987,8 @@ static ObjGX   oxa[2];
     // printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
   // }
 
+  oxa[0].dir = 0;
+  oxa[1].dir = 0;
 
   oTyp  = aus_typ[1];   // typ of contourelement
   oDbi  = aus_tab[1];   // Ind of contourelement
@@ -7132,10 +7146,11 @@ static ObjGX   oxa[2];
     deg1 = 0;
   }
 
+    // TESTBLOCK
+    for(i1=0; i1<cv1Nr; ++i1)
+    printf(" G1[%d] typ=%d ind=%d\n",i1,aus_typ[i1+iu1],(int)aus_tab[i1+iu1]);
+    // END TESTBLOCK
 
-    // TEST
-    // for(i1=0; i1<cv1Nr; ++i1)
-    // printf(" G1[%d] typ=%d ind=%d\n",i1,aus_typ[i1+iu1],(int)aus_tab[i1+iu1]);
 
 
   // reserve space for cv1tab inside tbuf1
@@ -7292,8 +7307,10 @@ static ObjGX   oxa[2];
   //================================================================
   L_done:
 
+    // TESTBLOCK
     // DEB_dump_obj__ (Typ_SURBSP, su1, "" );
     // printf("ex APT_decode_sbsp irc=%d\n",irc);
+    // END TESTBLOCK
 
 
   ox1->typ   = Typ_SURBSP;
@@ -7359,7 +7376,7 @@ static ObjGX   oxa[2];
                        int aus_anz, int aus_typ[], double aus_tab[],
                        Memspc *wrkSpc) {
 //======================================================================
-// create surface from boolean operation.
+// APT_decode_suop                create surface from boolean operation.
 // Inputs:
 //   0 "FOPE"     Typ_cmdNCsub T_FOPE
 //   1  surface to modify (split, join, ..)         Typ_SUR <dbi>
@@ -7377,9 +7394,11 @@ static ObjGX   oxa[2];
     printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
   }
 
+// TO BE REPLACED BY _APT_decode_suop
 
-TX_Error ("*** UNDER CONSTRUCTION ***");
-return -1;
+TX_Print ("*** UNDER CONSTRUCTION ***");
+oxo->typ = Typ_Error;
+return -2;
 
 
 
@@ -18749,11 +18768,13 @@ long defInd;
 
 
 
-
-  // printf("APT_store_obj typ=%d ind=%ld aus_anz=%d\n",*eTyp,*eInd,aus_anz);
+  // TESTBLOCK
+  // printf("\nAPT_store_obj typ=%d ind=%ld aus_anz=%d\n",*eTyp,*eInd,aus_anz);
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);          // 0=perm; 1=temp
   // printf("  IE_outTxt=|%s|\n",IE_outTxt);
-  // for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+  // for(i1=0;i1<aus_anz; ++i1)
+    // printf(" %d typ=%3d val=%f\n",i1,aus_typ[i1],aus_tab[i1]);
+  // END TESTBLOCK
 
 
 
@@ -18839,7 +18860,10 @@ long defInd;
     } else if((int)aus_tab[0] == T_FOPE) {     // TODO !
       i1 = APT_decode_suop (&ox1, aus_anz, aus_typ, aus_tab, &APTSpcTmp);
         // DEB_dump_obj__ (ox1.form, obj1, "ex APT_decode_suop");
-      if(i1 < 0) return -1;
+      if(i1 < 0) {
+        // if(i1 == -2) goto Problem2;
+        return 0;
+      }
       // goto L_sub_store;
 
     //----------------------------------------------------------------
@@ -18875,6 +18899,7 @@ long defInd;
 
       // test if created objType *eTyp == predefined objTyp defTyp
       if(*eTyp != defTyp) {
+        if(*eTyp == Typ_Error) {TX_Print("..error-decode .."); return 0;}
         // other output-form than IE_cad_typ,IE_objInd:
         defTyp = *eTyp;
         // get next free DB-index for type *eTyp
@@ -19184,13 +19209,13 @@ long defInd;
         i1 = APT_decode_psp3 ((ObjGX*)obj1, aus_anz, aus_typ, aus_tab);
         if(i1 < 0) goto Problem1;
 
-      } else if(iCmd == T_BSP0) {
+      } else if(iCmd == T_BSP0) {          // S#=BSP .. 
         i1 = APT_decode_bsp_ ((ObjGX*)obj1, &APTSpcObj, &APTSpcTmp,
                              aus_anz, aus_typ, aus_tab);
         if(i1 == 1)  goto L_notYetComplete;          // only 1 point ..
         if(i1 < 0) goto Problem1;
 
-      } else if(iCmd == T_BSP1) {
+      } else if(iCmd == T_BSP1) {          // convert & join
         i1 = APT_decode_bsp1 ((ObjGX*)obj1, &APTSpcObj, &APTSpcTmp,
                              aus_anz, aus_typ, aus_tab);
         if(i1 == 1)  goto L_notYetComplete;          // only 1 point ..
@@ -19826,12 +19851,12 @@ Offen: Pointer out auf das next Word ...
 }
 
 
-/*===========================================================================*/
+/*
+//================================================================
   int APT_solv_mod (Point2 *pta, int PtAnz) {
-/*================
-den Index der Lösung retournieren
-see also UTO_MOD_resolv_open
-*/
+//================================================================
+// den Index der Lösung retournieren
+// see also UTO_MOD_resolv_open
 
   int    i1, ind1, ind2, ind, ModAct, PtInd[8];
 
@@ -19879,11 +19904,10 @@ see also UTO_MOD_resolv_open
 }
 
 
-/*==========================================================================*/
+//================================================================
   int APT_solv_mod_1 (Point2 *pta, int PtAnz, int *PtInd, int ModAct) {
-/*==================
-den Index der Lösung retournieren
-*/
+//================================================================
+// den Index der Lösung retournieren
 
   int    ind;
   double max;
@@ -19916,7 +19940,7 @@ den Index der Lösung retournieren
 
   return ind;
 }
-
+*/
 
 
 
@@ -22542,8 +22566,8 @@ static Line lno;
 
 
   // printf("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii \n");
-  printf("APT_INT__ %d\n",aus_anz);
-  for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+  // printf("APT_INT__ %d\n",aus_anz);
+  // for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
 
 
 
@@ -23046,8 +23070,8 @@ static Line lno;
 
 
   
-  // printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCC  APT_CUT__ %d\n",aus_anz);
-  // for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+  printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCC  APT_CUT__ %d\n",aus_anz);
+  for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
 
 
   //----------------------------------------------------------------
@@ -23174,7 +23198,7 @@ static Line lno;
   L_exit:
 
     // TESTBLOCK
-    // DEB_dump_ox__ (oxo, "ex-APT_CUT__");
+    DEB_dump_ox__ (oxo, "ex-APT_CUT__");
     // DEB_dump_ox_0 (oxo, "ex-APT_CUT__");
     // printf("ex-APT_CUT__ CCCCCCCCCCCCCCCCCCCCCCCCCCCC  APT_CUT__\n");
     // return MSG_ERR__ (ERR_TEST, "ex-APT_CUT__");

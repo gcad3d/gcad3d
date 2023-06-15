@@ -15915,7 +15915,7 @@ static int ia[] = {-1, -2, -3};
     // irc = UT3D_npt_trmCv (&ptNr, pta, paSiz, (CurvCCV*)obj, oNr, UT_DISP_cv, 0);
     MemTab_ini_fixed (&mtpa, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
                     sizeof(Point), Typ_PT); 
-    irc = UT3D_mtpt_trmCv (&mtpa, NULL, (CurvCCV*)obj, oNr, UT_DISP_cv, 0);
+    irc = UT3D_mtpt_trmCv (&mtpa, NULL, NULL, (CurvCCV*)obj, oNr, UT_DISP_cv, 0);
     if(irc < 0) { TX_Error("UT3D_pl_obj E1"); return -1;}
     // get plane from polygon
     // irc = UT3D_pl_pta (pl1, ptNr, pta);

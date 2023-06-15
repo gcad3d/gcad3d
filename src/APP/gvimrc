@@ -104,8 +104,9 @@ let &tags = substitute(tag1, "\n", ",\.\./tags/", "g")
 "" sonst shift-select notwendig
 "set mousemodel=extend
 
-" Font MS-W10:
+" Font MS-W10: (auf Win7 kein ':')
 "set gfn=Lucida_Console:h12:cANSI:qDRAFT
+"set gfn=Courier_New:h10:cANSI:qDRAFT
 
 " Font MS-W7:
 set gfn=Fixedsys:h11:cANSI
@@ -128,7 +129,7 @@ set nosmartindent
 set nocindent
 
 " nr of visible lines
-set lines=60
+set lines=55
 
 set bg=dark
 syntax on

@@ -26,13 +26,29 @@
 // #define  term_buf "\r\n"
 
 
-/// FilenamedelimiterChar
-#ifdef _MSC_VER
-#define  fnam_del '\\'
-#define  fnam_del_s "\\"
+// FilenamedelimiterChar - default is Unix-'/'; use explizit '\\' for MS-filenames
+// #if defined _MSC_VER || __MINGW64__
+// #ifdef _MSC_VER
+// #define fnam_del '\\'
+// #define fnam_del_s "\\"
+// #else
+#define fnam_del '/'
+#define fnam_del_s "/"
+
+#if defined _MSC_VER || __MINGW64__
+#define fnam_os_del '\\'
+#define fnam_os_del_s "\\"
 #else
-#define  fnam_del '/'
-#define  fnam_del_s "/"
+#define fnam_os_del '/'
+#define fnam_os_del_s "/"
+#endif
+
+
+// ShellVariableDelimiterChar - '$' for unix ("${varNam}") / '%' for MS ("%APPDATA%")
+#if defined _MSC_VER || __MINGW64__
+#define shell_var_del '%'
+#else
+#define shell_var_del '$'
 #endif
 
 
@@ -104,7 +120,7 @@ void UTX_ENC_ApoD_TMP (char **so, char *si);
 extern const char TX_NUL;
 
 
-
+#define UTX_find_nchr strpbrk
 
 
 /*****************************************************************************/
@@ -193,8 +209,9 @@ extern const char TX_NUL;
                                                               char* deli);
   char* UTX_find_word1 (char *was, char *wo);
   char* UTX_find_Del1  (char *p1);
-  char* UTX_find_strrstr (char *cbuf, char *str);
+//   char* UTX_find_nchr  (char *cbuf, char *str);
   char* UTX_find_strrchrn (char *cbuf, char *str);
+  char* UTX_find_strrstr (char *cbuf, char *str);
   int   UTX_strcmp_right (char *string, char *text);
   char* UTX_find_bwd_chr (char *sStart, char *sEnd, char iChar);
 
@@ -211,12 +228,12 @@ extern const char TX_NUL;
 
   int UTX_wordnr       (char *cbuf);
   int UTX_setup_set    (char *fn, char *par, char *val);
-  int UTX_setup_get    (char *cval, char *ctyp, char *fnam, int mode);
+  int UTX_setup_get    (char *cval, char *ctyp, char *fnam);
   int UTX_setup_modw   (char *fn, char *par, char *wNew, int wNr);
   int UTX_setup_decs   (char *s1, char **pv);
 
   int UTX_cat_file     (FILE *fpo, char *fnam);
-  int UTX_dir_listf    (char *outFilNam, char *fPath, char *fNam, char *fTyp);
+  int UTX_dir_listf    (char *outFilNam, char *fPath, char *fNam, char *fTyp, int mode);
   int UTX_cnr_chr      (char *txt, char c1);
 
   int  UTX_str_file    (char* txbuf, long *fSiz, char *fnam);

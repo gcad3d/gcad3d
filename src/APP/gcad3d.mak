@@ -1,14 +1,13 @@
-# compile / link gcad3d
-#
-# make -f gcad_gui__.mak       build core
-# make all                     build all basis-DLL's xa_XX.so
-# make allDemos                build all demo-DLL's xa_XX.so
+# create primary executable gCAD3D                       default:
+# create all core-libs xa_*.so                           all:
+# create all demo-libs plugin/Demo_*.so                  allDemos:
 #
 # USING SYMBOLS (. ../options.sh):
 # gcad_dir_dev gcad_dir_bin
 #
 
-#OPSYS = `uname`
+$(info -)
+$(info - entering gcad3d.mak)
 
 EXENAM  = gCAD3D
 
@@ -30,7 +29,6 @@ include deb.mak
 # OpenGL-binding: SRCGLB GLBLIB
 #include glb_$(OS).mak
 #SRCGLB = ../xa/GL_C-KIT.c
-
 
 
 # OpenGL: get OGLLIB
@@ -71,7 +69,7 @@ LKFLG = $(LKDEF) $(LKDEB) -rdynamic -Wl,--unresolved-symbols=ignore-all
 
 
 #=============================================================
-# create core
+# create primary executable gCAD3D
 default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 	@echo "====================== link ======================"
 	@echo "gcad_dir_bin=" $(gcad_dir_bin) 
@@ -84,7 +82,7 @@ default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 #	@echo "OBJOS=" $(OBJOS) "==================="
 	cd $(gcad_dir_bin) && \
 	$(CC) -o $(EXENAM)\
-  $(OBJ1) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)\
+  $(OBJG) $(OBJ1) $(OBJA) $(OBJGLB) $(OBJOS)\
   $(GLBLIB) $(OGLLIB) $(LKFLG)\
   xa_gui.so
 
@@ -106,7 +104,7 @@ default: $(OBJ1) $(SRC3) $(OBJG) $(OBJA) $(OBJGLB) $(OBJOS)
 
 
 #=============================================================
-# Alle Basis-DLL's xa_XX.so linken
+# create all core-libs xa_*.so
 all:
 	@echo "link core-dll's .."
 # create makeFiles.lst = list of makefiles of "xa_*.mak"
@@ -122,7 +120,7 @@ all:
 
 
 #=============================================================
-# Alle Demo-DLL's xa_XX.so linken
+# create all demo-libs plugin/Demo_*.so
 allDemos:
 	@echo "link plugins .."
 # test if plugins/ exist - else create
@@ -224,8 +222,8 @@ objlst:
 # write list of all sourcefiles into file files; see gcad_src.mak
 # used for cscope, DocuDevel (doxygen)
 srclst:
-	@echo $(SRC1) > srcFiles
 	@echo $(SRCG) >> srcFiles
+	@echo $(SRC1) > srcFiles
 	@echo $(SRCB) >> srcFiles
 	@echo $(SRCA) >> srcFiles
 	@echo $(SRCOS) >> srcFiles
@@ -248,8 +246,8 @@ srclst:
 # write list of all sourcefiles - without APPS,prc - into file srcFiles;
 # used for cscope, DocuDevel (doxygen)
 prjlst:
-	@echo $(SRC1) > srcFiles
 	@echo $(SRCG) >> srcFiles
+	@echo $(SRC1) > srcFiles
 	@echo $(SRCA) >> srcFiles
 	@echo $(SRCOS) >> srcFiles
 	@echo ../xa/*.h ../db/*h ../ci/*h ../ut/*h ../gr/*h ../exp/*.h >> srcFiles

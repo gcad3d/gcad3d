@@ -40,15 +40,17 @@ gdb /home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_gMsh1_gtk2
 run
 
 
-Startparameters:
-1. par = startdirectory
-
 ../APP/gMsh1.c                     plugin
 ../gui_gtk2/GUI_gMsh1.c            GUI-exe
 ../myGIS1/gMsh__.c                 mesh-exe
 
 
-cp ../gui_gtk2/GUI_gMsh1.c ../gui_gtk2_MS/GUI_gMsh1.c
+Startparameters:
+1. par = filename info-file;
+
+info-file:    1. line = filename controlfile; Input;
+              2. line = user-selection (mesh|edit|cancel ..)
+
 
 */
 
@@ -82,17 +84,15 @@ GtkWidget    *wc_fac, *wc_pt, *wc_bl, *wc_bnd;
 GtkWidget    *wc_fCen, *wc_blIn, *wc_bndIn;
 
 char         **paArg;
-char         clfNam[400], fnOut[400], fnIb[8000];
+char         clfNam[400],       // commandfilename
+             fnTmp[400],        // filename info-file
+             fnOut[400],        // aux
+             fnIb[8000];        // inner-boundaries
 
 
 UtxTab_NEW (txTab1);                // stringtable
 
-
-
-
-
-
-
+  char *AP_bin_dir;         // dir binaries
 
 
 
@@ -106,71 +106,32 @@ UtxTab_NEW (txTab1);                // stringtable
 
 //================================================================
 // dummy-funcs:
-DEB_dump_obj__    ()  {};
 DEB_dump_nobj__   ()  {};
 DEB_dump_ox_s_    ()  {};
 
 
 
-//================================================================
-void TX_Error (char* txt, ...) {
-// see also ../ut/ut_TX.c
-
-
-
- gmsh1_error("TX_Error %s\n",txt); }
-
-
-
-//================================================================
-void TX_Print (char* txt, ...) {
-// see also ../ut/ut_TX.c
-
-  va_list va;
-  char    TX_buf1[1024];
-
-  va_start(va,txt);
-  vsprintf(TX_buf1,txt,va);
-  va_end(va);
-  gmsh1_error(TX_buf1);
-}
-
-
-
-//================================================================
-  int MSG_err_1 (char *key, char *fmt, ...) {
-  gmsh1_error("MSG_err_1 %s\n",key);
-  return 0;
-}
-
-
-//================================================================
-  int MSG_get_1 (char *msg, int msgSiz, char *key, char *fmt, ...) {
-  gmsh1_error("MSG_get_1 %s\n",key); 
-  return 0;
-}
-
-
 
 //================================================================
 //================================================================
-// ../ut/ut_uti.c
+//================================================================
+  char* AP_get_bas_dir () {
+//================================================================
+/// AP_get_bas_dir           returns path of ?
 
- int UTI_round_i2b (int ii) {
-  int   ib = -1;
-  if(ii < 2) return 0;
-  ii *= 2;
-  --ii;
-  while(ii) {ii /= 2; ++ib;}
-  return ib;
-}
 
-  int UTI_round_b2i (int i1) {
-  int ii=1;
-  while(i1) {--i1; ii *=2;}
-  return ii;
+  char     *p1;
 
-}
+#if defined _MSC_VER || __MINGW64__
+  p1 = getenv("APPDATA");
+#else
+  p1 = getenv("HOME");
+#endif
+
+  return p1;
+  
+} 
+
 
 
 //================================================================
@@ -203,7 +164,7 @@ void TX_Print (char* txt, ...) {
   if(fNam[0] == '/') return 0;
 
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   if(fNam[0] == '\\') return 0;
   if(fNam[1] == ':') return 0;
 #endif
@@ -254,7 +215,6 @@ void TX_Print (char* txt, ...) {
 // ../ut/ut_txt.c
 
 
-
 //================================================================
   int UTX_add_fnam_del (char *cbuf) {
 //================================================================
@@ -269,7 +229,7 @@ void TX_Print (char* txt, ...) {
   // wenn cbuf kein closing "/" hat, eins zufuegen.
   ps = &cbuf[strlen(cbuf)-1];
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   // MS: CR-LF !
   if(*ps == '\r') --ps;
 #endif
@@ -283,82 +243,68 @@ void TX_Print (char* txt, ...) {
 }
 
 
-
 //================================================================
-  char *UTX_find_strrchrn (char *cbuf, char *str) {
+  int UTX_fdir_s (char *fdir, char *cbuf) {
 //================================================================
-/// \code
-/// UTX_find_strrchrn        find last occurence of one of the chars of str2
-/// returns NULL or the position of the last char in cbuf also found in str. 
-///  (see strpbrk = find first)
-/// NULL: nicht enthalten
-/// \endcode
+// UTX_fdir_s        get fileDirectory from string
+// last char ist immer der FilenamedelimiterChar !
+// alles vor dem letzten FilenamedelimiterChar fnam_del ist fileDir;
+// Wenn erster Char ist fnam_del: absolutes fileDir; else relativ.
+// relativ: das pwd (os_bas_dir) vorne weg ...
 
-  int    ii;
+  int    i1;
   char   *p1, *p2;
 
-  // printf("UTX_find_strrchrn |%s|%s| \n",cbuf,str);
+
+  // printf("UTX_fdir_s |%s|\n",cbuf);
+
+  // skip 1. char if it is |"|
+  if(*cbuf == '"') ++cbuf;
 
 
-  ii = 0;
-  p1 = cbuf;
+  // absoluter oder relativer Filename ?
+  if(cbuf[0] == '\\') goto L_abs;     // zB "\\ooserv\...."
+  if(cbuf[0] == '/')  goto L_abs;     // zB "/xx/yy/fn"
 
-  while(str[ii]) {
-    p2 = strrchr (p1, str[ii]);
-    if(p2) {
-      // found
-      p1 = ++p2;  // start here
-    }
-    ++ii;
-  }
+#if defined _MSC_VER || __MINGW64__
+  if(cbuf[1] == ':')  goto L_abs;
+#endif
 
-  if(p1) --p1;
-
-  // printf("ex-UTX_find_strrchrn |%s| \n",p1);
-
-  return p1;
-
-}
+  L_rel: // relatives verzeichnis
+    strcpy (fdir, AP_get_bas_dir ());
+    p1 = cbuf;
+    if((*p1 == '.')&&(*(p1+1) == fnam_del)) p1 += 2;  // skip "./"
+    strcat (fdir, p1);
+    goto L_cut;
 
 
-//===========================================================
-  char* UTX_CleanCR (char* string) {
-//===========================================================
-// UTX_CleanCR              Delete Blanks, CR's and LF's at end of string
-// returns positon of stringterminator \0
-// 
-// see also UTX_del_follBl UTX_CleanSC
+  L_abs: // absolut (kompletter) filename
+    strcpy (fdir, cbuf);
 
 
-  int  ilen;
-  char *tpos;
+  L_cut:     // remove Filename
+  // printf("      fnam tot=|%s|\n",fdir);
 
-  ilen = strlen (string);
+  p1 = strrchr(fdir, '/');  // find last FilenamedelimiterChar
+  p2 = strrchr(fdir, '\\');  // find last FilenamedelimiterChar
 
-  tpos = &string[ilen];
+  if(p1 == NULL) p1 = fdir;
+  else ++p1;         // FilenamedelimiterChar soll last char bleiben
 
-  if(ilen < 1) goto L_exit;
+  if(p2 == NULL) p2 = fdir;
+  else ++p2;         // FilenamedelimiterChar soll last char bleiben
 
-  --tpos;
+  if(p2 > p1) p1 = p2;
 
+  *p1 = '\0';     // cut off filename
 
-  while ((*tpos  == ' ')  ||
-         (*tpos  == '\t') ||          /* tab */
-         (*tpos  == '\n') ||          /* newline */
-         (*tpos  == '\r'))   {        /* CR */
+  // printf("ex UTX_fdir_s 0 |%s|%s|\n",fdir,cbuf);
 
-    *tpos    = '\0';
-    if(tpos <= string) goto L_exit;
-    --tpos;
-  }
+  return 0;
 
-  ++tpos;
-
-
-  L_exit:
-  // printf("ex UTX_CleanCR |%s|\n", string);
-
-  return tpos;
+  L_err:
+  // printf("ex UTX_fdir_s -1 |%s|\n",cbuf);
+  return -1;
 }
 
 
@@ -385,7 +331,7 @@ void TX_Print (char* txt, ...) {
 
   // pfn = find last filename-delimiter
   // must check for '/' AND '\' (in MS '/' can come from out of source)
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   pfn = UTX_find_strrchrn(sDir, "/\\");
 #else
   pfn = strrchr(sDir, fnam_del);
@@ -418,7 +364,7 @@ void TX_Print (char* txt, ...) {
 
   int    irc, i1, ls;
 
-  printd("## UTX_ffNam_fNam |%s|%s|\n",fnIn,actDir);
+  printf("## UTX_ffNam_fNam |%s|%s|\n",fnIn,actDir);
 
   // check for absolute path
   if(!OS_ck_DirAbs(fnIn)) {strcpy(ffNam, fnIn); goto L_exit;}
@@ -432,7 +378,7 @@ void TX_Print (char* txt, ...) {
   // clear follwing blanks
   L_remBlk:
   i1=strlen(ffNam); if(ffNam[i1] == ' ') {ffNam[i1] = '\0'; goto L_remBlk;}
-    printd("## UTX_ffNam_fNam ffNam |%s|\n",ffNam);
+    printf("## UTX_ffNam_fNam ffNam |%s|\n",ffNam);
 
   if(fnIn[0] != '.') {
     // eg ("act.dat", "/actDir/"); add actDir+fnIn
@@ -482,27 +428,6 @@ void TX_Print (char* txt, ...) {
 // ../gui_gtk2/gtk_base.c
  
 
-
-//================================================================
-  int GUI_update__ () {
-//================================================================
-/// update all windows
-
-// Achtung: löscht events !
-
-  // printd("## GUI_update__ \n");
-
-
-  // Display zwischendurch updaten
-  while (gtk_events_pending()) {
-    gtk_main_iteration();
-  }
-
-  return 0;
-
-}
-
-
 //================================================================
 //================================================================
 //================================================================
@@ -512,7 +437,7 @@ void TX_Print (char* txt, ...) {
   int gmsh1_error (char *eTxt) {
 //================================================================
 
-  printd("## gmsh1_error |%s|\n",eTxt);
+  printf("## gmsh1_error |%s|\n",eTxt);
 
   gtk_label_set_text ((GtkLabel*)wl_err, eTxt);
 
@@ -530,7 +455,7 @@ void TX_Print (char* txt, ...) {
   int      irc;
   char     *p1, *p2;
 
-  // printd("## gmsh1_load_setenv |%s|\n",s1);
+  // printf("## gmsh1_load_setenv |%s|\n",s1);
 
   if(!txTab1.iNr) UtxTab_init__ (&txTab1);            // init (malloc ..)
 
@@ -552,7 +477,7 @@ void TX_Print (char* txt, ...) {
        (!strncmp(p1, "setenv ", 7))    ||
        (!strncmp(p1, "logfile ", 8))   ||
        (!strncmp(p1, "outfile ", 8))) {
-        // printd("## gmsh1_load_setenv add |%s|\n",s1);
+        // printf("## gmsh1_load_setenv add |%s|\n",s1);
       UtxTab_add (&txTab1, s1);
 
 //       if     (!strcmp(p1, "outfile")) {
@@ -568,7 +493,7 @@ void TX_Print (char* txt, ...) {
 
 
   L_exit:
-    // printd("## gmsh1_load_setenv exit |%s|\n",s1);
+    // printf("## gmsh1_load_setenv exit |%s|\n",s1);
   return p1;
 
 }
@@ -585,7 +510,7 @@ void TX_Print (char* txt, ...) {
   FILE  *fpi;
 
 
-  printd("## gmsh1_loadfile |%s|\n",clfNam);
+  printf("## gmsh1_loadfile |%s|\n",clfNam);
 
   UtxTab_init__ (&txTab1);  // reset
   fnIb[0] = '\0';
@@ -642,7 +567,7 @@ void TX_Print (char* txt, ...) {
     p2 = strtok (NULL, " ");
     if(p2) p3 = strtok (NULL, " ");
 
-      // printd("## gmsh1_loadfile sep |%s|%s|\n",p1,p2);
+      // printf("## gmsh1_loadfile sep |%s|%s|\n",p1,p2);
 
   if     (!strcmp(p1, "outfmt")) {
     if(!strcmp(p2, "dxf")) 
@@ -718,7 +643,7 @@ void TX_Print (char* txt, ...) {
   FILE  *fpo;
   // char  *p1, *p2, *p3, s1[256], fn[400];
 
-  printd("## gmsh1_writefile\n");
+  printf("## gmsh1_writefile\n");
 
 
     // get filename
@@ -748,10 +673,10 @@ void TX_Print (char* txt, ...) {
 
     //----------------------------------------------------------------
     // write setenv-records
-    // printd("## L_mesh-txTab1.iNr = %d\n",txTab1.iNr);
+    // printf("## L_mesh-txTab1.iNr = %d\n",txTab1.iNr);
     if(txTab1.iNr) {
       for(i1=0; i1 < txTab1.iNr; ++i1) {
-        // printd("## L_mesh-txTab1 %d %d\n",i1,UtxTab__(i1,&txTab1));
+        // printf("## L_mesh-txTab1 %d %d\n",i1,UtxTab__(i1,&txTab1));
         fprintf(fpo,"%s\n",UtxTab__(i1,&txTab1));
       }
     }
@@ -835,11 +760,11 @@ void TX_Print (char* txt, ...) {
   
   char    *filename;
   
-  printd("## GUI_cb_clf_sel \n");
+  printf("## GUI_cb_clf_sel \n");
   
   // GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
   filename = gtk_file_chooser_get_filename (parent);
-  printd("##  fn |%s|\n",filename);
+  printf("##  fn |%s|\n",filename);
   
   if(strlen(filename) < sizeof(fnOut)) strcpy(fnOut,filename);
   g_free (filename);
@@ -860,7 +785,7 @@ void TX_Print (char* txt, ...) {
 //================================================================
 //  callback edit controlfile <clfNam>
 
-  printd("## GUI_cb_edi__ %s\n",clfNam);
+  printf("## GUI_cb_edi__ %s\n",clfNam);
 
   // write active state of menu into file
   gmsh1_writefile ();
@@ -886,9 +811,10 @@ void TX_Print (char* txt, ...) {
   GtkWidget       *wfc;
   gint            res;
   GtkFileFilter   *wfi1 = NULL;
+  char            sDir[400];
 
 
-  printd("## GUI_cb_clf__ \n");
+  printf("## GUI_cb_clf__ \n");
 
   fnOut[0] = '\0';
   // strcpy(wTyp, (char*)data);
@@ -901,7 +827,10 @@ void TX_Print (char* txt, ...) {
                                     NULL);
 
   // copy directory, filename
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (wfc), paArg[1]);
+  // gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (wfc), clfNam);
+  strcpy(sDir, clfNam);
+  UTX_fnam_rem_dirLast (sDir);
+  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (wfc), sDir);
 
   // set filter
   wfi1 = gtk_file_filter_new ();
@@ -915,7 +844,7 @@ void TX_Print (char* txt, ...) {
 
   // wait for user-select; -1 = double-click or CR; -4 = Cancel
   res = gtk_dialog_run (GTK_DIALOG (wfc));
-    printd("## GUI_cb_clf__-sel %d\n",res);
+    printf("## GUI_cb_clf__-sel %d\n",res);
 
   // Cancel - delete last
   if((res == 0) || (res == -4)) {
@@ -925,6 +854,7 @@ void TX_Print (char* txt, ...) {
   
   // gtk_label_set_text ((GtkLabel*)w1, fnOut);
   if(fnOut[0]) {
+      printf("## GUI_cb_clf__-fnOut |%s|\n",fnOut);
     strcpy(clfNam, fnOut);
     // display selected file
     gtk_entry_set_text ((GtkEntry*)we_clf, clfNam);
@@ -946,11 +876,11 @@ void TX_Print (char* txt, ...) {
 
   char    *filename;
 
-  printd("## GUI_cb_bt_sel \n");
+  printf("## GUI_cb_bt_sel \n");
 
   // GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
   filename = gtk_file_chooser_get_filename (parent);
-  printd("## fn |%s|\n",filename);
+  printf("## fn |%s|\n",filename);
 
   if(strlen(filename) < sizeof(fnOut)) strcpy(fnOut,filename);
   g_free (filename);
@@ -974,13 +904,13 @@ void TX_Print (char* txt, ...) {
 static GtkWidget  *w1 = NULL;
 static char       wTyp[8] = "";
        GtkWidget  *wfc;
-  int             i1;
+  int             irc, i1;
   gint            res;
-  char            *p1, *p2, fn[440];
+  char            *p1, *p2, fDir[440];
   FILE            *fpo;
 
 
-  printd("## GUI_cb_bt__ |%s|\n",(char*)data);
+  printf("## GUI_cb_bt__ |%s|\n",(char*)data);
 
   if     (!strcmp("canc", (char*)data)) goto L_canc;
   else if(!strcmp("mesh", (char*)data)) goto L_mesh;
@@ -994,6 +924,10 @@ static char       wTyp[8] = "";
 
   fnOut[0] = '\0';
   strcpy(wTyp, (char*)data);
+
+  // get fDir = directory of controlfile
+  irc = UTX_fdir_s (fDir, clfNam);
+    printf("## GUI_cb_bt__-fDir |%s|\n",fDir);
   
 
   // get filename
@@ -1003,7 +937,7 @@ static char       wTyp[8] = "";
                                      ("_Clear"),  1,
                                      NULL);
   // copy directory, filename
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (wfc), paArg[1]);
+  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (wfc), fDir);
 
 //   gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (wfl1), fNam);
 //   // gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (wfl1), sDir);
@@ -1017,7 +951,7 @@ static char       wTyp[8] = "";
 
   // wait for user-select; -1 = double-click or CR; -4 = Cancel
   res = gtk_dialog_run (GTK_DIALOG (wfc));
-    printd("## GUI_cb_bt__-sel %d\n",res);
+    printf("## GUI_cb_bt__-sel %d\n",res);
 
 
   if     (!strcmp("w_pt", (char*)data)) w1 = wl_pt;
@@ -1039,7 +973,7 @@ static char       wTyp[8] = "";
   //----------------------------------------------------------------
   L_IB:
     // add selection to list of inner-bounds
-    printd("## GUI_cb_bt__-Ib:\n");
+    printf("## GUI_cb_bt__-Ib:\n");
     if(res == 1) goto L_undo_ib;
     i1 = strlen(fnIb);
     if(i1 > 1) strcat(fnIb,"\n");
@@ -1298,7 +1232,7 @@ static char       wTyp[8] = "";
   wc_fac = gtk_check_button_new_with_label ("Fac");
   // g_signal_connect (wc_fac, "clicked", G_CALLBACK(GUI_cb_cb), "fac");
   gtk_container_add (GTK_CONTAINER (box1), wc_fac);
-  gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (wc_fac), TRUE);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (wc_fac), TRUE);
   gtk_widget_set_tooltip_text (wc_fac, "display faces");
 
   wc_pt = gtk_check_button_new_with_label ("PT");
@@ -1423,16 +1357,24 @@ static char       wTyp[8] = "";
 //================================================================
   int GUI_dlg1_exit (char *sOut) {
 //================================================================
-// exit - provide selection to caller via stdout
+// write info-file (<tmp>/gMsh1.txt) end exit.
+// 1.Line = clfNam = filename commandfile
+// 2.Line = output sOut
 
-  printd("## exit-GUI_dlg1_exit |%s|\n",sOut);
+  FILE     *fpo;
 
-  printf("%s\n", sOut);  // to provide to caller via stdout
-  fflush(stdout);
+  printf("## exit-GUI_dlg1_exit |%s|\n",sOut);
 
-#ifdef DEB
-  DEB_prt_init (0); // close "printd"-file
-#endif
+  if((fpo=fopen(fnTmp, "w")) == NULL) {
+    printf("## ERROR GUI_dlg1 write file %s\n",fnTmp);
+    exit(1);
+  }
+  fprintf(fpo, "%s\n", clfNam);
+  fprintf(fpo, "%s\n", sOut);
+  fclose(fpo);
+
+  // printf("%s\n", sOut);  // to provide to caller via stdout
+  // fflush(stdout);
 
   // gtk_widget_hide (UI_list1_win);
   // gtk_signal_emit_by_name (GTK_OBJECT(UI_list1_win),"destroy");
@@ -1452,7 +1394,7 @@ static char       wTyp[8] = "";
 /// \endcode
 
 
-  printd("## GUI_dlg1_cancel\n");
+  printf("## GUI_dlg1_cancel\n");
 
   return (GUI_dlg1_exit (""));
 
@@ -1465,9 +1407,8 @@ static char       wTyp[8] = "";
  
   int   i1;
 
-  printf("ERROR GUI_dlg1 error parameters\n");
-  printf("- par[1]  directory (with closing '/')\n");
-  printf("- par[2]  filename.gmsh1\n");
+  printf("## ERROR GUI_dlg1 error parameters\n");
+  printf("- par[1]  - filename info-file)\n");
   for(i1=0; i1<nArg; ++i1) printf("## GUI_file argv[%d]=|%s|\n",i1,paArg[i1]);
   
   exit(1);
@@ -1485,26 +1426,31 @@ static char       wTyp[8] = "";
 //   stdout     full selected filename; empty for Cancel;
 
 
-  int        i1;
+  int      irc, i1;
 
 
   paArg = argv;
   nArg = argc;
 
-  if(argc < 3) return GUI_dlg1_err1 ();
+  if(argc < 2) return GUI_dlg1_err1 ();
+
+
+  strcpy(fnTmp, paArg[1]);
+
+
+  // get clfNam = filename command-file from 1. line of info-file
+  irc = UTX_fgetLine (clfNam, 400, fnTmp, 1);
+  if(irc < 0) {
+    printf("## ERROR GUI_dlg1 info-file %s\n",clfNam);
+    exit(1);
+  }
+    printf("## clfNam = |%s|\n",clfNam);
+
+//   // sprintf(clfNam, "%sunknown.gmsh1",paArg[1]);
+//   sprintf(clfNam, "%s%s",paArg[1],paArg[2]);
+
 
   fnIb[0] = '\0';
-
-  // sprintf(clfNam, "%sunknown.gmsh1",paArg[1]);
-  sprintf(clfNam, "%s%s",paArg[1],paArg[2]);
-
-
-#ifdef DEB
-  DEB_prt_init (1); // init "printd"-file
-  printd("***** start exe GUI_gMsh1 V1.2 .. %d\n",argc);
-  for(i1=0; i1<argc; ++i1) printd("## GUI_gMsh1 argv[%d]=|%s|\n",i1,argv[i1]);
-#endif
-
 
   gtk_disable_setlocale ();  // sonst Beistrich statt Decimalpunkt !! (LC_ALL)
 

@@ -462,7 +462,6 @@ gcad_src.mak
   int     ii;
   long    spcOff, osiz;
   void    *vpd, *vpTol;
-  va_list va;
 
 
   // DEB_dump_obj__ (iTyp, oDat, " OTB_add__");

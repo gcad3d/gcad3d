@@ -989,24 +989,24 @@ Example: requested type is Typ_VC,
 
 used by IE_activate - modify scrObj
 
-In:
-     typRec  requested type; eg Typ_VC or Typ_goGeom
+Input:
+  typRec    requested type; eg Typ_VC or Typ_goGeom
+  ind       pointer to next unused value in aus_typ/txtTab
+  aus_typ   parametertype of obj in txtTab
+  txtTab    srcCode-obj
 
-     ind   der Zeiger into aus_typ u. txtTab fuer das next Obj.
-     aus_typ = die Parametertype die in der Editline erkannt wurden;
-     txtTab   der zu aus_typ gehoerige Wert
 
-
-Out: buf = der zugehoerige Text (fuers Entryfeld)
-     ind        pointer to next unused value in aus_typ/txtTab
-     RetCod:    1=OK, -1=no useful object for typRec
+Output:
+  buf       resulting srcCode
+  ind       pointer to next unused value in aus_typ/txtTab
+  RetCod    1=OK, -1=no useful object for typRec
 
 */
 // see AP_typLst_grpTyp
 
 
   int     i1, typ, indNxt1, indNxt2, typNxt1, typNxt2;
-  char    *p1;
+  char    *p1, s1[1024];
   // char   val[32], valNxt1[32], valNxt2[32];
 
 
@@ -1030,8 +1030,6 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   if(aus_anz >= (*ind+1)) {
     indNxt1 = *ind + 1;
     typNxt1 = aus_typ[indNxt1];
-    // valNxt1 = aus_tab[indNxt1];
-    /* printf(" typ/valNxt1=%d %f\n",typNxt1,valNxt1); */
   } else {
     typNxt1 = -1;
   }
@@ -1041,11 +1039,12 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   if(aus_anz >= (*ind+2)) {
     indNxt2 = *ind + 2;
     typNxt2 = aus_typ[indNxt2];
-    // valNxt2 = aus_tab[indNxt2];
-    /* printf(" typ/valNxt2=%d %f\n",typNxt2,valNxt2); */
   } else {
     typNxt2 = -1;
   }
+
+    // printf(" IE_txt2par1- typ=%d typNxt1=%d typNxt2=%d\n",typ,typNxt1,typNxt2);
+
 
 
   if(typ == typRec) goto L_OK_2;
@@ -1056,7 +1055,7 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   //-------------------------------------------------------
   // typ ist nun ein objTyp der selektierten APT-Line;
   // typRec ist ein typ im IE_cad_act-Record
-    // printf(" _txt2par1  typ=%d typRec=%d\n",typ,typRec);
+    // printf("............ _txt2par1  typ=%d typRec=%d\n",typ,typRec);
 
 
   //-------------------------------------------------------
@@ -1071,21 +1070,19 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
     if(typRec == Typ_goGeom)  goto L_OK_2;
     if(typRec == Typ_Txt)     goto L_OK_2;
 
-    if(typRec == Typ_PT) {  // koennte man durch 2 Typ_Val plus Typ_ZVal ersetzen
-      if((typNxt1 == Typ_Val)   &&
-         (typNxt2 == Typ_ZVal)) {
-        *ind = *ind + 2;
-        goto L_OK_3;
-      }
-    }
-
-
-    if(typRec == Typ_PT) {  // koennte man durch 2 Typ_Val ersetzen
+    if(typRec == Typ_PT) { 
       if(typNxt1 == Typ_Val) {
-        *ind = *ind + 1;
-        goto L_OK_3;
+        if(typNxt2 == Typ_Val) goto L_add_3;
+        else                   goto L_add_2;
       }
     }
+
+//     if(typRec == Typ_PT) {  // koennte man durch 2 Typ_Val ersetzen
+//       if(typNxt1 == Typ_Val) {
+//         *ind = *ind + 1;
+//         goto L_OK_3;
+//       }
+//     }
 
 
   //-------------------------------------------------------
@@ -1283,23 +1280,44 @@ Out: buf = der zugehoerige Text (fuers Entryfeld)
   goto Fertig;
 
 
-
-
   L_OK_3:
   if(strlen(buf) > 0) strcat(buf, " ");
   strcat(buf, txtTab[*ind]);
-  // goto Fertig;
+  goto Fertig;
 
 
 
 
+  //----------------------------------------------------------------
+  L_add_2:
+    // " val val"
+    if(strlen(buf) > 0) strcat(buf, " ");
+    sprintf(s1, "%s %s",txtTab[*ind],txtTab[indNxt1]);
+    strcat(buf, s1);
+    *ind = indNxt1 + 1;
+    goto Fertig;
+
+
+
+  //----------------------------------------------------------------
+  L_add_3:
+    // " val val val"
+    if(strlen(buf) > 0) strcat(buf, " ");
+    sprintf(s1, "%s %s %s",txtTab[*ind],txtTab[indNxt1],txtTab[indNxt2]);
+    strcat(buf, s1);
+    *ind = indNxt2 + 1;
+    // goto Fertig;
+
+
+  //----------------------------------------------------------------
   Fertig:
-    // printf("ex-IE_txt2par1 |%s| (aus)ind=%d\n",buf,*ind);
-  return 1;
+    // TESTBLOCK
+    // printf("ex-IE_txt2par1 |%s| ind=%d\n",buf,*ind);
+    // for(i1=0; i1<aus_anz; ++i1) printf("%d  \n");
 
+    // END TESTBLOCK
 
-
-
+    return 1;
 
 
   //__________________________________________________

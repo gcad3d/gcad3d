@@ -2625,7 +2625,8 @@ static int    bck_GR_NoConstrPln;
   int     i1;
   va_list va;
 
-  printf("sele_set_types %d\n",i0);
+
+  // printf("sele_set_types %d\n",i0);
 
   va_start (va, i0);
   goto L_work;

@@ -79,7 +79,7 @@ OLD VERSION:
 
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_memTab.h"           // MemTab..
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/func_types.h"               // Typ_Att_hili
 #include "../ut/ut_txTab.h"              // TxtTab
 #include "../ut/ut_os.h"               // OS_ ..
@@ -264,9 +264,9 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
   void *box0, *wact;
 
 
-  printf("Del_Win__ %d\n",INT_PTR(data));
+  printf("Del_Win__ %d\n",INT__PTR(data));
 
-  i1 = INT_PTR(data);
+  i1 = INT__PTR(data);
 
   switch (i1) {
 
@@ -618,6 +618,10 @@ static MemTab(ObjSRC) delTab = _MEMTAB_NUL;
     APED_find_dep__ (&dTab, typ, dbi);
       // printf(" typ=%d dbi=%d dep=%d\n",typ,dbi,dTab.rNr);
 
+    if(MEMTAB_IS_EMPTY(&dTab)) {
+      TX_Print("***** dynamic obj; cannot delete; remove parent-obj");
+      goto L_exit;
+    }
 
       // TESTDISPLAY ONLY:-------------------
       // for(i2=0; i2 < dTab.rNr; ++i2) {

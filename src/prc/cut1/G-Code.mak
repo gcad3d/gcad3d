@@ -1,4 +1,4 @@
-# . ../options.sh && make -f ../prc/cut1/G-Code.mak
+# . ./devbase.sh && make -f ../prc/cut1/G-Code.mak
 #
 
 EXENAM  = G-Code
@@ -13,9 +13,9 @@ OBJ2 =\
   ../prc/cut1/pp_ut.c\
 
 
-# get OUTDIR CC VGUI
-#include ../options.mak
-
+ifndef gcad_dir_bin
+$(error ERROR - gcad_dir_bin undefined in G-Code.mak.)
+endif
 
 ADDLIBS = -lm
 
@@ -34,8 +34,8 @@ VPATH = $(gcad_dir_bin):../prc/cut1/
 $(EXENAM): $(OBJ1) $(OBJ2)
 	@echo "build $(EXENAM) -> $(gcad_dir_bin)"
 	$(CC) -o $(EXENAM) $(OBJ1) $(OBJ2) $(LKFLG)
-	ctags --excmd=number -f ut.tag $(SRC2)
-	mv -f $(EXENAM) $(gcad_dir_bin)plugins/cut1/.
+#	ctags --excmd=number -f ut.tag $(SRC2)
+	mv -f $(EXENAM) "$(gcad_dir_bin)plugins/cut1/."
 
 
 # vi holt fuer Alt f (grep) damit seine Sourcefileliste
@@ -45,7 +45,7 @@ SRCLST:
 
 .c.o:
 	$(CC) -c $(CXFLG) $<
-	mv $(@F) $@
+	mv $(@F) "$(gcad_dir_bin)."
 #	if test $(@D) != "."; then mv $(@F) $@; fi
 	ctags -f ../tags/$*.tag $<
 

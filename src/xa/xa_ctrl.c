@@ -259,7 +259,7 @@ static int ctrlStat = 0;      // 0=uninitialized, 1=active, 2=wait-for-Esc
          
 
 
-  printf("CTRL_CB_do__  |%s|\n", parCmd);
+  // printf("CTRL_CB_do__  |%s|\n", parCmd);
 
 /*
   // DO NOT USE mem_cbuf1; WC_Work1 is using it !

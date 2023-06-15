@@ -85,22 +85,13 @@ Format LandXML:
 
 
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-#endif
-
+// definition "export"
+#include "../xa/export.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
-// die folgenden Funktionen exportieren (werden vom Main gerufen):
-#ifdef _MSC_VER
-__declspec(dllexport) int LXML_r__ (void*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
 
 
 // #include "../ut/ut_umem.h"             // UME_reserve
@@ -115,6 +106,11 @@ __declspec(dllexport) int LXML_r__ (void*);
 #include "../xa/mdl__.h"               // SIZMF
 #include "../xa/ap_dir.h"              // AP_get_*_dir
 
+
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int  LXML_r__ (void**);
 
 
 

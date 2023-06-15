@@ -402,6 +402,7 @@ int DEB_dump_ox_s_ (void *oxi, char *txt) { return 0; }
     i1 = strlen(s1) - 1;
     if(s1[i1] == '\n') {s1[i1] = '\0'; --i1;}
     if(s1[i1] == '\r') {s1[i1] = '\0';}
+    while (s1[i1] == ' ') {s1[i1] = '\0'; --i1;}
     UtxTab_add (sTab, s1);
   }
 
@@ -552,9 +553,9 @@ int DEB_dump_ox_s_ (void *oxi, char *txt) { return 0; }
   // save all records following the unmodified records into new memspc
   ii = tab->iNr - iRec;     // nr of records to save
   tbTxtSiz = tab->ind[tab->iNr] - tab->ind[iRec + 1];
-    printf(" UtxTab_change ii=%d tbTxtSiz = %d\n",ii,tbTxtSiz);
+    // printf(" UtxTab_change ii=%d tbTxtSiz = %d\n",ii,tbTxtSiz);
   tbTxtPos = &tab->tab[tab->ind[iRec + 1]];
-    printf(" UtxTab_change sav |%s| %d\n",tbTxtPos,tbTxtSiz);
+    // printf(" UtxTab_change sav |%s| %d\n",tbTxtPos,tbTxtSiz);
   tbTxtNew = malloc (tbTxtSiz);
   memcpy (tbTxtNew, tbTxtPos, tbTxtSiz);
 
@@ -567,7 +568,7 @@ int DEB_dump_ox_s_ (void *oxi, char *txt) { return 0; }
     }
     i1 = tab->tabSiz + TAB_C_SIZ;
     if(UtxTab_reall_C (&(tab->tab), i1) < 0) {
-            TX_Error("***** ERROR UtxTab_change E2 |%s|",newtxt);
+      TX_Error("***** ERROR UtxTab_change E2 |%s|",newtxt);
       return -1;
     }
     tab->tabSiz = i1;
@@ -588,7 +589,7 @@ int DEB_dump_ox_s_ (void *oxi, char *txt) { return 0; }
   --ii;
   for(i1 = 0; i1 < ii; ++i1) {
     sl = strlen(tbTxtPos);
-      printf(" change-add |%s| %d\n",tbTxtPos,sl);
+      // printf(" change-add |%s| %d\n",tbTxtPos,sl);
     UtxTab_add (tab, tbTxtPos);
     tbTxtPos += sl + 1;
   }
@@ -600,7 +601,7 @@ int DEB_dump_ox_s_ (void *oxi, char *txt) { return 0; }
   L_exit:
 
     // TESTBLOCK
-    UtxTab_dump (tab, "ex-UtxTab_change");
+    // UtxTab_dump (tab, "ex-UtxTab_change");
     // END TESTBLOCK
 
   return 0;
@@ -805,6 +806,8 @@ int DEB_dump_ox_s_ (void *oxi, char *txt) { return 0; }
   int  i1, iPos;
 
   // printf("UtxTab_find |%s|\n",cs);
+
+  if(!cs) return -2;
 
   for(i1=0; i1<tab->iNr; ++i1) {
     iPos = tab->ind[i1];

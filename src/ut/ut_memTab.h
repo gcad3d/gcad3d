@@ -54,6 +54,7 @@ int MemTab_free (void*);  // (MemTab*);
 int MEMTAB_IND (MemTab*);            // get nr of used records
 int MEMTAB_RMAX (MemTab*);           // get max. nr of records
 int MEMTAB_RSIZ (MemTab*);
+int MEMTAB_IS_EMPTY (MemTab*);
 void *MEMTAB__ (MemTab *memTab, int ind);
 void *MEMTAB_DAT (MemTab*);
 void *MEMTAB_POS (MemTab*);

@@ -101,13 +101,13 @@ Point actPos;
 //===========================================================================
   int PRCE__ (int iFnc, char* data)  {
 //===========================================================================
-/// PRCE__              main entry
+// PRCE__              main entry
 // the actual position is oldPos.
 
-/// Input:
-///   iFnc     >=0 index into NCCmdTab
-///            -1  function
-///   data     additional text for nc-func NCCmdTab[iFnc]
+// Input:
+//   iFnc     >=0 index into NCCmdTab
+//            -1  function
+//   data     additional text for nc-func NCCmdTab[iFnc]
 
 
   int       i1;
@@ -221,7 +221,7 @@ Point actPos;
   //----------------------------------------------------------------
   } else if(!strncmp(data, "EXIT__", 6)) {
     // reset CmdTab ..
-    PRC_set_CmdTab (NULL);
+    // PRC_set_CmdTab (NULL);
 
 
   //----------------------------------------------------------------

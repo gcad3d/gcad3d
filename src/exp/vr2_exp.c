@@ -35,7 +35,7 @@ List_functions_start:
 
 VR2_exp__             main entry, export into VRLM2 format;
 VR2_exp_export        export active group or whole model
-VR2_exp_mdl__         export all objs of grp1
+VR2_exp_mdl__         export all objs of dlGrp
 VR2_exp_ox_sm_ext     export external-submodel
 VR2_exp_ox__          export obj
 VR2_exp_int_mnam      fix proto-name internal submodel
@@ -362,9 +362,9 @@ Billboard {
 
 */
 
-// #ifdef _MSC_VER
-// #include "../xa/MS_Def1.h"
-// #endif
+
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -373,24 +373,12 @@ Billboard {
 #include <stdarg.h>              // for ...
 
 // #include <GL/gl.h>                        // GL_TRIANGLES ..
-// CANNOT include <GL/gl.h>
-// /usr/include/GL/gl.h
 #define GL_TRIANGLES        0x0004
 #define GL_TRIANGLE_STRIP   0x0005
 #define GL_TRIANGLE_FAN     0x0006
 
-
-
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-__declspec(dllexport) int VR2_exp__ (char*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
-
-#include "../ut/ut_cast.h"                // INT_PTR
 #include "../ut/ut_geo.h"                 // Point ...
+#include "../ut/ut_cast.h"                // INT__PTR
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"                  // AP_get_bas_dir ..
 #include "../ut/ut_memTab.h"              // MemTab_..
@@ -406,6 +394,11 @@ __declspec(dllexport) int VR2_exp__ (char*);
 #include "../xa/xa_msg.h"                 // ERR_*
 #include "../xa/xa_tex.h"                 // Tex_get_fn
 
+
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int VR2_exp__ (char*);
 
 
 //----------------------------------------------------------------
@@ -482,7 +475,7 @@ static ColRGB *exp_sCol;
   ModelRef    *mr;
   ModelBas    *mbo;
 
-  MemTab(int) grp1 = _MEMTAB_NUL;   // DL-indexes of objs to export
+  MemTab(int) dlGrp = _MEMTAB_NUL;   // DL-indexes of objs to export
   MemTab(int) smTab = _MEMTAB_NUL;  // basMdl-indexes of used submodels
 
 
@@ -543,27 +536,27 @@ static ColRGB *exp_sCol;
 
   
   //----------------------------------------------------------------
-  // get grp1 = list of objs in DL 
+  // get dlGrp = list of objs in DL 
   // get nr of objs in active group
   i1 = Grp_get_nr ();
   if(i1 > 0) {
-    // copy objs of active group into private group grp1
-    Grp1_add__ (&grp1);
+    // copy objs of active group into private group dlGrp
+    Grp1_add__ (&dlGrp);
 
   } else {
     // get all objs in primary-model
-    Grp1_add_sm_dl (&grp1, exp_mdli);
+    Grp1_add_sm_dl (&dlGrp, exp_mdli);
   }
 
     // TESTBLOCK
-    // MemTab_dump (&grp1, "exp_export-L1");
+    // MemTab_dump (&dlGrp, "exp_export-L1");
     // return -1;
     // END TESTBLOCK
 
 
   //----------------------------------------------------------------
-  // export all objs of grp1
-  VR2_exp_mdl__ (&grp1, &smTab);
+  // export all objs of dlGrp
+  VR2_exp_mdl__ (&dlGrp, &smTab);
 
 
 
@@ -600,10 +593,10 @@ static ColRGB *exp_sCol;
     DB_load__ (mbo->mnam);
 
     // get group smTab of all objs of subModel mbi in DL
-    Grp1_add_sm_dl (&grp1, exp_mdli);
+    Grp1_add_sm_dl (&dlGrp, exp_mdli);
 
     // export subModel
-    VR2_exp_mdl__ (&grp1, &smTab);
+    VR2_exp_mdl__ (&dlGrp, &smTab);
 
     L_sm_cont:
       ++i1;
@@ -629,7 +622,7 @@ static ColRGB *exp_sCol;
   LOG_A_exit (exp_errNr);
 
   MemTab_free (&smTab);
-  MemTab_free (&grp1);
+  MemTab_free (&dlGrp);
 
     // TESTBLOCK
     // LOG_A_disp ();
@@ -651,9 +644,9 @@ static ColRGB *exp_sCol;
 
 
 //=======================================================================
-  int VR2_exp_mdl__ (MemTab(int) *grp1, MemTab(int) *smTab) {
+  int VR2_exp_mdl__ (MemTab(int) *dlGrp, MemTab(int) *smTab) {
 //=======================================================================
-// VR2_exp_mdl__              export all objs of grp1
+// VR2_exp_mdl__              export all objs of dlGrp
 //   add all used subModels to smTab
 
   int         irc, i1, oNr, iTyp, mbi;
@@ -715,13 +708,13 @@ static ColRGB *exp_sCol;
 
   //----------------------------------------------------------------
   // export objs
-  oNr = grp1->rNr;
+  oNr = dlGrp->rNr;
   dlNr = DL_get__ (&dla);
 
   for(i1=0; i1<oNr; ++i1) {
       // printf("\n ------- nxt-obj %d\n",i1);
 
-    dli = *((int*)MEMTAB__ (grp1, i1));
+    dli = *((int*)MEMTAB__ (dlGrp, i1));
     iTyp = dla[dli].typ;
 
     // skip this types:
@@ -1140,7 +1133,8 @@ static ColRGB *exp_sCol;
 
   // first record must be size of following Record
   if(oxi->typ  != Typ_Size) goto L_Err2;
-  rSiz = (long)oxi->data;
+  rSiz = INT__PTR(oxi->data);
+  // rSiz = (long)oxi->data;
   // printf("Record %d size=%d\n",i1,rSiz);
 
   ++oxi;  //(char*)oxi += sizeof(ObjGX);
@@ -1231,7 +1225,7 @@ static ColRGB *exp_sCol;
 
       } else if(oxs->typ == Typ_Texture) {
         // sCol = NULL;
-        iTex = INT_PTR (oxs->data);
+        iTex = INT__PTR (oxs->data);
           // printf(" facTex=%d\n",iTex);
 
 
@@ -1760,7 +1754,7 @@ static I4Tab_NEW  (iTab1);         // init integer-table
   // add all subModels
   // get list of subModels
   sprintf(fn2, "%sexport_smLst.exp",AP_get_tmp_dir());
-  irc = UTX_dir_listf (fn2, AP_get_tmp_dir(), "exp_", ".exp");
+  irc = UTX_dir_listf (fn2, AP_get_tmp_dir(), "exp_", ".exp", 0);
   if(irc < 0) {TX_Error("VR2_exp_join E001"); irc = -1; goto L_exit; }
 
 

@@ -26,16 +26,13 @@ Modifications:
 
 -----------------------------------------------------
 
-nmake -f GUI_file_open.nmak
+. ../options.sh && make -f GUI_file.mak
 
-START /B /WAIT "" "X:\devel\gcad3d\binMS32\GUI_file_gtk2_MS.exe" open C:\Users\freiter\AppData\Roaming\gCAD3D\dat\ C:\Users\freiter\AppData\Roaming\gCAD3D\cfg\dir.lst "*" "open"
+/home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk2 open /mnt/serv2/devel/cadfiles/gcad/ /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst '*' 'Öffnen'
 
+/home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk2 save /mnt/serv2/devel/cadfiles/gcad/xx.y /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst '*' 'Speichern'
 
-/home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk2_MS open /mnt/serv2/devel/cadfiles/gcad/ /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst '*' 'Öffnen'
-
-/home/fwork/devel/bin/gcad3d/Linux_x86_64/GUI_file_gtk2_MS save /mnt/serv2/devel/cadfiles/gcad/xx.y /mnt/serv2/devel/gcad3d/gCAD3D/cfg/dir.lst '*' 'Speichern'
-
-type %TMP%\debug.dat
+cat /tmp/debug.dat
 
 gcc `pkg-config --cflags gtk+-3.0` ../gui/GUI_file_open.c `pkg-config --libs gtk+-3.0` && ./a.out
 
@@ -53,11 +50,8 @@ gcc `pkg-config --cflags gtk+-3.0` ../gui/GUI_file_open.c `pkg-config --libs gtk
 #include "../ut/deb_prt.h"          // printd
 
 
-// #include "../gui/gui__.h"
-
-
 /// FilenamedelimiterChar
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
 #define  fnam_del '\\'
 #define  fnam_del_s "\\"
 #else
@@ -66,265 +60,97 @@ gcc `pkg-config --cflags gtk+-3.0` ../gui/GUI_file_open.c `pkg-config --libs gtk
 #endif
 
 
+//----------------------------------------------------------------
+// prototypes
+  void UTX_CleanCR (char* string);
+  int OS_osVar_eval__ (char *fno, char *fni, int fnoSiz);
+  int UTX_fnam1__ (char* par_dir, char* sNam, char* sIn);
+  void UTX_CleanCR (char* string);
+  char** UTX_wTab_file (char *memspc, int memSiz, char *fnam);
+  char** OS_wTab_file (char **memspc, char *fnam);
+  char* OS_get_tmp_dir();
+
+	
+//----------------------------------------------------------------
+extern int DEB_prt_stat;    // ../ut/deb_prt.c
+
+
+//----------------------------------------------------------------
 // GLOBAL:
-static char *sGui = "gtk2_MS";
-int  nArg;
-char **paArg;
-char fnOut[512];
-char title[512];
-char *sDir, *fnSymDir, *sFilter, *sTit;
-
-GtkWidget *wfl1;
-
-
-  void UTX_CleanCR (char* string);
-  int OS_filnam_eval (char *fno, char *fni, int fnoSiz);
-  int UTX_fnam1__ (char* sDir, char* sNam, char* sIn);
-  void UTX_CleanCR (char* string);
-  
-
-//================================================================
-void TX_Error (char* txt, ...) { printf("%s\n",txt); }
-// see also ../ut/ut_TX.c
-
-
-//================================================================
-void TX_Print (char* txt, ...) { printf("%s\n",txt); }
-// see also ../ut/ut_TX.c
-
-
-//================================================================
-  int MSG_err_1 (char *key, char *fmt, ...) {
-  printf("%s\n",key);
-  return 0;
-}
-
-
-//================================================================
-  int MSG_get_1 (char *msg, int msgSiz, char *key, char *fmt, ...) {
-  printf("%s\n",key);
-  return 0;
-}
-
-
-//================================================================
-  char* AP_get_tmp_dir () {
-//================================================================
-/// returns tempDir (with closing '/')  <gcad_dir_local>tmp/
-
-static char* AP_tmp_dir = "/tmp/";
-
-  return AP_tmp_dir;
-
-}
-
-
-///===========================================================
-  void UTX_CleanCR (char* string) {
-///===========================================================
-/// UTX_CleanCR                  Delete Blanks, CR's u. LF's am Ende.
-///   Ersetzung von Blanks, Carriage Returns und Linefeeds durch
-///   Nullzeichen von hinten nach vorne bis zum ersten von diesen
-///   verschiedenen Zeichen.
-  
-
-  int  ilen;
-  char *tpos; 
-    
-  ilen = strlen (string);
-    
-  if(ilen < 1) goto L_exit;
-    
-  tpos = &string[ilen];
-  --tpos;
-  
-  
-  while ((*tpos  == ' ')  ||
-         (*tpos  == '\t') ||          /* tab */
-         (*tpos  == '\n') ||          /* newline */
-         (*tpos  == '\r'))   {        /* CR */
-
-    *tpos    = '\0';
-    --tpos;
-    if(tpos < string) break;
-  }
-
-  L_exit:
-  // printf("ex UTX_CleanCR |%s|\n", string);
-
-  return;
-}
-
-
-//================================================================
-  char *UTX_find_strrchrn (char *cbuf, char *str) {
-//================================================================
-/// \code
-/// UTX_find_strrchrn        find last occurence of one of the chars of str2
-/// returns NULL or the position of the last char in cbuf also found in str. 
-///  (see strpbrk = find first)
-/// NULL: nicht enthalten
-/// \endcode
-
-  int    ii;
-  char   *p1, *p2;
-
-  // printf("UTX_find_strrchrn |%s|%s| \n",cbuf,str);
-
-
-  ii = 0;
-  p1 = cbuf;
-
-  while(str[ii]) {
-    p2 = strrchr (p1, str[ii]);
-    if(p2) {
-      // found
-      p1 = ++p2;  // start here
-    }
-    ++ii;
-  }
-
-  if(p1) --p1;
-
-  // printf("ex-UTX_find_strrchrn |%s| \n",p1);
-
-  return p1;
-
-}
-
-
-//================================================================
-  int UTX_fnam1__ (char* sDir, char* sNam, char* sIn) {
-//================================================================
-// UTX_fnam1__        separate/copy directory,fileName of full filename
-// see  UTX_fnam__
-// Output:
-//   sDir       directory     size must be 256; including closing '/'
-//   sNam       filename[.typ]     size must be 128
-
-  int    sdl, snl;
-  char   *pfn;
-
-  sDir[0] ='\0';
-
-
-  // printf("----------------------------------- \n");
-  // printf("UTX_fnam1__ |%s|\n",sIn);
-
-  // pfn = find last filename-delimiter
-  // must check for '/' AND '\' (in MS '/' can come from out of source)
 #ifdef _MSC_VER
-  pfn = UTX_find_strrchrn(sIn, "/\\");
+  static char *sGui = "gtk2_MS";      
 #else
-  pfn = strrchr(sIn, fnam_del);
+  // MSYS
+  static char *sGui = "gtk2";      
 #endif
-    printd(" fnam1__-pfn|%s|\n",pfn);
 
+  int  nArg, fnID;
+  char **parLst, *wTabSpc, *fnIn;
+  char fnOut[400];
+  char title[512];
+  char sbuf1[512];
+  
+  char *par_dir;
+  char *par_sym;
+  char *par_flt;
+  char *par_tit;
 
-  // test if length of sDir > 256
-  if((pfn - sIn) >= 256) return -1;
+  GtkWidget *wfl1;
 
+  char *AP_bin_dir;         // dir binaries
 
-  if(!pfn) {
-    // no directory;
-    pfn = sIn;
-
-  } else {
-    // pfn = pos. of last '/'
-    sdl =  pfn - sIn + 1;
-    strncpy(sDir, sIn, sdl);
-    sDir[sdl] = '\0';
-    ++pfn;  // skip deli
-  }
-
-  // copy the filname
-  snl = strlen(pfn);
-
-  // test if length of sNam > 128
-  if(snl >= 128) return -2;
-  strcpy(sNam, pfn);
-
-    // printf("ex-UTX_fnam1__ |%s|%s|\n",sDir,sNam);
-
-  return 0;
-
-}
 
 
 
 //================================================================
-  int GUI_update__ () {
+  int GUI_file_symdir__ (char *par_dir, int sSiz) {
 //================================================================
-/// update all windows
-
-// Achtung: löscht events !
-
-  printd("GUI_update__ \n");
-
-
-  // Display zwischendurch updaten
-  while (gtk_events_pending()) {
-    gtk_main_iteration();
-  }
-
-  return 0;
-
-}
-
-
-//================================================================
-  int GUI_file_symdir__ (char *sDir, int sSiz) {
-//================================================================
-// get symbolic-directory from user
+// get symbolic-directory
 
   int    irc, il;
-  char   s2[2048], s3[512], *binDir, *p1;
-  FILE   *fpi;
+  char   s2[2048], s3[512], fnTmp[400], *binDir, *p1;
+  FILE   *fpo, *fpi;
 
 
-  // printd("## GUI_file_symdir__ \n");
-
+  printf("GUI_file_symdir__ |%s| %d\n",par_dir,sSiz);
 
   // get binDir
   binDir = getenv("gcad_dir_bin");
-    // printd("## GUI_file_symdir__-binDir |%s|\n",binDir);
+    printf(" GUI_file_symdir__-binDir |%s|\n",binDir);
 
-  // call GUI_dlg1_gtk2 list1
-  // <binDir>/GUI_dlg1_gtk2 list1 <symListfile> title
-  // sprintf(s2,"%sGUI_dlg1_%s list1 %s \"symbolic directory\" \"x40,y20\"",
-  sprintf(s2,
-"START \"\" /WAIT /B \"%sGUI_dlg1_%s\" list1 \"%s\" \"symbolic directory\" \"x40,y20\"",
-          binDir, sGui, fnSymDir);
-    // printd("## GUI_file_symdir__ |%s|\n",s2);
+  // get fnExe
+  sprintf(fnTmp, "%s/GUI_dlg1_%s",binDir,sGui);
+ 
+  // call exe, get output into par_dir
+  irc = OS_exe_file__ (par_dir, sizeof(par_dir), fnTmp,
+          "list1",
+          par_sym,
+          "- select symbolic directory -", 
+          "x40,y20",
+	  NULL);
 
-  irc = OS_sys1 (sDir, sSiz, s2);
-  if(irc < 0) {printf("***** symdir__ - Error OS_sys1 %d\n",irc); return -1;}
-  UTX_CleanCR (sDir);
-    // printd("## GUI_file_symdir__-in %d |%s|\n",irc,sDir);
-
-
-  //----------------------------------------------------------------
+  // output par_dir is a symbolic directory; get full path
   // get path for symbol s1  -> s3
-  if((fpi=fopen(fnSymDir,"r")) == NULL) {
-    printf("***** symdir__ - Error Open E002 %s\n",fnSymDir);
+  if((fpi=fopen(par_sym,"r")) == NULL) {
+    printf("***** symdir__ - Error Open E002 %s\n",par_sym);
     return -2;
   }
 
-  il = strlen(sDir);
+  il = strlen(par_dir);
   while(fgets(s2, sizeof(s2), fpi) != NULL) {
     if(s2[0] == '#') continue;
-    if(!strncmp(sDir,s2,il)) {
+    if(!strncmp(par_dir,s2,il)) {
       p1 = strchr(s2, ' ');
-      if(!p1) {printf("***** symdir__ - Error E003 %s\n",sDir); return -3;}
+      if(!p1) {printf("***** symdir__ - Error E003 %s\n",par_dir); return -3;}
       while(*p1 == ' ') ++p1;    // skip leading blanks
       UTX_CleanCR (p1); // remove follow. CR
         // printf("##  symdir__-2 |%s|\n",p1);
       if(strlen(p1) < sizeof(s3)) {
         strcpy (s3, p1);
-          // printd("##  symdir__-2 |%s|\n",s3);
+          printd("##  symdir__-2 |%s|\n",s3);
         break;
       } else {
-        printf("***** GUI_file_symdir__ - Error Open E004\n");
+        printf("***** symdir__ - Error Open E004\n");
         fclose(fpi);
         return -4;
       }
@@ -332,33 +158,35 @@ static char* AP_tmp_dir = "/tmp/";
   }
 
   fclose(fpi);
+    printf("## GUI_file_symdir__-s3 |%s|\n",s3);
+
 
 
   //----------------------------------------------------------------
   // expand shell variables in filenames eg "${DIR_DEV}cadfiles/dxf/"
-  irc = OS_filnam_eval (sDir, s3, sSiz);
-     printd("##  symdir__-3 |%s|\n",sDir);
+  irc = OS_osVar_eval__ (par_dir, s3, sSiz);
+     printf("##  symdir__-3 |%s|\n",par_dir);
 
 
 
   //----------------------------------------------------------------
   // test if directory exists
-  if((irc) || (!OS_checkFilExist(sDir,1))) {
-    // directory sDir does not exist;
-      printd("##  dir__ |%s| does not exist\n",sDir);
+  if((irc) || (!OS_checkFilExist(par_dir,1))) {
+    // directory par_dir does not exist;
+      printd("##  dir__ |%s| does not exist\n",par_dir);
 
-    // sprintf(s2,"%sGUI_dlg1_%s info \"ERROR - Directory %s does not exist\"",
-    sprintf(s2,
-"START \"\" /WAIT /B \"%sGUI_dlg1_%s\" info \"ERROR - Directory %s does not exist\"",
-            binDir, sGui, sDir);
-      printd("##  symdir__-4 |%s|\n",s2);
+    sprintf(s2,"*** ERROR - Directory %s does not exist",par_dir);
 
-    OS_sys1 (sDir, sSiz, s2);
-    sDir[0] = '\0';
+    // call exe, get output into par_dir
+    irc = OS_exe_file__ (par_dir, sizeof(par_dir), fnTmp,
+            s2,
+	    NULL);
+
+    par_dir[0] = '\0';
     return -5;
   }
 
-    printd("##  ex-GUI_file_symdir__ |%s|\n",sDir);
+    printd("##  ex-symdir__ |%s|\n",par_dir);
 
 
   return 0;
@@ -370,25 +198,25 @@ static char* AP_tmp_dir = "/tmp/";
  int GUI_file_cb_open (void *parent, void *data) {
 //================================================================
 //  callback double-click on file ..
-
+    
   char    *filename;
-
+  
   printd("## GUI_file_cb_open \n");
-
+  
   // GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
   filename = gtk_file_chooser_get_filename (parent);
-    printd("##  fn |%s|\n",filename);
-
-  if(strlen(filename) < sizeof(fnOut)) strcpy(fnOut,filename);
+  printd("##  fn |%s|\n",filename);
+  
+  if(strlen(filename) < sizeof(sbuf1)) strcpy(sbuf1,filename);
   g_free (filename);
 
 
   //----------------------------------------------------------------
   gtk_widget_destroy (wfl1);
-
+  
   // exit; return parameters
-  return GUI_file_exit (fnOut);
-
+  return GUI_file_exit (sbuf1);
+    
 }
 
 
@@ -406,7 +234,7 @@ static char* AP_tmp_dir = "/tmp/";
   txt = (char*) gtk_entry_get_text (GTK_ENTRY(parent));
 
 
-  printd("## GUI_file_cb_filt |%s|\n",sFilter);
+  printd("## GUI_file_cb_filt |%s|\n",par_flt);
 
   i1 = strlen(txt);
   if(strlen(txt) < 1) txt = all;
@@ -422,36 +250,34 @@ static char* AP_tmp_dir = "/tmp/";
 
 
 //================================================================
-  int GUI_file_save__ () {
+  int GUI_save__ () {
 //================================================================
 
 // file:///usr/share/gtk-doc/html/gtk3/GtkFileChooserDialog.html
 
   int       irc;
-  char      s1Dir[256], *filename;
+  char      s1Dir[400], *filename;
   GtkWidget *wb1, *we1, *wl1;
   char fDir[256], fNam[128];
   gint res;
 
 
-  printd("## GUI_file_save__\n");
+  printd("## GUI_save__\n");
 
   // prepare filename, title
-  if(nArg < 6)  return GUI_file_err1 ();
-  sDir     = paArg[2];
-  fnSymDir = paArg[3];
-  sFilter  = paArg[4];
-  sTit     = paArg[5];
+  if(nArg < 5)  return GUI_file_err1 ();
+  par_dir = parLst[1];
+  par_sym = parLst[2];
+  par_flt = parLst[3];
+  par_tit = parLst[4];
 
 
-  // separate sDir, sNam
-  UTX_fnam1__ (fDir, fNam, sDir);
-    printd("## _save__ fDir |%s| fNam |%s|  sDir |%s|\n",fDir,fNam,sDir);
-
-  fnOut[0] = '\0';
+  // separate par_dir, sNam
+  UTX_fnam1__ (fDir, fNam, par_dir);
+    printd("## _save__ fDir |%s| fNam |%s|  par_dir |%s|\n",fDir,fNam,par_dir);
 
   // prepare title
-  sprintf(title, "%s %s",sTit,sDir);
+  sprintf(title, "%s %s",par_tit,par_dir);
 
 
   //----------------------------------------------------------------
@@ -471,8 +297,8 @@ static char* AP_tmp_dir = "/tmp/";
   // copy directory, filename
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (wfl1), fDir);
   gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (wfl1), fNam);
-  // gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (wfl1), sDir);
-  // gtk_file_chooser_set_current_folder_uri  (GTK_FILE_CHOOSER (wfl1), sDir);
+  // gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (wfl1), par_dir);
+  // gtk_file_chooser_set_current_folder_uri  (GTK_FILE_CHOOSER (wfl1), par_dir);
 
 
   // add filter- entry
@@ -484,9 +310,9 @@ static char* AP_tmp_dir = "/tmp/";
   g_signal_connect (G_OBJECT (we1),
                     "activate", G_CALLBACK (GUI_file_cb_filt), NULL);
 
-  // if(sFilter) load into we1
-  if(strcmp(sFilter, "NONE"))
-    gtk_entry_set_text (GTK_ENTRY(we1), sFilter);
+  // if(par_flt) load into we1
+  if(strcmp(par_flt, "NONE"))
+    gtk_entry_set_text (GTK_ENTRY(we1), par_flt);
 
   wl1 = gtk_label_new ("  Filter");
   gtk_container_add (GTK_CONTAINER (wb1), wl1);
@@ -496,7 +322,7 @@ static char* AP_tmp_dir = "/tmp/";
   gtk_widget_show (wl1);
   gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (wfl1), wb1);
 
-  if(strcmp(sFilter, "NONE"))
+  if(strcmp(par_flt, "NONE"))
     GUI_file_cb_filt (we1, NULL);
 
 
@@ -515,7 +341,7 @@ static char* AP_tmp_dir = "/tmp/";
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
     filename = gtk_file_chooser_get_filename (chooser);
     if(!filename) goto L_wait;
-    if(strlen(filename) < sizeof(fnOut)) strcpy(fnOut,filename);
+    if(strlen(filename) < sizeof(sbuf1)) strcpy(sbuf1,filename);
     g_free (filename);
 
 
@@ -535,11 +361,11 @@ static char* AP_tmp_dir = "/tmp/";
 
     if(strlen(s1Dir) > 1) {
       // update title
-      sprintf(title, "%s %s", sTit, s1Dir);
+      sprintf(title, "%s %s", par_tit, s1Dir);
       gtk_window_set_title (GTK_WINDOW (wfl1), title);
       // add filter or "*"
-      // if(strcmp(sFilter, "NONE")) strcat (s1Dir, sFilter);
-      strcat (s1Dir, "*");
+      // if(strcmp(par_flt, "NONE")) strcat (s1Dir, par_flt);
+      // strcat (s1Dir, "*"); - makes MSYS-gtk2 Error
       gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER(wfl1), s1Dir);
     }
 
@@ -555,42 +381,35 @@ static char* AP_tmp_dir = "/tmp/";
   gtk_widget_destroy (wfl1);
 
   // exit; return parameters
-  return GUI_file_exit (fnOut);
+  return GUI_file_exit (sbuf1);
 
 }
 
 
 //================================================================
-  int GUI_file_open__ () {
+  int GUI_open__ () {
 //================================================================
 
 // file:///usr/share/gtk-doc/html/gtk3/GtkFileChooserDialog.html
 
   int       irc;
-  char      s1Dir[400], *filename, s2[400];
+  char      s1Dir[400], *filename, s2[256];
   GtkWidget *wb1, *we1, *wl1;
   gint res;
 
 
-  printd("## GUI_file_open__\n");
+  printf("## GUI_open__\n");
 
   // prepare filename, title
-  if(nArg < 6)  return GUI_file_err1 ();
-  sDir     = paArg[2];
-  fnSymDir = paArg[3];
-  sFilter  = paArg[4];
-  sTit     = paArg[5];
-
-  printd("## GUI_file_open__ 2 |%s|\n",sDir);
-  printd("## GUI_file_open__ 3 |%s|\n",fnSymDir);
-  printd("## GUI_file_open__ 4 |%s|\n",sFilter);
-  printd("## GUI_file_open__ 5 |%s|\n",sTit);
+  if(nArg < 5)  return GUI_file_err1 ();
+  par_dir = parLst[1];    // dir to open
+  par_sym = parLst[2];    // sym-file
+  par_flt = parLst[3];
+  par_tit = parLst[4];
 
 
   //----------------------------------------------------------------
-  fnOut[0] = '\0';
- 
-  wfl1 = gtk_file_chooser_dialog_new ("Open File",
+  wfl1 = gtk_file_chooser_dialog_new ("OPEN File",
                                         NULL,                // parent_window
                                         GTK_FILE_CHOOSER_ACTION_OPEN,
                                         ("SYM-DIR"),  2,
@@ -601,7 +420,7 @@ static char* AP_tmp_dir = "/tmp/";
   // connect Enter / double-click
   g_signal_connect (G_OBJECT (wfl1),
                     "file-activated", G_CALLBACK (GUI_file_cb_open), NULL);
-  
+
   // add filter- entry
   wb1 = gtk_hbox_new (FALSE, 0);    // gtk2 !
   // wb1 = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);    // gtk3 !
@@ -611,14 +430,14 @@ static char* AP_tmp_dir = "/tmp/";
   g_signal_connect (G_OBJECT (we1),
                     "activate", G_CALLBACK (GUI_file_cb_filt), NULL);
 
-  strcpy(s1Dir, sDir);
+  strcpy(s1Dir, par_dir);
   strcat(s1Dir, "*");
   gtk_file_chooser_set_filename (GTK_FILE_CHOOSER(wfl1), s1Dir);
   // gtk_file_chooser_set_current_folder (..);
 
-  // if(sFilter) load into we1
-  if(strcmp(sFilter, "NONE"))
-    gtk_entry_set_text (GTK_ENTRY(we1), sFilter);
+  // if(par_flt) load into we1
+  if(strcmp(par_flt, "NONE"))
+    gtk_entry_set_text (GTK_ENTRY(we1), par_flt);
 
   wl1 = gtk_label_new ("  Filter");
   gtk_container_add (GTK_CONTAINER (wb1), wl1);
@@ -629,7 +448,7 @@ static char* AP_tmp_dir = "/tmp/";
 
   gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (wfl1), wb1);
 
-  if(strcmp(sFilter, "NONE"))
+  if(strcmp(par_flt, "NONE"))
     GUI_file_cb_filt (we1, NULL);
 
   // gtk_window_set_transient_for (GTK_WINDOW(wfl1),  NULL);
@@ -639,7 +458,7 @@ static char* AP_tmp_dir = "/tmp/";
   // wait for user-select
   L_wait:
   res = gtk_dialog_run (GTK_DIALOG (wfl1));
-    printd("## f-dialog_run %d\n",res);
+    printf(" f-dialog_run %d\n",res);
 
 
   if (res == 0) {
@@ -652,9 +471,9 @@ static char* AP_tmp_dir = "/tmp/";
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(wfl1);
     filename = gtk_file_chooser_get_filename (chooser);
     if(!filename) goto L_wait;
-    if(strlen(filename) < sizeof(fnOut)) {
-        printd("## chooser-get |%s|\n",filename);
-      strcpy(fnOut,filename);
+    if(strlen(filename) < sizeof(sbuf1)) {
+        printf("## chooser-get |%s|\n",filename);
+      strcpy(sbuf1,filename);
     }
     g_free (filename);
 
@@ -669,14 +488,14 @@ static char* AP_tmp_dir = "/tmp/";
     irc = GUI_file_symdir__ (s1Dir, sizeof(s1Dir));
     if(irc < 0) {
       // error or cancel in symdir__
-        printd("## **** error symdir__ %d |%s|\n",irc,s1Dir);
+        printf("## **** error symdir__ %d |%s|\n",irc,s1Dir);
       s1Dir[0] = '\0';
     }
 
 
     if(strlen(s1Dir) > 1) {
       // add filter or "*"
-      // if(strcmp(sFilter, "NONE")) strcat (s1Dir, sFilter);
+      // if(strcmp(par_flt, "NONE")) strcat (s1Dir, par_flt);
       strcat (s1Dir, "*");
       gtk_file_chooser_set_filename (GTK_FILE_CHOOSER(wfl1), s1Dir);
     }
@@ -694,7 +513,7 @@ static char* AP_tmp_dir = "/tmp/";
   gtk_widget_destroy (wfl1);
 
   // exit; return parameters
-  return GUI_file_exit (fnOut);
+  return GUI_file_exit (sbuf1);
 
 }
 
@@ -703,27 +522,23 @@ static char* AP_tmp_dir = "/tmp/";
   int main (int argc, char *argv[]) {
 //================================================================
 // Input:
-//   argv[i1]   start-directory for file-selection; -> sDir, sNam
-//   argv[i2]   filename of symbolic-directories    -> fnSymDir
-//   argv[i3]   filterText  (eg "*")                -> sFilter
-//   argv[i4]   window-title                        -> sTit
+//   [1]   start-directory for file-selection; -> par_dir, sNam
+//   [2]   filename of symbolic-directories    -> par_sym
+//   [3]   filterText  (eg "*")                -> par_flt
+//   [4]   window-title                        -> par_tit
 // Output:
 //   stdout     full selected filename; empty for Cancel;
 
-
-  int        i1;
-
-  paArg = argv;
-  nArg = argc;
-
-  if(nArg < 3) return (GUI_file_err1());
+  int        irc,i1;
 
 
-#ifdef DEB
-  DEB_prt_init (1); // init "printd"-file
-  printd("***** start exe GUI_file V1.0 ..\n");
-  for(i1=0; i1<argc; ++i1) printd("## GUI_file argv[%d]=|%s|\n",i1,argv[i1]);
-#endif
+  printf("***** start exe GUI_file V2.0 %d\n",argc);
+
+  if(argc < 2) return (GUI_file_err1());
+
+
+  for(i1=0; i1<argc; ++i1) printf("## GUI_file argv[%d]=|%s|\n",i1,argv[i1]);
+  printf(" DEB_prt_stat = %d\n",DEB_prt_stat);
 
 
   gtk_disable_setlocale ();  // sonst Beistrich statt Decimalpunkt !! (LC_ALL)
@@ -731,10 +546,31 @@ static char* AP_tmp_dir = "/tmp/";
   i1 = 0;
   gtk_init (&i1, NULL);
 
-  if(!strcmp(argv[1],"open"))  return GUI_file_open__ ();
-  if(!strcmp(argv[1],"save"))  return GUI_file_save__ ();
+  fnIn = argv[1];
+
+  // get filename fnOut from fnIn
+  irc = GUI_file_out_in (fnOut, fnIn);
+
+  // get parLst = content of file fnIn
+  parLst = OS_wTab_file (&wTabSpc, fnIn);
+
+  nArg = 0;
+  while(parLst[nArg]) {
+    printf("## %d = %s\n",nArg,parLst[nArg]);
+    ++nArg;
+  }
+
+ 
+  if(!strcmp(parLst[0],"open"))  return GUI_open__ ();
+  if(!strcmp(parLst[0],"save"))  return GUI_save__ ();
 
   gtk_main ();
+
+
+  L_inpErr:
+    printf("***** error input parameter %d .. \n",i1);
+    return -1;
+
 
   return 0;
 }
@@ -761,15 +597,25 @@ static char* AP_tmp_dir = "/tmp/";
 //================================================================
 // exit - provide selection to caller via stdout
 
-  printf("%s\n", sOut);  // to provide to caller via stdout
-  fflush(stdout);
+  FILE    *fpo;
 
-#ifdef DEB
-  printd("## exit-GUI_file_exit |%s|\n",sOut);
-  DEB_prt_init (0); // close "printd"-file
-#endif
+
+  printf("GUI_file_exit out  |%s|\n",sOut);
+  printf("GUI_file_exit fn = |%s|\n",fnOut);
+
+
+  if((fpo=fopen(fnOut,"w")) == NULL) {
+    printf("***** Error GUI_file GUI_file_exit Open %s\n",fnOut);
+    exit(1);
+  }
+
+  fprintf(fpo, "%s\n",sOut); 
+  fclose(fpo);
 
   // gtk_widget_destroy (wfl1);
+
+  // remove inputFile
+  OS_file_delete (fnIn);
 
   exit(0);
 
@@ -783,8 +629,7 @@ static char* AP_tmp_dir = "/tmp/";
   int   i1;
 
   printf("ERROR GUI_file error parameters\n");
-  for(i1=0; i1<nArg; ++i1) printf("## GUI_file argv[%d]=|%s|\n",i1,paArg[i1]);
-
+  for(i1=0; i1<nArg; ++i1) printf("## GUI_file argv[%d]=|%s|\n",i1,parLst[i1]);
   exit(1);
 
 }

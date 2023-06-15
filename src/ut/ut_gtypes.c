@@ -95,8 +95,8 @@ List_functions_end:
 
 //----------------------------------------------------------------
   static char *TypTxtTab0[]={
-//0         1         2         3         4
-//5         6         7         8         9
+// 0         1         2         3         4
+// 5         6         7         8         9
   "Error",  "Var",    "Vec",    "PT",     "LN",        // 0-
   "CI",     "-",      "-",      "-",      "-",
   "VC2",    "PT2",    "LN2",    "CI2",    "CI2C",      // 10-
@@ -109,18 +109,20 @@ List_functions_end:
   "CvEll2", "CvEll2C","CvBez2", "CvCcv",  "-"};
 
   static char *TypTxtTab40[]={                         // 40-
-  "PLN"};
+  "PLN",     "Refsys","------", "------", "------",
+  "------", "------", "------", "------", "------" };
 
   static char *TypTxtTab50[]={
   "SUR",    "SurCon", "SurTor", "SurRU",  "SurRV",     // 50-
   "SurSwp", "SurBsp", "SurRBsp","SurPln", "SurTP",
   "SurHat", "SurCir", "SurStrip","SurBnd","SurMsh",    // 60-
   "SurPtab","SurFac3","SurFacQ","SurTri", "SurSup",
-  "SurGL_", "SurGLpp","SurGLpo","SurGLis","SurEdg"};   // 70-
+  "SurGL_", "SurGLpp","SurGLcv","SurGLis","SurEdg",    // 70-
+  "Fac3--", "Tria--", "GL-Tri", "TriFan", "TriStr"};
 
   static char *TypTxtTab80[]={
   "SOL",    "Sphere", "Conus",  "Torus",  "Prism",     // 80-
-  "BREP"};
+  "BREP",   "------", "------", "------", "------"};
 
   static char *TypTxtTab90[]={
   "Note",   "TxtA",   "TxtG",   "Dimen",  "Dim3",      // 90-
@@ -162,7 +164,8 @@ List_functions_end:
   "Memspc", "MemTab", "IndTab", "IgaTab", "ObjSRC",    // 200-
   "ObjGX",  "ObjTab", "ObjBin", "ObjDB",  "ObjAto"};   // 205-
   static char *TypTxtTab210[]={   /// transformations
-  "Tra",    "TraTra", "TraRot", "TraMat", "------"};   // 210-
+  "Tra",    "TraTra", "TraRot", "TraMat", "------",    // 210-
+  "------", "------", "------", "------", "------"};
   static char *TypTxtTab220[]={   /// operators
   "Ope__",  "OpeEQ",  "OpeNE",  "OpeLT",  "OpeGT",     // 220-
   "OpeGE",  "OpeLE",  "OpeAND", "OpeOR",  "Mod"};
@@ -194,8 +197,10 @@ List_functions_end:
   static char *TypTxtTab1020[]={   /// selectionModifiers
   "FncVAR1","FncVAR2","FncVC1", "FncVC2", "FncNxt",    // 1020-
   "FncPrv", "FncDirX","FncOnO", "FncOnC", "Fnc---"};
-  static char *TypTxtTab1100[]={   /// aux
-  "ValSymTyp","StrDir1","Obj0", "------",  "------"};  // 1100-
+  static char *TypTxtTab1050[]={   /// aux
+  "EOT---", "------", "------", "------", "------"};
+//   static char *TypTxtTab1100[]={   /// aux
+//   "ValSymTyp","StrDir1","Obj0", "------",  "------"};  // 1100-
 //  0         1         2         3         4
 //  5         6         7         8         9
 
@@ -290,7 +295,7 @@ char  *ObjCodTab[] = {
 // last word must be "" !
 
 // die zugehoerige enum ist Typ_Cmd1 in ../ci/NC_apt.h
-// unused: RI LE HI LO
+// UNUSED: HI LO RI LE BLEND
 // nur f WCUT: MA RADI RADC T_MA T_RISO T_RCON
 
 
@@ -818,9 +823,11 @@ char  *ObjCodTab[] = {
   else if(typ < 230)      p1 = TypTxtTab220[typ - 220];
   else if(typ < 260)      p1 = TypTxtTab230[typ - 230];
   else if(typ < 270)      p1 = TypTxtTab260[typ - 260];
-  else if(typ < 1000)     p1 = TypTxtTab270[typ - 270];
-  else if(typ < 1020)     p1 = TypTxtTab1000[typ - 1000];
-  else if(typ < 1100)     p1 = TypTxtTab1020[typ - 1020];
+  else if(typ < 300)      p1 = TypTxtTab270[typ - 270];      // TYPE_STRU_NR = 300
+  // else if(typ < 1000)     p1 = TypTxtTab270[typ - 270];
+  // else if(typ < 1020)     p1 = TypTxtTab1000[typ - 1000];
+  // else if(typ < 1050)     p1 = TypTxtTab1020[typ - 1020];
+  // else if(typ < 1100)     p1 = TypTxtTab1020[typ - 1050];
   else                    goto L_err1;
 
     // printf("ex AP_src_typ__ %d |%s|\n",typ,p1);
@@ -1382,14 +1389,17 @@ char  *ObjCodTab[] = {
 //================================================================
   int AP_typ_FncNam (char *fncNam, int sLen) {
 //================================================================
-// get type of function
-
+// AP_typ_FncNam                               get type of function
+// - 'P'    -> Typ_PT    (obj-typ P,L,C,S,A,B,..)
+// - 'X'    -> Typ_XVal  (X,Y,Z)
+// - "VAL"  -> Typ_Val   (Fc1TypTab)
+// - "SQRT" -> Typ_Val   (FcmTxtTab)
 // Input
-//   fncNam     must be uppercase
+//   fncNam    must be uppercase
 // RetCod:
-//   >=0         type of function eg Typ_Angle or Typ_FcmSQRT
-//   -1   unknown function
-//   -2   functionName too long
+//   >=0       type of function eg Typ_Angle or Typ_FcmSQRT
+//   -1        unknown function
+//   -2        functionName too long
 
 // see also APT_decode_func ObjCodTab,
 
@@ -1415,7 +1425,7 @@ char  *ObjCodTab[] = {
   //----------------------------------------------------------------
   if(sLen > 1) goto L_fnc1;
 
-  // test for obj-typ
+  // test for obj-typ (P,L,C,S,A,B,..)
   iTyp = AP_typ_typChar (*s1);
   if(iTyp) goto L_exit;
 
@@ -1447,7 +1457,7 @@ char  *ObjCodTab[] = {
   //----------------------------------------------------------------
   L_exit:
 
-  // printf("ex AP_typ_FncNam %d %d |%s|\n",iTyp,sLen,fncNam);
+    // printf("ex AP_typ_FncNam %d %d |%s|\n",iTyp,sLen,fncNam);
 
   return iTyp;
 

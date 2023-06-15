@@ -380,15 +380,14 @@ int      PRCV_REC_SIZ =  sizeof(Point) + sizeof(double) + sizeof(long);
 //================================================================
   int PRCV_get_dbo__ (CurvPrcv *prc1) {
 //================================================================
-/// \code
-/// get PRCV for DB-obj (typ/dbi)
-///   Memspc for point, parameters must have been provided with PRCV_DB_spc_ini
-///   MUST NOT free prc1
-/// Input:
-///   prc1     typ,dbi,mdli must be set; prc1 = PRCV0
-/// Output:
-///   prc1     ptNr,npt,npar,nipt
-/// \endcode
+// PRCV_get_dbo__                  get PRCV for DB-obj (typ/dbi)
+//   Memspc for point, parameters must have been provided with PRCV_DB_spc_ini
+//   MUST NOT free prc1
+// Input:
+//   prc1     typ,dbi,mdli must be set; prc1 = PRCV0
+// Output:
+//   prc1     ptNr,npt,npar,nipt
+//   retCode  0=OK; 
 
 
 

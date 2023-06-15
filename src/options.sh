@@ -21,7 +21,7 @@
 
 # test if active directory is xx/gcad3d/src/APP
 
-
+echo entering options
 
 ## test if active directory is xx/gcad3d/src/APP
 #S2=`expr length ${PWD} - 14`
@@ -64,10 +64,12 @@ mkdir -p ${gcad_dir_bin}plugins/
 mkdir -p ${gcad_dir_bin}plugins/cut1/
 
 
+echo -exit options:
 echo "DIR_DEV=|"${DIR_DEV}"|"
 echo "DIR_BIN=|"${DIR_BIN}"|"
-#echo "gcad_dir_dev=|"${gcad_dir_dev}"|"
-#echo "gcad_dir_bin=|"${gcad_dir_bin}"|"
+echo "gcad_dir_dev=|"${gcad_dir_dev}"|"
+echo "gcad_dir_bin=|"${gcad_dir_bin}"|"
+echo
 
 # use it with ". ./options.sh"
 

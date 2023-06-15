@@ -132,7 +132,7 @@ newCC = UT3D_CCV_NUL;      // create empty CurvCCV
 
 
 
-#include "../ut/ut_cast.h"                // INT_PTR
+#include "../ut/ut_cast.h"                // INT__PTR
 #include "../ut/ut_geo.h"
 #include "../ut/ut_geo_const.h"           // UT3D_CCV_NUL
 #include "../ut/func_types.h"             // UI_Func... SYM_..
@@ -585,7 +585,7 @@ REPLACED by UTO_obj__ccv_segnr
   // } else if(oSeg->form == Typ_Index) {
 
   if(oSeg->form == Typ_Index) {
-    ind = LONG_PTR (oSeg->data);
+    ind = LONG__PTR (oSeg->data);
     // printf(" typ=%d ind=%d\n",oSeg->typ, ind);
     *oxo = DB_GetObjGX (oSeg->typ, ind);
 

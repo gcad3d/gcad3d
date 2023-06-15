@@ -121,7 +121,7 @@ APT_work_PrgCmd   :4217
 
 #include "../ut/ut_geo.h"              // ModelRef
 #include "../ut/ut_txt.h"              // fnam_del
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_memTab.h"
 
 #include "../gui/gui__.h"              // Gtk3
@@ -165,7 +165,7 @@ APT_work_PrgCmd   :4217
 
   //----------------------------------------------------------------
   // get name for new catalog into cbuf1
-  irc = AP_GUI__ (cbuf0, sizeof(cbuf0), "GUI_dlg1", "dlgbe",
+  irc = OS_exe_file__ (cbuf0, sizeof(cbuf0), "GUI_dlg1", "dlgbe",
                 "\" name for new catalog: \"",
                 "Cancel",
                 "OK",
@@ -262,7 +262,7 @@ APT_work_PrgCmd   :4217
 //                        NULL, " select Catalog", fnam,
 //                        "1", NULL, "60,40");
 
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"select Catalog\"", "\"x40,y30\"");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "- select Catalog -", "x40,y30");
   if(i1 < 0) return -1;
 
   CTLG_Mod_CB (s1);
@@ -339,7 +339,7 @@ APT_work_PrgCmd   :4217
 
   // let user select from list of <symDir-CATALOG>/*.ctlg
   sprintf(fnam,"%sCatalog.lst",AP_get_tmp_dir());
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"delete Catalog\"", "\"x40,y30\"");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "- delete Catalog -", "x40,y30");
   if(i1 < 0) return -1;
 
   // CTLG_Del_CB (s1);

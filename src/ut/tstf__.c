@@ -242,9 +242,11 @@ int test_hide_last (char *txt) { printf("test_hide_last\n"); return 0; }
     UTX_pos_skipLeadBlk (p1);
       printf(" TSTF-userCmd |%s|\n",p1);
     // call function TSTF_cb with parameters p1
-    strcpy(s2, "TSTF_cb ");
-    strcat(s2, p1);
-    DLL_run2 (s2, 2);
+    // strcpy(s2, "TSTF_cb ");
+    // strcat(s2, p1);
+    // start function <s2> in active plugin
+    // DLL_run2 (s2, 2);
+    irc = DLL_plu_exec ("TSTF_cb", (void*)p1);
   }
 
   irc = 0;

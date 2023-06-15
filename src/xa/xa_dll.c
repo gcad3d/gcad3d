@@ -18,7 +18,7 @@
 TODO:
 Noch hierher kopieren:
  DLL_run2
- OS_dll_build
+ DLL_build
 
 -----------------------------------------------------
 Modifications:
@@ -33,16 +33,16 @@ Modifications:
 =====================================================
 List_functions_start:
 
-DLL_run1         connect oder run oder unload DLL.
-DLL_run2         build & connect & run & unload DLL.
-DLL_unload       unload a dll (idle-callback)
+DLL_plu_unl      unload user-plugin
+DLL_plu__        (re)start user-plugin
+DLL_plu_exec     start function in active plugin
 
 List_functions_end:
 =====================================================
 
 See also:
 OS_dll__
-OS_dll_build      Compile, Link.
+DLL_build      Compile, Link.
 OS_debug_dll_
 
 \endcode *//*----------------------------------------
@@ -53,11 +53,12 @@ OS_debug_dll_
 
 
 
-#ifndef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
+#include <windows.h>
+#else
+// Linux:
 // fuer gl.h erforderl !!
 #include <dlfcn.h>           // Unix: dlopen
-#else
-#include "../xa/MS_Def1.h"         // f. HINSTANCE: windows.h !
 #endif
 
 
@@ -71,38 +72,164 @@ OS_debug_dll_
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/func_types.h"             // FUNC_Pan FUNC_Rot FUNC_LOAD ..
 #include "../ut/ut_os.h"               // AP_get_bas_dir ..
+#include "../ut/os_dll.h"      // DLL_LOAD_only DLL_CONNECT DLL_EXEC ..
+
 #include "../xa/xa.h"                  // AP_STAT
 
 
-
+void *ptr_PLU = NULL;
 
 
 //===============================================================
 // Externe Variablen:
 
 
-/*
 //================================================================
-  int DLL_run2 (void **dll, void *fdat, int mode) {
+  int DLL_plu_fini () {
 //================================================================
-/// Input:
-///   mode       0 = load <dllNam>, start <fncNam>,  unload
-///              1 = load <dllNam>, start <fncNam>
-///              2 = start <fncNam>
-///              2 = unload <dllNam>
+// DLL_plu_unl        unload user-plugin
+
+  int     irc;
+
+  printf("DLL_plu_fini \n");
+
+  if(ptr_PLU) {
+    // close plugin
+    irc = DLL_dyn__ (&ptr_PLU, DLL_CONNECT, "gCad_fini");
+    if(irc < 0) return -1;
+    irc = DLL_dyn__ (&ptr_PLU, DLL_EXEC, NULL);
+    if(irc < 0) return -1;
+  }
+
+  return 0;
+
+}
 
 
-  //----------------------------------------------------------------
-  if 
-*/
+//================================================================
+  int DLL_plu_unl () {
+//================================================================
+// DLL_plu_unl        unload user-plugin
 
+  int     irc;
+
+  printf("DLL_plu_unl \n");
+
+  if(ptr_PLU) {
+    // close plugin
+    irc = DLL_plu_fini ();
+    if(irc < 0) return -1;
+    // unload active dll
+    irc = DLL_dyn__ (&ptr_PLU, DLL_UNLOAD, NULL);
+    if(irc < 0) return -1;
+    AP_stat.APP_stat = 0;
+  }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int DLL_plu_exec (char *func, void *data) {
+//================================================================
+// DLL_plu_exec         start function in active plugin
  
+  int    irc;
+
+  printf("DLL_plu_exec |%s|\n",func);
+
+
+  irc =  DLL_dyn__ (&ptr_PLU, DLL_CONNECT, func);
+  if(irc < 0) return -1;
+
+  return DLL_dyn__ (&ptr_PLU, DLL_EXEC, data);
+
+}
+
+
+//================================================================
+  int DLL_plu__ (char *dllNam, void *data) {
+//================================================================
+// DLL_plu__        (re)start user-plugin
+// Input: dllNam              without directory, filetyp
+// was DLL_run2 OS_dll__
+
+// APP_act_typ=3 (plugin)
+// APP_act_nam=dllNam
+
+  int    irc, iNew, iComp, (*up1)();
+  char   s1[256];
+
+static char actNam[128] = "abc";
+
+
+  printf("DLL_plu__ |%s|%s|\n",dllNam,actNam);
+
+
+  if(strlen(dllNam) >= 128) {
+    TX_Error("DLL_plu__ - plugin-name too long");
+    goto L_exit;
+  }
+
+
+  // test if reBuild wanted
+  iComp = AP_ck_build ();  // 1=yes, else no
+ 
+
+  // compare if function already active; 0=ident; 1=diff.
+  iNew = strcmp(dllNam, actNam);
+    printf(" DLL_plu__ iComp=%d iNew=%d\n",iComp,iNew);
+
+
+  // close dll already in use  if reBuilt or other plugin
+  if(ptr_PLU) {
+    if((iComp > 0) || iNew || AP_stat.APP_stat) {
+      // unload user-plugin (exec "gCad_fini" and unload)
+      irc = DLL_plu_unl ();
+      if(irc < 0) goto L_exit;
+    }
+  }
+
+
+  // rebuild
+  if(iComp > 0) {
+    irc = DLL_build (dllNam);
+    if(irc < 0) goto L_exit;
+  }
+
+
+  // load dll if rebuilt or new
+  if(ptr_PLU == NULL) {
+    sprintf(s1, "plugins%c%s", fnam_os_del, dllNam);  // fnam_os_del='/' or '\'
+    irc = DLL_dyn__ (&ptr_PLU, DLL_LOAD_only, s1);
+    if(irc < 0) return -1;
+    strcpy(actNam,dllNam);
+    AP_stat.APP_stat = 1;
+    UI_Set_actPrg (NULL, 2);    // set color=activated after rebuild
+  }
+
+
+  // connect function gCad_main() exec
+  irc = DLL_dyn__ (&ptr_PLU, DLL_CONNECT, "gCad_main");
+  if(irc < 0) goto L_exit;
+  irc = DLL_dyn__ (&ptr_PLU, DLL_EXEC, data);
+
+
+
+  L_exit:
+      printf(" ex-DLL_plu__ %d\n",irc);
+
+    return irc;
+
+}
+
+
+/*
 //================================================================
   int DLL_run1 (int mode, void *fdat) {
 //================================================================
-// DLL_run1         connect | run gCad_main(), gCad_fini() | unload DLL.
-// starts ALWAYS function gCad_main in the dll !
-// TODO: use DLL_run2
+// DLL_run1         cad-kernel extension; connect,run gCad_main(), unload.
 // 
 // Input:
 //   mode    0 Load DLL;  connect dll-Function "gCad_main"
@@ -123,7 +250,7 @@ OS_debug_dll_
   static void  *dll1 = NULL; // pointer to loaded dll
 
 
-  // printf("DLL_run1 %d\n",mode);
+  printf("DLL_run1 %d\n",mode);
   // if(mode == 0) printf(" DLL_run1 0 |%s|\n",(char*)fdat);
 
 
@@ -132,27 +259,6 @@ OS_debug_dll_
   if(mode != 0) goto L_2;
   // mode = 0         OPEN DLL, connect Function "gCad_main"
   // Input: fdat is the filename of mockup-modelfile
-
-  // extract filetype.
-//   irc = UTX_ftyp_s (ftyp, (char*)fdat, 1);
-//   if(irc < 0) {
-//     TX_Print("***** DLL_run1 E1 |%s|FileType not found",ftyp); return -1;
-//   }
-// 
-//   // change ftyp >lowercase
-//   UTX_chg_2_lower (ftyp);
-// 
-// 
-//   // fix DLL-FileName
-// // #ifdef _MSC_VER
-//   // sprintf(cBuf, "%s\\xa_%s_r.dll",AP_get_bin_dir(),ftyp);
-//   sprintf(cBuf, "xa_%s_r",ftyp);
-// // #else
-//   // sprintf(cBuf, "%s/xa_%s_r.so",AP_get_bin_dir(),ftyp);
-//   // sprintf(cBuf, "xa_%s_r",ftyp);
-// // #endif
-//     // printf(" soNam=|%s|\n",cBuf);
-
 
   // connect DLL..
   if(&dll1) {
@@ -187,351 +293,6 @@ OS_debug_dll_
   if(irc < 0) return irc;
 
   return 0;
-
-}
-
-
-///===================================================================
-  int DLL_run2 (char *soNam, int ccFlg) {
-///===================================================================
-/// activate & start gcad-plugin (gCad_main, gCad_fini only)
-/// TODO: use OS_dll__
-/// Input:
-///   soNam     plugin; max 62 chars; including ".so" or ".dll"
-///   ccFlg = 1 load plugin, do not recompile
-///           0 recompile and load plugin
-///           2 get adress of Function and call function
-///             soNam = "<functionName> <parameters>"
-///          -1 unload plugin   (DLL_run2("",-1);
-
-
-
-#ifdef _MSC_VER
-  static HINSTANCE hdl1=NULL;
-  typedef int (__stdcall *dllFuncTyp01)();
-  typedef int (__stdcall *dllFuncTyp02)(char*);
-  dllFuncTyp01 dll_up1;
-  dllFuncTyp02 dll_up2;
-
-
-#else
-  static void  *dl1 = NULL;
-  void  (*up1)();
-  int  (*up2)(char*);
-#endif
-
-  char cbuf[1024], *p1;
-
-
-
-  printf("DLL_run2 |%s| %d\n",soNam,ccFlg);
-
-
-  
-
-
-  //----------------------------------------------------------------
-  // save name of active application -> APP_act_nam
-  if((ccFlg == 0)||(ccFlg == 1)) {
-    if(strlen(soNam) > 64) {TX_Error("***** DLL_run2 E001"); return -1;}
-    strcpy(cbuf, soNam);
-    p1 = strchr(cbuf, '.');  // remove filetype
-    if(p1) *p1 = '\0';
-    else {TX_Error("DLL_run2 E002"); return -1;}
-    strcpy(APP_act_nam, cbuf);
-
-
-    // test if DLL-File exists
-    sprintf(cbuf, "%splugins%c%s",AP_get_bin_dir(),fnam_del,soNam);
-    if(OS_checkFilExist (cbuf, 1) == 0) {
-      // does not exist:
-      if(ccFlg > 0) {
-        TX_Error("***** FILE DOES NOT EXIST - DLL_run2 E003 |%s|",soNam);
-        return -1;
-      }
-    }
-
-
-  } else {
-    // ccFlg = 2:  delimit functionname - parameters at first blank
-    if(strlen(soNam) > 1024) {TX_Error("***** DLL_run2 input too long"); return -1;}
-    strcpy (cbuf, soNam);
-    p1 = strchr (cbuf, ' ');
-    if(p1) {*p1 = '\0'; ++p1; }
-    // else cbuf[0] = '\0';
-  }
-
-
-
-//======= VERSION WINDOWS ========================================
-#ifdef _MSC_VER
-
-  // get adress of Function and call function
-  if(ccFlg == 2) {
-    // get adress of Function
-    dll_up2 = (dllFuncTyp02) GetProcAddress (hdl1, cbuf);
-
-    // call function
-    if(dll_up2 != NULL) {
-      return (dll_up2(p1));
-    } else {
-      TX_Error ("***** DLL_run2 E005");
-      return -1;
-    }
-  }
-
-
-  // zuerst close DLL already in use ..
-  if (hdl1 != NULL) {
-    printf("unload ...\n");
-    dll_up1 = (dllFuncTyp01) GetProcAddress (hdl1, "gCad_fini");
-    dll_up1 ();         // call Func in Dll
-    AP_User_reset();    // reset-funcs, die bei MS-Win u Linux gleich sind
-    FreeLibrary(hdl1);
-    if(ccFlg < 0) {
-      TX_Print("plugin %s unloaded ..",APP_act_nam);
-      // APP_act_nam[0] = '\0';
-    }
-    hdl1 = NULL;                                  // 2010-09-02
-
-  } else {
-    if(ccFlg < 0) {
-      TX_Print("already unloaded ..");
-    }
-  }
-
-
-
-  // -1 = unload plugin done ..
-  if(ccFlg < 0) return 0;
-
-
-  // 0 = compile
-  if(ccFlg == 0) {
-    // reOpen Messagefiles ..
-    MSG_const_init (AP_lang);
-    MSG_Init (AP_lang);
-    if(OS_dll_build (soNam) != 0) {
-       TX_Print("***** Error compile/link %s",soNam);
-       return -1;
-    }
-  }
-
-
-
-  // load DLL
-  // strcpy(cbuf, soNam);
-  // printf("  open |%s|\n",cbuf);
-  hdl1 = LoadLibrary(cbuf);
-  if (hdl1 == NULL) {
-    TX_Error("cannot open dyn. Lib. %s",cbuf);
-    return -1;
-  }
-
-  // damit Debugger stoppt, nachdem DLL geladen wurde
-  p1 = strrchr(soNam, fnam_del);
-  if(p1 == NULL) p1 = soNam;
-  else ++p1;  // skip fnam_del
-  OS_debug_dll_(p1);
-
-  // display program = active
-  // display name of plugin in label UIw_prg in red
-  APP_act_typ = 3;
-  UI_Set_typPrg ();
-  UI_Set_actPrg (APP_act_nam, 2);  // display programName red
-  AP_stat.APP_stat = 1;            // plugin is active ..
-
-  // start gCad_main
-  dll_up1 = (dllFuncTyp01) GetProcAddress (hdl1, "gCad_main");
-  dll_up1 ();  // call Func in Dll
-
-
-
-
-//======= VERSION UNIX ========================================
-#else
-
-  // get adress of Function and call function
-  if(ccFlg == 2) {
-    // get adress of Function
-    up2 = dlsym (dl1, cbuf);
-    // call function
-    if(up2 != NULL) {
-      return (*up2)(p1);
-    } else {
-      TX_Error ("***** DLL_run2 E005");
-      return -1;
-    }
-  }
-
-
-  // zuerst close DLL already in use ..
-  if(dl1 != NULL) {
-      // printf("unload ...\n");
-    if(up1=dlsym(dl1,"gCad_fini")) {   // Adresse von Func. "gCad_fini" holen
-      (*up1)();               // gCad_fini must kill all open windows !!
-      AP_User_reset();        // reset-funcs, die bei MS-Win u Linux gleich sind
-      OS_dll_close (&dl1);    // unload DLL
-      dl1 = NULL;
-      if(ccFlg < 0) {
-        TX_Print("plugin %s unloaded ..",APP_act_nam);
-        // APP_act_nam[0] = '\0';
-      }
-    } else {
-      TX_Error("cannot close dyn. Lib.");
-      return -1;
-    }
-
-  } else {
-    if(ccFlg < 0) {
-      TX_Print("already unloaded ..");
-    }
-  }
-
-
-  // -1 = unload plugin done ..
-  if(ccFlg < 0) return 0;
-
-
-  // 0 = compile
-  if(ccFlg == 0) {
-    // reOpen Messagefiles ..
-    MSG_const_init (AP_lang);
-    MSG_Init (AP_lang);
-    if(OS_dll_build (soNam) != 0) {
-       TX_Print("***** DLL_run2 Error compile/link %s",soNam);
-       return -1;
-    }
-  }
-
-  // load DLL
-  dl1=dlopen(cbuf,RTLD_LAZY);
-  if(dl1 == NULL) {
-    TX_Error("cannot open dyn. Lib. %s",cbuf);
-    return -1;
-  }
-
-  // Adresse von Func."gCad_main" holen
-  up1=dlsym(dl1,"gCad_main");
-  if(up1 == NULL) {
-    TX_Error("***** DLL_run2 cannot open gCad_main");
-    return -1;
-  }
-
-  // damit Debugger stoppt, nachdem DLL geladen wurde
-  p1 = strrchr(soNam, fnam_del);
-  if(p1 == NULL) p1 = soNam;
-  else ++p1;  // skip fnam_del
-  OS_debug_dll_(p1);
-
-
-  // display program = active
-  // display name of plugin in label UIw_prg in red
-  APP_act_typ = 3;
-  UI_Set_typPrg ();
-  UI_Set_actPrg (APP_act_nam, 2);    // displ pluginName in red
-  AP_stat.APP_stat = 1;              // plugin is active ..
-
-
-  // start userprog
-    // printf(" before userprog\n");
-  (*up1)();
-    // printf(" after userprog\n");
-
-#endif
-//======= END VERSION UNIX ========================================
-
-  // AP_stat.APP_stat wird in gCad_fini -> AP_User_reset zurueckgesetzt !!
-  // if(ccFlg >= 0) AP_stat.APP_stat = 1;     // plugin is active ..
-  // else           AP_stat.APP_stat = 0;     // no plugin is active ..
-
-
-
-  return 0;
-
-}
-
-
-/*
-///===================================================================
-  int OS_dll_build (char *dllNam) {
-///===================================================================
-/// wenn .mak vorh: compile/link
-
-// dllNam   zB "xa_ige_r.so"   (ohne Pfad, mit Filetyp).
-
-  int  irc;
-  char cbuf[256];         // char cbuf[512];
-
-
-
-  printf("OS_dll_build |%s|\n",dllNam);
-
-
-#ifdef _MSC_VER
-  //------------------------- MS-Windows ----------------------------------
-  // sprintf(cbuf, "%sxa\\%s",AP_get_bas_dir(),dllNam);
-  sprintf(cbuf, "%s..\\src\\APP\\%s",AP_get_loc_dir(),dllNam);
-  // ".dll" -> ".nmak"
-  strcpy(&cbuf[strlen(cbuf)-4], ".nmak");
-    // printf(" exist: |%s|\n",cbuf);
-  if(OS_checkFilExist (cbuf, 1) == 0) goto L_err_nof;
-
-
-  TX_Print(".. compile .. link .. %s",dllNam);
-
-
-  // sprintf(cbuf, "cd %sxa&&nmake -f %s",AP_get_bas_dir(),dllNam);
-  sprintf(cbuf, "cd %s..\\src\\APP&&nmake -f %s",AP_get_loc_dir(),dllNam);
-
-  // strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
-  // strcpy(&cbuf[strlen(cbuf)-4], ".mak OS=");
-  // strcat(cbuf, OS_os());
-
-  strcpy(&cbuf[strlen(cbuf)-4], ".nmak OS=");
-  strcat(cbuf, OS_get_os_bits());
-
-
-#else
-  //------------------------- Linux ----------------------------------
-  // sprintf(cbuf, "%sxa/%s",AP_get_bas_dir(),dllNam);
-  sprintf(cbuf, "%s../src/APP/%s",AP_get_loc_dir(),dllNam);
-  // ".so" -> ".mak"
-  strcpy(&cbuf[strlen(cbuf)-3], ".mak");
-    printf(" exist: |%s|\n",cbuf);
-  if(OS_checkFilExist (cbuf, 1) == 0) goto L_err_nof;
-
-
-  TX_Print(".. compile .. link .. %s",dllNam);
-
-
-  // sprintf(cbuf, "cd %sxa;make -f %s",AP_get_bas_dir(),dllNam);
-  sprintf(cbuf, "cd %s../src/APP;make -f %s",AP_get_loc_dir(),dllNam);
-    printf(" OS_dll_build 2 |%s|\n",cbuf);
-
-
-  // ".so" -> ".mak"
-  strcpy(&cbuf[strlen(cbuf)-3], ".mak OS=");
-  strcat(cbuf, OS_get_os_bits());
-    // printf(" .. cbuf1 2 |%s|\n",cbuf);
-
-#endif
-
-
-  // "make -f %s.mmak"
-  printf("|%s|\n",cbuf);
-
-
-  irc = system(cbuf);
-  if(irc != 0) TX_Error("Error build %s",dllNam);
-
-  return irc;
-
-  L_err_nof:
-    TX_Print("***** %s does not exist ..",cbuf);
-    printf("***** %s does not exist ..\n",cbuf);
-
-    return 0;
 
 }
 */

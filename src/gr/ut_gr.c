@@ -313,7 +313,7 @@ cc -c -g3 -Wall ut_gr.c
 
 // #include "../ut/ut_umem.h"             // MEM_alloc_tmp
 #include "../ut/ut_geo.h"
-#include "../ut/ut_cast.h"                // INT_PTR
+#include "../ut/ut_cast.h"                // INT__PTR
 #include "../ut/ut_geo_const.h"        // UT3D_RSYS_2D
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
@@ -880,11 +880,11 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
   int     ix, iy;
 
-  LN_WIDTH_ADJUST = 1.f;
 
   OS_get_scrRes (&ix, &iy);  // get total screensize
 
   // adjust linewidth for UHD-screens
+  LN_WIDTH_ADJUST = 1.f;
   if(ix > 3000) LN_WIDTH_ADJUST = 2.f;
 
   LN_WIDTH_DEF = LN_WIDTH_ADJUST;
@@ -2553,10 +2553,10 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
 
 
-  printf("GR_DrawSur ind=%ld typ=%d form=%d siz=%d\n",apt_ind,
-          oxi->typ,oxi->form,oxi->siz);
-  printf(" TSU_mode=%d\n",TSU_get_mode());
-  DEB_dump_ox_s_ (oxi, "GR_DrawSur");
+  // printf("GR_DrawSur ind=%ld typ=%d form=%d siz=%d\n",apt_ind,
+          // oxi->typ,oxi->form,oxi->siz);
+  // printf(" TSU_mode=%d\n",TSU_get_mode());
+  // DEB_dump_ox_s_ (oxi, "GR_DrawSur");
   // if(oxi->typ==Typ_SUR) printf(" S:vtex=%d\n",((ColRGB*)&att)->vtex);
 
 
@@ -3292,7 +3292,7 @@ const MshFac GR_MshFac_NUL = _MSHFAC_NUL;
 
   tol  = UT_DISP_cv;
   // get polygon from trimmed-curve(s)
-  irc = UT3D_mtpt_trmCv (&mtpa, NULL, cva, cvNr, tol, grMode);
+  irc = UT3D_mtpt_trmCv (&mtpa, NULL, NULL, cva, cvNr, tol, grMode);
   if(irc < 0) {TX_Error("GR_set_ccv E2"); goto L_exit; }
 
   ptNr = mtpa.rNr;
@@ -4463,7 +4463,7 @@ int GR_Delete (long ind)                               {return 0;}
  
 
 //===================================================================
-  int GR_tDyn_npt__ (Point *pta, int ptnr, int att) {
+  int GR_tDyn_npt__ (int ptnr, Point *pta, int att) {
 //===================================================================
 // GR_tDyn_npt__           disp. points
 // att: see INF_COL_PT
@@ -7244,7 +7244,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
   int        irc, loadMode, ift;
   long       dli;
-  char       ffnam[256], tessFn[256], safNm[128], ftyp[32], *p1, dllnam[40];
+  char       ffnam[SIZMFTot], tessFn[256], safNm[128], ftyp[32], *p1, dllnam[40];
   ObjGX      oTab[4];
   Memspc     impSpc;
   Point      pb1, pb2;
@@ -7281,7 +7281,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     // printf(" _mdMock_imp tessFn |%s|\n",tessFn);
 
   // set ffnam = full filename of input (mockup-model)
-  MDLFN_ffNam_syFn (ffnam, mdb->mnam);
+  MDLFN_ffNam_fNam (ffnam, mdb->mnam);
+  // MDLFN_ffNam_syFn (ffnam, mdb->mnam);
     // printf(" _mdMock_imp-ffnam=|%s|\n",ffnam);
 
 
@@ -7338,21 +7339,9 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     UTO_rec_set (&oTab[2], Typ_Txt,    Typ_Txt,    1, ffnam);
     UTO_rec_set (&oTab[3], Typ_Memspc, Typ_Memspc, 1, &impSpc);
 
-    // Load DLL; filename = xa_<fileType>_r.so
-    irc = DLL_run1 (0, dllnam);
-    if(irc < 0) return irc;
-
-    // load Model --> impSpc
-    irc = DLL_run1 (2, oTab);
+    // load dll, exec "gCad_main"
+    irc = MDL_load_import_mock (dllnam, oTab);
     if(irc < 0) goto L_exit;
-
-
-    //----------------------------------------------------------------
-//     // VR2 (over)writes Model_<mnam>; 
-//     if(ift == Mtyp_WRL2) {
-//       goto L_exit;
-//     }
-   
 
     //----------------------------------------------------------------
     // wrl obj stl makes tesselated data in impSpc
@@ -8262,7 +8251,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     // get polygon from DB-obj
     MEMTAB_CLEAR (&mtp);
-    irc = UT3D_mtpt_dbo (&mtp, NULL, bTyp, dbi, AP_modact_ibm);
+    irc = UT3D_mtpt_dbo (&mtp, NULL, NULL, bTyp, dbi, AP_modact_ibm);
     if(irc < 0) {
       TX_Print("******* GR_temp_att_1 E-%d %ld",bTyp,dbi);
       continue;

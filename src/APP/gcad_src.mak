@@ -17,7 +17,7 @@
 
 # sources for the GUI (not used in batch-progs)
 SRCG =\
-  ../xa/xa_main.c\
+  ../xa/gCAD3D.c\
   ../xa/xa_ctrl.c\
   ../xa/xa_ui.c\
   ../xa/xa_cad_ui.c\

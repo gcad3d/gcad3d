@@ -1,178 +1,115 @@
+../../doc/build_en.txt                                     2023-06-06
+=====================================================================
 
 
 
-Linux-Build
-MS-Win-Build
+Linux-Build-Prerequistes
+MS-Win-Build-Prerequistes
+Build-gCAD3D
 
 
 
+=====================================================================
+Linux-Build-Prerequistes
+=====================================================================
 
-==================================================================
-Linux-Build
-==================================================================
+Get necessary Softwarepackages:
+  gcc-4..                    - Compiler
+  libgtk+2.0_0-devel-..      - Gtk-functions
+  libgtkglarea2.0-devel-..   - OpenGL-functions
+  libjpeg-turbo-utils        - djpeg and cjpeg
+  
+  for building debian-package:
+    git gitk fakeroot, lintian
+
+  for building rpm-package:  (not active)
+    git gitk rpmbuild
 
 
-Prerequisites:
-Linux-Installation-source  (../../doc/install_en.txt)
+  Installation of packages eg for debian-os:
+    sudo apt-get install <package>
 
 
-# Setup environment:
-# The development environment is using the directories $DIR_DEV and $DIR_BIN.
-# The default-value for sources, binaries, is:
-export DIR_DEV=${HOME}/devel/
-export DIR_BIN=${HOME}/devel/bin/
-# For other directories export appropriate.
-
-
-# goto APP-directory
-cd ${DIR_DEV}gcad3d/src/APP/
-
-# set debug-switch OFF (production, see ./deb.mak):
-./do debug_OFF
-
-# or set debug-switch ON (development, see ./deb.mak):
-./do debug_ON
-
-# rebuild application gcad3d:
-./do complete
-
-# now the application should be complete -
-
-# before first start unpack examples into test-environment
-./do init_examples
-
-# test it (start gcad3d) in local test-environment.
-# For the userfiles directory ${DIR_DEV}gcad3d/gCAD3D/ will be used.
-./do
+  Installation of packages for eg CenstOS, Fedora:   (not active)
+    sudo dnf install <package>
 
 
 
-#---------------------------------------------------
-# create debian-package (binary, gCAD3D-#.##-bin-xxxxx.deb):
-cd ${DIR_DEV}gcad3d/debian
-./pack_deb.sh
+=====================================================================
+MS-Win-Build-Prerequistes
+=====================================================================
 
-# install deb-package into system
-sudo -E ./do install_deb
+- YOU MUST USE USER_ACCOUNT WITH NO SPACE IN USERNAME
+- install msys2 64-bit from https://www.msys2.org/wiki/MSYS2-installation/ -
+  - get and start msys2-x86_64-20230526.exe
 
-# remove deb-package from system
-sudo ./do uninstall_deb
+- install packages -
+  - in msys-console (C:\msys64\ucrt64.exe) start:
+
+pacman -S mingw-w64-ucrt-x86_64-gcc
+pacman -S mingw-w64-ucrt-x86_64-gcc-libs
+pacman -S mingw-w64-ucrt-x86_64-gdb
+pacman -S mingw-w64-ucrt-x86_64-make
+pacman -S mingw-w64-ucrt-x86_64-dlfcn
+pacman -S mingw-w64-ucrt-x86_64-binutils
+pacman -S mingw-w64-ucrt-x86_64-toolchain
+pacman -S mingw-w64-ucrt-x86_64-pkgconf
+pacman -S mingw-w64-ucrt-x86_64-gtk2
+pacman -S mingw-w64-ucrt-x86_64-libltdl
+pacman -S mingw-w64-x86_64-gtkglarea
+pacman -S mingw-w64-x86_64-nsis
+pacman -S mingw-w64-ucrt-x86_64-ctags
+pacman -S autotools
+pacman -S patch
+pacman -S ed
+
+pacman -S vim
+pacman -S git
+pacman -S rsync
 
 
 
-#---------------------------------------------------
-# create rpm-package (binary, gcad3d-#.##-1.<$HOSTTYPE>.rpm):
-cd ${DIR_DEV}gcad3d/rpm
-./pack_rpm.sh
+=====================================================================
+Build-gCAD3D
+=====================================================================
 
-# install rpm-package into system
-sudo -E ./do install_rpm
+# for unix and MS-Msys -
+# Gcad3d Installation from git-repository:
 
-# remove rpm-package from system
-sudo ./do uninstall_rpm
+# start Terminal (Linux: eg gnome-terminal; Win/MSYS: icon urct64.exe)
+cd
+mkdir devel
+cd devel
 
-
-
-#---------------------------------------------------
-# create source-package ((${DIR_DEV}gcad3d/packages/gCAD3D_src_<version>.zip)
-./do pack_src
-# starts ${DIR_DEV}gcad3d/src/pack_src.sh
+#  copy software to ~/devel/gcad3d/*
+git clone https://github.com/gcad3d/gcad3d
 
 
 
-#---------------------------------------------------------
-# Script "do" has other functions; get infos with:
+# build:
+cd ~/devel/gcad3d/src/UIX
+
+# gCAD3D.exe and all plugins are built by scripts do, build__, *.mak, ..
+# see devbase.sh - creates all necessary output-directories
+# - directories: see doc/directories_en.txt
+# display all options of script:
 ./do help
 
-# ./do complete does:
-# build gui-lib for gtk2
-./do gui-gtk2
+# rebuild complete:
+./do complete
 
-# build gui-lib for gtk3
-./do gui-gtk3
+# MS-Msys: VPATH does not check time-stamps correct; whats wrong ?
+# MS-Msys: if ctags (V5.8) crashes - use ctags V5.7
+wget https://www.vim.org/scripts/download_script.php?src_id=10387 -O ctags.exe
+mv /ucrt64/bin/ctags.exe /ucrt64/bin/ctags_orig
+mv ctags.exe /ucrt64/bin/.
 
-# build gcad3d-core
-./do c
-
-# build gcad3d-coreLibs
-./do all
-
-# build gcad3d-plugins
-./do allDemos
-
-# optional:
-# test to rebuild a plugin:
-./do Demo_gui1.mak
-
-# test it (start gcad)
+# test after sucessful build:
 ./do
 
 
 
-
 =====================================================================
-MS-Win-Build
-=====================================================================
+Send bug reports, suggestions for improvements to support@gcad3d.org
 
-Prerequisites:
-
-for modifications of gCAD3D:
-  MS-C-Compiler (gcc or MS-Visual-C (C++, Express); eg VS-2010)
-  OpenGL32.lib, Glu32.lib (Microsoft SDKs)
-  optional: get the gtk-dokumentation from www.gtk.org.
-
-  // You will need a commandshell with the correct compiler-environment.
-  // You can use the Visual-Studio-Commandwindow or cmd.exe;  e.g. for VC8:
-  "C:\Programme\Microsoft Visual Studio 8\Common7\Tools\vsvars32.bat"
-  // or for VC9:
-  "%VS90COMNTOOLS%vsvars32.bat"
-  // or for VC10 - start a commandwindow with:
-  %comspec% /k ""C:\Program Files\Microsoft Visual Studio 10.0\VC\vcvarsall.bat"" x86
-  // Test MS-compiler with:
-  cl /?
-
-
-for creating new MS-Win-install-package:
-  NSIS-installer / uninstaller from Nullsoft (http://nsis.sf.net)
-  %ProgramFiles%\NSIS\NSIS.chm  // see help-file in cmd-window
-
-
-
-
----------------------------------------------------
-Install the source package from zip-file (Win-XP Win7 Win8):
-  // start commandshell (cmd);
-  // Create new directory %HOMEDRIVE%%HOMEPATH%/devel
-  %HOMEDRIVE%       // activate the homedrive
-  cd %HOMEPATH%     // goto homepath
-  mkdir devel       // create new directory
-  cd devel          // goto %HOMEPATH%/devel
-  // Extract the package gCAD3D_#.##-src.zip into this directory
-  unzip gCAD3D_#.##-src.zip
-
-
-Update definiton-file gCAD3D.def
-  // create new file gCAD3D.def in Linux (from linux-executable):
-  ./gendef.sh
-  // or update gCAD3D.def manually.
-
-
-Rebuild:
-  %HOMEDRIVE%                     // activate the homedrive
-  cd %HOMEPATH%\devel\gcad3d\src\APP
-  do c            // reCreate exe
-  do gui          // reCreate gui-lib
-  do help         // disp help for do.bat
-
-
-Create MS-Win-install-package (binary, gCAD3D-#.##-win32.exe)
-  cd %HOMEPATH%\devel\gcad3d\pack_MS
-  pack
-
-
-
-
-=====================================================================
-../../doc/build_en.txt                          this file
-../../README                                    rootfile
 EOF

@@ -6,13 +6,14 @@
 # DIR_BIN     home of objects, executables, libraries
 #
 
+$(info -)
+$(info - entering GUI_gMsh1.mak)
+
 
 # get VGUI  - eg gtk3
-#VGUI := $(shell cat ../gcad_gui_version)
-VGUI := gtk2
+VGUI := $(shell cat ../gcad_gui_version)
 
 
-# ../gui_gtk2/GUI_gMsh1.c
 SRC1 =\
  ../gui_$(VGUI)/GUI_gMsh1.c\
  ../ut/ut_txTab.c\
@@ -31,7 +32,7 @@ OBJ1 = $(patsubst %.c,%.o, $(notdir $(SRC1)))
 OBJOS = $(patsubst %.c,%.o, $(notdir $(SRCOS)))
 
 
-# get SRCGUI GUICP GUILIB
+# get GUICP GUILIB
 include ../gui/gui_$(VGUI).mak
 
 # get debug-settings DEB CPDEB LKDEB

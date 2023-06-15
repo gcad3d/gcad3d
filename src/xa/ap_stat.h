@@ -6,8 +6,8 @@
 // errLn      SourceLineNr where Error occured
 // batch      0=interaktiv, 1=Batchmode.
 // texture    0=no, hardware does not accept textures; 1=Yes, Ok.
-// build      Compile,Linker not checked/not available; 1=available.
-// comp       Compile plugins off; 1=on.
+// build      Compile,Linker 0=not-available; 1=available.
+// comp       Compile plugins 0=off; 1=on.
 // APP_stat   0=mainActive; 1=<APP_act_nam> (plugin) active.
 // TUT_stat   ScreeCast on=1  off=0
 // subtyp     0=VRML1, 1=VRML2
@@ -15,7 +15,7 @@
 // debStat    0=normal (debug off); 1=debug_ON
 // logStat    0=normal (logging-off); 1=logging-ON
 // tstDllStat 0=normal (OFF); 1=testdll_ON
-// mdl_modified   UNUSED
+// mdl_modified   
 // mdl_box_valid  AP_mdlbox_invalid_ck - 0=valid, 1=void,invalid
 // mdl_stat   see MDLSTAT_empty ..
 // brw_stat   see BRWSTAT_active ..
@@ -26,6 +26,7 @@
 // cadIniM    CAD - init - mainFunction
 // cadIniS    CAD - init - subFunction
 // mdl_load   0=loading-new-primary-model; 1=primary-model-is-active
+// fVwr       0=print-window-is-off; 1=print-window-is-active;
 
 typedef struct {int errLn; short sysStat, errStat;
                 char      cadIniM, cadIniS, mdl_stat, brw_stat,
@@ -47,7 +48,8 @@ typedef struct {int errLn; short sysStat, errStat;
                           err_hide:1,      // 15
                           zip:1,           
                           mdl_load:1,
-                          uuBits:15; }                         AP_STAT;
+                          fVwr:1,
+                          uuBits:14; }                         AP_STAT;
 
 
 

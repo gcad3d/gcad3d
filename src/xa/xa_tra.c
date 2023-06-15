@@ -121,7 +121,7 @@ UI_GR_Select_work1
 
 
 #include "../ut/ut_geo.h"              // Typ_Model
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/func_types.h"          // UI_FuncSet
 #include "../ut/ut_memTab.h"           // MemTab
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3

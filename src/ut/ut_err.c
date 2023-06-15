@@ -138,11 +138,9 @@ static jmp_buf       err_buf;
 
   // printf("ERR_init \n");
 
-#ifdef _MSC_VER
-  // geht mit MS/gcc ned ..
+#if defined _MSC_VER || __MINGW64__
   signal (SIGSEGV, ERR_cb1);      // 11
   // // signal (SIGFPE,  ERR_cb1);      //  8
-
 
 #else
   struct sigaction   ssa;
@@ -150,14 +148,15 @@ static jmp_buf       err_buf;
   ssa.sa_handler = ERR_cb1;
   sigemptyset (&ssa.sa_mask);
   // ssa.sa_flags   = SA_RESTART | SA_NOMASK | SA_NOCLDSTOP;
+
   ssa.sa_flags   = SA_ONESHOT | SA_NOMASK;
+  // ssa.sa_flags   = SA_RESTORER | SA_NODEFER; // new versions of SA_ONESHOT,SA_NOMASK
 
   sigaction (SIGSEGV, &ssa, NULL);      // 11
   // sigaction (SIGSEGV, &ssa, &err_sDfl);      // 11
   // sigaction (SIGFPE,  &ssa, NULL);      // 8
     // printf(" Signal %d\n",i1);
     // printf(" sizeof jmp_buf = %d\n",sizeof(jmp_buf));
-
 #endif
 
 
@@ -175,6 +174,9 @@ static jmp_buf       err_buf;
 
 #ifdef _MSC_VER
   // geht mit MS/gcc ned ..
+  signal (SIGSEGV, SIG_DFL);
+
+#elif __MINGW64__    //__MINGW64_VERSION_MAJOR
   signal (SIGSEGV, SIG_DFL);
 
 #else

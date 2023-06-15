@@ -14,12 +14,13 @@
  *
  *
 -----------------------------------------------------
-../ut/os_uix.c       basic OS-functions unix
+../ut/os_uix.c         basic OS-functions unix     - this file
+../ut/ut_os_aix.c      APP-specif. OS-functions
+../ut/os_dll_uix.c
+../ut/ctrl_os_aix.c
+../ut/ut_os__.c        OS-independant functions
 
-see also
-../ut/ut_os_aix.c    APP-specif. OS-functions
-../ut/ut_os__.c      OS-independant functions
------------------------------------------------------
+../ut/os_exe_file.c    functions for auxiliary-executables (GUI_* ..); not core
 
 =====================================================
 List_functions_start:
@@ -29,14 +30,17 @@ OS_exec                  Perform OS-Command; do not wait for completion.
 OS_stdout__              direct console-output into file
 OS_checkFilExist         check if File or Directory exists
 OS_sys1                  get systemCommand (popen); skip if starting with "##"
-OS_osVar_eval        expand shell variables in string
-OS_get_tmp_dir                get directory for temporary files
-OS_edit__                 edit file with system-editor
-OS_get_edi                get system-editor
+OS_osVar_eval__          expand shell variables in string
+OS_osVar_eval_1          expand shell variables in string
+OS_get_tmp_dir           get directory for temporary files
+OS_edit__                edit file with system-editor
+OS_get_edi               get system-editor
+
+OS_FIND_STR_DELI     find first occurence of  directory-delimiter '/' or '\'
+OS_FIND_STRR_DELI    find last occurence of  directory-delimiter '/' or '\'
 
 List_functions_end:
 =====================================================
-// OS_filnam_eval    DO-NOT-USE  - replaced by OS_osVar_eval
 
 USING:
 TX_Print
@@ -51,15 +55,15 @@ TX_Print
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>              // for ...
+#include <stdarg.h>                    // for ...
 
 #include <signal.h>
-#include <unistd.h>          ///f. access, R_OK ..
+#include <unistd.h>                    // access, R_OK ..
 #include <errno.h>
-#include <wordexp.h>         // OS_filnam_eval
 
-#include "../ut/ut_os.h"            // OS_ ..
-#include "../ut/deb_prt.h"          // printd
+#include "../ut/ut_os.h"               // OS_ ..
+#include "../ut/deb_prt.h"             // printd
+// #include "../ut/ut_mem.h"              // MEM__alloc_tmp
 
 
 //================================================================
@@ -68,21 +72,6 @@ TX_Print
 // errno.h:
 extern int errno;
 
-
- //========================================================================
-  int OS_file_delete (char *fNam) {
-//========================================================================
-/// \code
-/// delete File; NO Wildcards !
-/// MS u Unix gleich.
-/// retCod: 0=OK; -1=Error.
-/// \endcode
-
-  printf("OS_file_delete |%s|\n",fNam);
-
-  return remove (fNam);    // ACHTUNG: keine Wildcards mit remove !
-
-}
 
 
 //==========================================================================
@@ -106,23 +95,6 @@ extern int errno;
 }
 
 
-//========================================================================
-  int OS_file_rename (char *fnOld, char *fnNew) {
-//========================================================================
-/// rename File; NO Wildcards !
-// MS u Unix gleich.
-
-  printf("OS_file_rename |%s| -> |%s|\n",fnOld, fnNew);
-
-  remove (fnNew);    // delete File (sonst get das rename ned ..)
-                     // ACHTUNG: keine Wildcards mit remove !
-  rename (fnOld, fnNew);
-
-  return 0;
-
-}
-
-
 //================================================================
   int OS_system (char *buf) {
 //================================================================
@@ -135,11 +107,16 @@ extern int errno;
   void *catch;
   int ret;
 
-  catch = signal(SIGCLD, SIG_DFL);
+#ifndef __MINGW64__
+  catch = signal(SIGCLD, SIG_DFL);   // SIGCLD | SIGCHLD
+#endif
+				    
   ret = system(buf);
 
+#ifndef __MINGW64__
   signal(SIGCLD, catch);
   if (ret) { perror(buf); }
+#endif
 
   return(ret);
 
@@ -206,6 +183,8 @@ extern int errno;
 
   if(system("which gedit 1>/dev/null 2>/dev/null") == 0)
     strcpy(sEd, "gedit ");
+  if(system("which pluma 1>/dev/null 2>/dev/null") == 0)
+    strcpy(sEd, "pluma ");
   if(system("which kwrite 1>/dev/null 2>/dev/null") == 0)
     strcpy(sEd, "kwrite ");
   if(system("which kedit 1>/dev/null 2>/dev/null") == 0)
@@ -214,6 +193,8 @@ extern int errno;
     strcpy(sEd, "kate ");
   if(system("which dtpad 1>/dev/null 2>/dev/null") == 0)
     strcpy(sEd, "dtpad ");
+  if(system("which gvim 1>/dev/null 2>/dev/null") == 0)
+    strcpy(sEd, "gvim ");
 
   if(strlen(sEd) < 2) { 
     printf(" **** no Editor found\n");
@@ -313,7 +294,7 @@ extern int errno;
 //=============================================================
 /// \code
 /// OS_checkFilExist         check if File or Directory exists
-///   filnam may not have shell-variables; see OS_filnam_eval
+///   filnam may not have shell-variables; see OS_osVar_eval__
 /// mode = 0: display message sofort;
 /// mode = 1: just fix returncode, no message
 /// mode = 2: make Errormessage (TX_Error) if File does not exist
@@ -409,7 +390,11 @@ extern int errno;
       // fprintf(stderr, "_sys1-2 errno = %d\n", errno);
     strcpy(sOut, "Error: ");
                // 0123456
+#ifdef __MINGW64__
+    sOut = strerror (errno);
+#else
     strerror_r (errno, &sOut[7], sSiz - 7);
+#endif
     TX_Print (sOut);
     return -3;
   }
@@ -421,86 +406,109 @@ extern int errno;
 }
 
 
+#ifdef __MINGW64__ 
+
 //================================================================
-  int OS_osVar_eval (char *fn, int fnSiz) {
+  int OS_osVar_eval__ (char *so, char *si, int soSiz) {
 //================================================================
-// OS_osVar_eval        expand shell variables in string
+// OS_osVar_eval__        expand shell variables in string
 // retCode:  0=OK; -1=error, -2=string-too-log
 // On Windows, you can use ExpandEnvironmentStrings.
 // preReq: <wordexp.h>
 //
-// Example: 
-//   // expand shell variables
-//   char fnIn[SIZFNam];
-//   // strcpy(fnIn, "${DIR_DEV}cadfiles/gcad/");
-//   p1 = strchr (fnIn, '$');
-//   if(p1) {
-//     // expand shell variables
-//     irc = OS_osVar_eval (fnIn, sizeof(s1));
-//     if(irc < 0) {TX_Error("MDLFN_oFn_fNam OS_osVar_eval"); return -1;}
-//       // printf(" oFn_fNam-exp=|%s|\n",fnIn);
-//   }
-//   // returns fnIn = "/mnt/serv2/devel/cadfiles/gcad/"
+// Input:
+//   si     string to expand; eg "${DIR_DEV}cadfiles/gcad/"
+//   soSiz  size of so
+// output:
+//   so     expanded text; eg "/mnt/serv2/devel/cadfiles/gcad/"
 //
-// was OS_filnam_eval
+// was OS_osVar_eval__
+
+  int    ii;
+
+  ii = ExpandEnvironmentStringsA (si, so, soSiz);
+  if(!ii) ii = -1;
+  else    ii = 0;
+
+    // printf(" ex-OS_osVar_eval_1 %d |%s|%s|\n",ii,si,so);
+
+  return ii;
+
+}
+
+#else
+
+#include <wordexp.h>         // OS_osVar_eval__
+			     
+//================================================================
+  int OS_osVar_eval__ (char *so, char *si, int soSiz) {
+//================================================================
+// OS_osVar_eval__        expand shell variables in string
+// retCode:  0=OK; -1=error, -2=string-too-log
+// On Windows, you can use ExpandEnvironmentStrings.
+// preReq: <wordexp.h>
+//
+//
+// Input:
+//   si     string to expand; eg "${DIR_DEV}cadfiles/gcad/"
+//   soSiz  size of so
+// output:
+//   so     expanded text; eg "/mnt/serv2/devel/cadfiles/gcad/"
+//
 
   int  irc = 0;
   char **w;
   wordexp_t p;
 
 
-  // printf("OS_osVar_eval |%s|\n",fn);
+  // printf("OS_osVar_eval_1 |%s|\n",fn);
 
   // wordexp provides n results, use only first.
-  wordexp(fn, &p, 0);
+  wordexp(si, &p, 0);
   if(p.we_wordc < 1) {irc = -1; goto L_exit;}
 
   w = p.we_wordv;
   // for (i = 0; i < p.we_wordc; i++)
   // printf("%s\n", w[i]);
-  if(strlen(w[0]) >= fnSiz) {irc = -2; goto L_exit;}
-  strcpy (fn, w[0]);
+  if(strlen(w[0]) >= soSiz) {irc = -2; goto L_exit;}
+  strcpy (so, w[0]);
   wordfree(&p);
   // exit(EXIT_SUCCESS);
 
   L_exit:
 
-    // printf(" ex-OS_osVar_eval |%s|\n",fn);
+    // printf(" ex-OS_osVar_eval_1 |%s|\n",so);
 
   return 0;
 
 }
 
+#endif
+
 
 //================================================================
-  int OS_filnam_eval (char *fno, char *fni, int fnoSiz) {
+  int OS_osVar_eval_1 (char *sio, int sSiz) {
 //================================================================
-// OS_filnam_eval    DO-NOT-USE  - replaced by OS_osVar_eval
-// OS_filnam_eval        expand shell variables in filenames
-// retCode:  0=OK; -1 = no-filename; internal error ..
-// On Windows, you can use ExpandEnvironmentStrings.
-// preReq: <wordexp.h>
-
-  wordexp_t p;
-  char **w;
-  // int i;
-
-  // wordexp provides n results, use only first.
-  wordexp(fni, &p, 0);
-  if(p.we_wordc < 1) return -1;
-
-  w = p.we_wordv;
-  // for (i = 0; i < p.we_wordc; i++)
-  // printf("%s\n", w[i]);
-  if(strlen(w[0]) >= fnoSiz) return -1;
-  strcpy (fno, w[0]);
-  wordfree(&p);
-  // exit(EXIT_SUCCESS);
-
-    // printf(" ex-OS_filnam_eval |%s|%s|\n",fno,fni);
+// OS_osVar_eval_1        expand shell variables in string
+// Input:
+//   si     string to expand; eg "${DIR_DEV}cadfiles/gcad/"
+//   soSiz  size of so
+// output:
+//   so     expanded text; eg "/mnt/serv2/devel/cadfiles/gcad/"
 
 
-  return 0;
+  int    irc;
+  char   *s1;
+
+  // s1 = (char*)MEM_alloc_tmp (sSiz + 32);
+  s1 = alloca (sSiz + 32);
+  strcpy(s1, sio);
+
+  irc = OS_osVar_eval__ (sio, s1, sSiz);
+
+    // printf(" ex-OS_osVar_eval_1 %d |%s|%s|\n",irc,s1,sio);
+
+  return irc;
 
 }
 

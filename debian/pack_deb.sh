@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # create debian-package                         ./pack_deb.sh
 # start in <basDir>/gcad3d/src/APP
@@ -16,12 +16,12 @@
 # cd ../../debian
 # ./pack_deb.sh
 ## creates /mnt/serv1/Devel/gcad3d/packages/gCAD3D-#.##-bin-amd64.deb
-## instDir =  /mnt/serv1/Devel/gcad3d/debian/gCAD3D/debian
+## instDir =  gcad3d/debian/gCAD3D/debian
 #
 # Software-Layout see <basDir>/gcad3d/doc/html/SW_layout_en.htm
 #
 
-echo "pack_deb.sh starting .."
+echo "- entering pack_deb.sh"
 
 
 bitNr=`getconf LONG_BIT`
@@ -32,30 +32,29 @@ hTyp=`uname -s`_`uname -m`
 # get ${Version} - SW-Version
 # get ${platform} - amd64|i386|armhf 
 # get ${packNam} - filename for the deb-package
-. ${DIR_DEV}gcad3d/debian/platform_deb.sh
+. ${gcad_dir_bas}debian/platform_deb.sh
 
 
-debDir=${DIR_DEV}gcad3d/debian
+debDir=${gcad_dir_bas}debian
 echo "debDir = " ${debDir}
 
 
-# copy all files -> instDir = ${DIR_DEV}gcad3d/debian/gCAD3D/debian
-instDir=${DIR_DEV}gcad3d/debian/gCAD3D/debian
+# copy all files -> instDir = ${gcad_dir_bas}debian/gCAD3D/debian
+instDir=${gcad_dir_bas}debian/gCAD3D/debian
 echo "instDir = " ${instDir}
 
 
 # copy package -> ${outDir}
-outDir=${DIR_DEV}gcad3d/packages
+outDir=${gcad_dir_bas}packages
 echo "outDir = " ${outDir}
 
 
-
-echo "Version =" ${Version}
 echo "start create debian-package" ${packNam}
 
+#exit 1   # TESTEXIT
 
 
-#------------------------------------------------------
+#-----------------------------------------------------
 # remove install-dir; rm -rf ~/devel/gcad3d/debian/gCAD3D/debian
 rm -rf ${instDir}
 

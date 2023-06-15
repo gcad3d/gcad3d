@@ -28,7 +28,7 @@ Modifications:
  void MEM(){}
 #endif
 /*!
-\file  ../ut/ut_mem.c
+\file  ../ut/ut_mem.c  (../ut/ut_mem.h)
 \brief Memory manipulations: swap, insert, delete, invert .. 
 \code
 =====================================================
@@ -56,19 +56,25 @@ MEM_del_IndRec            delete 1 integer from intArray
 MEM_del_DbRec             delete 1 double in double-Array
 MEM_del_ShRec             delete 1 short in short-Array
 MEM_del_nrec              delete <delRecNr> records from table
+MEM_INV_INT               invert int; 0,1,2:  0 -> 2;  1 -> 1;  2 -> 0;         INLINE
 MEM_inv_btab              invert table of bytes; 1/2/3 --> 3/2/1
 MEM_inv_itab              invert table of intData; 1/2/3 --> 3/2/1
 MEM_inv_dtab              invert table of dbData; 1/2/3 --> 3/2/1
 MEM_inv_rtab              invert table of dataRecords; 1/2/3 --> 3/2/1
+MEM_cmp__                 compare memoryspaces (n bytes)
+
+MEM_str__                 store/modify string in memSpc; initial sOut must be NULL
+MEM_str_get               get existing string from memSpc
+MEM_str_free              free memSpc for string
 
 MEM_copy_tab              copy <recNr> records of size <sizRec>
 MEM_copy_oTab             copy <recNr> records of size <sizRec>, set pointers
 MEM_set_1recn             write record <recNr> times
 
-MEM_cmp__                 compare memoryspaces (n bytes)
-
 MEM_wri_spc               write n chars from mem -> file
 MEM_get_file              read file -> mem
+
+test_MEM_str__            example MEM_str__ MEM_str_get MEM_str_free
 
 List_functions_end:
 =====================================================
@@ -85,6 +91,7 @@ memmove
 memset
 UTA_reallTab
 MEM_alloc_tmp
+INF_MEM__      INF_MemTab INF_Memspc INF_TxtTab INF_BitTab
 \endcode *//*----------------------------------------
 
 */
@@ -685,6 +692,11 @@ MEM_alloc_tmp
 
   // printf("MEM_inv_btab %d\n",ptNr);
 
+  if(recNr < 2) {
+    if(recNr < 0) return -1;
+    return 0;
+  }
+
   inach = 0;
   ivon = recNr - 1;
 
@@ -710,6 +722,11 @@ MEM_alloc_tmp
   int    inach, ivon;
 
   // printf("MEM_inv_itab %d\n",ptNr);
+
+  if(recNr < 2) {
+    if(recNr < 0) return -1;
+    return 0;
+  }
 
   inach = 0;
   ivon = recNr - 1;
@@ -738,6 +755,11 @@ MEM_alloc_tmp
   // printf("MEM_inv_dtab %d\n",recNr);
 
   if(recNr < 1) return 0;  // Crash m. 0 !
+
+  if(recNr < 2) {
+    if(recNr < 0) return -1;
+    return 0;
+  }
 
   inach = 0;
   ivon = recNr - 1;
@@ -772,6 +794,12 @@ MEM_alloc_tmp
 
   inach = 0;
   ivon = recNr - 1;
+
+  if(recNr < 2) {
+    if(recNr < 0) return -1;
+    return 0;
+  }
+
   pnach = (char*)recTab;
   pvon  = &(((char*)recTab)[ivon * sizRec]);
 
@@ -904,6 +932,113 @@ MEM_alloc_tmp
     // (char*)tabo += sizRec;
     tabo = (char*)tabo + sizRec;
   }
+
+  return 0;
+
+}
+
+
+//================================================================
+  int MEM_str__ (char **sOut, char *sNew) {
+//================================================================
+// MEM_str__    store/retrieve string in memSpc (malloc/free)
+// Input:
+//   sNew   string to store;
+//          sNew = NULL: free memspc;
+//          sNew = "" (empty): query string;
+// Output:
+//   sOut   ptr to stored string (if strlen(sNew) > 0) 
+//          - must be initialized with NULL;
+//
+// Example: test_MEM_str__ ()
+
+  int   i1, i2;
+
+
+  // TESTBLOCK
+  // printf("------------------------- \n");
+  // if(sNew) printf("MEM_set_str |%s|\n",sNew);
+  // else     printf("MEM_set_str -free\n");
+  // END TESTBLOCK
+
+
+  if(*sOut) {
+    if(!sNew) {
+        // printf(" MEM_str__-free\n");
+      free (*sOut);
+      *sOut = NULL;
+      return 0;
+    }
+  }
+
+
+  i1 = strlen(sNew);
+    // printf(" MEM_str - i1=%d\n",i1);
+
+  if(*sOut == NULL) {
+    // sOut unset; primary storage
+      // printf(" MEM_str__-malloc %d\n",i1);
+    *sOut = (char*) malloc (i1 + 2);
+    strcpy (*sOut, sNew);
+
+  } else {
+    // sOut already exists; if sNew is empty: read string
+    if(!i1) goto L_exit;
+
+    // sOut already exists; test if content is modified
+    if(i1 == i1) {
+      if(!strcmp(sNew,*sOut)) goto L_exit;  // ident
+    }
+
+    // modify (realloc)
+    i2 = strlen(*sOut);
+      // printf(" MEM_str__-test %d %d |%s|\n",i1,i2,*sOut);
+    // modify
+      // printf(" MEM_str__-reall %d\n",i1);
+    *sOut = (char*) realloc (*sOut, i1 + 2);
+    strcpy (*sOut, sNew);
+  }
+
+
+  L_exit:
+    // printf(" ex-MEM_str__ |%s|\n",*sOut);
+  return 0;
+
+}
+
+
+//================================================================
+  int test_MEM_str__ () {
+//================================================================
+
+  static char *st1 = NULL;
+
+  printf("test_MEM_str__ \n");
+
+
+  // init str st1 with "abc"
+  MEM_str__ (&st1, "abc");
+    printf(" st1=|%s|\n",st1);
+
+  // modify str
+  MEM_str__ (&st1, "0123456789");
+    printf(" st1=|%s|\n",st1);
+
+
+  // query only
+  MEM_str_get (st1);
+    printf(" st1=|%s|\n",st1);
+
+
+  // modify/keep
+  MEM_str__ (&st1, "0123456789");
+    printf(" st1=|%s|\n",st1);
+
+
+  // free
+  MEM_str_free (st1);
+  // MEM_str__ (&st1, NULL);
+
 
   return 0;
 

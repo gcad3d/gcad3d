@@ -4,7 +4,7 @@
     copyright            : (C) 2000 by CADCAM-Services Franz Reiter
     email                : franz.reiter@cadcam.co.at
 _______________________________________________________________________________
-OS-Routines f. Mircosoft                 RF.
+OS-Routines f. Mircosoft   MS-VC              RF.
 Includefile: ../ut/ut_os.h
 
 
@@ -834,7 +834,7 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
   char   *p1, *p2;
 
 
-  printf("OS_Init_ |%s|\n",cmd);
+  // printf("OS_Init_ |%s|\n",cmd);
 
 /*
   //----------------------------------------------------------------
@@ -969,13 +969,13 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
   //----------------------------------------------------------------
   // done ..
-      printf(" bindir = |%s|\n",AP_get_bin_dir());
-      printf(" basdir = |%s|\n",AP_get_bas_dir());
-      printf(" docdir = |%s|\n",AP_get_doc_dir());
-      printf(" locdir = |%s|\n",AP_get_loc_dir());
-      printf(" tmpdir = |%s|\n",AP_get_tmp_dir());
-      printf(" cfgdir = |%s|\n",AP_get_cfg_dir());
-      printf(" icodir = |%s|\n",AP_get_ico_dir());
+      // printf(" bindir = |%s|\n",OS_bin_dir_get());
+      // printf(" basdir = |%s|\n",AP_get_bas_dir());
+      // printf(" docdir = |%s|\n",AP_get_doc_dir());
+      // printf(" locdir = |%s|\n",AP_get_loc_dir());
+      // printf(" tmpdir = |%s|\n",AP_get_tmp_dir());
+      // printf(" cfgdir = |%s|\n",AP_get_cfg_dir());
+      // printf(" icodir = |%s|\n",AP_get_ico_dir());
 
     // exit(0);  // TEST ONLY
 
@@ -1017,7 +1017,7 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
   FILE  *fu1;
 
 
-  sprintf(txbuf, "\"%sfPrint.exe\"",AP_get_bin_dir());
+  sprintf(txbuf, "\"%sfPrint.exe\"",OS_bin_dir_get());
     printf("|%s|\n", txbuf);
 
   fu1 = _popen (txbuf, "r");
@@ -1064,7 +1064,7 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
   return os_ico_dir;
 }
 //================================================================
-  char* AP_get_bin_dir () {
+  char* OS_bin_dir_get () {
 //================================================================
   return os_bin_dir;
 }
@@ -1200,30 +1200,6 @@ rc = 2 = Dir did already exist.
   // Ja, gibts schon.
   return 2;
 
-
-}
-
-
-
-//=============================================================
-  long OS_FilSiz (char* filnam) {
-//=============================================================
-
-  int         rc;
-  struct _stat fileStatus;
-
-
-  // printf("OS_FilSiz |%s|\n", filnam);
-
-  rc = _stat (filnam, &fileStatus);
-
-  // printf("OS_FilSiz: rc=%d siz=%d\n",rc,fileStatus.st_size);
-
-  if(rc < 0) {  // File nicht vorh.
-    return -1;
-  }
-
-  return fileStatus.st_size;
 
 }
 
@@ -1732,7 +1708,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
     }
 
     // load DLL
-    sprintf(s1, "%s%s.dll",AP_get_bin_dir(),(char*)fDat);
+    sprintf(s1, "%s%s.dll",OS_bin_dir_get(),(char*)fDat);
       printf(" dll=|%s|\n",s1); fflush(stdout);
 
     *dl1 = LoadLibrary (s1);
@@ -1863,7 +1839,7 @@ rc = 0 = ON  = OK; dirnam ist Dir.
 
 
   // fix DLL-FileName
-  sprintf(dlNamAct, "%s%s.dll",AP_get_bin_dir(),dllNam);
+  sprintf(dlNamAct, "%s%s.dll",OS_bin_dir_get(),dllNam);
     printf(" dll_do-fn |%s|\n",dlNamAct);
 
 
@@ -2036,11 +2012,11 @@ sonst wahrscheinl nur \\ statt / ...
 */
 
   if(mode == 0) {
-    sprintf(osCmd, "CMD /C \"%sgzip -9qc \"%s\" > \"%s\"\"",AP_get_bin_dir(),fnFrom,fnTo);
+    sprintf(osCmd, "CMD /C \"%sgzip -9qc \"%s\" > \"%s\"\"",OS_bin_dir_get(),fnFrom,fnTo);
     // sprintf(osCmd, "cd \"%s\"&&gzip -9qc \"%s\" > \"%s\"",os_bas_dir,fnFrom,fnTo);
     // sprintf(osCmd, "zip -9jq %s %s",fnTo,fnFrom);
   } else {
-    sprintf(osCmd, "CMD /C \"%sgzip -dqc \"%s\" > \"%s\"\"",AP_get_bin_dir(),fnFrom,fnTo);
+    sprintf(osCmd, "CMD /C \"%sgzip -dqc \"%s\" > \"%s\"\"",OS_bin_dir_get(),fnFrom,fnTo);
     // sprintf(osCmd, "cd \"%s\"&&gzip -dqc \"%s\" > \"%s\"",os_bas_dir,fnFrom,fnTo);
     // sprintf(osCmd, "unzip -pqq %s > %s",fnFrom,fnTo);
   }
@@ -2163,12 +2139,12 @@ sonst wahrscheinl nur \\ statt / ...
   //static int iStat = 0;          // 0=notYetTested; 1=OK; -1=NotOk.
   //return fn1;
 
-  // sprintf(txbuf,"cd %s && djpeg.exe",AP_get_bin_dir());
+  // sprintf(txbuf,"cd %s && djpeg.exe",OS_bin_dir_get());
   // sprintf(txbuf,"cd \"%s\"&&djpeg",os_bin_dir);
   //sprintf(txbuf,"%sdjpeg",os_bin_dir);
   // Problem Win7: blank im Pfadnamen !!
-  // sprintf(txbuf,"cd/d \"%s \" && djpeg.exe",AP_get_bin_dir());
-  sprintf(txbuf,"\"%sdjpeg.exe\"",AP_get_bin_dir());
+  // sprintf(txbuf,"cd/d \"%s \" && djpeg.exe",OS_bin_dir_get());
+  sprintf(txbuf,"\"%sdjpeg.exe\"",OS_bin_dir_get());
 
   return txbuf;
 
@@ -2187,8 +2163,8 @@ sonst wahrscheinl nur \\ statt / ...
   // sprintf(txbuf,"cd \"%s\"&&djpeg",os_bin_dir);
   //sprintf(txbuf,"%sdjpeg",os_bin_dir);
   // Problem Win7: blank im Pfadnamen !!
-  // sprintf(txbuf,"cd/d \"%s \" && cjpeg.exe",AP_get_bin_dir());
-  sprintf(txbuf,"\"%scjpeg.exe\"",AP_get_bin_dir());
+  // sprintf(txbuf,"cd/d \"%s \" && cjpeg.exe",OS_bin_dir_get());
+  sprintf(txbuf,"\"%scjpeg.exe\"",OS_bin_dir_get());
 
   return txbuf;
 
@@ -2313,73 +2289,6 @@ sonst wahrscheinl nur \\ statt / ...
 }
 
 
-//================================================================
-  int OS_tim_timA (struct tm *tm, char *stA) {
-//================================================================
-/// \code
-/// OS_tim_timA            get timestamp from time-string
-/// timestring format: |2017-10-14 10:32:07|
-/// \endcode
-
-
-  int    iy, im, id;
-
-  // printf("OS_tim_timA |%s|\n",stA);
-
-
-  sscanf (stA, "%4d-%2d-%2d %2d:%2d:%2d",
-          &iy, &im, &id,
-          &tm->tm_hour, &tm->tm_min, &tm->tm_sec);
-
-
-  tm->tm_year = iy - 1900;
-  tm->tm_mon  = im - 1;
-  tm->tm_mday  = id;
-
-  return 0;
-
-}
-
-
-//================================================================
-  int OS_timA_diff_s (double *dd, char *sts1, char *sts2) {
-//================================================================
-/// \code
-/// get difftime in seconds of two timestrings
-/// timestring format: |2017-10-14 10:32:07|
-/// see OS_timA_now
-/// \endcode
-
-  time_t tim1, tim2;         // timestamps
-  struct tm ts1, ts2;        // time-structure
-
-  // get time-structure ts1 from timestamp-string sts1
-  memset(&ts1, 0, sizeof(struct tm));
-  // strptime(sts1, "%Y-%m-%d %H:%M:%S", &ts1);
-  OS_tim_timA (&ts1, sts1);
-
-  // make unix-timestamp tim1 from time-structure ts1
-  tim1 = mktime (&ts1);
-
-
-  // get time-structure ts2 from timestamp-string sts2
-  memset(&ts2, 0, sizeof(struct tm));
-  // strptime(sts2, "%Y-%m-%d %H:%M:%S", &ts2);
-  OS_tim_timA (&ts2, sts2);
-
-  // make unix-timestamp tim2 from time-structure ts1
-  tim2 = mktime (&ts2);
-
-
-  // get d1 = Diff.Time in Sec (nur auf Sec. genau) als double !
-  *dd = difftime (tim1, tim2);
-    printf ("ex-OS_timA_diff_s %f secs\n",*dd);
-
-  return 0;
-
-}
-
-
 /*
 //================================================================
   int OS_file_sig_get (char *fnam) {
@@ -2482,7 +2391,7 @@ sonst wahrscheinl nur \\ statt / ...
   GUI_get_version (sGui, &vGtk, &irc);
 
   // sEnam = exeFilename
-  sprintf(sEnam,"%sGUI_dlg1_%s%d_MS.exe", AP_get_bin_dir(), sGui, vGtk);
+  sprintf(sEnam,"%sGUI_dlg1_%s%d_MS.exe", OS_bin_dir_get(), sGui, vGtk);
     printf(" OS_get_GUI |%s|\n",sEnam);
 
   // test if exe exists

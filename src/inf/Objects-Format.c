@@ -913,7 +913,7 @@ ObjGX    os1;
       opt.typ  = Typ_PT;
       opt.form = Typ_Index;
       opt.siz  = 1
-      opt.data = (LONG_PTR)=DB-index of point
+      opt.data = (LONG__PTR)=DB-index of point
 
 
 Models:

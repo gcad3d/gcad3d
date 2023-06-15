@@ -484,9 +484,10 @@ children Transform { translation -C children [...] }
 
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
+
 
 #include <math.h>
 #include <stdio.h>
@@ -496,17 +497,10 @@ children Transform { translation -C children [...] }
 #include <ctype.h>               // isalpha
 
 
-#ifdef _MSC_VER
-// die folgenden Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main (void*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
 // #include "../ut/ut_umem.h"             // UME_
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_memTab.h"           // MemTab_..
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_os.h"               // AP_get_bas_dir ..
@@ -514,6 +508,11 @@ __declspec(dllexport) int gCad_main (void*);
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
 
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
+
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main (void*);
 
 
 // typedef_MemTab(int);
@@ -634,7 +633,7 @@ static double  newRot[4], newpRot[4];  // rotation
 
 
   oTab   = ((ObjGX*)fdat)->data;
-  mode   = INT_PTR(oTab[0].data); // 1) Typ_Int4   mode; 1=work, 3=free.
+  mode   = INT__PTR(oTab[0].data); // 1) Typ_Int4   mode; 1=work, 3=free.
   fnam   = oTab[1].data;          // 2) Typ_Txt    filename
   // outSpc = oTab[2].data;          // 3) Typ_Memspc outSpc
     printf(" vr2_r-mode=%d fnam=|%s|\n",mode,fnam);

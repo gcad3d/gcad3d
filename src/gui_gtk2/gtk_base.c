@@ -292,12 +292,20 @@ static int       UI_act_Id;
   UI_fontsizX = gdk_char_width (wFont, '0');
   // UI_fontsizX += UI_fontsizX / 2;
 
+
   // UI_fontsizY = gdk_char_height (wFont, '0') + wFont->ascent + wFont->descent;
-  UI_fontsizY = gdk_char_height (wFont, '0') + wFont->descent;
-  // funktioniert in MS-Win leider nicht; liefert 21 statt 10
+  // UI_fontsizY = gdk_char_height (wFont, '0') + wFont->descent;
   // UI_fontsizY = wFont->ascent + wFont->descent;
-  // UI_fontsizY = gdk_char_height (wFont, '0');
-  UI_fontsizY += UI_fontsizY / 2;
+
+#if defined _MSC_VER || __MINGW64__
+  // MSYS:
+  UI_fontsizY = UI_fontsizX * 2;
+
+#else
+  // Linux:
+  UI_fontsizY = gdk_char_height (wFont, '0') * 2;
+#endif
+
 
 
 
@@ -324,7 +332,7 @@ static int       UI_act_Id;
   // UI_stylTab[2]->ythickness = 6;
 
 
-    // printf("UI_fontsizX/Y=%d,%d\n",UI_fontsizX,UI_fontsizY);
+    printf("UI_fontsizX/Y=%d,%d\n",UI_fontsizX,UI_fontsizY);
     // printf("fontAsc=%d\n",wFont->ascent);
     // printf("fontDes=%d\n",wFont->descent);
 
@@ -2047,6 +2055,9 @@ static int       UI_act_Id;
   strcpy(SW, "gtk");
   *vMaj = GTK_MAJOR_VERSION;
   *vMin = GTK_MINOR_VERSION;
+
+    printf(" ex-GUI_get_version %s %d %d\n",SW,*vMaj,*vMin);
+
 
   return 0;
 

@@ -78,7 +78,7 @@ fi
 
 #include <gtk/gtk.h>
 
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_umem.h"
 
 #include "../gui/gui_types.h"

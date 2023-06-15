@@ -1,7 +1,8 @@
-# as first char defines commentlines ..
-# make startlabel - eg ":L1:"; next label = End !
-# :: starts remote-command
-# set label in test_mshi2__
+# #    as first char defines commentlines ..
+# :    startlabel, start of block; eg ":L1:"; next label = end-of-block
+# ::   starts remote-command
+# :::  starts callBack
+# see ../APP/Demo_tstf_1.c   ../UIX/Demo_tstf_1.mak
 # see ../APP/app_ctrlf.c
 
 
@@ -31,5 +32,6 @@ DUMP C20               # direct command or remote-control-command:
 # add textstring, unvisible; can only be read with DB_get_Text
 N20="das ist ein Test"
 
+::: myFunc1 abc def
 
 :EOF:

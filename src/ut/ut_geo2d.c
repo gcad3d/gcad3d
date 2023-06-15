@@ -75,7 +75,7 @@ UT2D_sidPerp_ptvc         compare if pt is right/on/left of a normal to pt+vc
 -------------- area sense_of_rotation -------------------------------------
 UT2D_ar_3pt               get (signed) area of triangle
 UT2D_srar_3pt             get sense-of-rotation and area of 2D-triangle
-UT2D_sr_npt            get sense-of-rotation and area of closed polygon
+UT2D_sr_npt               get sense-of-rotation and area of closed polygon
 UT2D_srar_inpt            get sense-of-rotation and area of indexed closed polygon
 UT2D_srar_inpt3           get sense-of-rot. and area of indexed closed 3D-polygon
 UT2D_sr_ci                get sense_of_rotation of a circ                    INLINE
@@ -160,7 +160,6 @@ UT2D_comp2pt              compare 2 2D-points with tol.
 UT2D_comp4pt              compare 4 2D-points
 UT2D_pt_ck_onLine         check if point is on 2D-linesegment
 UT2D_pt_ck_inLine         check 2D-point on line segment or beyond limits
-UT2D_pt_ck_inplg          Test if Point ptx is inside polygon pTab
 UT2D_pt_ck_linear         check straightness of points (if points are linear)
 UT2D_pt_cknear_npt        return index of nearest Point from n points
 //UT2D_pt_ck_in3pt          check if px is between lines po-p1, po-p2
@@ -168,6 +167,7 @@ UT2D_pt_ck_inpt2vc        check if px is between vectors po-v1, po-v2
 UT2D_pt_ck_inAc           check if pt is in Arc(Segment)
 UT2D_ck_pt_in_tria_tol    check if point is inside triangle with tol
 UT2D_pt_ck_inCv3          check if point is inside polygon
+UT2D_pt_ck_inplg          Test if Point ptx is inside polygon pTab
 UT2D_2pt_ck_int_2pt       check if 2 linesegments intersect with tol
 UT2D_pt_ck_int4pt         check if 2 lines intersect/touch
 UT2D_i4pt_npt             find indices of extreme-points;
@@ -7852,16 +7852,14 @@ TODO: test intersection (dist=0 !)
 //=======================================================================
   int UT2D_pt_ck_inplg (Point2 * pTab, int pNr, Point2 *ptx, int iClo) {
 //=======================================================================
-/// \code
-/// UT2D_pt_ck_inplg       Test if Point ptx is inside polygon pTab
-/// Input:
-///   pTab      polygonPoints
-///   iClo      closed; 0=yes, 1=not_closed; -1=undefined
-///             0: pTab[0] must be equal pTab[pNr - 1]
-/// Output:
-///   RetCod    0     No,  point ptx is outside pTab;
-///             else  Yes, point is inside.
-/// \endcode
+// UT2D_pt_ck_inplg       Test if Point ptx is inside polygon pTab
+// Input:
+//   pTab      polygonPoints
+//   iClo      closed; 0=yes, 1=not_closed; -1=undefined
+//             0: pTab[0] must be equal pTab[pNr - 1]
+// Output:
+//   RetCod    0     No,  point ptx is outside pTab;
+//             else  Yes, point is inside (windingNr)
 
 // test polygon-segment only, if the y-value of the testpoint is between
 // the y-values of the segment. Else ignore the segment.
@@ -7884,9 +7882,9 @@ TODO: test intersection (dist=0 !)
   int     wn;               // windingNr
 
 
-  // printf("UT2D_pt_ck_inplg pNr=%d iClo=%d\n",pNr,iClo);
-  // DEB_dump_obj__ (Typ_PT2, ptx, "  _ck_inplg pNr=%d ptx",pNr);
-  //for(i1=0; i1<pNr; ++i1) DEB_dump_obj__ (Typ_PT2, &pTab[i1], "pa[%d]=",i1);
+  printf("UT2D_pt_ck_inplg pNr=%d iClo=%d\n",pNr,iClo);
+  DEB_dump_obj__ (Typ_PT2, ptx, "  _ck_inplg pNr=%d ptx",pNr);
+  for(i1=0; i1<pNr; ++i1) DEB_dump_obj__ (Typ_PT2, &pTab[i1], "pa[%d]=",i1);
 
 
   if(iClo < 0) {

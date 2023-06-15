@@ -1,3 +1,27 @@
+===========================================================================
+Version 2.60.00 / 2023-05-02
+
+- new gcad-Version Microsoft/MSYS2 MINGW_x86_64 (Win10/11, 64-bit)
+- bugfixes ..
+
+Programlines (C)       527419
+Functions              4859
+
+
+
+===========================================================================
+Version 2.50.02 / 2023-02-08
+
+- Bugfix CAD "rightMousebutton - delete dynamic.obj"
+- Bugfix CAD "rightMousebutton - edit point"
+- Bugfix CAD "CUT (trim) obj" - closed-curves
+- Bugfix "loft-along-across"
+
+Programlines (C)  543725
+Functions           5081
+
+
+===========================================================================
 Version 2.50.00 / 2022-11-12
 
 - CAD-Circle-Cen-Radius senseOfRottaion added

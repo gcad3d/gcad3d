@@ -34,7 +34,7 @@ Demo export active group or whole model
 List_functions_start:
 
 Demo_exp_export        main entry, export active group or whole model
-Demo_exp_mdl__         export all objs of grp1
+Demo_exp_mdl__         export all objs of dlGrp
 Demo_exp_exp_ox        export obj
 
 List_functions_end:
@@ -45,30 +45,18 @@ List_functions_end:
 
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def1.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-
-#ifdef _MSC_VER
-// die folgenden 2 Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
-
 #include "../ut/ut_geo.h"                 // Point ...
 #include "../ut/func_types.h"             // UI_Func...
 #include "../ut/ut_memTab.h"              // MemTab_..
-
-// #include "../gr/ut_DL.h"               // DB_GetDLatt
 
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 
@@ -79,6 +67,13 @@ __declspec(dllexport) int gCad_fini ();
 
 
 
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main ();
+export int gCad_fini ();
+
+
+//----------------------------------------------------------------
 // prototypes:
 typedef_MemTab(int);
 
@@ -136,7 +131,7 @@ static int exp_objNr = 0;
   ObjGX       ox1;
   ModelRef    *mr;
   ModelBas    *mbo;
-  MemTab(int) grp1 = _MEMTAB_NUL;    // DL-indexes of objs to export
+  MemTab(int) dlGrp = _MEMTAB_NUL;    // DL-indexes of objs to export
   MemTab(int) smTab = _MEMTAB_NUL;   // basMdl-indexes of used submodels
 
 #define SIZ_SMTAB 1000               // size list subModelnames
@@ -172,27 +167,27 @@ static int exp_objNr = 0;
 
   
   //----------------------------------------------------------------
-  // get grp1 = list of objs in DL 
+  // get dlGrp = list of objs in DL 
   // get nr of objs in active group
   i1 = Grp_get_nr ();
   if(i1 > 0) {
-    // copy objs of active group into private group grp1
-    Grp1_add__ (&grp1);
+    // copy objs of active group into private group dlGrp
+    Grp1_add__ (&dlGrp);
 
   } else {
     // get all objs in primary-model
-    Grp1_add_sm_dl (&grp1, iMdl);
+    Grp1_add_sm_dl (&dlGrp, iMdl);
   }
 
     // TESTBLOCK
-    // MemTab_dump (&grp1, "exp_export-L1");
+    // MemTab_dump (&dlGrp, "exp_export-L1");
     // return -1;
     // END TESTBLOCK
 
 
   //----------------------------------------------------------------
-  // export all objs of grp1
-  Demo_exp_mdl__ (&grp1, &smTab, iMdl);
+  // export all objs of dlGrp
+  Demo_exp_mdl__ (&dlGrp, &smTab, iMdl);
 
     // return -1;
 
@@ -227,10 +222,10 @@ static int exp_objNr = 0;
     DB_load__ (MDL_safNam_mnam(safNam, mbo->mnam));
 
     // get group smTab of all objs of subModel mbi in DL
-    Grp1_add_sm_dl (&grp1, iMdl);
+    Grp1_add_sm_dl (&dlGrp, iMdl);
 
     // export subModel
-    Demo_exp_mdl__ (&grp1, &smTab, iMdl);
+    Demo_exp_mdl__ (&dlGrp, &smTab, iMdl);
 
     ++i1;
     if(i1 < smTab.rNr) goto L_nxt_sm;
@@ -255,7 +250,7 @@ static int exp_objNr = 0;
   LOG_A_exit (exp_errNr);
 
   MemTab_free (&smTab);
-  MemTab_free (&grp1);
+  MemTab_free (&dlGrp);
 
     // TESTBLOCK
     // LOG_A_disp ();
@@ -268,9 +263,9 @@ static int exp_objNr = 0;
 
 
 //=======================================================================
-  int Demo_exp_mdl__ (MemTab(int) *grp1, MemTab(int) *smTab, int iMdl) {
+  int Demo_exp_mdl__ (MemTab(int) *dlGrp, MemTab(int) *smTab, int iMdl) {
 //=======================================================================
-// Demo_exp_mdl__              export all objs of grp1
+// Demo_exp_mdl__              export all objs of dlGrp
 //   add all used subModels to smTab
 
   int         irc, i1, oNr, iTyp, mbi;
@@ -282,13 +277,13 @@ static int exp_objNr = 0;
 
   printf(" Demo_exp_mdl__ %d\n",iMdl);
 
-  oNr = grp1->rNr;
+  oNr = dlGrp->rNr;
 
   dlNr = DL_get__ (&dla);
 
 
   for(i1=0; i1<oNr; ++i1) {
-    dli = *((int*)MEMTAB__ (grp1, i1));
+    dli = *((int*)MEMTAB__ (dlGrp, i1));
     iTyp = dla[dli].typ;
       printf("\n ------- nxt-obj %d typ=%d\n",i1,iTyp);
       DL_DumpObj__ (dli, "Demo_exp_mdl__");

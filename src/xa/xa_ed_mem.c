@@ -2298,38 +2298,36 @@ extern char  MOpTxtStr[];
 //================================================================
   int APED_txo_srcLn__ (ObjTXTSRC *tso, int itsMax, char *sln) {
 //================================================================
-/// \code
-/// analyze sourceline sln; get source-objects.
-/// analyze definition-sourceline; get typ,form,level.
-///   separates all expressins in sln into tso-records;
-///   tso provides typ, form, startPos. in sln, length in char, parent/level.
-///
-/// Input:
-///   sln        definition-sourcline, without def.Hdr, with name, 0-terminated.
-///   itsMax     max nr of records in tso
-/// Output:
-///   tso        a list of all objects in sln
-///   RetCod     nr of tso-records, -1=Err
-///
-/// tso.type      tso.form
-/// Typ_NumString Typ_NumString num.value (eg  12 -23 .8)
-/// Typ_ObjDB     Typ_ObjDB     (eg "V20" or "P12")
-/// Typ_ConstVal  <codeOffset>  NcoTxtTab (num.constant: eg "PI")
-/// Typ_ConstOG   <codeOffset>  GcoTxtTab (geom.constants: eg "DX")
-/// Typ_FncNam    <fnc>         fnc: Fc1TxtTab Fc1TypTab FcmTxtTab Typ_Val
-/// Typ_cmdNCsub  <codeOffset>  Function fnc: ObjCodTab ("CUT","REV" ..)
-/// TYP_OpmPlus   <codeOffset>  MOpTxtStr (math.operator: + - / *)
-/// Typ_String    Typ_String    string (eg "Submodel1")
-/// Typ_Name      Typ_Name      (the objName eg "# info")
-/// TYP_FuncEnd   -             end of list
-///
-/// tso.ilen   length in chars of obj
-/// tso.ipar   index to parent (into tso); -1=primary level.
-/// tso.ioff   offset in chars from start of codestring.
-///
-/// see also SRCU_analyz__
-/// \endcode
-
+// analyze sourceline sln; get source-objects.
+// analyze definition-sourceline; get typ,form,level.
+//   separates all expressins in sln into tso-records;
+//   tso provides typ, form, startPos. in sln, length in char, parent/level.
+//
+// Input:
+//   sln        definition-sourcline, without def.Hdr, with name, 0-terminated.
+//   itsMax     max nr of records in tso
+// Output:
+//   tso        a list of all objects in sln
+//   RetCod     nr of tso-records, -1=Err
+//
+// tso.type      tso.form
+// Typ_NumString Typ_NumString num.value (eg  12 -23 .8)
+// Typ_ObjDB     Typ_ObjDB     (eg "V20" or "P12")
+// Typ_ConstVal  <codeOffset>  NcoTxtTab (num.constant: eg "PI")
+// Typ_ConstOG   <codeOffset>  GcoTxtTab (geom.constants: eg "DX")
+// Typ_FncNam    <fnc>         fnc: Fc1TxtTab Fc1TypTab FcmTxtTab Typ_Val
+// Typ_cmdNCsub  <codeOffset>  Function fnc: ObjCodTab ("CUT","REV" ..)
+// TYP_OpmPlus   <codeOffset>  MOpTxtStr (math.operator: + - / *)
+// Typ_String    Typ_String    string (eg "Submodel1")
+// Typ_Name      Typ_Name      (the objName eg "# info")
+// TYP_FuncEnd   -             end of list
+//
+// tso.ilen   length in chars of obj
+// tso.ipar   index to parent (into tso); -1=primary level.
+// tso.ioff   offset in chars from start of codestring.
+//
+// see also SRCU_analyz__
+// 
 // definition-sourcelines do NOT contain:
 //   controlCodes     (IF JUMP DLG DEBUG INTERN EXIT ..)  PRI .. (PrgCmdTab)
 //   controlOperators (EQ NE LT GT G_E L_E)  Typ_ope_eq
@@ -2337,30 +2335,22 @@ extern char  MOpTxtStr[];
 // TODO: cannot analyze dx (must be "DX")
 
 
-  int     irc, its, ii, i1, iLev, levTab[10], exprNr[10], fncAct, fncValNr;
+  int     irc, its, ii, i1, iLev, levTab[10], fncValNr;
   char    *cp1, *cp2, *cp3, s1[64], sErr[128], *cpe;
 
 
 
   // printf("=== APED_txo_srcLn__ ,itsMax=%d\n",itsMax);
-  // printf("  APED_txo_srcLn__-txo_src |%s|\n",sln);
+  // printf("  APED_txo_srcLn__ %ld |%s|\n",strlen(sln),sln);
 
-
-  its = 0;
-  iLev = 0;           // active index into levTab
+  
+  its = 0;            // index outArray tso
+  iLev = 0;           // index into levTab
   levTab[0] = -1;     // parent-index-table
-  exprNr[0] = 0;      // first,second or third value in bracket
-  fncAct = 0;
 
-
-  // find startpos of next expression;
-  // see also UTX_get_word UTX_wTab_srcLn
-  cp1 = sln;
-
-
-  // get cpe = endPos of expression; '\0' or '\n'
+  cp1 = sln;          // cp1 = startpos of next expression
   ii = strcspn(cp1, "\n");
-  cpe = &sln[ii];
+  cpe = &sln[ii];     // cpe = endPos of expression; '\0' or '\n'
 
 
 
@@ -2377,22 +2367,22 @@ extern char  MOpTxtStr[];
       irc = its;
       goto L_exit;
     }
-    exprNr[iLev] += 1;
-      // printf("L_nextExpr:its=%d cp1=|",its);UTX_dump_cnl(cp1,50);printf("|\n");
+      // printf("\nL_nextExpr:its=%d cp1=|",its);UTX_dump_cnl(cp1,50);
+      // printf("| iLev=%d levAct=%d\n",iLev,levTab[iLev]);
 
 
   //----------------------------------------------------------------
   // test delim. for '('
   if(*cp1 == '(') {
-    // test if last record is a function; else add record Typ_FncNam,Typ_Val
-    if(its < 1) goto L_fnc1;
-    if(tso[its-1].typ != Typ_FncNam) goto L_fnc1;
     ++iLev;
+      // printf(" - iLev -> %d\n",iLev);
     if(iLev >= 10) goto L_errLev;
-    levTab[iLev] = its - 1;
-    exprNr[iLev] = 0;
-    ++cp1; // skip '('
-    goto L_nextExpr;
+    levTab[iLev] = its; // - 1;
+    // out Typ_FncNam,Typ_Val (brackets without function; eg "(V10+1)"
+    tso[its].typ = Typ_FncNam;
+    tso[its].form = Typ_Val;
+    cp2 = cp1 + 1;   // skip '('
+    goto L_saveExpr;
   }
 
 
@@ -2400,9 +2390,9 @@ extern char  MOpTxtStr[];
   // test delim. for ')'
   if(*cp1 == ')') {
     --iLev;
-    if(iLev < 0) goto L_errLev;
+    if(iLev < -1) goto L_errLev;
     ++cp1; // skip ')'
-    fncAct = 0;
+      // printf(" - iLev <- %d\n",iLev);
     goto L_nextExpr;
   }
 
@@ -2469,19 +2459,10 @@ extern char  MOpTxtStr[];
     // see UTX_ck_num_i
     ii = UTX_ck_num_f (&cp2, cp1);
     if(ii < 0) goto L_2;
-/*
-      if((fncAct == Typ_VC)||(fncAct == Typ_PT)) {
-           // printf(" _txo_src iLev=%d exprNr[iLev]=%d\n",iLev,exprNr[iLev]);
-         if(exprNr[iLev] == 1)      i1 = Typ_ValX;
-         else if(exprNr[iLev] == 2) i1 = Typ_ValY;
-         else                       i1 = Typ_ValZ;
-      } else {
-*/
-        i1 = Typ_NumString;
-      // }
-      tso[its].typ  = i1;
-      tso[its].form = Typ_NumString;
-      goto L_saveExpr;
+      // printf(" txo_srcLn__-L_1_1-numVal: |%s|\n",sln);
+    tso[its].typ  = Typ_NumString;
+    tso[its].form = Typ_NumString;
+    goto L_saveExpr;
 
 
   //----------------------------------------------------------------
@@ -2493,6 +2474,7 @@ extern char  MOpTxtStr[];
     // test if cp2 is numeric string
     ii = UTX_ck_num_digNr (&cp3, cp2);
     if(ii < 1) goto L_3;
+    // out DB-obj; eg "P20"
     cp2 = cp3;
     tso[its].typ  = Typ_ObjDB;
     tso[its].form = Typ_ObjDB;
@@ -2502,19 +2484,14 @@ extern char  MOpTxtStr[];
   //----------------------------------------------------------------
   // 1. & 2. chars not digits. Isolate first word.
   L_3:
-      // printf(" txo_srcLn__-L_3: |%s|\n",cp2);
-    // find cp2 = pos. of next delimiter (" (,\0)
+      // printf(" txo_srcLn__-L_3: |%s|\n",cp1);
+
+    // cp2=cp1+1; find cp2 = pos. of next delimiter (" (,\0)
     ii = strcspn (cp2, " (,)#+-/*\n");
     cp2 = &cp2[ii];
       // printf(" txo_srcLn__L_3:ii=%d deli=|%c|\n",ii,*cp2);
-
-    // cp1=start of word; cp2=delimiter
-    ii = cp2 - cp1;
-
-    UTX_pos_skipLeadBlk (cp2);  // skip leading blanks
+    ii = cp2 - cp1; // ii=length; cp1=start of word; cp2=delimiter
       // printf(" len ii: %d cp1 |",ii);UTX_dump_c__(cp1,ii);printf("|\n");
-
-
 
     // test for function: is delimiter "(" or " (" ?
     if(*cp2 != '(') {
@@ -2522,19 +2499,24 @@ extern char  MOpTxtStr[];
       goto L_4;
     }
 
-
-  //----------------------------------------------------------------
-    // s1 is word. Test for known functions.
-      // printf(" txo_srcLn__-L_4: |%s|\n",cp1);
+    // Test cp1 for known functions.
+      // printf(" txo_srcLn__-L_3.1: |%s|\n",cp1);
     // AP_typ_FncNam Fc1TxtTab Fc1TypTab FcmTxtTab
+    // decode objTypes P,L,C,S,A,B,.., Functions X,Y,Z, VAL,ANG,.. SQRT,..
     irc = AP_typ_FncNam (cp1, ii);
     if(irc < 0) {TX_Error("APED_txo_srcLn__ E003 |%s|",s1); goto L_exit;}
-      // printf(" f-typ_FncNam-irc=%d deli=|%c|\n",irc,*cp2);
 
+    // function found, eg P(0 1 2); out Typ_FncNam,Typ>func>; 
+      // printf(" f-typ_FncNam-irc=%d deli=|%c|\n",irc,*cp2);
     tso[its].typ  = Typ_FncNam;
     tso[its].form = irc;
-    fncAct = irc;
-    goto L_saveExpr;
+    ++iLev;
+      // printf(" - iLev -> %d\n",iLev);
+    if(iLev >= 10) goto L_errLev;
+    levTab[iLev] = its;
+    UTX_pos_skipLeadBlk (cp2);   // skip blanks
+    ++cp2;                       // skip '('
+    goto L_saveExpr;             // out record Typ_FncNam,Typ_<funcTyp>
 
 
 
@@ -2543,12 +2525,12 @@ extern char  MOpTxtStr[];
     // strncpy (s1, cp1, ii); s1[ii] = '\0';
     for(i1=0; i1<ii; ++i1) s1[i1] = toupper (cp1[i1]);
     s1[ii] = '\0';
-      // printf(" _txo_srcLn_objectCode-s1=|%s|\n",s1);
+      // printf(" _txo_srcLn_-L_4: s1=|%s|\n",s1);
 
   // test for objectCodes (CUT, REV, ...) ObjCodTab Typ_Cmd1
     i1 = UTX_cmp_word_wordtab (ObjCodTab, s1);
     if (i1 >= 0) {
-      // printf(" found SubCmd %d\n",i1);
+        // printf(" found SubCmd %d\n",i1);
       tso[its].typ = Typ_cmdNCsub;
       tso[its].form = i1;
       goto L_saveExpr;
@@ -2589,35 +2571,24 @@ extern char  MOpTxtStr[];
     }
 
 
-
-
   goto L_err99;  // cannot analyze expr..
 
 
 
   //================================================================
   L_saveExpr:
-      // printf(" L_saveExpr: %d |%s| l=%d\n",its,cp2,cp2 - cp1);
+      // printf(" L_saveExpr: %d |%s| l=%ld cp2=%c\n",its,cp2,cp2 - cp1,*cp2);
     // cp1 = first char of expr;
     // cp2 = last char of expr;
     tso[its].ioff = cp1 - sln;
     tso[its].ilen = cp2 - cp1;
+      // printf(" out-tso[%d].typ=%d form=%d len=%d par=%d off=%d\n",its,
+             // tso[its].typ,tso[its].form,tso[its].ilen,tso[its].ipar,tso[its].ioff);
     ++its;
     if(its >= itsMax) goto L_errIts;
-
     cp1 = cp2;
     goto L_nextExpr;
 
-
-
-  //================================================================
-  L_fnc1:
-    // add function Typ_FncNam,Typ_Val (brackets without function; eg "(V10+1)"
-    tso[its].typ = Typ_FncNam;
-    tso[its].form = Typ_Val;
-    cp2 = cp1;
-    goto L_saveExpr;
-   
 
 
   //================================================================

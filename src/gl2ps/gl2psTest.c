@@ -1,6 +1,6 @@
 /*
  * GL2PS, an OpenGL to PostScript Printing Library
- * Copyright (C) 1999-2015 Christophe Geuzaine <geuz@geuz.org>
+ * Copyright (C) 1999-2017 Christophe Geuzaine <geuz@geuz.org>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of either:
@@ -296,7 +296,6 @@ void text()
   gl2psSpecial(GL2PS_TEX, "% This should only be printed in LaTeX output!");
 }
 
-//================================================================
 void cube()
 {
   glColor3d (0.0,1.0,0.);
@@ -333,7 +332,6 @@ void cube()
   glEnd();
 }
 
-//================================================================
 void image(float x, float y, GLboolean opaque)
 {
   int w = 64, h = 66, row, col, pos = 0;
@@ -387,7 +385,6 @@ void image(float x, float y, GLboolean opaque)
   free(pixels);
 }
 
-//================================================================
 /* A simple drawing function, using the default viewport */
 void draw_single()
 {
@@ -400,7 +397,6 @@ void draw_single()
   glFlush();
 }
 
-//================================================================
 /* A more complex drawing function, using 2 separate viewports */
 void draw_multi()
 {
@@ -462,7 +458,6 @@ void draw_multi()
   glFlush();
 }
 
-//================================================================
 void display()
 {
   GLfloat spec[4] = {0.6, 0.6, 0.6, 1.0};
@@ -490,7 +485,6 @@ void display()
   }
 }
 
-//================================================================
 void reshape(int w, int h)
 {
   window_w = w;
@@ -506,7 +500,6 @@ void reshape(int w, int h)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-//================================================================
 void writefile(int format, int sort, int options, int nbcol,
                const char *filename, const char *extension)
 {
@@ -549,14 +542,11 @@ void writefile(int format, int sort, int options, int nbcol,
   fflush(stdout);
 }
 
-//================================================================
 void keyboard(unsigned char key, int x, int y)
 {
   int opt;
   char ext[32];
   static int format = GL2PS_PS;
-
-  printf("keyboard - %d\n",key);
 
   switch(key){
   case 27:
@@ -622,18 +612,14 @@ void keyboard(unsigned char key, int x, int y)
   }
 }
 
-//================================================================
 void motion(int x, int y)
 {
   rotation += 10.;
   display();
 }
 
-//================================================================
 int main(int argc, char **argv)
 {
-  printf("main \n");
-
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_SINGLE | GLUT_DEPTH);
   glutInitWindowSize(400, 600);

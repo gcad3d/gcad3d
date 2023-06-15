@@ -50,7 +50,7 @@ void INF(){                   /*! \code
                     development-dokumentation gcad3d
 -----------------------------------------------------------------------------------
 INF_CORE__          messagewindow import-export plugin app-script remote-control
-                    process-control Group
+                    process-control Group AP_STAT
 INF_GUI__           user-interaction, menus,     ckitgui ..
 INF_CMD__           command-interpreter (resolving gcad-format)
 INF_DB__            data-base for (binary) grafic objects
@@ -707,6 +707,7 @@ odl    DL_          DL_Att    - undef !     DisplayListRecord
 sr                                          sense-of-rotation;       INF_sr
 ....................................................................................
 itb    ITAB_        IntTab                  group of integer-tables  INF_IntTab
+intb   INTB_        IndTab                  group ibeg,iNr,Typ..     INF_IndTab
 mtb    MemTab_      MemTab                  fixed-length-records     INF_MemTab
 msp    UME_         Memspc                  Variable-Length-Records  INF_Memspc
 otb    OXMT_        OgxTab                  ObjGX + var-len-record   INF_OgxTab
@@ -715,6 +716,8 @@ otb    OXMT_        OgxTab                  ObjGX + var-len-record   INF_OgxTab
 ....................................................................................
 mdb                 ModelBas  Typ_SubModel  basicModel               INF_basicModel
 mdr                 ModelRef  Typ_Model     modelReference           INF_modelRef
+....................................................................................
+ofn                 stru_FN                 object-filename          INF_stru_FN
 ....................................................................................
 
 
@@ -1097,6 +1100,8 @@ functions for
   ObjTab =  list of [oTyp, pointer to oDat, Memspc for oDat, aux.obj]     OTB_*
 ../xa/tst_ut_objtab.c
 
+See also INF_OgxTab
+
 type of memSpc = MEMTYP_STACK__  (realloc - NO,    malloc - NO,   free - NO.)
 
 struct ObjTab has memspaces:
@@ -1105,6 +1110,8 @@ struct ObjTab has memspaces:
 - int    *oTyp,  list of types of records in oSpc
 - void   *xDat;  keeps oNr records with recordsize = xSiz = UTO_siz_stru(xTyp);
 
+TODO:
+- testprogs
 
 
 ================================================================== \endcode */}
@@ -1156,19 +1163,26 @@ CVPSP_pol_oPsp3
 
 ================================================================== \endcode */}
 void INF_Typ_CVTRM (){        /*! \code
+Trimmed curve
 
 struct CurvCCV
-  Parameters v0,v1 (startpoint, endPoint) of Circ, CurvElli are normalized (0-1)
-                   CurvPoly has length, CurvBSpl has knotvalues;
-
+  typ,dbi          the basic-curve
+  Parameters v0,v1 parameters of start- endpoint;
+                   v0 = parameter startpoint, also if direction is bwd;
+                   for all types of curves normalized parameters (0-1); not knotValues.
+                   See also INF_struct_par
 
 Functions:
-  UTO_cv_cvtrm       // make normal object of trimmedCurve
+  UTO_cv_cvtrm          make normal object of trimmedCurve
+  CVTRM__obj            create trimmed-curve from obj (form,struct,dbi)
 
 Files:
 ../ut/ut_cvtrm.c        CVTRM_*      trimmed-curve functions 
 ../ut/ut_cntf.c         CNTF_        create trimmed-curve from object-table
 ../xa/xa_cad_ccv_ui.c   IE_ccv_*     GUI simple CurveEditor
+
+Testmodels:
+test_PRCV_*.gcad
 
 
 
@@ -1305,17 +1319,17 @@ form: type of record of *data
 
 .form=Typ_Index: .data=index into DB
   if size=1 data = long-value;
-    set: PTR_LONG, OGX_SET_INDEX; get: LONG_PTR, OGX_GET_INDEX
+    set: PTR_LONG, OGX_SET_INDEX; get: LONG__PTR, OGX_GET_INDEX
   if size>1 data = address of long-table;
 
 .form=Typ_Int4:  .data=int-value; (.typ=Typ_Texture,Typ_Typ)
   if size=1 data = int-value;
-    set: PTR_INT, OGX_SET_INT; get: INT_PTR, OGX_GET_INT
+    set: PTR_INT, OGX_SET_INT; get: INT__PTR, OGX_GET_INT
   if size>1 data = address of int-table;
 
 .form=Typ_Int8:  .data=long-value;
   if size=1 data = long-value;
-    set: PTR_LONG; get: LONG_PTR.
+    set: PTR_LONG; get: LONG__PTR.
   if size>1 data = address of int-table;
 
 .form=Typ_Float4: .data=float-value;
@@ -1602,7 +1616,11 @@ INF_MEM_TYP     type of memspc; if can reallocate, must be freed ..
 
 Functions:
 MEM_..          Swap-Invert-Delete copy compare write read ..    ../ut/ut_mem.c
-
+MEM_swap__ MEM_swap_int MEM_swap_2vp MEM_swap_2db MEM_del_nrec
+MEM_del_IndRec MEM_del_DbRec 
+MEM_alloc_tmp
+MEM_get_file
+MEM_inv_itab
 
 
 
@@ -1612,7 +1630,7 @@ MEM_..          Swap-Invert-Delete copy compare write read ..    ../ut/ut_mem.c
 ================================================================== \endcode */}
 void INF_MEM_SPC (){        /*! \code
   get memSpc  -  temporary | permanent | static
-
+see tmpSpc_test__ ()
 
 ----------------------------------------------------------
 MEM_alloc_tmp     get temporary-memspc
@@ -1693,6 +1711,17 @@ add, find, reallocate - strings terminated with '\0'.
 ../ut/ut_txTab.h
 
 see INF_TxtTab
+
+
+================================================================== \endcode */}
+void INF_IndTab (){        /*! \code
+
+IndTab - Index-table; a list of startIndexes + nr-of-objects;
+- see also IntTab (INF_IntTab) - a list int*-pointers + nr-of-objects;
+
+
+use also MemTab_IndTab
+- see MemTab_IndTab_test MemTab_IndTab_add
 
 
 ================================================================== \endcode */}
@@ -1821,27 +1850,26 @@ INF_workflow_models         load model in temp.dir at startup
 
 
 ------ main-startup:
-main                      ../xa/xa_main.c
-  AP_get_dir__    // set AP_get_tmp_dir AP_get_cfg_dir AP_get_doc_dir AP_get_ico_dir
-  // if cfg_<os>/gCAD3D.rc does not exist:
-  //   UX: extract examples.gz and rename dir. /cfg/ /cfg_Linux/ or /cfg_MS/
-  //   MS: copy config-files from \cfg\ -> \cfg_MS\.
-  //   write or load defaults (cfg/xa.rc)
-  //   dirLocal is base of tmp, dat, cfg_<os>, ctlg, prg
-    AP_defaults_write  create cfg_<os>/xa.rc
-    AP_defaults_dir    create file cfg_<os>/dir.lst = symDirs Data, CATALOG, APPLI
+main                      ../xa/gCAD3D.c
+  OS_bin_dir_set          extract gcad_bin_dir from argv[0]
+  AP_get_dir__            set AP_get_tmp_dir AP_get_cfg_dir AP_get_doc_dir AP_get_ico_dir
+  // test if <AP_cfg_dir>cfg_<OS>/gCAD3D.rc exists; if not:
+    // - unpack examples.gz
+    //   write or load defaults (cfg/xa.rc)
+    AP_defaults_write     create cfg_<os>/xa.rc
+    AP_defaults_dir       create file cfg_<os>/dir.lst = symDirs Data, CATALOG, APPLI
 
-  AP_defaults_read        // read Defaults from <base>/cfg/xa.rc
+  AP_defaults_read        read Defaults from <base>/cfg/xa.rc
   UI_win_main             create main-window
     UI_GL_draw__            callback OpenGL-startup
-      AP_init__                 startup (UI_GL_draw__
-        AP_work__                 work startparameters
+      AP_init__               startup (UI_GL_draw__
+        AP_work__               work startparameters
 
 ED_work_END
-  ED_work_CurSet            work n lines of src-code
-    WC_Work1
+  ED_work_CurSet          work n lines of src-code
+    WC_Work1                process single codeline - see below
 
-  GUI_Win_exit      // Exit mit X:
+  GUI_Win_exit            Exit mit X:
     UI_win_main "UI_FuncExit"
       AP_exit__
       GUI_Win_kill
@@ -1849,6 +1877,7 @@ ED_work_END
 
   AP_work__ ("crashEx", NULL);
     AP_exit__
+      AP_defaults_write    
     exit
 
 UI_men__ ("new")    //  File/New
@@ -1858,16 +1887,18 @@ AP_mdl_init       // File/New, File/Open
 
 
 ------ CAD:
-WC_Work1                      execute codeline
+WC_Work1                      execute codeline  - store in DB, display ..
   APT_work_def                handle definition-line
     APT_store_obj             store in DB
       APT_decode_pt
       APT_decode_bsp_
       APT_decode_ccv__
       APT_decode_sur
-        APT_decode_spl        decode planar surf
+        APT_decode_spl          decode planar surf
+      APT_decode_model          decode subModel; 
     APT_Draw__                display
       APT_DrawCurv
+      GR_perm_mdr               disp subModel
   APT_work_AppCodTab          do eg HIDE VIEW MODSIZ DEFTX EXECM ..
   APT_do_auxCmd               do eg R# or G#
 
@@ -2318,25 +2349,37 @@ void INF_C_types (){        /*! \code
 #include "../ut/ut_types.h"               // INT_8 - UINT_64
 
 
-                            Linux     MS-Win
-                      byte   bit-gcc   bit-MS-cl
-32-bit: sizeof(int)    4       32        32
-        sizeof(long)   4       32        32
-        sizeof(float)  4       32        32
-        sizeof(double) 8       64        64
-        sizeof(void*)  4       32        32
 
-64-bit: sizeof(int)    4       32        32
-        sizeof(long)   4|8     64        32 | 64  (Compilerswitch) set to 64 !!!
-        sizeof(float)  4       32        32
-        sizeof(double) 8       64        64
-        sizeof(void*)  8       64        64
+                            Linux     MS-Win        MSYS2
+                      byte   bit-gcc   bit-MS-cl
+32-bit: sizeof(int)    4       32        32          32
+        sizeof(long)   4       32        32          32
+        sizeof(float)  4       32        32          32
+        sizeof(double) 8       64        64          64
+        sizeof(void*)  4       32        32          32
+
+64-bit: sizeof(int)    4       32        32          32
+        sizeof(long)   4|8     64        32          32                <<<<<<<<<<
+        sizeof(float)  4       32        32          32
+        sizeof(double) 8       64        64          64
+        sizeof(void*)  8       64        64          64
+
+MSVC: compilerswitch can set size of long to 64-bit; default is 32.
+
+
+GCC:
+  printf(" int=%d\n",__SIZEOF_INT__);
+  printf(" long=%d\n",__SIZEOF_LONG__);
+  printf(" ptr=%d\n",__SIZEOF_POINTER__);
+  printf(" float=%d\n",__SIZEOF_FLOAT__);
+  printf(" double=%d\n",__SIZEOF_DOUBLE__);
+
 
 
 _MSC_VER         // MS-Win; gcc & MS_VS; beim gcc von extern mit -D_MSC_VER
 _MFC_VER         // MS-Win; nur mit MS-Compiler (MFC-Version).
 _WIN32 & _WIN64  // MS-Win; nur mit MS-Compiler
-_LP64            // vom gcc auf 64-bit-OS.
+_LP64            // if 1: ptr and long have 64 bit; int has 32 bit (Linux, not MSYS)
 
 
 

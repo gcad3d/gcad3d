@@ -63,10 +63,10 @@ break TX_Error
 #run comp Data_U/t1.gcad mode_cad
 #run comp mode_cad
 #run comp Data/gMsh.gcad
-run comp Data/unknown.gcad mode_cad
+#run comp Data/unknown.gcad mode_cad
 #run
 
-break IE_cad_test__
+#break IE_cad_test__
 #break GL_set_ocv
 #break UTF_insert1
 #break GL_Init_col

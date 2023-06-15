@@ -1,4 +1,5 @@
 // include with deactivated extern in "../xa/xa.c"
+// some variables must be initilized in 
 // needs #include "../ut/ut_geo.h"    (Point)
 
 
@@ -58,7 +59,8 @@ extern char APP_act_proc[128];    // name of processor (dll)
 extern long APP_dli_start;        // first free dli (last dli of core-obj's)
 extern double AP_mod_defSiz;      // DefaultModelsize
 
-extern FILE *AP_deb_fp;           // debug-file-pointer
+extern char*  AP_fVwr;            // fileViewer - must set to NULL
+extern FILE*  AP_deb_fp;          // debug-file-pointer
 
 extern AP_STAT AP_stat;
 

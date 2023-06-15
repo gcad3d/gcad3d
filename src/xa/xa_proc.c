@@ -39,6 +39,7 @@ void PRC(){}
 List_functions_start:
 
 PRC_init
+PRC_pNam              get processorName out of processFile prcFn
 PRC__
 PRC_Loa
 PRC_disactivate__
@@ -53,9 +54,10 @@ PRC_lst_processors
 PRC_Help
 PRC_set_CmdTab
 
-PRC_IS_ACTIVE            check if process is active
+PRC_IS_ACTIVE         check if process is active
 
 RPC_Loa
+RPC_restart
 
 List_functions_end:
 =====================================================
@@ -103,15 +105,12 @@ APP_act_proc      // name of processor (dll)
 #include <stdarg.h>             // va_list
 
 
-
-//================================================================
-// EXTERN:
-
 #include "../ut/ut_umb.h"                  // UMB_pos__
 #include "../ut/ut_geo.h"                  // Typ_Memspc
 #include "../ut/ut_txt.h"                   // fnam_del
-#include "../ut/ut_os.h"                    // AP_get_bin_dir
+#include "../ut/ut_os.h"                    // OS_bin_dir_get
 #include "../ut/ut_memTab.h"           // MemTab
+#include "../ut/os_dll.h"         // DLL_LOAD_only DLL_CONNECT DLL_EXEC ..
 
 #include "../gui/gui__.h"
 
@@ -119,6 +118,10 @@ APP_act_proc      // name of processor (dll)
 #include "../xa/xa_mem.h"         // memspc51, mem_cbuf1 mem_cbuf1_SIZ
 #include "../xa/xa_msg.h"         // MSG_const__
 #include "../xa/xa.h"             // APP_act_*
+
+
+//================================================================
+// EXTERN:
 
 // ex ../xa/xa_ui.c:
 extern MemObj    ckb_man, ckb_vwr;
@@ -137,6 +140,7 @@ static int NC_procNr = 0;  // 0=processor-dll not connected; 1=loaded.
 
 static MemObj  prc_win  = GUI_OBJ_NEW;
 
+static void  *prc_dll = NULL;
 
 char **process_CmdTab;     // was NCCmdTab
 
@@ -162,7 +166,28 @@ char **process_CmdTab;     // was NCCmdTab
 
 
 //================================================================
-  int PRC_init (char *dllNam) {
+  int PRC_exit () {
+//================================================================
+// 
+
+  int    irc;
+
+  printf("PRC_exit \n");
+
+
+  // irc = DLL_dyn_close (&prc_dll);
+  irc = DLL_dyn__ (&prc_dll, DLL_UNLOAD, NULL);
+  if(irc) return -1;
+
+  NC_procNr = 0;
+
+  return irc;
+
+}
+
+
+//================================================================
+  int PRC_init (char *prcNam) {
 //================================================================
 // Input:
 //   ii     1-n load xa_nc_<prcNam>.dll
@@ -172,105 +197,123 @@ char **process_CmdTab;     // was NCCmdTab
 
 // OS_dll__ in ../ut/ut_os_aix.c ../ut/ut_os_w32.c
 
+
   int          irc;
-  char         s1[256];
+  char         dllNam[256];
 
 
-  printf("PRC_init |%s|\n",dllNam);
+  printf("PRC_init |%s|\n",prcNam);
   printf("  procNr = %d\n",NC_procNr);
   printf("  APP_act_proc |%s|\n",APP_act_proc);
 
 
-  if(NC_procNr) {
-    // a ddl is loaded; test if <dllNam> already loaded
-    if (!strcmp (dllNam, APP_act_proc)) goto L_start; // same dll; OK
-    // unload CmdTab
-    PRC__ (-1, "EXIT__");
-    // unload APP_act_proc
-    OS_prc_dll (-4, NULL);
+  if(strlen(prcNam) >= 128) {
+    TX_Error("PRC_init - prcNam maxLen 128");
+    return -1;
   }
 
 
-  //----------------------------------------------
-  // recompile dll 
-  if(AP_stat.comp) {
-    sprintf(s1, "%s.so",dllNam);
-    irc = OS_dll_build (s1);
+  if(NC_procNr) {
+    // a ddl is loaded; test if <dllNam> already loaded
+    if (!strcmp (prcNam, APP_act_proc)) goto L_start; // same dll; OK
+    // unload CmdTab
+    PRC__ (-1, "EXIT__");
+    // unload APP_act_proc
+    // irc = OS_prc_dll (-4, NULL);
+    // irc = OS_dll__ (&prc_dll, DLL_UNLOAD, dllNam);
+    irc = DLL_dyn__ (&prc_dll, DLL_UNLOAD, NULL);
     if(irc) return -1;
   }
 
 
   //----------------------------------------------
   // fix DLL-FileName
-#ifdef _MSC_VER
-  sprintf(s1, "%splugins\\%s.dll",AP_get_bin_dir(), dllNam);
-#else
-  sprintf(s1, "%splugins/%s.so",AP_get_bin_dir(), dllNam);
-#endif
-    // printf(" so=|%s|\n",s1);
+// #if defined _MSC_VER || __MINGW64__
+//   sprintf(dllNam, "%splugins\\%s",OS_bin_dir_get(), dllNam);
+// #else
+  sprintf(dllNam, "plugins/%s", prcNam);
+// #endif
 
 
+  //----------------------------------------------
+  // recompile dll 
+  if(AP_stat.comp) {
+    // sprintf(s1, "%s.so",dllNam);
+    // AP_ck_build
+    irc = DLL_build (dllNam);
+    if(irc) return -1;
+  }
+
+
+  //----------------------------------------------
 
   // load dll 
-  irc = OS_prc_dll (-2, (void*)s1);
+  // irc = OS_prc_dll (-2, (void*)s1);
+  // irc = OS_dll__ (&prc_dll, DLL_LOAD_only, dllNam);
+  irc = DLL_dyn__ (&prc_dll, DLL_LOAD_only, dllNam);
   if(irc < 0) return irc;
 
-
-  // connect to function PRCE__
-  irc = OS_prc_dll (-3, (void*)"PRCE__");
-  if(irc < 0) return irc;
 
   NC_procNr = 1;
+  strcpy (APP_act_proc, prcNam);
 
-  strcpy (APP_act_proc, dllNam);
 
+  //----------------------------------------------------------------
   L_start:
-  PRC__ (-1, "INIT__");
+    // connect to function PRCE__
+    irc = DLL_dyn__ (&prc_dll, DLL_CONNECT, "PRCE__");
+    if(irc < 0) return irc;
+  
+    // exec func INIT__
+    PRC__ (-1, "INIT__");
 
+  
   return 0;
 
 }
 
 
 //================================================================
-  int PRC__ (int mode, char* data) {
+  int PRC__ (int iFnc, char* cmd) {
 //================================================================
-/// Input:
-///   mode     >=0 index into NCCmdTab
-///            -1  function
-///            -2  open dll; data = dllName
-///   data     additional text for nc-func NCCmdTab[mode]
+// Input:
+//   mode     >=0 index into NCCmdTab
+//            -1  function
+//            -2  open dll; data = dllName
+//   data     additional text for nc-func NCCmdTab[mode]
 
 
   int          irc;
   char         s1[256];
+  void         *data[2];
 
 
-  // printf("PRC__ mode=%d |%s|\n",mode,data);
-  // printf("  processor |%s|\n",APP_act_proc);
+  printf("PRC__ %d |%s|\n",iFnc,cmd);
+  printf("  processor |%s|\n",APP_act_proc);
 
 
 
   // test if processor-dll already connected
   if(NC_procNr == 0) {
     // skip "RESET .." before "INIT__"
-    if(!strncmp(data, "RESET", 5)) return 0;
+    if(!strncmp(cmd, "RESET", 5)) return 0;
     TX_Error ("PRC__ E001");
     return -1;
   }
 
 
   // execute func
-  irc = OS_prc_dll (mode, data);
+  data[0] = &iFnc;
+  data[1] = cmd;
+  return DLL_dyn__ (&prc_dll, DLL_EXEC, data); // func already connected
 
-  return 0;
 }
 
 
 //================================================================
   int PRC_Loa () {
 //================================================================
-/// display list of processes; let user select; start selected process.
+// display list of processes; let user select; start selected process.
  
   int   i1;
   char  s1[256], fnam[256];
@@ -279,7 +322,12 @@ char **process_CmdTab;     // was NCCmdTab
 
 
   // create/update processes.lst
-  PRC_lst_processes ();
+  i1 = PRC_lst_processes ();
+
+  if(i1 < 1) {
+    TX_Print ("**** no process in active model ...");
+    return -1;
+  }
 
   // display list of processes; let user select
   sprintf(fnam, "%sprocesses.lst", AP_get_tmp_dir());
@@ -287,7 +335,7 @@ char **process_CmdTab;     // was NCCmdTab
 //                        NULL, " select process", fnam,
 //                        "1", NULL, "60,20");
 
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"select process\"", "\"x40,y30\"");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "- select process -", "x40,y30");
   if(i1 < 0) return -1;
     printf(" selected process: |%s|\n",s1);
  
@@ -329,11 +377,11 @@ char **process_CmdTab;     // was NCCmdTab
   // Brw_Prcs_upd (APP_act_nam, -1);
 
 
-  UI_Set_actPrg (APP_act_nam, 0);         // inactive
+  UI_Set_actPrg (&APP_act_nam[8], 0);         // inactive
   // see AP_User_reset
   AP_stat.APP_stat = 0;
 
-  APP_act_proc[0] = '\0';
+  // APP_act_proc[0] = '\0';
 
   // remove nc-objects
   GL_Delete (APP_dli_start);
@@ -356,18 +404,19 @@ char **process_CmdTab;     // was NCCmdTab
 //================================================================
 // pNam       mit "process_"
  
-  int       ii;
-  char      s1[200];
+  int       irc;
+  char      prcFn[512], p1Nam[128];
 
 
-  // printf("PRC_activate__ |%s|\n",pNam);
-  // printf("  APP_stat=%d\n",AP_stat.APP_stat);
+  printf("PRC_activate__ |%s|\n",pNam);
+  printf("  APP_act_proc |%s|\n",APP_act_proc);
+  printf("  APP_stat=%d\n",AP_stat.APP_stat);
 
 
   // test if file tmp/<pNam> exists
-  sprintf(s1, "%s%s", AP_get_tmp_dir(), pNam);
-    // printf(" %s\n",s1);
-  if(!OS_checkFilExist (s1, 1)) {
+  sprintf(prcFn, "%s%s", AP_get_tmp_dir(), pNam);
+    // printf(" %s\n",prcFn);
+  if(!OS_checkFilExist (prcFn, 1)) {
     TX_Print ("***** process does not exist ..");
     return -1;
   }
@@ -395,11 +444,11 @@ char **process_CmdTab;     // was NCCmdTab
 
 
   APP_act_typ = 2;                        // "PRC "
-  UI_Set_typPrg ();
+  UI_Set_typPrg ();                       // display type active program-name
   // pNam APP_act_nam can be identical !
   if(APP_act_nam != pNam) strcpy(APP_act_nam, pNam);
-  UI_Set_actPrg (APP_act_nam, 2);
-  AP_stat.APP_stat = 1;
+  UI_Set_actPrg (&APP_act_nam[8], 2);     // display label active program-name
+  AP_stat.APP_stat = 1;                   // set active
 
 
   // lock some application-functions...
@@ -413,6 +462,23 @@ char **process_CmdTab;     // was NCCmdTab
   APP_dli_start = GL_Get_DLind ();
 
 
+
+  //----------------------------------------------------------------
+  // if different processor is loaded: unload
+
+  // get  processorName out of processFile prcFn
+  irc = PRC_pNam (p1Nam, prcFn);
+  if(irc < 0) return -1;
+
+  if(prc_dll) {
+    if(strcmp (APP_act_proc, p1Nam)) {
+      PRC_exit ();
+    }
+  }
+
+
+
+  //----------------------------------------------------------------
   // MAN already active: load processfile into editor;
   if(UI_InpMode == UI_MODE_MAN) {
     UI_src_edi ();
@@ -420,6 +486,7 @@ char **process_CmdTab;     // was NCCmdTab
   // else activate editor
   } else {
     // implicite UI_VWR_OFF, UI_MAN_ON
+    // DOES REWORK WHOLE PROCESSCODE !
     GUI_radiobutt_set (&ckb_man);
   }
 
@@ -428,15 +495,44 @@ char **process_CmdTab;     // was NCCmdTab
 
 
   // test if processor is defined
-    // printf("  APP_act_proc |%s|\n",APP_act_proc);
+    printf("  APP_act_proc |%s|\n",APP_act_proc);
   if(APP_act_proc[0] == '\0') {
     TX_Error("no Prozessor defined (PROCESS processname prozessorname)");
     return -1;
   }
 
-    // printf("exit PRC_activate__ .. \n");
+    printf("exit PRC_activate__ .. \n");
 
   return 0;
+
+}
+
+
+//================================================================
+  int PRC_pNam (char *p1Nam, char *prcFn) {
+//================================================================
+// PRC_pNam             get p1Nam = processorName out of processFile prcFn
+//   processorName is second (last) word in line "PROCESS <namProcess> <namProcessor>"
+
+  int      irc;
+  char     s1[256], *p1;
+
+  // printf("PRC_pNam |%s|\n",prcFn);
+
+  // get line starting with "PROCESS" out of file prcFn
+  irc = UTX_setup_get (s1, "PROCESS", prcFn);
+
+  // get pos of last blank
+  p1 = strrchr (s1, ' ');
+  if(!p1) return -1;
+  ++p1; // skip ' '
+
+  strcpy(p1Nam, p1);
+  irc = 0;
+
+    printf(" ex-PRC_pNam %d |%s|%s|\n",irc,p1Nam,prcFn);
+
+  return irc;
 
 }
 
@@ -513,6 +609,7 @@ static char sproc[128];
 
 
       // get list-of-processes into optLst; display
+      // s1 = filname of list of all processors
       sprintf(s1, "%scadprocessors.lst",AP_get_tmp_dir());
       optLst = UTX_wTab_file (memspc55, sizeof(memspc55), s1);
       if(!optLst) {TX_Print("***** no processors found .."); return -1;}
@@ -566,6 +663,7 @@ static char sproc[128];
   int PRC_lst_processes () {
 //================================================================
 // create file <tmp>processes.lst of all files <tmp>process_*
+// retCode: nr of files (lines) in outfile
 
 
   int   i1;
@@ -580,7 +678,7 @@ static char sproc[128];
   sprintf(s2, "%sprocesses.lst",AP_get_tmp_dir());
   // dir to search
   sprintf(s1, "%s",AP_get_tmp_dir());
-  i1 = UTX_dir_listf (s2, s1, "process_", NULL);
+  i1 = UTX_dir_listf (s2, s1, "process_", NULL, 0);
 
     // printf("ex-PRC_lst_processes nrFiles=%d\n",i1);
 
@@ -606,7 +704,7 @@ static char sproc[128];
 
   // list files -> postprocessors -> file
   // dir to search
-  sprintf(s1, "%splugins%c%s",AP_get_bin_dir(),fnam_del,&sproc[4]);
+  sprintf(s1, "%splugins%c%s",OS_bin_dir_get(),fnam_del,&sproc[4]);
   // outfilnam
   sprintf(s2, "%spostproc.lst",AP_get_tmp_dir());
   i1 = UTX_dir_listf (s2, s1, NULL, NULL);
@@ -710,7 +808,7 @@ static char sproc[128];
 //                        NULL, " delete process", fnam,
 //                        "1", NULL, "60,20");
 
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"delete process\"", "\"x40,y30\"");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "- delete process -", "x40,y30");
   if(i1 < 0) return -1;
   
   
@@ -754,82 +852,22 @@ static char sproc[128];
 //================================================================
   int PRC_lst_processors () {
 //================================================================
-/// list all processors into file <tmp>cadprocessors.lst
+// list all processors into file <tmp>cadprocessors.lst
+// - processors: <gcad_dir_bin>plugins/PRC_*
 
   int   i1, i2, iNr, ftyplen;
-  char  *p1, cbuf1[256];
+  char  *p1, fno[256], path[256];
   FILE  *fpo;
 
 
   printf("PRC_lst_processors \n");
 
+  sprintf (fno, "%scadprocessors.lst",AP_get_tmp_dir());
 
-  // try to open outfile
-  sprintf(cbuf1, "%scadprocessors.lst",AP_get_tmp_dir());
-    // printf(" Dll.lst=|%s|\n",cbuf1);
-  if((fpo=fopen(cbuf1,"w")) == NULL) {
-    printf("***** PRC_lst_write E001 %s\n",cbuf1);
-    // TX_Print("AP_DllLst_write E001 %s",cbuf1);
-    return -1;
-  }
+  sprintf(path, "%splugins%c",OS_bin_dir_get(),fnam_del);
 
+  i1 = UTX_dir_listf (fno, path, "PRC_", NULL, 1);
 
-  // Searchpath
-  sprintf(cbuf1, "%splugins%c",AP_get_bin_dir(),fnam_del);
-    printf(" path-plugins=|%s|\n",cbuf1);
-
-
-#ifdef _MSC_VER
-      ftyplen = 4; // ".dll"
-#else
-      ftyplen = 3; // ".so"
-#endif
-
-
-  iNr = 0;
-  OS_dir_scan_ (cbuf1, &iNr);   // Init
-    // printf(" nach OS_dir_scan_ %d\n",iNr);
-
-  if(iNr > 0)  {
-
-    for (;;) {
-      OS_dir_scan_ (cbuf1, &iNr);
-      // printf(" n.scan %d |%s|\n",iNr,cbuf1);
-      if(iNr < 0) break;
-
-      // filter filetyp
-      i1 = strlen(cbuf1);
-
-      // keep only dll's
-#ifdef _MSC_VER
-      for(i2=i1-3; i2<i1; ++i2) cbuf1[i2] = tolower (cbuf1[i2]);
-      if(strncmp(&cbuf1[i1-4], ".dll", 4)) continue;
-#else
-      if(strncmp(&cbuf1[i1-3], ".so", 3)) continue;
-#endif
-
-      // skip directories
-      if(OS_check_isDir(cbuf1) == 0) continue;
-
-
-      // strip directory - find last "/" (makes |t1| aus |/mnt/x/t1|)
-      p1 = strrchr (cbuf1, fnam_del);
-      if(p1) ++p1;
-      else p1 = cbuf1;
-
-      // keep only PRC_*.dll's
-      if(strncmp(p1, "PRC_", 4)) continue;
-
-      // remove filetyp .so /.dll
-      p1[strlen(p1)-ftyplen] = '\0';
-
-      // write -> file
-      fprintf(fpo,"%s\n",p1);
-        // printf(" add plugin %d |%s|%s|\n",iNr,cbuf1,p1);
-    }
-  }
-
-  fclose(fpo);
   return 0;
 
 }
@@ -921,7 +959,7 @@ static char sproc[128];
 
   // execute nonblocking
   // cd <<bindir>/remote&&excute
-  // sprintf(memspc011, "cd %sremote&&./%s&",AP_get_bin_dir(), APP_act_nam);
+  // sprintf(memspc011, "cd %sremote&&./%s&",OS_bin_dir_get(), APP_act_nam);
   sprintf(memspc011, "cd %s &&./%s.cmd &",AP_mod_dir, APP_act_nam);
     printf("RPC_restart |%s|\n",memspc011);
   irc = OS_system (memspc011);
@@ -953,14 +991,13 @@ static char sproc[128];
 //================================================================
   int RPC_Loa () {
 //================================================================
-/// \code
-/// Start remote
-/// display list of files in directory <bindir>/remote;
-/// execute selected file
-/// \endcode
+// Start remote
+// display list of files in directory <gcad_dir_local>/prg/*.cmd;
+// execute selected file
 
   int    irc;
   char   s1[256], s2[256], fn[256];
+
 
   printf("RPC_Loa \n");
 
@@ -981,20 +1018,21 @@ static char sproc[128];
 //   if(irc) return 0;
 
   // (dirIn/filnamOut sSiz symDir filter title)
-  irc = GUI_file_open__ (s2, 256, s1, "\"*.cmd\"", "open remote control-prog");
+  irc = GUI_file_open__ (s2, 256, s1, "*.cmd", "open remote control-prog");
   if(irc) goto L_exit;
     printf(" RPC_Loa-open %d |%s|\n",irc, s2);
 
-  // UTX_add_fnam_del (s1);    // add following "/"
+  // UTX_fdir_add_del (s1);    // add following "/"
 
   // cut directory/filename
   UTX_fnam__ (AP_mod_dir, AP_mod_fnam, AP_mod_ftyp, s2);
 
+
   APP_act_typ = 4;                        // "RPC "
   UI_Set_typPrg ();
   strcpy(APP_act_nam, AP_mod_fnam);
-  // display prgNam
-  UI_Set_actPrg (APP_act_nam, 0);
+  // display prgNam - hilite
+  UI_Set_actPrg (APP_act_nam, 2);
 
 
   // execute nonblocking

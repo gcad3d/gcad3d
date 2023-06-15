@@ -15,6 +15,10 @@
  *
  *
 -----------------------------------------------------
+TODO: application-objects ...
+
+
+
 Plugin       (C-dll)        APP    ../xa/xa_plu.c ../xa/xa_appDat.c ../xa/xa_dll.c
   Common funcs and vars for Application/Process/Plugin: ../xa/xa_app.c
 
@@ -32,17 +36,18 @@ Modifications:
 =====================================================
 List_functions_start:
 
-PLU_start
-PLU_free               kernel-free; see PLU_realloc
-PLU_realloc            kernel-realloc
-PLU_close              ReEnable Ctrl Y
-PLU_unl                unload plugin
-PLU_clear              clear and unload plugin <APP_act_nam>
-PLU_Loa                reStart remote
-PLU_restart            exec plugin
-PLU_appNamTab_set      provide names for application-objects
+// PLU_clear              clear and unload plugin <APP_act_nam>
 PLU_appNamTab_get      return name of AppNam[iNam]
 PLU_oid_appNam      create name (oid) for application-object
+
+// PLU_start
+// PLU_free               kernel-free; see PLU_realloc
+// PLU_realloc            kernel-realloc
+// PLU_close              ReEnable Ctrl Y
+// PLU_unl                unload plugin
+// PLU_Loa                reStart remote
+// PLU_restart            exec plugin
+PLU_appNamTab_set      provide names for application-objects
 
 List_functions_end:
 =====================================================
@@ -99,12 +104,13 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
 
  
 
+/*
 //================================================================
   int PLU_start () {
 //================================================================
 // start plugin <APP_act_nam>
 
-  AP_exec_dll (APP_act_nam);
+  AP_plu_exec (APP_act_nam);
 
   return 0;
 
@@ -161,11 +167,11 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
   printf("PLU_clear \n");
 
   // unload active prg, clear
-  PLU_unl ();
+  DLL_plu_unl ();
   APP_act_typ = 0;
   UI_Set_typPrg ();
-  strcpy(APP_act_nam, "-");
-  UI_Set_actPrg (APP_act_nam, 0);
+  strcpy(APP_act_nam, "-");      
+  UI_Set_actPrg (APP_act_nam, 0);  // reset active program-name
 
   return 0;
 
@@ -196,16 +202,19 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
     return -1;
   } 
     
+  // hilite active ProgName
+  UI_Set_actPrg (APP_act_nam, 2);
 
   // start selected plugin
   sprintf(memspc011, "Execute Userprog. %s",APP_act_nam);
   TX_Print(memspc011);
 
-  UTX_ftyp_cut  (APP_act_nam);     // remove the filetyp (.so|.dll)
+  UTX_ftyp_cut  (APP_act_nam);    // remove the filetyp (.so|.dll)
 
-  // UNDO_app__ (0);            // init undo (get act.lNr)
-  AP_exec_dll (APP_act_nam); // exec dll
-  // UNDO_app__ (1);            // create undo-record; activate undo-button
+  // UNDO_app__ (0);              // init undo (get act.lNr)
+  // AP_plu_exec (APP_act_nam); // exec dll
+  DLL_plu__ (APP_act_nam, NULL);  // exec dll
+  // UNDO_app__ (1);              // create undo-record; activate undo-button
 
   return 0;
 
@@ -215,11 +224,8 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
 //================================================================
   int PLU_Loa () {
 //================================================================
-/// \code
-/// reStart remote
-/// display list of dll-files in directory <bindir>/plugins;
-/// execute selected plugin
-/// \endcode
+// display list of dll-files in directory <bindir>/plugins;
+// execute selected plugin
 // was UI_DllLst_CB 
 
   int   i1;
@@ -236,15 +242,9 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
   }
 
 
-
-
   // display list of plugins (see AP_DllLst_write ) let user select
   sprintf(fnam, "%splugins.lst", AP_get_tmp_dir());
-//   i1 = GUI_list1_dlg_w (s1, 256,
-//                        NULL, " select program", fnam,
-//                        "1", NULL, "60,40");
-
-  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "\"select program\"", "\"x40,y40\"");
+  i1 = GUI_listf1__ (s1, sizeof(s1), fnam, "- select program -", "x40,y40");
   if(i1 < 0) return -1;
 
   UTX_ftyp_cut  (s1);     // remove the filetyp (.so|.dll)
@@ -252,13 +252,13 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
   APP_act_typ = 3;
   UI_Set_typPrg ();
   strcpy(APP_act_nam, s1);
-  UI_Set_actPrg (APP_act_nam, 2);
 
   PLU_restart ();
 
   return 0;
 
 }
+*/
 
 
 //================================================================

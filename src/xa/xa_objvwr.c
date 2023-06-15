@@ -57,7 +57,7 @@ List_functions_end:
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_txTab.h"            // TxtTab
 #include "../ut/ut_memTab.h"           // MemTab
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 
 #include "../gui/gui__.h"              // Gtk3
 

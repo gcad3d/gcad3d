@@ -77,8 +77,6 @@ int  DEB_prt_stat = 0;           // 0=closed; 1=active
 char *debDir;
 
 
-#ifdef _MSC_VER
-#endif
 
 /*
 DO NOT USE - does not work with OS_sys1
@@ -132,7 +130,7 @@ DO NOT USE - does not work with OS_sys1
   va_list va;
   char    s1[1024], s2[1200], *p;
 
-  // printf("## DEB_prt_print |%s|\n",format);
+  printf("## DEB_prt_print |%s|\n",format);
 
   va_start(va, format);
 
@@ -141,7 +139,7 @@ DO NOT USE - does not work with OS_sys1
     vsprintf(s1,format,va);
     UTX_CleanCR (s1);
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
     sprintf(s2, "CMD /C \"echo \"%s\" >> \"%sdebug.dat\"\"", s1, OS_get_tmp_dir());
     OS_system(s2);
 #else
@@ -184,7 +182,7 @@ DO NOT USE - does not work with OS_sys1
 
     // TESTBLOCK
     if(mode==1) {
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
       sprintf(s1, "%s\\debug.dat", OS_get_tmp_dir());
       remove(s1);
 #else

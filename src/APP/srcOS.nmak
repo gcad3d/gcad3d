@@ -1,8 +1,0 @@
-#
-
-#ifeq "$(OS)" "MS32" | "MS64"
-SRCOS = ../ut/os_w32.c ../ut/ut_os_w32.c ../ut/ctrl_os_w32.c
-
-!MESSAGE - ex srcOS.nmak SRCOS is |$(SRCOS)|
-
-# eof

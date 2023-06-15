@@ -268,7 +268,8 @@ char *MSG_ERR_tab[]={
   "OBSOLETE",                             /// 10 89 
   "unsupported",                          /// 11 88 
   "canceled by user",                     /// 12 87 ERR_USER_ABORT
-  "--"                                    /// 13 86
+  "string too long",                      /// 13 86 ERR_STRING_TOO_LONG
+  "--"                                    /// 14 85
 };
 
 
@@ -1092,7 +1093,7 @@ char *MSG_ERR_tab[]={
   char    s1[400], s2[256];
 
 
-  printf("MSG_ERR_out msgTyp=%d fnc=|%s| lNr=%d iErr=%d\n",msgTyp,fnc,lNr,iErr);
+  printf("\nMSG_ERR_out msgTyp=%d fnc=|%s| lNr=%d iErr=%d\n",msgTyp,fnc,lNr,iErr);
   printf("  ERR_internal=%d\n",ERR_internal);
 
 

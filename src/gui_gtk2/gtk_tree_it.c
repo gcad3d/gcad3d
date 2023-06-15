@@ -82,7 +82,7 @@ List_functions_end:
 
 #include <gtk/gtk.h>
 
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_umem.h"                     // Memspc
 #include "../ut/AP_types.h"            // BRWSTAT_*
 
@@ -959,9 +959,9 @@ static Obj_gui2     *GUI_tree1_ActObj;
   GList        *list;
 
 
-  // printf("GUI_tree1_cbSel selMode=%d\n",INT_PTR(GUI_tree1_ActObj->data));
+  // printf("GUI_tree1_cbSel selMode=%d\n",INT__PTR(GUI_tree1_ActObj->data));
 
-  if(INT_PTR(GUI_tree1_ActObj->data)) return FALSE;  //0=normal;1=skip selection
+  if(INT__PTR(GUI_tree1_ActObj->data)) return FALSE;  //0=normal;1=skip selection
 
   // clear-browser: ignore event
   if(AP_stat.brw_stat <= BRWSTAT_init) return TRUE;  // ignore event ..

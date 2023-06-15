@@ -92,12 +92,7 @@ char         clfNam[400],       // commandfilename
 
 UtxTab_NEW (txTab1);                // stringtable
 
-
-
-
-
-
-
+  char *AP_bin_dir;         // dir binaries
 
 
 
@@ -111,71 +106,10 @@ UtxTab_NEW (txTab1);                // stringtable
 
 //================================================================
 // dummy-funcs:
-DEB_dump_obj__    ()  {};
 DEB_dump_nobj__   ()  {};
 DEB_dump_ox_s_    ()  {};
 
 
-
-//================================================================
-void TX_Error (char* txt, ...) {
-// see also ../ut/ut_TX.c
-
-
-
- gmsh1_error("TX_Error %s\n",txt); }
-
-
-
-//================================================================
-void TX_Print (char* txt, ...) {
-// see also ../ut/ut_TX.c
-
-  va_list va;
-  char    TX_buf1[1024];
-
-  va_start(va,txt);
-  vsprintf(TX_buf1,txt,va);
-  va_end(va);
-  gmsh1_error(TX_buf1);
-}
-
-
-
-//================================================================
-  int MSG_err_1 (char *key, char *fmt, ...) {
-  gmsh1_error("MSG_err_1 %s\n",key);
-  return 0;
-}
-
-
-//================================================================
-  int MSG_get_1 (char *msg, int msgSiz, char *key, char *fmt, ...) {
-  gmsh1_error("MSG_get_1 %s\n",key); 
-  return 0;
-}
-
-
-
-//================================================================
-//================================================================
-// ../ut/ut_uti.c
-
- int UTI_round_i2b (int ii) {
-  int   ib = -1;
-  if(ii < 2) return 0;
-  ii *= 2;
-  --ii;
-  while(ii) {ii /= 2; ++ib;}
-  return ib;
-}
-
-  int UTI_round_b2i (int i1) {
-  int ii=1;
-  while(i1) {--i1; ii *=2;}
-  return ii;
-
-}
 
 
 //================================================================
@@ -188,7 +122,7 @@ void TX_Print (char* txt, ...) {
 
   char     *p1;
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   p1 = getenv("APPDATA");
 #else
   p1 = getenv("HOME");
@@ -230,7 +164,7 @@ void TX_Print (char* txt, ...) {
   if(fNam[0] == '/') return 0;
 
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   if(fNam[0] == '\\') return 0;
   if(fNam[1] == ':') return 0;
 #endif
@@ -281,46 +215,6 @@ void TX_Print (char* txt, ...) {
 // ../ut/ut_txt.c
 
 
-//=======================================================================
-  int UTX_fgetLine (char *cbuf, int sizBuf, char *filNam, int lNr) {
-//=======================================================================
-/// \code
-/// UTX_fgetLine           read line nr. <lNr> out of file <filNam>
-///             first line has lineNr 1
-/// sizBuf      size of cbuf
-/// rc -1   File does not exist
-/// rc -2   Line does not exist
-/// rc  0   OK
-/// \endcode
-
-  
-  int    i1;
-  FILE   *fpi;
-
-  // printf("UTX_fgetLine |%s| %d\n",filNam,lNr);
-
-
-  if ((fpi = fopen (filNam, "r")) == NULL) {
-    return -1;
-  } 
-
-  i1=0;
-  while (!feof (fpi)) {
-    ++i1;
-    if (fgets (cbuf, sizBuf, fpi) == NULL) goto Fertig;
-    // printf(" ..--in |%s|\n",cbuf);
-    if(i1 != lNr) continue;
-    fclose(fpi);
-    UTX_CleanCR (cbuf);
-    // printf("ex UTX_fgetLine %d |%s|\n",lNr,cbuf);
-    return 0;
-  }
-  Fertig:
-  fclose(fpi); 
-  return -2;
-}
-    
-
 //================================================================
   int UTX_add_fnam_del (char *cbuf) {
 //================================================================
@@ -335,7 +229,7 @@ void TX_Print (char* txt, ...) {
   // wenn cbuf kein closing "/" hat, eins zufuegen.
   ps = &cbuf[strlen(cbuf)-1];
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   // MS: CR-LF !
   if(*ps == '\r') --ps;
 #endif
@@ -372,7 +266,7 @@ void TX_Print (char* txt, ...) {
   if(cbuf[0] == '\\') goto L_abs;     // zB "\\ooserv\...."
   if(cbuf[0] == '/')  goto L_abs;     // zB "/xx/yy/fn"
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   if(cbuf[1] == ':')  goto L_abs;
 #endif
 
@@ -415,82 +309,6 @@ void TX_Print (char* txt, ...) {
 
 
 //================================================================
-  char *UTX_find_strrchrn (char *cbuf, char *str) {
-//================================================================
-// UTX_find_strrchrn        find last occurence of one of the chars of str2
-// returns NULL or the position of the last char in cbuf also found in str. 
-//  (see strpbrk = find first)
-// NULL: nicht enthalten
-
-  int    ii;
-  char   *p1, *p2;
-
-  // printf("UTX_find_strrchrn |%s|%s| \n",cbuf,str);
-
-
-  ii = 0;
-  p1 = cbuf;
-
-  while(str[ii]) {
-    p2 = strrchr (p1, str[ii]);
-    if(p2) {
-      // found
-      p1 = ++p2;  // start here
-    }
-    ++ii;
-  }
-
-  if(p1) --p1;
-
-  // printf("ex-UTX_find_strrchrn |%s| \n",p1);
-
-  return p1;
-
-}
-
-
-//===========================================================
-  char* UTX_CleanCR (char* string) {
-//===========================================================
-// UTX_CleanCR              Delete Blanks, CR's and LF's at end of string
-// returns positon of stringterminator \0
-// 
-// see also UTX_del_follBl UTX_CleanSC
-
-
-  int  ilen;
-  char *tpos;
-
-  ilen = strlen (string);
-
-  tpos = &string[ilen];
-
-  if(ilen < 1) goto L_exit;
-
-  --tpos;
-
-
-  while ((*tpos  == ' ')  ||
-         (*tpos  == '\t') ||          /* tab */
-         (*tpos  == '\n') ||          /* newline */
-         (*tpos  == '\r'))   {        /* CR */
-
-    *tpos    = '\0';
-    if(tpos <= string) goto L_exit;
-    --tpos;
-  }
-
-  ++tpos;
-
-
-  L_exit:
-  // printf("ex UTX_CleanCR |%s|\n", string);
-
-  return tpos;
-}
-
-
-//================================================================
   int UTX_fnam_rem_dirLast (char *sDir) {
 //================================================================
 // UTX_fnam_rem_dirLast        remove last dir 
@@ -513,7 +331,7 @@ void TX_Print (char* txt, ...) {
 
   // pfn = find last filename-delimiter
   // must check for '/' AND '\' (in MS '/' can come from out of source)
-#ifdef _MSC_VER
+#if defined _MSC_VER || __MINGW64__
   pfn = UTX_find_strrchrn(sDir, "/\\");
 #else
   pfn = strrchr(sDir, fnam_del);
@@ -609,27 +427,6 @@ void TX_Print (char* txt, ...) {
 //================================================================
 // ../gui_gtk2/gtk_base.c
  
-
-
-//================================================================
-  int GUI_update__ () {
-//================================================================
-/// update all windows
-
-// Achtung: löscht events !
-
-  // printf("## GUI_update__ \n");
-
-
-  // Display zwischendurch updaten
-  while (gtk_events_pending()) {
-    gtk_main_iteration();
-  }
-
-  return 0;
-
-}
-
 
 //================================================================
 //================================================================
@@ -1435,7 +1232,7 @@ static char       wTyp[8] = "";
   wc_fac = gtk_check_button_new_with_label ("Fac");
   // g_signal_connect (wc_fac, "clicked", G_CALLBACK(GUI_cb_cb), "fac");
   gtk_container_add (GTK_CONTAINER (box1), wc_fac);
-  gtk_toggle_button_set_state (GTK_TOGGLE_BUTTON (wc_fac), TRUE);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (wc_fac), TRUE);
   gtk_widget_set_tooltip_text (wc_fac, "display faces");
 
   wc_pt = gtk_check_button_new_with_label ("PT");
@@ -1636,6 +1433,9 @@ static char       wTyp[8] = "";
   nArg = argc;
 
   if(argc < 2) return GUI_dlg1_err1 ();
+
+  // set AP_bin_dir = dir binaries
+  OS_bin_dir_set (argv);
 
 
   strcpy(fnTmp, paArg[1]);

@@ -40,9 +40,8 @@ List_functions_end:
 */
 
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def1.h"
-#endif
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -54,20 +53,19 @@ List_functions_end:
 
 
 
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main ();
+export int gCad_fini ();
 
 
-#ifdef _MSC_VER
-// export this functions
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-// import functions exported from the core (see gCAD3D.def)
-#define extern __declspec(dllimport)
-#endif
+//----------------------------------------------------------------
+// IMPORTS from main-module
+// ../xa/xa.c
+extern char      AP_mod_fnam[SIZMFNam];  // der Modelname
+					 // //
 
-
-// ext aus xa.c:
-extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
-
+extern int       AP_User_reset ();       // close application
 
 
 
@@ -81,7 +79,7 @@ extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
   printf("gCad_main Demosimple 1\n");
 
   // write to Main-Infowindow ..
-  TX_Print("gCad_main out of Demosimple.dll");
+  TX_Print("gCad_main out of Demosimple.dll 2023-04-18");
 
   // get modelname from Mainprog
   printf("Modelname = %s\n",AP_mod_fnam);

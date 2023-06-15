@@ -98,9 +98,9 @@ The result is that each facet is represented by 50 bytes, 12 for the normal, 36 
 -------------------------------------------------------------
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -108,13 +108,11 @@ The result is that each facet is represented by 50 bytes, 12 for the normal, 36 
 #include <string.h>
 
 
-#ifdef _MSC_VER
-// die folgenden Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main (void*);
-__declspec(dllexport) int obj_read__ (char*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main (void*);
+
+
 
 
 // #include <GL/gl.h>                     // GL_TRIANGLE_FAN
@@ -123,7 +121,7 @@ __declspec(dllexport) int obj_read__ (char*);
 
 
 #include "../ut/ut_geo.h"
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 
 #include "../ut/ut_txt.h"
 #include "../ut/func_types.h"                 // Typ_Att_dash_long
@@ -181,7 +179,7 @@ int main () {
   // DEB_dump_ox_s_ (fdat, "gCad_main ex DLL xa_WRL_R");
 
   oTab   = ((ObjGX*)fdat)->data;
-  mode   = INT_PTR(oTab[0].data);  // 1) Typ_Int4   mode; 1=work, 3=free.
+  mode   = INT__PTR(oTab[0].data);  // 1) Typ_Int4   mode; 1=work, 3=free.
   fnam   = oTab[1].data;       // 2) Typ_Txt    filename
   impSpc = oTab[2].data;       // 3) Typ_Memspc outSpc
 
@@ -607,10 +605,9 @@ int main () {
 
 
   // write size
-  impDat.ox1->data = (void*)((long)(
-                      (char*)impDat.impSpc->next
-                      - (char*)impDat.ox1
-                      - sizeof(ObjGX)));                    // - size-record
+  // impDat.ox1->data = (void*)((long)(
+  impDat.ox1->data = (void*)((long long)(
+                      (char*)impDat.impSpc->next - (char*)impDat.ox1 - sizeof(ObjGX)));                    // - size-record
     // printf(" recSiz = %d\n",impDat.ox1->data);
 
 

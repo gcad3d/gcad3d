@@ -3,11 +3,6 @@
 // see INF_debug
 
 
-// set DEB_STAT = 0 for supress test-output in functions with: if(!DEB_STAT) return 0;
-// set DEB_STAT = 1 for continue - print test-data
-extern int       DEB_STAT;
-
-
 //----------------------------------------------------------------
 // MS-VS-2010:
 #ifndef __func__ 
@@ -33,6 +28,11 @@ extern int       DEB_STAT;
  printf("***** DEB_stop in %s lNr %d *****\n",__func__,__LINE__);\
  DEB_halt();\
 }
+
+
+// set DEB_STAT = 0 for supress test-output in functions with: if(!DEB_STAT) return 0;
+// set DEB_STAT = 1 for continue - print test-data
+extern int       DEB_STAT;
 
 
 // eof

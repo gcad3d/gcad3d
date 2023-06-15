@@ -95,6 +95,11 @@ DBO_dump__
 
 */
 
+#ifdef _MSC_VER
+#include "../xa/MS_Def1.h"
+#endif
+
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -108,7 +113,7 @@ DBO_dump__
 #include "../ut/ut_itmsh.h"            // MSHIG_EDGLN_.. typedef_MemTab.. Fac3
 #include "../ut/ut_txt.h"              // fnam_del
 #include "../ut/ut_txTab.h"            // TxtTab
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/ut_err.h"              // ERR_SET1
 
 #include "../ut/func_types.h"          // Typ_Att_hili
@@ -1514,7 +1519,7 @@ static FILE     *uo = NULL;
   //----------------------------------------------------------------
   // ex OX-Record; typ=Typ_Size; form=Typ_Int4; data=(long)
   } else if(typ == Typ_Index) {         // data=ObjGX !
-    dbi = LONG_PTR(data);                          //2010-06-04
+    dbi = LONG__PTR(data);                          //2010-06-04
     sprintf(cps," %s Index = %ld", txt, dbi);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_link);
 
@@ -1559,7 +1564,7 @@ static FILE     *uo = NULL;
     if(ox->form == Typ_Index) {
       i1 = ICO_link;
       // dbi = (long)ox->data;
-      dbi = LONG_PTR(ox->data);
+      dbi = LONG__PTR(ox->data);
       APED_oid_dbo__ (oNam, ox->typ, dbi);
       sprintf(s1, "Link %s", oNam);
 
@@ -1956,7 +1961,7 @@ static FILE     *uo = NULL;
   //----------------------------------------------------------------
   } else if(typ == Typ_Int1) {
     // data (pointer) = int-value itself. 2013-12-20
-    sprintf(cps,"Int1 %s = %s (%d)",txt,AP_src_typ__(Typ_Int1),INT_PTR(data));
+    sprintf(cps,"Int1 %s = %s (%d)",txt,AP_src_typ__(Typ_Int1),(int)INT__PTR(data));
     // ia = data;  // 2017-04-28; for MemTab_dump (iTab, "Typ_Int4") - not ObjGX
     // sprintf(cps,"Int4 %s = %s (%d)",txt,AP_src_typ__(Typ_Int4),ia[0]);
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
@@ -1967,14 +1972,14 @@ static FILE     *uo = NULL;
   // ex OX-Record; typ=Typ_Size; form=Typ_Int4; data=(long)
   } else if(typ == Typ_Int4) {
     // data (pointer) = int-value itself.
-    sprintf(cps,"Int4 %s = %s (%d)",txt,AP_src_typ__(Typ_Int4),INT_PTR(data));
+    sprintf(cps,"Int4 %s = %s (%d)",txt,AP_src_typ__(Typ_Int4),(int)INT__PTR(data));
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
   //----------------------------------------------------------------
   // ex OX-Record; typ=Typ_Size; form=Typ_Int8; data=(long)
   } else if(typ == Typ_Int8) {
     // data (pointer) = long-value itself.
-    sprintf(cps,"Int8 %s = %s (%ld)",txt,AP_src_typ__(Typ_Int8),LONG_PTR(data));
+    sprintf(cps,"Int8 %s = %s (%ld)",txt,AP_src_typ__(Typ_Int8),LONG__PTR(data));
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
@@ -2032,7 +2037,8 @@ static FILE     *uo = NULL;
 
   //----------------------------------------------------------------
   // ignore:
-  } else if(typ == Typ_modUndef)  {
+  } else if((typ == Typ_modUndef) ||
+            (typ == Typ_unknown)) {
 
   //----------------------------------------------------------------
   } else {
@@ -2177,7 +2183,7 @@ static void*  relPos;
 
 //       // set offset
 //       if(((ObjGX*)po)->dir == 1)
-//         sPtr = MEM_ptr_mov (sPtr, LONG_PTR(relPos));
+//         sPtr = MEM_ptr_mov (sPtr, LONG__PTR(relPos));
 
       // RECURSE
       DEB_dump_nobj_1 (sPtr,
@@ -2245,8 +2251,8 @@ static void*  relPos;
            ((GText*)obj)->pt.z,
            ((GText*)obj)->size,
            ((GText*)obj)->dir);
-    printf("   txt=%ld\n",
-           (long)((GText*)obj)->txt);
+    printf("   txt=%ld\n",LONG__PTR((void*)((GText*)obj)->txt));
+//            (long)((GText*)obj)->txt);
 
 
   //----------------------------------------------------------------
@@ -2506,6 +2512,7 @@ static int iLev;
   ObjGX    ox1, *oTab, *o2;
 
 
+
   va_start(va,txt);
   vp  = va_arg(va,void*);
   va_end(va);
@@ -2553,7 +2560,8 @@ static int iLev;
 
   for(i1=0; i1 < oxi->siz; ++i1) {
     o2 = &oTab[i1];
-    printf(" data[%d] typ=%d form=%d siz=%d\n",i1,o2->typ,o2->form,o2->siz);
+    printf(" data[%d] typ=%d form=%d siz=%d dir=%d\n",
+                  i1, o2->typ,o2->form,o2->siz,o2->dir);
     // bei Typ==Typ_Size ist data die (long)size !
 
     if(o2->form == Typ_ObjGX) {
@@ -2570,7 +2578,7 @@ static int iLev;
         la = (long*) (o2->data);   // 2013-12-29 for SURCIR
       } else { // data = index
         // la = &(o2->data);  // OK, but warning ..
-        l1 = LONG_PTR (o2->data);
+        l1 = LONG__PTR (o2->data);
         if(!l1) {
           // dbi=0 - error - undefined
           sprintf(cbuf,"  %s ",AP_src_typ__(o2->typ));
@@ -2647,7 +2655,7 @@ static int iLev;
 
   int irc = 0;
 
-  // DEB_dump_ox_0 (oxi, "DEB_dump_ox_s_");
+
 
   printf("=================== DEB_dump_ox_s_ %s ============ \n",txt);
   DEB_dump_ox_s1 (NULL, txt);         // init
@@ -2695,7 +2703,7 @@ static int iLev;
   if(oxi->form == Typ_Index) {
 
     if(oxi->siz == 1) {
-      l1 = LONG_PTR(oxi->data);
+      l1 = LONG__PTR(oxi->data);
       APED_oid_dbo__ (auxBuf1, oxi->typ, l1);
       printf(" (%s)",auxBuf1);
 
@@ -2716,9 +2724,9 @@ static int iLev;
   //----------------------------------------------------------------
   } else if(oxi->form == Typ_Int4) {
 
-      // l1 = LONG_PTR(oxi->data);
+      // l1 = LONG__PTR(oxi->data);
       // printf(" value=%ld",l1);
-      i1 = INT_PTR(oxi->data);
+      i1 = INT__PTR(oxi->data);
       printf(" value=%d",i1);
   }
 
@@ -2773,7 +2781,7 @@ static char cOff[64];
     DEB_dump_ox_sWri (op1, cOff);     // print obj
 
     if(op1->form == Typ_ObjGX) {
-      strcat(cOff, "  ");
+      if(strlen(cOff) < 60) strcat(cOff, "  ");
       for(i2=0; i2<op1->siz; ++i2) {
         op2 = &((ObjGX*)op1->data)[i2];
         i3 = DEB_dump_ox_s1 (op2,"");    // recurse
@@ -2788,7 +2796,7 @@ static char cOff[64];
     } else if(op1->form == Typ_Index) {
       // aufloesen ..
       if(op1->siz < 2) {  // Index else (long*)-Tabelle
-        dbi = LONG_PTR(op1->data);
+        dbi = LONG__PTR(op1->data);
           // printf(" res-index-typ=%d dbi=%ld\n",op1->typ,dbi);
         if(!dbi) {
           // dbi=0 - error - undefined
@@ -2807,7 +2815,7 @@ static char cOff[64];
 
       if(ox1.form == Typ_ObjGX) {
         // printf("    ................ start\n");
-        strcat(cOff, "  ");
+        if(strlen(cOff) < 60) strcat(cOff, "  ");
         i2 = DEB_dump_ox_s1 (&ox1,"");     // recurse
         if(i2 < 0) {
           printf("******** DEB_dump_ox_1 E001 %d %d \n",oxi->typ,oxi->form);
@@ -3019,7 +3027,7 @@ static char cOff[64];
     if(ie > 10) ie = 10;
     printf("%6d|",i1);
     for(i2=0;i2<ie;++i2) {
-      printf("% 6d;",ia[i1+i2]);
+      printf("% 7d;",ia[i1+i2]);
     }
     printf("\n");
     ++i3;

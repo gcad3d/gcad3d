@@ -47,25 +47,28 @@ extern double UT_TOL_0Cos;     ///< tolerance for zero cosine
 //================================================================
 // Tolerances depending on Modelsize: APT_ModSiz (../ci/NC_Main.c)
 
-/// identical Points-tolerence
+// identical Points-tolerence
 extern double UT_TOL_pt;
 
-/// max deviation of points from line
+// max deviation of points from line
 extern double UT_TOL_ln;
 
-/// max analytical deviation for curves
+// max analytical deviation for curves
 extern double UT_TOL_cv;
 
-/// max. display-deviation for circles, curves
+// max. display-deviation for circles, curves
 extern double UT_DISP_cv;
 
-/// length of construction-lines ;  see also UT_LEN_TNG; see also UT_LEN_TNG
+// length of construction-lines ;  see also UT_LEN_TNG; see also UT_LEN_TNG
 extern double UT_DISP_ln;
 
+// size of selection-zone
+extern double UT_TOL_sel;
 
 
 //================================================================
 #else
+// only in ../ut/ut_geo2d.c
 
 
 // constant Tolerances:
@@ -84,20 +87,23 @@ double UT_TOL_0Cos = 0.0000001;  ///< tolerance for zero cosine
 // Tolerances depending on Modelsize: APT_ModSiz (../ci/NC_Main.c)
 // Defaultvalues with Modelsize=500:
 
-/// identical Points-tolerence
+// identical Points-tolerence
 double UT_TOL_pt   = 0.0001;
 
-/// max deviation of points from line
+// max deviation of points from line
 double UT_TOL_ln   = 0.001;
 
-/// max analytical deviation for curves
+// max analytical deviation for curves
 double UT_TOL_cv   = 0.005;    // Angle: ca 0.3 degree
 
-/// max. display-deviation for circles, curves
+// max. display-deviation for circles, curves
 double UT_DISP_cv  = 0.05;         // 2003-09-05: 0.05; war 0.01   
 
-/// length of construction-lines ;  see also UT_LEN_TNG; see also UT_LEN_TNG
+// length of construction-lines ;  see also UT_LEN_TNG; see also UT_LEN_TNG
 double UT_DISP_ln = 1000.;
+
+// size of selection-zone
+double UT_TOL_sel = 50.;
 
 #endif
 

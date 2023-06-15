@@ -248,7 +248,7 @@ Separator {
 #include "../ut/ut_obj.h"              // UTO_stru_2_obj
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
 #include "../ut/ut_iTab.h"             // I4Tab
-#include "../ut/ut_cast.h"             // LONG_PTR
+#include "../ut/ut_cast.h"             // LONG__PTR
 #include "../ut/ut_memTab.h"           // MemTab_..
 
 #include "../db/ut_DB.h"               // DB_get_ModBas
@@ -315,7 +315,8 @@ static char layNam[] = "0";
 
   // erster Record muss size of following Record sein
   if(oxi->typ  != Typ_Size) goto L_Err2;
-  rSiz = (long)oxi->data;
+  rSiz = INT__PTR(oxi->data);
+  // rSiz = (long)oxi->data;
   // printf("Record %d size=%d\n",i1,rSiz);
 
   ++oxi;  //(char*)oxi += sizeof(ObjGX);
@@ -1880,7 +1881,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
       } else if(oxs->typ == Typ_Texture) {
         // sCol = NULL;
-        iTex = INT_PTR (oxs->data);
+        iTex = INT__PTR (oxs->data);
           // printf(" facTex=%d\n",iTex);
 
 
@@ -2435,7 +2436,8 @@ static FILE *fpo = NULL;
 
   // erster Record muss size of following Record sein
   if(oxi->typ  != Typ_Size) goto L_Err2;
-  rSiz = (long)oxi->data;
+  rSiz = INT__PTR(oxi->data);
+  // rSiz = (long)oxi->data;
   // printf("Record %d size=%d\n",i1,rSiz);
 
   ++oxi;  //(char*)oxi += sizeof(ObjGX);

@@ -408,9 +408,9 @@ UTO_stru_int
   if(irc < 0) return -1;
 
      // TESTBLOCK
-     DEB_dump_ox_s_ (spc1, " intplsur");
-     DEB_dump_ox_s_ (&spc1[0], " intplsur-0");
-     DEB_dump_ox_s_ (&spc1[1], " intplsur-1");
+     // DEB_dump_ox_s_ (spc1, " intplsur");
+     // DEB_dump_ox_s_ (&spc1[0], " intplsur-0");
+     // DEB_dump_ox_s_ (&spc1[1], " intplsur-1");
      // END TESTBLOCK
 
 

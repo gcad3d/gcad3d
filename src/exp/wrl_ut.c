@@ -199,9 +199,10 @@ APT_decode_mock
 
 */
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def0.h"
-#endif
+
+// definition "export"
+#include "../xa/export.h"
+
 
 #include <math.h>
 #include <stdio.h>
@@ -209,23 +210,12 @@ APT_decode_mock
 #include <string.h>
 
 
-
-#ifdef _MSC_VER
-// die folgenden Funktionen exportieren (werden vom Main gerufen):
-__declspec(dllexport) int gCad_main (void*);
-// nachfolgende externals werden aus dem Main-Exe imported:
-#define extern __declspec(dllimport)
-#endif
-
-
 // #include <GL/gl.h>                     // GL_TRIANGLE_FAN
 #define GL_TRIANGLE_FAN                   0x0006
 
-
-
 #include "../ut/ut_geo.h"              // Point ...
 #include "../ut/ut_txt.h"              // UTX_pos_skipDeli1
-#include "../ut/ut_cast.h"             // INT_PTR
+#include "../ut/ut_cast.h"             // INT__PTR
 #include "../ut/func_types.h"               // UI_Func... SYM_..
 #include "../ut/ut_memTab.h"           // MemTab
 
@@ -238,6 +228,10 @@ extern long      GLT_pta_SIZ;
 
 
 
+
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main (void*);
 
 
 
@@ -308,7 +302,7 @@ static maRec  *maTab;
 
 
   oTab   = ((ObjGX*)fdat)->data;
-  mode   = INT_PTR(oTab[0].data); // 1) Typ_Int4   mode; 1=work, 3=free.
+  mode   = INT__PTR(oTab[0].data); // 1) Typ_Int4   mode; 1=work, 3=free.
   fnam   = oTab[1].data;          // 2) Typ_Txt    filename
   outSpc = oTab[2].data;          // 3) Typ_Memspc outSpc
     printf(" xa_wrl_r-mode=%d fnam=|%s|\n",mode,fnam);
@@ -432,7 +426,8 @@ static maRec  *maTab;
 
   // erster Record muss size of following Record sein
   if(ox1->typ  != Typ_Size) goto L_Err2;
-  rSiz = (long)ox1->data;
+  rSiz = LONG__PTR(ox1->data);
+  // rSiz = (long)ox1->data;
   // printf("Record size=%d\n",rSiz);
 
   // (char*)ox1 += sizeof(ObjGX);
@@ -1138,9 +1133,9 @@ static int levOld = -1;
     oxc->typ  = Typ_Color;
     oxc->form = Typ_Int4;
     oxc->siz  = 1;
+    oxc->data = (void*)(*((long long*)&newCol));
     // oxc->data = (void*)((long)newCol);
     // (long)oxc->data = *((long*)&newCol);
-    oxc->data = (void*)(*((long*)&newCol));
 
   // (char*)*aox += sizeof(ObjGX);
   *aox = (ObjGX*)((char*)*aox + sizeof(ObjGX));
@@ -1231,7 +1226,8 @@ static int levOld = -1;
   // size setzen ..
   i1 = (char*)outSpc->next - (char*)ox2;
   // (long)ox1->data = (long)i1;
-  ox1->data = (void*)((long)i1);
+  ox1->data = PTR_INT(i1);
+  // ox1->data = (void*)((long)i1);
   // printf(" recSiz = %d\n",ox1->data);
   // if(i1 < 96) {TX_Error("wrl1_r_dec_sph E001 %d",i1); return -1;}
 
@@ -1350,8 +1346,9 @@ static int levOld = -1;
 
   // size setzen ..
   i1 = (char*)outSpc->next - (char*)ox2;
+  ox1->data = PTR_INT(i1);
+  // ox1->data = (void*)((long)i1);
   // (long)ox1->data = (long)i1;
-  ox1->data = (void*)((long)i1);
   // printf(" recSiz = %d\n",ox1->data);
   // if(i1 < 96) {TX_Error("wrl1_r_dec_sph E001 %d",i1); return -1;}
 
@@ -1488,8 +1485,9 @@ static int levOld = -1;
 
   // size setzen ..
   i1 = (char*)outSpc->next - (char*)ox2;
+  ox1->data = PTR_INT(i1);
+  // ox1->data = (void*)((long)i1);
   // (long)ox1->data = (long)i1;
-  ox1->data = (void*)((long)i1);
   // printf(" recSiz = %d\n",ox1->data);
   if(i1 < 96) {TX_Error("wrl1_r_dec_ifs E001 %d",i1); return -1;}
 

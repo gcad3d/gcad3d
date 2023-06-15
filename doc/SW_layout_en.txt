@@ -1,0 +1,120 @@
+doc/directories_en.txt                                      2023-06-06
+======================================================================
+
+
+DIRECTORIES-DEVELOPMENT
+DIRECTORIES-INSTALLED-Linux
+DIRECTORIES-INSTALLED-MS-Win
+
+
+
+======================================================================
+DIRECTORIES-DEVELOPMENT:
+======================================================================
+
+Basedirectory Default is ~/devel/gcad3d/
+
+  src/APP         aux-sources - testProgs
+     |
+     /UIX         build unix-executables; "./do help"
+     |            build MS-Windows--executables; "do help"
+     |
+     /DEB         build debian-package (makefiles); 
+     |
+     /RPM         build rpm-package (not active; no gtk2_glarea-lib)
+     |
+     /MSVC        build MS-VC-Windows-executable (not active; was used for Win-32-bit)
+
+  debian/         create debian-package
+
+  pack_MSYS/      create MS-Windows-package
+
+  rpm/            create rpm-package (not active; no gtk2_glarea-lib)
+
+  icons           icons
+
+  doc             documentation
+
+  packages        install-packages
+
+
+
+
+FILES-DEVELOPMENT:
+
+  examples.gz     DemoModels, initial-setupfiles
+
+
+
+
+
+======================================================================
+DIRECTORIES-INSTALLED-Linux:
+======================================================================
+
+Basedirectory - Default is ~/gCAD3D/ - gcad_dir_local
+  cfg_Linux/    configfiles; eg dir.lst
+  dat/          default-model-directory; symbolic-name is "Data"
+  ctlg/         default-catalog-files; symbolic-name is "CATALOG"
+  prg/          application-programs (CAD-script-programs); symbolic-name is "APPLI"
+  tmp/          temporary used files
+
+/usr/bin/gcad3d                        startscript
+/usr/lib/gcad3d/Linux_x86_64/          binaries    - gcad_dir_bin
+/usr/share/gcad3d/                     examples.gz gcad3d.desktop
+/usr/share/gcad3d/icons/               icons       - gcad_dir_ico
+/usr/share/gcad3d/doc/                 doc         - gcad_dir_doc
+
+
+  This symbols can be set in startscript:
+    gcad_dir_bin     (Def. = /usr/lib/gcad3d/Linux_x86_64/)
+    gcad_dir_bas     (Def. = /usr/share/gcad3d/)
+    gcad_dir_ico     (Def. = ${gcad_dir_bas}/icons/)
+    gcad_dir_doc     (Def. = ${gcad_dir_bas}/doc/)
+    gcad_dir_local   (Def. = ${HOME}/gCAD3D/)
+
+
+If file $HOME/gCAD3D/cfg_Linux/gCAD3D.rc does not exist:
+  /usr/share/gcad3d/examples.zip will be extracted,
+  - this will overwrite all startup-userfiles with the original version,
+  - also the user-config-files  in $HOME/gCAD3D/cfg_Linux/ !
+
+
+
+
+
+
+======================================================================
+DIRECTORIES-INSTALLED-MS-Win:
+======================================================================
+
+Basedirectory Default is %APPDATA%\gCAD3D\ - gcad_dir_local
+  cfg_MSYS\     configfiles; eg dir.lst
+  dat\          default-model-directory; symbolic-name is "Data"
+  ctlg\         default-catalog-files; symbolic-name is "CATALOG"
+  prg\          application-programs (CAD-script-programs); symbolic-name is "APPLI"
+  tmp\          temporary used files
+
+%ProgramFiles%\gCAD3D\                    gCAD3D.bat, examples.gz (initial-setupfiles)
+%ProgramFiles%\gCAD3D\bin_MINGW_x86_64\   binaries    - gcad_dir_bin
+%ProgramFiles%\gCAD3D\icons\              icons       - gcad_dir_ico
+%ProgramFiles%\gCAD3D\doc\                doc         - gcad_dir_doc
+
+
+  This symbols can be set in startscript:
+    gcad_dir_bin     (Def. = %ProgramFiles%\gCAD3D\bin_MINGW_x86_64\)
+    gcad_dir_bas     (Def. = %ProgramFiles%\gCAD3D\)
+    gcad_dir_ico     (Def. = %ProgramFiles%\gCAD3D\icons\)
+    gcad_dir_local   (Def. = %APPDATA%\gCAD3D\)
+
+If file %APPDATA%/gCAD3D/cfg_MSYS/gCAD3D.rc does not exist:
+  %ProgramFiles%\gCAD3D\examples.zip will be extracted,
+  the defaultfiles will be copied into %APPDATA%/gCAD3D/cfg_MSYS/.
+
+
+
+======================================================================
+ Send bug reports, suggestions for improvements to support@gcad3d.org
+
+
+# EOF

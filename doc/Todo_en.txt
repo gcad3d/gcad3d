@@ -1,18 +1,81 @@
+doc/Todo_en.txt                                                   2023-06-06
+============================================================================
 
-Open issues:                                    2020-01-08
 
-____________________________________________________________________________
+Open issues:
 
+
+
+============================================================================
+Import step testfile step/Models/text-Bournes.stp
+============================================================================
+2023-04-20  export of Open CASCADE STEP
+
+TODO:
+B_SPLINE_CURVE_WITH_KNOTS - .PIECEWISE_BEZIER_KNOTS.
+
+
+
+============================================================================
+Import igs testfile igs/text-Bournes.igs
+============================================================================
+2023-04-20 export of FreeCAD
+
+TODO:
+- implementation of types 502,504,508,510,514;
+
+
+
+============================================================================
+Import obj testfile obj/text-Bournes.obj
+============================================================================
+2023-04-20  export of Open CASCADE
+
+TODO:
+- unknown format for f - eg "f 31//31 20//20 21//21"
+- known format is        eg "f 31 32 33"
+
+
+
+
+============================================================================
+- add import stl-binary
+============================================================================
+- model stl/prop-gen.stl
+
+TODO:
+- check if files starts with "solid"
+- if not: read binary. See doc stl_bin_doc.png
+
+
+
+============================================================================
 - Boolean operations with surfaces 
+============================================================================
+  - consistency checks of surface-boundaries (body-net)       -
+  - boolean operations with surfaces                          -
+  - boolean operations with planar surfaces                   90 %
+  - trimmed polygonal_representation_of_curve                 OK
 
 
-____________________________________________________________________________
 
-- Add offset-surfaces
+============================================================================
+- Add offset-surfaces                                         -
+============================================================================
 
-____________________________________________________________________________
 
+
+============================================================================
+- Add rounding surfaces
+============================================================================
+  - circular surface along spine                              -
+  - intersection surfaces                                     OK
+
+
+
+============================================================================
 - interactive editor - modify object:
+============================================================================
     - display objects not affected dimmed,
     - update child-objects dynamic.
     - "edit object" n MAN and CAD shall display all objects following dimmed.
@@ -31,8 +94,8 @@ Edit obj C20 (eg change radius 50)
 
 ____________________________________________________________________________
 
-- Project and Mirror currently only for individual objects, not for CCV (currently Translate only).
-
+- Project and Mirror currently only for individual objects,
+  not for CCV (currently Translate only).
 
 - update interactive editor to modify B-splines. 
 
@@ -44,7 +107,7 @@ ____________________________________________________________________________
 
 - Function for interactive positioning of sub-models to a contact position.
 
-- Drawing 2D from 3D has not yet been implemented.
+- Drawing 2D from 3D 
 
 - With hatching, no islands are possible yet
 
@@ -57,9 +120,7 @@ ____________________________________________________________________________
 
 
 
-____________________________________________________________________________
+============================================================================
+Send bug reports, suggestions for improvements to support@gcad3d.org
 
-Please report problems / corrections to franz.reiter@gcad3d.org.
-____________________________________________________________________________
-../../doc/Todo_en.txt
 EOF

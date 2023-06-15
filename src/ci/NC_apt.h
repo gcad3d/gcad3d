@@ -20,7 +20,7 @@ nach NC_cut.h verlegt
 
 
 // Typ_Cmd1 is parallel to ObjCodTab in ../ut/ut_gtypes.c
-// UNUSED: T_BLEND
+// UNUSED: HI LO RI LE BLEND
 enum Typ_Cmd1 {
    T_ON_,       T_OFF_,      T_IN,        T_OUT,       T_ARC,       // 0-4
    T_HI,        T_LO,        T_MA,        T_TAG,       T_PERP,      // 5-9

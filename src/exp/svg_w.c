@@ -222,17 +222,14 @@ firefox <fn>.svg
 
 
 
+// definition "export"
+#include "../xa/export.h"
+
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-
-#ifdef _MSC_VER
-#define _CRT_SECURE_NO_DEPRECATE
-__declspec(dllexport) int SVG_w__ (char*);
-#define extern __declspec(dllimport)
-#endif
 
 
 // #include "../ut/ut_umem.h"            // UME_reserve
@@ -257,7 +254,13 @@ __declspec(dllexport) int SVG_w__ (char*);
 // mem_cbuf1  outputbuffer (line)  cBuf
 
 
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int  SVG_w__ (char*);
 
+
+
+//----------------------------------------------------------------
 static  FILE     *SVG_fp1;
 static  double   SVG_siz_x, SVG_siz_y;
 static  double   SVG_lu_x,  SVG_lu_y;
@@ -945,14 +948,15 @@ Typ_Model   // ModelReference
 // <path id="pt1" d="M10 150 A15 15 0 1 1 25 165"/>
 // {Point p1, p2, pc; Vector vz, va, vb; int dir;}
 
-  int      i1, i2;
+  int      irc, i1, i2;
   double   d1, d2, as, ao, x1, y1, x2, y2, rx, ry, ax;
   CurvEll2C   el2c;
 
   // printf("SVG_w_ell_r \n");
     // DEB_dump_obj__ (Typ_CVELL, el1, "");
 
-      UT2D_elc_el3 (&el2c, el1);
+      irc = UT2D_elc_el3 (&el2c, el1);
+      if(irc < 0) return irc;
 
       d1 = el1->p1.x;
       d2 = el1->p1.y;

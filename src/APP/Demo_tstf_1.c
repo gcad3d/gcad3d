@@ -57,10 +57,9 @@ Info remote-command-control codes see ../../doc/html/RemoteControl_en.htm
 */
 
 
+// definition "export"
+#include "../xa/export.h"
 
-#ifdef _MSC_VER
-#include "../xa/MS_Def1.h"
-#endif
 
 #include <math.h>
 #include <stdio.h>
@@ -76,18 +75,14 @@ Info remote-command-control codes see ../../doc/html/RemoteControl_en.htm
 
 
 
+//----------------------------------------------------------------
+// EXPORTS to main-module
+export int gCad_main ();
+export int gCad_fini ();
+export int  TSTF_cb (char*);
 
 
-#ifdef _MSC_VER
-// export this functions
-__declspec(dllexport) int gCad_main ();
-__declspec(dllexport) int gCad_fini ();
-__declspec(dllexport) int TSTF_cb (char*);
-// import functions exported from the core (see gCAD3D.def)
-#define extern __declspec(dllimport)
-#endif
-
-
+//----------------------------------------------------------------
 // ext aus xa.c:
 extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
 
@@ -149,49 +144,45 @@ extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
 
 
 //================================================================
-  int TSTF_cb (char * cmd) {
+  int TSTF_cb (char *txt) {
 //================================================================
 // callback from TSTF-mudule (see TSTF_load INF_tstf__)
 // execute private testfunctions - must start with "::: " in <cmdfile>
 // MS-Win: function must be exported.
 
 
-  char    *p2, s1[80];
+  char    *p2, cmd[128];
 
 
-  printf("TSTF_cb-Demo_tstf_1 |%s|\n",cmd);
+  printf("TSTF_cb-Demo_tstf_1 |%s|\n",txt);
 
   // get s1 = functionname
-  p2 = UTX_cp_word__ (s1, cmd);
-     // printf(" _do_tstCmd-0 |%s|%s|%s|\n",cmd,s1,p2);
-
-  // remove brackets
-  p2 = UTX_CleanBracks (p2, '(', ')');
+  p2 = UTX_cp_word__ (cmd, txt);
+     printf("  cmd=|%s| p2=|%s|\n",cmd,p2);
 
 
-  // call
-  if(!strcmp (s1, "test_disp__")) {
+
+  // dispatch
+  if(!strcmp (cmd, "myFunc1")) {
     myFunc1 (p2);
 
-  } else if(!strcmp (s1, "test_hide_last")) {
-    myFunc2 ();
-
   } else {
-    myFunc3 (p2);
+    printf(" - %s\n",txt);
   }
 
   return 0;
 
 }
 
+//================================================================
+  int myFunc1 (char *data) { 
+//================================================================
 
-int myFunc1 (char *txt) { printf("myFunc1 %s\n",txt); return 0; }
+  printf(" >>>>>>>>>>> myFunc1 - %s\n",data);
 
+  return 0;
 
-int myFunc2 (char *txt) { printf("myFunc2\n"); return 0; }
-
-
-int myFunc3 (char *txt) { printf("myFunc3 %s\n",txt); return 0; }
+}
 
 
 //================  EOF  ==================================

@@ -46,8 +46,9 @@ void INF_OTYP (){}
 //
 // Get infoText for types: AP_src_typ__ ();
 // See also xa_sele.h
-// FIX (UPDATE) ALSO TypTxtTab* in ../ut/ut_gtypes.c
-// TYP_IS_CV() TYP_IS_OPM .. in ../ut/ut_geo.h
+
+// MUST UPDATE ALSO TypTxtTab* in ../ut/ut_gtypes.c AP_src_typ__ UTO_siz_stru
+// TYP_IS_*() ..
 
 
 
@@ -84,7 +85,7 @@ void INF_OTYP (){}
 #define Typ_CVLNA         29  ///< S   array of lines (form=Typ_LN)
 #define Typ_CV2           30  ///< S   all 2D-curves
 #define Typ_CVPOL2        31  ///< S   CurvPoly-2D    (CurvPol2)
-#define Typ_CVPSP2        32  ///< S   polynom_?
+#define Typ_CVPSP2        32  ///< S   polynom_? UU
 #define Typ_CVBSP2        33  ///< S   CurvBSpl2
 #define Typ_CVRBSP2       34  ///< S   CurvRBSpl-2D
 #define Typ_CVELL2        35  ///< S   CurvEll2
@@ -335,7 +336,9 @@ void INF_OTYP (){}
 #define Typ_modAux       249  ///< Modifier; on|off; text=last infoWord
 #define Typ_modHIX       250  // X-vec of plane
 #define Typ_modOpe       251  ///< UNUSED (use Typ_ope__)
-#define Typ_modUndef     259  ///< undefined
+#define Typ_modUndef     252  ///< undefined
+
+#define Typ_unknown      255  ///<
 
 
 
@@ -364,7 +367,6 @@ void INF_OTYP (){}
 #define Typ_NULL         272  ///< nothing, empty;
 #define Typ_last         273  ///< 
 #define TYP_SIZ          274  ///< nr of defined types
-#define Typ_unknown      275  ///<
 
 
 /// math.operators

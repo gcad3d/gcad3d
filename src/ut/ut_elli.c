@@ -16,7 +16,7 @@
  *
 -----------------------------------------------------
 TODO:
-  ..
+  Ellipse with vb = 0,0,0 (UT2D_elc_el3 ...)
 
 -----------------------------------------------------
 Modifications:
@@ -46,6 +46,7 @@ UT3D_el_el2               2D-ellipse -> 3D-ellipse (z=0)
 
 UT3D_par_pt__pt_el        get parameter (0-1) for point on ellipse
 UT3D_par1_angr_ell    UU  parametric-Angle --> par 0-1
+UT3D_dir_ell_cvt          get direction of ellipse for trimmed curve
 
 UT3D_ck_el360             check if elli is 360-degree-elli
 UT3D_angr_par1_ell        par 0-1  -->  parametric-Angle
@@ -189,6 +190,28 @@ cl -c ut_geo.c
 
 
 
+
+//================================================================
+  int UT3D_dir_ell_cvt (double *v0, double *v1, CurvElli *el1) {
+//================================================================
+// UT3D_dir_ell_cvt          get direction of ellipse for trimmed curve
+// Input:
+//   v0,v1  startParamter, endParamter of curve
+//   el1    ellipse
+// retCode  0=fwd; 1=bwd
+//
+// if ango of ellipse > 0. then ellipse is CCW;
+// if ango of ellipse < 0. then ellipse is CW;
+
+  int    dir;
+
+    if(*v0 > *v1) dir = 1;  // bwd
+    else          dir = 0;
+
+
+  return dir;
+
+}
 
 
 //================================================================
@@ -337,7 +360,8 @@ cl -c ut_geo.c
 /// par_Angle  = StartAngle + (OpeningAngle * par1)
 /// \endcode
  
-  double   aa, as, ango;
+  int        irc;
+  double     aa, as, ango;
   CurvEll2C  el2c;
 
 
@@ -351,7 +375,8 @@ cl -c ut_geo.c
   }
 
   // make el2c from ell
-  UT2D_elc_el3 (&el2c, el1);
+  irc = UT2D_elc_el3 (&el2c, el1);
+  if(irc < 0) return 0.;
 
   // get as, ao (angles of the corresponding circle)
   UT2D_2angr_el2c_c (&as, &ango, &el2c);
@@ -488,6 +513,7 @@ cl -c ut_geo.c
 //======================================================================
 /// UT3D_el_el2pt             change start- and endpoint of elli
 
+  int          irc;
   CurvEll2C    el2c;
 
 
@@ -495,12 +521,12 @@ cl -c ut_geo.c
     // GR_tDyn_pt (p2, ATT_PT_HILI);
 
 
-
   el1->p1 = *p1;
   el1->p2 = *p2;
 
   // make 2D-ell in centerPos from 3D-ell
-  UT2D_elc_el3 (&el2c, el1);
+  irc = UT2D_elc_el3 (&el2c, el1);
+  if(irc < 0) return -1;
 
   // compute angs, ango (corrected angles)
   UT2D_2angr_el2c__ (&el2c);
@@ -1303,7 +1329,8 @@ cl -c ut_geo.c
 
     rdc = DMAX(fabs(el2c->a),fabs(el2c->b));
 
-    pNr = UT2D_ptNr_ci (rdc, fabs(el2c->ango), tol) + 4;
+    pNr = UT2D_ptNr_ci (rdc, fabs(el2c->ango), tol);
+    pNr += pNr / 2;
 
       // DEB_dump_obj__ (Typ_CVELL2C, el2c, "ex-UT2D_ptNr_el2c");
       // printf("ex-UT2D_ptNr_el2c pNr=%d\n",pNr);
@@ -1320,7 +1347,7 @@ cl -c ut_geo.c
 // get nr of points of corresponding circle; estimation only
 //
 
-  int         pNr;
+  int         irc, pNr;
   CurvEll2C   el2c;
 
 
@@ -1328,7 +1355,8 @@ cl -c ut_geo.c
 
 
   // make el2c from ell
-  UT2D_elc_el3 (&el2c, el3);
+  irc = UT2D_elc_el3 (&el2c, el3);
+  if(irc < 0) return irc;
     // DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c:");
 
   L_1:
@@ -1522,7 +1550,8 @@ cl -c ut_geo.c
 
 
   // make el2c from ell
-  UT2D_elc_el3 (&el2c, el3);
+  irc = UT2D_elc_el3 (&el2c, el3);
+  if(irc < 0) return irc;
     // DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c-1");
 
   // get angs and ango -- corrected;
@@ -3832,6 +3861,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 //================================================================
 // UT2D_elc_el3              make 2D-ell in centerPos from 3D-ell
 // see UT2D_elc_el2
+// retCode    0=OK; -1=degenerated TODO ?
 
   Vector      vc1, vcx, vcy;
 
@@ -3851,6 +3881,9 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   el2c->a = UT3D_len_vc (&el3->va);
   el2c->b = UT3D_len_vc (&el3->vb);
     // printf(" a=%lf b=%lf\n",el2c->a,el2c->b);
+
+  if(el2c->a < UT_TOL_min1) {TX_Error("***** elli vb=0"); return -1;}
+  if(el2c->b < UT_TOL_min1) {TX_Error("***** elli vb=0"); return -1;}
 
   // TEST ONLY:
     // get parameters of el3->p1 on el3->va and el3->vb
@@ -3874,7 +3907,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT3D_vc_2pt (&vc1, &el3->pc, &el3->p2);
   UT3D_2par_vc_vcx_vcy (&el2c->p2.x, &el2c->p2.y, &vc1, &vcx, &vcy);
 
-    // DEB_dump_obj__ (Typ_CVELL2C, el2c, "ex UT2D_elc_el3:");
+    DEB_dump_obj__ (Typ_CVELL2C, el2c, "ex UT2D_elc_el3:");
 
   return 0;
 
@@ -4010,7 +4043,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
   //----------------------------------------------------------------
   // make el2c from ell
-  UT2D_elc_el3 (&el2c, el1);
+  irc = UT2D_elc_el3 (&el2c, el1);
+  if(irc < 0) return -3;
     // DEB_dump_obj__ (Typ_CVELL2C, &el2c, "  el2c:");
     // GR_tDyn_el2c (&el2c, Typ_Att_top2);
 

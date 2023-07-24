@@ -1190,16 +1190,16 @@ static long su_ind;
 
 
     if(ind == 0) {                         // init DB-indices
-      vc_ind = DB_dbo_get_free (Typ_VC);    // D
-      pt_ind = DB_dbo_get_free (Typ_PT);    // P
-      ln_ind = DB_dbo_get_free (Typ_LN);    // L
-      ci_ind = DB_dbo_get_free (Typ_CI);    // C
-      cv_ind = DB_dbo_get_free (Typ_CV);    // S
-      pl_ind = DB_dbo_get_free (Typ_PLN);   // R
-      su_ind = DB_dbo_get_free (Typ_SUR);   // A
-      bd_ind = DB_dbo_get_free (Typ_SOL);   // B
-      tx_ind = DB_dbo_get_free (Typ_GTXT);  // N
-      mr_ind = DB_dbo_get_free (Typ_Model); // M
+      vc_ind = DB_dbo_get_last (Typ_VC);    // D
+      pt_ind = DB_dbo_get_last (Typ_PT);    // P
+      ln_ind = DB_dbo_get_last (Typ_LN);    // L
+      ci_ind = DB_dbo_get_last (Typ_CI);    // C
+      cv_ind = DB_dbo_get_last (Typ_CV);    // S
+      pl_ind = DB_dbo_get_last (Typ_PLN);   // R
+      su_ind = DB_dbo_get_last (Typ_SUR);   // A
+      bd_ind = DB_dbo_get_last (Typ_SOL);   // B
+      tx_ind = DB_dbo_get_last (Typ_GTXT);  // N
+      mr_ind = DB_dbo_get_last (Typ_Model); // M
 
         // printf(" cv_ind=%d\n",cv_ind);
         // printf(" su_ind=%d\n",su_ind);

@@ -91,6 +91,7 @@ Tesselalated-surfaces:
 
 
 Other surfaces:
+  INF_FMTB_Surface_PMSH               surface from group-of-points (PTAB)
   INF_FMTB_Surface_PTAB               surface from points
   INF_FMTB_Surface_HAT                hatched surface  Typ_SURHAT  ut_hatch.c
 
@@ -1211,7 +1212,7 @@ Surface of group-of-points (A=PTAB)           Func: APT_decode_msh_p
          form = Typ_Index
          siz  = 1
          data = index of group-of-points (index of record A#=PTAB)
-                data is in file <tmp>_A<dbi>.ptab
+                data is in file <tmp>_A<dbi>.ptab               NOT INDEX INTO DB !
 
 Mesh for surface: see INF_FMTB_Surface_PMSH
 
@@ -1281,7 +1282,7 @@ Mesh for surface of group-of-points Mesh               Func: APT_decode_msh__
  (ObjGX) typ  = Typ_SURPMSH
          form = Typ_Index;
          siz  = 1
-         data = (long) Index of its PTAB
+         data = (long) Index of its PTAB                 NOT INDEX INTO DB !
 
 
 group-of-points: see INF_FMTB_Surface_PTAB

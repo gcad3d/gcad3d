@@ -111,7 +111,7 @@ IE_inp_clean         Typ_SubModel, TYP_FilNam, Typ_CtlgPart: remove enclosing '"
 IE_inp_mod__         modify active inputField
 IE_inp_selection_clear    check / clear a active selection in inputfield
 IE_inp_ck_empty      check if all inputfelds empty
-IE_inp_ck_del        dialog canel unstored input
+IE_inp_ck_del        dialog cancel unstored input
 IE_inp_ck_prev_empty add 0 into prev. field if nxt field has value
 IE_cad_InpIn_String  cbuf in das naechste freie inputfeld eintragen ...
 IE_cad_InpIn_left    goto end of upper cad-inputField
@@ -4612,9 +4612,14 @@ TestObjPoints get pt on LN/AC/Plg/CCV -> AP_pt_segpar ("P(L21 MOD(iSeg)|lpar)")
 
 
   // block / unblock groupSelections (RubberBox)
-  if(IE_cad_typ < 0) UI_block_group (0);    // unblock
-  else               UI_block_group (1);    // block
+  if(IE_cad_typ < 0) {     // no cad-func active
+    UI_block_group (0);    // unblock
+    UNDO_set_bt (1);       // unlock undo/redo
 
+  } else {
+    UI_block_group (1);    // block
+    UNDO_set_bt (0);       // lock undo/redo
+  }
 
     // printf("ex IE_cad_init2\n");
 
@@ -6900,7 +6905,7 @@ static IE_info_rec IE_info_tab[] = {
     if(p2 != p1) goto L_1;
   }
 
-  dbi = DB_dbo_get_free (Typ_Tra);
+  dbi = DB_dbo_get_last (Typ_Tra);
 
 
   L_1:
@@ -7622,7 +7627,7 @@ static IE_info_rec IE_info_tab[] = {
     if(p2 != p1) goto L_1;
   }
 
-  dbi = DB_dbo_get_free (Typ_VAR);
+  dbi = DB_dbo_get_last (Typ_VAR);
 
 
   //----------------------------------------------------------------
@@ -11002,7 +11007,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
   } else if (typ == Typ_Tra) {
 
     if(mode < 1) {     // preset
-      il = DB_dbo_get_free (Typ_Tra, 0);
+      il = DB_dbo_get_last (Typ_Tra, 0);
       if(il > 0) {
         sprintf(cbuf, "T%ld", il); irc = 0;
 

@@ -249,7 +249,7 @@ char*   GUI_Win_tit     (void *gtkWin);
   char     s1[64];
 
 
-  OS_exe_file__ (s1, sizeof(s1), "GUI_dlg1", "info", text);
+  OS_exe_file__ (s1, sizeof(s1), "GUI_dlg1", "info", text, NULL);
 
 
 

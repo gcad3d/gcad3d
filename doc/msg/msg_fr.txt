@@ -16,6 +16,7 @@ MMsmcp=mainmodel emménager dans submodel
 MMsmcr=créer de nouveaux sous-modèle
 MMsmsf=sauver le sous-modèle actif dans le dossier
 MMsmlf=modelfile charge comme sous-modèle
+MMsmrm=remove all unused Submodels
 MMsmre=renommer le sous-modèle actif
 MMsmde=supprimer le sous-modèle actif
 MMsmmp=modifier la position d'un sous-modèle

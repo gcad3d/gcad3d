@@ -37,6 +37,7 @@ Modifications:
 List_functions_start:
 
 GA_find_att_SU       get attribute for surface/solid from typ,DB-ind
+GA_find_disp         get hidden-bit for dbo; 0=normal; 1=hidden
 GA_find__            find GA-rec if already exist
 GA_getRec            get ga-record
 GA_get_dbo           get GraficAttribute for DB-obj
@@ -1440,12 +1441,10 @@ static ObjAtt ObjAtt_NUL = {0L, 0, 0};
 //================================================================
   int GA_find_att_SU (int typ, long ind) {
 //================================================================
-/// \code
-/// GA_find_att_SU    get attribute for surface/solid from typ,DB-ind
-///
-/// other method (using DispListIndex dli): iatt = DL_get_iatt (dli);
-///   or: iAtt = GR_ObjTab[dli].iatt
-/// \endcode
+// GA_find_att_SU    get attribute for surface/solid from typ,DB-ind
+//
+// other method (using DispListIndex dli): iatt = DL_get_iatt (dli);
+//   or: iAtt = GR_ObjTab[dli].iatt
 
   long   gaNr, iAtt;
   ObjAtt *ga1;
@@ -1469,11 +1468,42 @@ static ObjAtt ObjAtt_NUL = {0L, 0, 0};
 }
  
  
-///================================================================
+//================================================================
+  int GA_find_disp (int typ, long ind) {
+//================================================================
+// GA_find_disp      get hidden-bit for dbo; 0=normal; 1=hidden
+//
+// other method (using DispListIndex dli): iatt = DL_get_iatt (dli);
+//   or: iAtt = GR_ObjTab[dli].iatt
+
+  long   gaNr, iAtt;
+  ObjAtt *ga1;
+
+
+  // find GA-rec from DB-typ,ind
+  gaNr = GA_find__ (typ, ind);
+
+  if(gaNr < 0) {
+    iAtt = 0;  // use GL_defCol | AP_defcol
+
+  } else {
+    GA_getRec (&ga1, gaNr);
+    iAtt = ga1->disp;
+  }
+
+    // printf("ex-GA_find_disp iAtt=%ld gaNr=%ld\n",iAtt,gaNr);
+
+  return iAtt;
+
+}
+
+
+
+//================================================================
   long GA_find__ (int typ, long ind) {
-///================================================================
-/// GA_find__         find GA-rec if already exist
-/// ACHTUNG: fix typ vorher mit AP_typDB_typ !
+//================================================================
+// GA_find__         find GA-rec if already exist
+// ACHTUNG: fix typ vorher mit AP_typDB_typ !
 
   long i1;
 

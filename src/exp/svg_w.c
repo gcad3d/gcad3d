@@ -250,6 +250,8 @@ firefox <fn>.svg
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 
 #include "../xa/xa_mem.h"                 // memspc501
+#include "../xa/xa_msg.h"              // MSG_*
+
 // memspc501  pointBuffer for curve -> pTab
 // mem_cbuf1  outputbuffer (line)  cBuf
 
@@ -333,8 +335,7 @@ extern int     APT_dispPT;
 
   if ((SVG_fp1 = fopen (fnam, "w")) == NULL) {
     // TX_Error ("beim Öffen der Ausgabedatei ****");
-    TX_Error ("Open file %s",fnam);
-    MSG_err_1 ("FileOp",fnam);
+    MSG_ERR__ (ERR_file_open, "'%s'", fnam);
     return -1;
   }
 

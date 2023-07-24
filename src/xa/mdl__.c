@@ -108,7 +108,7 @@ MDL_ren_1               rename model
 MDL_ren_fmdl            modify modelfiles - rename or delete submodel
 MDL_ren_flst            modify listfiles - rename or delete submodel
 MDL_ren_sav             update modelname in browser after save-as
-
+MDL_clr__               remove unused subModels
 MDL_rem__               remove submodel and its childs
 MDL_rem_ck_used         check if model is used
 MDL_rem_del             remove subModel
@@ -327,6 +327,7 @@ see INF_basModels__
 #include "../ut/ut_txfil.h"            // UTF_GetPosLnr
 #include "../ut/ut_deb.h"              // DEB_*
 #include "../ut/os_dll.h"              // DLL_*
+#include "../ut/ut_cast.h"             // INT__PTR
 
 #include "../xa/xa_msg.h"              // MSG_* ERR_*
 #include "../xa/xa.h"                  // AP_modact_nam AP_modact_tmp
@@ -1566,7 +1567,7 @@ int MDL_mTyp_iNam (int inm) { return mdl_tab.data[inm].mTyp; }
 
 
   // printf("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM \n");
-  // printf("MDL_load_mNam__ |%s| %d\n",mNam,typMnm);
+  printf("MDL_load_mNam__ |%s| %d\n",mNam,typMnm);
   // printf("  AP_modact_nam=|%s|\n",AP_modact_nam);
   // MDL_dump__ ("MDL_load_mNam__");
   // UtxTab_dump (&mdl_names, "MDL_load_mNam__");
@@ -2429,6 +2430,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   //================================================================
   // add all used Submodels to file fnam0
+    // printf(" _sav_gcad-AP_modact_inm=%d\n",AP_modact_inm);
+
 
   // get mdlTab = list of all existing subModels (unused models already checked)
   UtxTab_init__ (&sTab1);
@@ -2459,11 +2462,12 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     if(inm == AP_modact_inm) continue;
 
     // ignore unused subModel
-    if(mstat != 2) continue;
+    if((mstat != 2)&&(uuSav)) continue;
 
     // check if submodel belongs to intern or extern parent-model
-    irc = MDL_sav_ck_sm__ (inm);
-    if(irc < 0) continue;
+    irc = MDL_sav_ck_sm__ (inm);  // 0=extern; 1=intern; -1=unused|Error
+      // printf(" _sav_gcad-ck_sm=%d\n",irc);
+    if(irc == 0) continue;
 
 
     // check if modelfile exists
@@ -2829,7 +2833,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 // Input:
 //   mNam         modelnam internal subModel, find its parent ..
 // Output:
-//   retCode     -1 = Error;
+//   retCode     -1 = Error or unused submodel
 //                0 = parent-is-extern - do_not_save;
 //                1 = parent-is-intern - save;
 
@@ -2839,11 +2843,10 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   // printf("MDL_sav_ck_sm__ %d\n",iSm);
 
+
   // check primary model (has mStat=1, not 2)
   irc = MDL_sav_ck_sm_1 (AP_modact_inm, iSm);
-  if(irc >= 0) {
-    goto L_exit;
-  }
+  if(irc >= 0) { irc = 1; goto L_exit; }
 
 
   // - loop tru active internal subModels (all models with mStat=2) -
@@ -2855,7 +2858,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
     // check if model imn is using model iSm
     irc = MDL_sav_ck_sm_1 (imn, iSm);
-    if(irc >= 0) goto L_exit;
+    if(irc >= 0) { irc = 1; goto L_exit; }
   }
 
   irc = -1;
@@ -3189,10 +3192,13 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   char  fno[320], s1[320], s2[256];
 
 
-  // printf("MDL_exp__ mode=%d uuSav=%d\n",mode,uuSav);
+  printf("MDL_exp__ mode=%d uuSav=%d\n",mode,uuSav);
   // MDLFN_dump_ofn (ofm, "MDL_exp__");
   // printf("  |%s|%s|%s|%s| %d %d\n",AP_mod_sym,AP_mod_dir,
          // AP_mod_fnam,ofm->fTyp,ofm->iTyp,AP_stat.subtyp);
+
+
+  irc = 0;
 
   // save the active model
   MDL_sav_tmp ();  // already done in AP_save__ ?
@@ -3230,7 +3236,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // cp <tmpDir>export.exp AP_mod_dir.AP_mod_fnam.ofm->fTyp
     sprintf(s1, "%sexport.exp",AP_get_tmp_dir());
     irc = OS_file_copy (s1, fno);
-    if(irc) { TX_Error("MDL_exp__ cannot copy to %s",s2); return -1; }
+    if(irc) { TX_Error("MDL_exp__ cannot copy to %s",s2); irc = -1; goto L_err; }
     TX_Print ("%s exported ..",fno);
     goto L_fertig;
 
@@ -3251,7 +3257,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   } else if(ofm->iTyp == Mtyp_Iges) {
     // printf(" Export IGS |%s|\n",AP_mod_fnam);
-    AP_ExportIges__ (fno);
+    // AP_ExportIges__ (fno);
+    AP_kex_exec (&dll_exp, "xa_ige_w", "IGE_w__", fno, DLL_LOAD_EXEC_UNLOAD);
     goto L_fertig;
 
 
@@ -3279,7 +3286,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   } else {
     TX_Print("**** MDL_exp__ Error filetyp %s %d",ofm->fTyp,ofm->iTyp);
-    return -1;
+    irc = -2; goto L_err;
   }
 
 
@@ -3291,12 +3298,14 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // sprintf(memspc011, "%s%c%s",dirNam,fnam_del,fnam);
 // TODO:
   // get filetyp-string from filetyp-nr
-  i1 = TSU_exp__ (ofm->fTyp, fno);
-  if(i1 != 0) DB_del_Mod__ ();  // del all subModels nach error
+  irc = TSU_exp__ (ofm->fTyp, fno);
+//   if(i1 != 0) DB_del_Mod__ ();  // del all subModels nach error
 
   ED_Reset ();       // ED_lnr_act resetten
   ED_work_END (0);   // restore display ..
   // TX_Print("save tesselated as %s in %s",AP_mod_fnam,AP_mod_dir);
+
+  if(irc < 0) { irc = -3; goto L_err; }
 
 
 
@@ -3325,6 +3334,11 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 //   Mod_sav_ck (0);
 
   return 0;
+
+
+  L_err:
+    TX_Error("MDL_exp__ E %d\n",irc);
+    return -1;
 
 }
 
@@ -3554,7 +3568,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   char      symNam[SIZMFTot], safNam[SIZMFTot], fn1[320];
   stru_FN   ofn;
 
-  // printf("MDL_load_main |%s| !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",fNam);
+  printf("MDL_load_main |%s| !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",fNam);
   // MDL_dump__ ("MDL_load_main");
 
 
@@ -3590,8 +3604,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   }
 
   // get checkbox "nativ oder Mockup"
-  UI_AP (UI_FuncGet, UID_ckb_impTyp, (void*)&impTyp); // 1=Mockup, 0=native
-  if((ofn.iTyp == Mtyp_OBJ)&&(!impTyp)) goto L_load1;  // .obj: native|mockup
+  if(!AP_impTyp_get()) goto L_load1;
 
   // load mockup; create internal-native-model from not-native-modeltyp
   irc = MDL_load_noNat (symNam, safNam, &ofn);
@@ -3620,7 +3633,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // END TESTBLOCK
  
 
-  // import all submodels (mStat 1)
+  // import all models (mStat 1)
   irc = MDL_load_1 ();
   if(irc < 0) goto L_exit;
 
@@ -3904,7 +3917,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   char   s1[320], symIn[SIZMFTot];
 
 
-  // printf("MDL_load_noNat |%s|%s|\n",symNam,safNam);
+  printf("MDL_load_noNat |%s|%s|\n",symNam,safNam);
   // MDLFN_dump_ofn (ofn, "MDL_load_noNat");
   // MDL_dump__ ("MDL_load_noNat");
 
@@ -3922,6 +3935,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   MDLFN_syFn_oFn (symNam, ofn);
   UTX_safeName (symNam, 1);
   strcpy(safNam, symNam);
+    printf("   _load_noNat-1 |%s|%s|\n",symNam,safNam);
 
 
   switch(typIn) {
@@ -3963,7 +3977,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
     // TESTBLOCK
     // MDLFN_dump_ofn (ofn, "ex-MDL_load_noNat");
-    // printf("ex-MDL_load_noNat %d symNam=|%s|%s|\n",irc,symNam,safNam);
+    printf("ex-MDL_load_noNat %d symNam=|%s|%s|\n",irc,symNam,safNam);
     // exit(0);
     // END TESTBLOCK
 
@@ -5011,7 +5025,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   char    fn[320];
 
 
-  // printf("MDL_load_import__ %d |%s|\n",mTyp,symNam);
+  printf("MDL_load_import__ %d |%s|\n",mTyp,symNam);
 
 
   //----------------------------------------------------------------
@@ -5034,12 +5048,13 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
   //----------------------------------------------------------------
-  // mockups and images
+  // mockups and images (initial startup)
   if(mTyp >= Mtyp_TESS)  {
-    // mockup-file (.wrl, .stl, .obj)
-    // load at display-time with GR_mdMock_imp
-    irc = 0;
-    goto L_exit;
+    if(mTyp >= Mtyp_BMP) goto L_load_late;   // image; bmp ..
+
+    // mockup-file (.wrl, .stl, .obj); import as CAD-model or mockup
+    if(AP_impTyp_get()) goto L_load_late;
+
   }
 
 
@@ -5054,6 +5069,12 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // printf("ex-MDL_load_import__ %d\n",irc);
     // DEB_exit();
   return irc;
+
+
+  //----------------------------------------------------------------
+  L_load_late: // load at display-time with GR_mdMock_imp
+    irc = 0;
+    goto L_exit;
 
 }
 
@@ -5205,14 +5226,18 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   extern int DL_wri_dynDat0 (FILE*);
 
-  int        irc, dbResiz;
+  int        irc, dbResiz, impTyp;
   long       lTab[8];
   char       fnSub[SIZMFTot], fNam[SIZFNam], fno[SIZFNam];
   void       *pa[2];
   stru_FN    ofn;
 
+  ObjGX      oTab[4];
+  // Memspc     impSpc;
 
-  printf("MDL_load_import_ext %d |%s|\n",mTyp,mnam);
+
+
+  // printf("MDL_load_import_ext %d |%s|\n",mTyp,mnam);
 
   // resolv fileName
   irc = MDLFN_oFn_fNam (&ofn, mnam);
@@ -5319,7 +5344,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
     //----------------------------------------------------------------
   L_Mtyp_LXML:
-    if(mTyp != Mtyp_XML) goto L_unSupp;
+    if(mTyp != Mtyp_XML) goto L_Mtyp_LOBJ;
     // sprintf(fno, "%s%s.gcad",AP_get_tmp_dir(),fnSub);
     // sprintf(fno, "%simport.gcad",AP_get_tmp_dir());
     // printf(" _load_import_ext-lxml-fno=|%s|\n",fno);
@@ -5328,7 +5353,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // irc = OS_dll_do ("xa_lxml_r", "LXML_r__", pa, 0);
     irc = AP_kex_exec (&dll_imp, "xa_lxml_r", "LXML_r__", pa, DLL_LOAD_EXEC_UNLOAD);
       // printf(" f.OS_dll_do %d |%s|\n",irc,fNam);
-    if(irc < 0) {irc = -3; goto L_exit;}
+    if(irc < 0) {irc = -4; goto L_exit;}
     // AP_mdl_init (0);
     // AP_stru_2_txt (NULL, 0, (void*)lTab, 1L); // ask last index
     // DB_size_set (lTab);                       // increase DB-size
@@ -5337,18 +5362,22 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     goto L_exit;
 
 
-/*
+
     //----------------------------------------------------------------
-    case Mtyp_OBJ:
-      // get ImportTyp; nativ oder Mockup. (user-checkBox)
-      UI_AP (UI_FuncGet, UID_ckb_impTyp, (void*)&impTyp); // 1=Mockup, 0=native
-      if(!impTyp) {
-        // create native file - not tess-data.
-        irc = OS_dll_do ("xa_obj_r", "obj_read__", fni, 0); // 2013-08-15
-        if(irc < 0) goto L_err2;
-        goto L_mem2file;
-      }
-*/
+  L_Mtyp_LOBJ:             // import OBJ-file as native CAD-model
+    if(mTyp != Mtyp_OBJ) goto L_unSupp;
+    // get ImportTyp; nativ oder Mockup. (user-checkBox)
+    if(AP_impTyp_get()) { irc = -4; goto L_exit;}
+    // create native file - not tess-data.
+    UTO_rec_set (&oTab[0], Typ_ObjGX,  Typ_ObjGX,  3, &oTab[1]);
+    UTO_rec_set (&oTab[1], Typ_Int4,   Typ_Int4,   1, PTR_INT(0));  // mode
+    UTO_rec_set (&oTab[2], Typ_Txt,    Typ_Txt,    1, fNam);
+    // UTO_rec_set (&oTab[3], Typ_Memspc, Typ_Memspc, 1, &impSpc);     // unused
+    irc = AP_kex_exec (&dll_imp, "xa_obj_r", "gCad_main", oTab, DLL_LOAD_EXEC_UNLOAD);
+    if(irc < 0) {irc = -5; goto L_exit;}
+    goto L_mem2file;
+
+
 
   //----------------------------------------------------------------
   L_unSupp:
@@ -5376,7 +5405,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 }
 
 
-
+/* UU
 //================================================================
   int MDL_load_load () {
 //================================================================
@@ -5416,7 +5445,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   return 0;
 
 }
-
+*/
 
 //================================================================
   int MDL_mdb_load__ () {
@@ -5610,7 +5639,11 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // work intern or extern native model from file
   if(ED_work_file (fNam) < 0) goto L_err2;  // define file to work ..
 
+  // clear all DB-obj's (not models)
+  DB_clear__ ();
+
   // must remove all refModels (err with AP_Init2)  2021-05-06
+  // delete refModel and all following
   DB_del_ModRef (0);
 
   // activate basic refsys
@@ -6524,11 +6557,12 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
 
 //================================================================
-  int MDL_rem__ (char *safNam) {
+  int MDL_rem__ (char *safNam, int mode) {
 //================================================================
 // MDL_rem__               remove submodel and its childs
 //   model to be removed (safNam) must be active
 // Input:
+//   mode         0=only-in-CAD; 1=also-in-VWR/MAN
 // Output:
 //   retCode      0=OK, -1=err.
 //
@@ -6545,8 +6579,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   // MDL_dump__ ("MDL_rem__");
 
 
-  // only CAD; not VWR,MAN
-  if(!UI_CAD_ck()) goto L_err1;
+//   // only CAD; not VWR,MAN
+//   if(!UI_CAD_ck()) goto L_err1;
 
 
   // get symNam = symbolic-filename from safNam
@@ -7078,6 +7112,55 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
   return 0;
 
 } 
+
+
+//================================================================
+  int MDL_clr__ () {
+//================================================================
+// MDL_clr__              remove unused subModels
+
+  int       irc, i1;
+  char      fn[SIZFNam];
+  stru_tab  *mTab, *tab1;
+
+
+  // printf("//////////////////////////////////////////////// \n");
+  // printf("MDL_clr__ \n");
+  // MDL_dump__ ("MDL_clr__");
+
+// TODO: mainModel must be active ...
+
+
+  // loop tru mdl_tab
+  mTab = MEMTAB_DAT (&mdl_tab);
+  for(i1=1; i1<mdl_tab.rNr; ++i1) {  // skip 0 = main;
+    tab1 = &mTab[i1];
+    if(tab1->mUsed > 0) continue;
+
+    // remove modelfile
+    sprintf(fn, "%sModel_%s",AP_get_tmp_dir(),UtxTab__(i1, &mdl_names));
+    OS_file_delete (fn);
+
+    // remove entry in browser ...
+    // Brw_sMdl_del__  (UtxTab__(i1, &mdl_names));
+    irc = MDL_rem__ (UtxTab__(i1, &mdl_names), 1);
+    if(irc != 0) return -1;
+
+    // activate main
+    MDL_load_mNam__ ("", 0);
+
+
+
+    // remove from mdl_tab
+
+  }
+
+
+
+
+  return 0;
+
+}
 
 
 //================================================================
@@ -8039,6 +8122,7 @@ static char noNam[] = "-";
 
   // get safe-name of primary model
   mn = UtxTab__(AP_modact_inm, &mdl_names);
+  if(mn == NULL) return -1;
   strcpy(safNam, mn);
   UTX_safeName (safNam, 1);
 

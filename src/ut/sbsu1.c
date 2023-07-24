@@ -371,7 +371,7 @@ List_functions_end:
   UT3D_m3_load (ma, &(el->va), &(el->vb), &(el->vz));
 
   // inverse matrix
-  UT3D_m3_invm3 (ima, ma);
+  UT3D_m3_inv_ma (ima, ma);
 
   // make vectors from ellipse start- and endpoint
   UT3D_vc_2pt (&v1, &(el->pc), &(el->p1));

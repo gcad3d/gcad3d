@@ -3,10 +3,13 @@ Version: <VERSION>
 Architecture: amd64
 Section: graphics
 Priority: optional
-Depends: libc6 (>= 2.4), libgl1, libglu1, libgtk2.0-0, libjpeg-progs, tar (>= 1)
+Depends: libc6 (>= 2.4), libgl1, libglu1, libgtk2.0-0, libgtkgl2.0-1, libjpeg-progs, tar (>= 1)
 Installed-Size: 4506
 Maintainer: Franz Reiter <support@gcad3d.org>
-Homepage: http://www.gcad3d.org
+Homepage: https://www.gcad3d.org
+Origin: https:/github.com/gcad3d
+Source: https:/github.com/gcad3d
+License: GPL-3
 Description: 3D CAD-CAM Application
   with
     * import and export-programs (Step, Iges, VRML, DXF, SVG ..),

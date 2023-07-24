@@ -337,7 +337,7 @@ static int Brw_ope=1;  // operation; 0=update (skip selection process);
   Brw_ope = 0;    // skip autoselect in Brw_CB_sel
 
   // delete subModel <mnam>
-  i1 = MDL_rem__ (mnam);
+  i1 = MDL_rem__ (mnam, 0);
   if(i1 != 0) return -1;
 
   // activate main

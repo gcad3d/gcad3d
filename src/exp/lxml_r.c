@@ -16,7 +16,25 @@
  *
 -----------------------------------------------------
 TODO:
-InSpiral /Spiral spiType="clothoid"   MntnRoad.xml
+- see   MntnRoad.xml
+<AlignPI>
+ <PI code="1" name="2">1003060.741751 1008146.815365</PI>
+ <Station>1000.00</Station>
+</AlignPI>
+
+<InSpiral>
+<Spiral length="200" radiusEnd="214" radiusStart="0" rot="ccw" spiType="clothoid">
+<Start/>
+<PI/>
+<End/>
+</Spiral>
+</InSpiral>
+
+<OutSpiral> .. </OutSpiral>
+<Curve rot="cw" radius="214.00">  ... </Curve1>
+
+<Alignments ...
+
   ..
 
 -----------------------------------------------------
@@ -180,7 +198,7 @@ static  MemTab(int) LM_eDat = _MEMTAB_NUL;
 
 
 
-  is = DB_dbo_get_free (Typ_SUR);   // A
+  is = DB_dbo_get_last (Typ_SUR);   // A
   ++is;
 
   // LandXML-File einlesen; ../exp/lxml.c

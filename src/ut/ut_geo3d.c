@@ -406,7 +406,9 @@ UT3D_cvLn_obj             get line (Typ_CVLN3) from 2 points
 UT3D_rdc_3pt              Radius eines Kreises aus 3 Punkten errechnen
 UT3D_ck_ci180             check if circ is 180-degree-circ
 UT3D_ck_ci360             check if circ is 360-degree-circ
-UT3D_cksid_civc           ck if KreisStart/Endpunkt ist in Richtg VC od opposit
+UT3D_cksid_civc           check if Start/EndPt is in direction VC or opposit
+UT3D_ci_ck_2D             check if circ is 2D-circ; is in baseplane (pc.z=0; vz=0,0,1)
+UT3D_ci2_ck_dir           test if circs have different dir
 UT3D_ptNr_ci              nr of points for polygon from circle (see UT2D_ptNr_ci)
 UT3D_ci_inv1              invert (change p1, p2, dir (optisch gleich))
 UT3D_ci_inv2              invert (dir - KomplementaerKreis)
@@ -448,7 +450,7 @@ UT3D_ci_tra_ci2_rsys      transf. 2D-Circ => 3D-Circ
 UT3D_ci_tra_ci2_bp        transfer 2D-Circ onto 3D-plane from bp and bpd
 UT3D_ci_tra_ci_m3         apply transformation to circle (4x3-matrix)
 
--------------- polygon -----------------------------------------
+-------------- polygon (from points) ---------------------------
 // TODO: cv, pta -> ../ut/ut3d_npt.c
 UT3D_pta_ck_planar        test if all points are in plane from pt-normalVec
 UT3D_rMin_pta             den kleinsten Radius errechnen eines Polygon suchen
@@ -466,6 +468,8 @@ see also: ../ut/ut_npt.c
 UT3D_npt_ox__
 UT3D_pta_sus
 
+-------------- polygon (trimmed - CurvPoly) see ../ut/ut_plg.c --------
+
 -------------- GrafObj - (see also UTO_) ---------------
 UT3D_obj_obj2             change 2D-Obj > 3D-Obj (add Z=0; vz=0,0,1)
 UT3D_obj_pt    DO NOT USE change Point > 3D-Obj
@@ -475,6 +479,7 @@ UT3D_obj_ci    DO NOT USE change Circ > 3D-Obj
 UT3D_obj_vctra DO NOT USE translate Obj
 
 -------------- plane ---------------------------------------
+UT3D_pl_ck_bas            test if all points are in basePlane (pz=0.)
 UT3D_pl_XYZ               Defaultplane auf absolut 0,0,0
 UT3D_pl_bp                plane from backplane and offset
 UT3D_ipln_bp              get DB-index for backplane
@@ -496,6 +501,7 @@ UT3D_pl_2ln               plane from 2 lines in plane
 UT3D_pl_ci                make Plane from circ
 UT3D_pl_ell               make Plane from ellipse
 UT3D_pl_nobj              plane from ObjGX-table
+UT3D_pl_dbo               get plane for planar contour
 UT3D_pl_invert            Plane invert (change direction of Z-vec)
 UT3D_pl_rotpt             rot. Refsys around Z; point gives new X-direction
 UT3D_pl_rotZangr          rot. Refsys around Z
@@ -531,7 +537,8 @@ UT3D_m3_load_povxvy       neues Achsensystem mit Origin,vx,vy definieren
 UT3D_m3_load_povxvz       neues Achsensystem mit Origin,vx,vz definieren
 UT3D_m3_load_o            Nullpunkt into 4x3 Transform.Matrix
 UT3D_m3_loadpl            load Plane(=Achsensystem) into 4x3 Transform.Matrix
-UT3D_m3_invm3             4x3-Matrix invertieren
+UT3D_m3_inv_ma            load inverse matrix (mirror)
+UT3D_m3_inv_ma             4x3-Matrix invertieren
 UT3D_m3_get               get part of matrix;  0=VX, 1=VY, 2=VZ, 3=PO
 UT3D_m3_set               set part of matrix;  0=VX, 1=VY, 2=VZ, 3=PO
 UT3D_m3_vc                = UT3D_m3_set
@@ -616,7 +623,10 @@ Point*    DB_get_PT        (long Ind);
 
 
 //===========================================================================
-// typedef_MemTab(Point);
+// Externals ../xa/xa.h
+extern int       AP_modact_ibm;         // -1=primary Model is active;
+                                        // else subModel is being created
+
 
 
 
@@ -7387,13 +7397,13 @@ Returncodes:
 
 
     // TESTBLOCK
-    // printf(" ex-UT3D_ptvcpar_std_obj-irc =%d\n",irc);
-    // if(irc >= 0) {
-      // if(par) printf("ex UT3D_ptvcpar_std_obj par=%lf\n",*par);
-      // if(pto) DEB_dump_obj__ (Typ_PT, pto, "ex ptvcpar_std_obj");
-      // if(pto) GR_tDyn_symB__ (pto, SYM_STAR_S, ATT_COL_RED);
-      // if(vco) GR_tDyn_vc__ (vco, pto, 9, 1);
-    // }
+//     printf(" ex-UT3D_ptvcpar_std_obj-irc =%d\n",irc);
+//     if(irc >= 0) {
+//       if(par) printf("ex UT3D_ptvcpar_std_obj par=%lf\n",*par);
+//       if(pto) DEB_dump_obj__ (Typ_PT, pto, "ex ptvcpar_std_obj");
+//       if(pto) GR_tDyn_symB__ (pto, SYM_STAR_S, ATT_COL_RED);
+//       if(vco) GR_tDyn_vc__ (vco, pto, 9, 1);
+//     }
     // END TESTBLOCK
 
 
@@ -7607,7 +7617,7 @@ Returncodes:
   double  d1, d2;
 
 
-  printf("UT3D_ipt2_npt %d\n",pNr);
+  // printf("UT3D_ipt2_npt %d\n",pNr);
 
   d1 = 0.;
   for(i1=0; i1<pNr; ++i1) {
@@ -7621,7 +7631,7 @@ Returncodes:
     }
   }
 
-    printf("ex UT3D_ipt2_npt %d %d\n",*ip1,*ip2);
+    // printf("ex UT3D_ipt2_npt %d %d\n",*ip1,*ip2);
     // GR_tDyn_symB__ (&pta[*ip1], SYM_TRI_S, 5);
     // GR_tDyn_symB__ (&pta[*ip2], SYM_TRI_S, 5);
 
@@ -10077,14 +10087,12 @@ liegt. ohne acos.
 //================================================================
   int UT3D_comp2vc_p (Vector *v1, Vector *v2, double tol) {
 //================================================================
-/// \code
-/// UT3D_comp2vc_p              compare 2 vectors for parallel
-/// tolerances: see func. UT3D_vc_ck_parpl
-/// RC=1:   die Vektoren sind gleich.
-/// RC=0:   die Vektoren sind unterschiedlich.
-/// 
-/// if(UT3D_comp2vc_p(&ciO.vz, &UT3D_VECTOR_IZ, UT_TOL_min1) != 0) gleich
-/// \endcode
+// UT3D_comp2vc_p              compare 2 vectors for parallel
+// tolerances: see func. UT3D_vc_ck_parpl
+// RC=1:   Vectors are equal
+// RC=0:   Vectors  are different
+// 
+// if(UT3D_comp2vc_p(&ciO.vz, &UT3D_VECTOR_IZ, UT_TOL_min1) != 0) .. // equal
 // 
 // hoechsten Zahlenwert suchen (x/y/od Z-Komponente)
 // mit dieser Komponente (ibp) den Multiplikationsfaktor errechnen
@@ -13284,6 +13292,48 @@ Version 2 - auch Mist
 
 
 //================================================================
+  int UT3D_ci_ck_2D (Circ *ci1) {
+//================================================================
+// UT3D_ci_ck_2D     check if circ is 2D-circ; is in baseplane (pc.z=0; vz=0,0,1)
+// returns 1=yes-circ-is-2D;  0=no-circ-is-3D;
+
+  int   irc = 1;
+
+  if((!UT3D_comp2vc_p (&ci1->vz, (Vector*)&UT3D_VECTOR_Z, UT_TOL_min1)) ||
+     (!UTP_comp_0 (ci1->pc.z)))        {
+    irc = 0;
+  }
+
+  return irc;
+
+}
+
+
+//================================================================
+  int UT3D_ci2_ck_dir (Circ *ci1, Circ *ci2) {
+//================================================================
+// UT3D_ci2_ck_dir              test if circs have different dir;
+// retCode    0=same-direction; CCW or CW
+//            1=different-direction; one circ CCW, one circ CW
+
+  int      ii;
+
+
+  ii = 0;
+
+  if(ci1->rad > 0.) {
+    if(ci2->rad < 0.) ii = 1;
+
+  } else {
+    if(ci2->rad > 0.) ii = 1;
+  }
+
+  return ii;
+
+}
+
+
+//================================================================
   int UT3D_cksid_civc (Circ *ci1, Vector *vc1) {
 //================================================================
 /// \code
@@ -16046,6 +16096,95 @@ static int ia[] = {-1, -2, -3};
 }
 
 
+//================================================================
+  int UT3D_pl_dbo (Plane *plo, int typ, long dbi) {
+//================================================================
+// UT3D_pl_dbo            get plane for planar contour
+// see UT3D_pl_nobj UT3D_pl_pta UTO_obj_dbo
+
+  int           irc, oNr, oTyp, mdli, ptNr;
+  double        tol;
+  void          *oDat;
+  Point         *pta;
+  MemTab(Point) mtpa = _MEMTAB_NUL;
+
+
+  printf("UT3D_pl_dbo %d %ld\n",typ,dbi);
+
+  oTyp = typ;
+  irc = UTO_obj_dbo (&oDat, &oNr, &oTyp, dbi);
+  if(irc < 0) {TX_Error("UT3D_pl_dbo E1"); return -1;}
+    DEB_dump_nobj__ (oTyp, oNr, oDat, "UT3D_pl_dbo-1");
+
+
+  //----------------------------------------------------------------
+  // plane analytic from circ, elli
+  if(oTyp == Typ_CI) {
+    UT3D_pl_pto_vcz_ptx (plo, &((Circ*)oDat)->pc,
+                              &((Circ*)oDat)->vz,
+                              &((Circ*)oDat)->p1);
+    goto L_OK;
+  }
+
+  if(oTyp == Typ_CVELL) {
+    UT3D_pl_pto_vcz_vcx (plo, &((CurvElli*)oDat)->pc,
+                              &((CurvElli*)oDat)->vz,
+                              &((CurvElli*)oDat)->va);
+    goto L_OK;
+  }
+
+
+  //----------------------------------------------------------------
+  // get plane from PRCV
+  MemTab_ini_fixed (&mtpa, MEM_alloc_tmp (SPC_MAX_STK), SPC_MAX_STK,
+                  sizeof(Point), Typ_PT);
+
+  tol  = UT_DISP_cv;
+  mdli = AP_modact_ibm;
+  irc = UT3D_mtpt_obj (&mtpa, NULL, NULL, oTyp, oDat, oNr, dbi, mdli, tol, 0);
+  if(irc < 0) {TX_Error("UT3D_pl_dbo E2"); return -1;}
+    MemTab_dump (&mtpa, "pl_dbo-mtpa");
+
+
+  ptNr = MEMTAB_IND (&mtpa);
+  pta  = MEMTAB_DAT (&mtpa);
+  irc = UT3D_pl_pta (plo, ptNr, pta);
+  if(irc < 0) {TX_Error("UT3D_pl_dbo E3"); return -1;}
+
+  MemTab_free ((MemTab*)&mtpa);
+
+
+  //----------------------------------------------------------------
+  L_OK:
+
+    DEB_dump_obj__ (Typ_PLN, plo, "ex-UT3D_pl_dbo");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UT3D_pl_ck_bas (Point *pta, int ptNr, double *tol) {
+//================================================================
+// UT3D_pl_ck_bas            test if all points are in basePlane (pz=0.)
+// retCode 1=yes-in-basePlane; 0=not-in-baseplane;
+
+  int    i1;
+
+  for(i1=0; i1<ptNr; ++i1) {
+    if(!UTP_compdb0 (pta[i1].z, *tol)) goto L_no;
+  }
+
+  return 1;
+
+
+  L_no:
+    return 0;
+
+}
+
+
 //=====================================================================
   void UT3D_pl_XYZ (Plane *pl1) {
 //=====================================================================
@@ -16156,11 +16295,9 @@ static int ia[] = {-1, -2, -3};
 //==========================================================================
   int UT3D_pl_pto_vcz_vcx (Plane *pl1, Point *po, Vector *vz, Vector *vx) {
 //==========================================================================
-/// \code
-/// UT3D_pl_pto_vcz_vcx      plane from Origin, Z-vec, X-Vec. Z-vec is fixed.
-/// vz must have length=1.
-/// Create vy from vx and vz; create new vx from vy, vz.
-/// \endcode
+// UT3D_pl_pto_vcz_vcx      plane from Origin, Z-vec, X-Vec. Z-vec is fixed.
+// vz and vx must not be normalized
+// Create vy from vx and vz; create new vx from vy, vz.
 
 
   pl1->po = *po;
@@ -16337,7 +16474,8 @@ static int ia[] = {-1, -2, -3};
 //============================================================================
   void UT3D_pl_pto_vcz_ptx (Plane *pl1, Point *po, Vector *vz, Point *ptx) {
 //============================================================================
-/// UT3D_pl_pto_vcz_ptx    Plane aus Nullpunkt, Z-Achse und Punkt auf X-Achse
+// UT3D_pl_pto_vcz_ptx    Plane aus Nullpunkt, Z-Achse und Punkt auf X-Achse
+// vz must not be normalized
 
   double len;
   Point  pts;
@@ -17086,13 +17224,50 @@ static int ia[] = {-1, -2, -3};
 }
 
 
+//================================================================
+  int UT3D_m3_inv_ma (Mat_4x3 mi, Mat_4x3 ma) {
+//===================================================================
+// UT3D_m3_inv_ma    load inverse matrix (mirror)
+// only for 90-deg-systems
+// mi / ma must have different memspce
+
+  Point    p1, p2;
+
+
+  mi[0][0] = ma[0][0];
+  mi[0][1] = ma[1][0];
+  mi[0][2] = ma[2][0];
+
+  mi[1][0] = ma[0][1];
+  mi[1][1] = ma[1][1];
+  mi[1][2] = ma[2][1];
+
+  mi[2][0] = ma[0][2];
+  mi[2][1] = ma[1][2];
+  mi[2][2] = ma[2][2];
+
+  mi[0][3] = 0.;
+  mi[1][3] = 0.;
+  mi[2][3] = 0.;
+
+  p1.x = ma[0][3];
+  p1.y = ma[1][3];
+  p1.z = ma[2][3];
+  UT3D_pt_tra_pt_m3 (&p2, mi, &p1);
+  mi[0][3] = -p2.x;
+  mi[1][3] = -p2.y;
+  mi[2][3] = -p2.z;
+
+  return 0;
+
+}
+
+
 //======================================================================
   int UT3D_m3_invm3 (Mat_4x3 im1, Mat_4x3 m1) {
 //======================================================================
-/// \code
-///  UT3D_m3_invm3              4x3-Matrix invertieren
-/// ACHTUNG: Adresse darf NICHT gleich sein !!
-/// \endcode
+// UT3D_m3_invm3              load inverse matrix
+// m1 / im1 must have different memspce
 
 
   double   det, tol = 0.0000001;
@@ -17106,7 +17281,7 @@ static int ia[] = {-1, -2, -3};
         (m1[0][2] * m1[1][0] * m1[2][1]) - (m1[0][2] * m1[1][1] * m1[2][0]) -
         (m1[0][0] * m1[1][2] * m1[2][1]) - (m1[0][1] * m1[1][0] * m1[2][2]);
   if (fabs(det) < tol) {
-    printf("UT3D_m3_invm3: matrix has no inverse\n");
+    printf("UT3D_m3_inv_ma: matrix has no inverse\n");
     return 1;
   }
   det = 1.0 / det;
@@ -19538,36 +19713,43 @@ extern  ModelRef  *DB_get_ModRef (long);
     // curve fwd
     if(ux < us) {
       // test ps px
-      if(UT3D_comp2pt (px, ps, UT_TOL_pt)) return 1;
+      if(UT3D_comp2pt (px, ps, UT_TOL_pt)) goto L_yes;
   
     } else if(ux > ue) {
       // test pe px
-      if(UT3D_comp2pt (px, pe, UT_TOL_pt)) return 1;
+      if(UT3D_comp2pt (px, pe, UT_TOL_pt)) goto L_yes;
   
     } else {
       // inside, ok
-      return 1;
+      goto L_yes;
     }
 
   } else {
     // curve bwd
     if(ux > us) {
       // test ps px
-      if(UT3D_comp2pt (px, ps, UT_TOL_pt)) return 1;
+      if(UT3D_comp2pt (px, ps, UT_TOL_pt)) goto L_yes;
 
     } else if(ux < ue) {
       // test pe px
-      if(UT3D_comp2pt (px, pe, UT_TOL_pt)) return 1;
+      if(UT3D_comp2pt (px, pe, UT_TOL_pt)) goto L_yes;
 
     } else {
       // inside, ok
-      return 1;
+      goto L_yes;
     }
   }
 
 
+      // printf(" ex-ck_inObj__ 0 = inside\n");
+    return 0;  // va (and its point) is outside range
 
-  return 0;  // va (and its point) is outside range
+
+  L_yes:
+      // printf(" ex-ck_inObj__ 1 = outside\n");
+    return 1;
+
+
 
 }
 
@@ -21254,7 +21436,7 @@ extern  ModelRef  *DB_get_ModRef (long);
     // DEB_dump_obj__ (Typ_M4x3, rsys->mat1, "mat1");
 
   // get mat2 = 3D->2D-matrix
-  UT3D_m3_invm3 (rsys->mat2, rsys->mat1);
+  UT3D_m3_inv_ma (rsys->mat2, rsys->mat1);
     // DEB_dump_obj__ (Typ_M4x3, rsys->mat2, "mat2");
 
 
@@ -21292,7 +21474,7 @@ extern  ModelRef  *DB_get_ModRef (long);
     // DEB_dump_obj__ (Typ_M4x3, rsys->mat1, "mat1");
 
   // get mat2 = 3D->2D-matrix
-  UT3D_m3_invm3 (rsys->mat2, rsys->mat1);
+  UT3D_m3_inv_ma (rsys->mat2, rsys->mat1);
     // DEB_dump_obj__ (Typ_M4x3, rsys->mat2, "mat2");
 
     // DEB_dump_obj__ (Typ_Refsys, rsys, "ex-UT3D_rsys_bp");

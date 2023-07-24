@@ -400,7 +400,7 @@ List_functions_end:
 
 
   // Matrix invertieren:
-  UT3D_m3_invm3 (imat, trmat);
+  UT3D_m3_inv_ma (imat, trmat);
 
 
 

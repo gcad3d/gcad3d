@@ -928,7 +928,7 @@ extern long      GLT_cta_SIZ;
 
   int    i1;
 
-  // printf("ATO_srcTxt |%s|\n",cmd);
+  printf("ATO_srcTxt |%s|\n",cmd);
 
 
   //----------------------------------------------------------------
@@ -1057,7 +1057,7 @@ extern long      GLT_cta_SIZ;
   //----------------------------------------------------------------
   L_exit:
 
-    // printf("ex ATO_srcTxt typ=%d val%lf\n",*atoTyp,*atoVal);
+    printf("ex ATO_srcTxt typ=%d val%lf\n",*atoTyp,*atoVal);
 
   return 0;
 
@@ -1357,6 +1357,7 @@ extern long      GLT_cta_SIZ;
       break;
 
     case Typ_PLN:
+// TODO: R(RZ) - check if plane is RZ - resets 2D -> 3D ...
       i1 = APT_decode_pln1 ((Plane*)obj1, vNr, &ato->typ[iv], &ato->val[iv]);
       if(i1 < 0) goto ParErr;
       dbi = DB_StoreRef (-1L, (Plane*)obj1);

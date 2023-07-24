@@ -1,4 +1,31 @@
 ===========================================================================
+Version 2.60.04 / 2023-07-21
+- Iges export completely rewritten
+- Bugfix Obj-export "submodels-disabled"
+- Bugfix OBj-import "import-as-native-cad-model"
+- Bugfix Dxf-export "submodel-position"
+- Bugfix Dxf-export "hidden-objects-in-subModels"
+- new function "subModels / remove unused subModels"
+
+Programlines (C)       528205
+Functions              4888
+
+
+===========================================================================
+Version 2.60.02 / 2023-06-28
+
+- library gtkglarea-2.1.0-6.3-x86_64 added (install libgtkgl2.0-1)
+- Bugfix CAD "END-button does not clear dispList"
+- Iges export from core-module changed to plugin
+- Bugfix Iges export "Circle-CW-transformation" 
+- Bugfix Iges export "ruled-surface-line/vector"
+- Bugfix Iges export "revoled-surface-centerline/curve"
+
+Programlines (C)       527273
+Functions              4854
+
+
+===========================================================================
 Version 2.60.00 / 2023-05-02
 
 - new gcad-Version Microsoft/MSYS2 MINGW_x86_64 (Win10/11, 64-bit)
@@ -6,7 +33,6 @@ Version 2.60.00 / 2023-05-02
 
 Programlines (C)       527419
 Functions              4859
-
 
 
 ===========================================================================
@@ -24,8 +50,8 @@ Functions           5081
 ===========================================================================
 Version 2.50.00 / 2022-11-12
 
-- CAD-Circle-Cen-Radius senseOfRottaion added
-- CAD-Circle-Axis-Point senseOfRottaion added
+- CAD-Circle-Cen-Radius senseOfRotaion added
+- CAD-Circle-Axis-Point senseOfRotaion added
 - new CAD-function Circle-concentric
 - Bugfix CAD Circle"CIR-Cen-Radius-CW"
 - Bugfix CAD Variables "V X/Y/Z-Part PT"

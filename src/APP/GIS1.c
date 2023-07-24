@@ -475,7 +475,7 @@ static  GLfloat GL_col_tab [][4] = {
   gis_edg_mod (TYP_FuncInit);
 
   // surNr = find last used surface-nr (A)
-  surIndLast = DB_dbo_get_free (Typ_SUR);
+  surIndLast = DB_dbo_get_last (Typ_SUR);
     // printf(" LastUsed A-nr = %d\n",surIndLast);
 
   // create & activate toolbar
@@ -2317,7 +2317,7 @@ gis_edg_fwrite ("/mnt/serv1/Devel/dev/gCAD3D/dat/GIS1/bk2_ib2.dat",3,2);
 
   // create a CAD-Point at p1
   L_cre_cadPt1:
-    i1 = DB_dbo_get_free (Typ_PT);
+    i1 = DB_dbo_get_last (Typ_PT);
     ++i1;
     sprintf(cbuf, "P%d=",i1);
     AP_obj_add_pt(cbuf, &p1);        // create text
@@ -2362,7 +2362,7 @@ gis_edg_fwrite ("/mnt/serv1/Devel/dev/gCAD3D/dat/GIS1/bk2_ib2.dat",3,2);
   p1 = &ActPtab.data[ActPtNr];
 
 /*
-    i1 = DB_dbo_get_free (Typ_PT);
+    i1 = DB_dbo_get_last (Typ_PT);
     ++i1;
     sprintf(cbuf, "P%d=",i1);
     AP_obj_add_pt(cbuf, &p1);
@@ -4503,7 +4503,7 @@ gis_edg_fwrite ("/mnt/serv1/Devel/dev/gCAD3D/dat/GIS1/bk2_ib2.dat",3,2);
   lnMaxNr = *lnNr;
 
   // pTab ex DB-points laden.
-  dbMax = DB_dbo_get_free (Typ_PT);
+  dbMax = DB_dbo_get_last (Typ_PT);
     // printf(" PT-dbMax=%ld\n",dbMax);
 
   // get all points from DB
@@ -4523,7 +4523,7 @@ gis_edg_fwrite ("/mnt/serv1/Devel/dev/gCAD3D/dat/GIS1/bk2_ib2.dat",3,2);
   // ptMaxNr = *ptNr;
 
   // get next free LN-index (end of LN-DB)
-  dbMax = DB_dbo_get_free (Typ_LN);
+  dbMax = DB_dbo_get_last (Typ_LN);
     // printf(" LN-dbMax=%ld\n",dbMax);
 
   // get all Lines from DB

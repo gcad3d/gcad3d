@@ -407,6 +407,16 @@ extern double     AP_txdimsiz;    // Dimensions-Text-size
 extern AP_STAT    AP_stat;
 
 
+// ../db/ut_DB.h
+extern long APT_PT_IND;
+extern long APT_LN_IND;
+extern long APT_CI_IND;
+extern long APT_CV_IND;
+extern long APT_TX_IND;
+extern long APT_SU_IND;
+extern long APT_MR_IND;
+
+
 
 //===========================================================================
 // LOCALS:
@@ -451,7 +461,7 @@ int DXFW_test (char *txt1) {
 // Input:
 //   fnam    full name outfile
 
-  int       i1, i2, *ip, mTyp, oNr, mode;
+  int       irc, i1, i2, *ip, mTyp, oNr, mode;
   long      l1;
   char      *p1, s1[256], *fBuf;
   ObjDB     *oTab;
@@ -505,22 +515,21 @@ int DXFW_test (char *txt1) {
 
 
 
-  //----------------------------------------------------------------
+  //================================================================
+  // export main
   // get nr of objs of group
   oNr = Grp_get__ (&oTab);
   if(oNr > 0) {
+    // export only active group
     mode = 0;
-    goto L_exp;
-  }
-  
 
-  L_all:  // group is empty; add all objs to group
+  } else {
+    // group is empty; add all objs to group (without hidden obj's)
     mode = 2;
     Grp_add_all1 (-1);
+  }
 
-
-  L_exp:
-      // Grp_dump ();
+    // Grp_dump ();
 
 
   // export main - all obj's in group. Add subModel -> dxfw_smTab
@@ -537,7 +546,7 @@ int DXFW_test (char *txt1) {
   fclose (fpo1);
 
 
-  //----------------------------------------------------------------
+  //================================================================
   // export subModels as BLOCKS; loop tru dxfw_smTab
   sprintf(s1,"%sdxfw_blocks",AP_get_tmp_dir());
   if ((fpo1 = fopen (s1, "w+")) == NULL) {
@@ -552,9 +561,14 @@ int DXFW_test (char *txt1) {
   // add defaultblocks eg *D0
   DXFW_blk_ini ();
 
+    // TESTBLOCK
+    // MemTab_dump (&dxfw_smTab, "DXFW__-dxfw_smTab");
+    // END TESTBLOCK
+ 
 
   i2 = MEMTAB_IND (&dxfw_smTab);  // get nr of used subModels
 
+  // loop tru used subModels
   for(i1 = 0; i1 < i2; ++i1) {
     ip = MEMTAB__ (&dxfw_smTab, i1);
     mbo = DB_get_ModBas (*ip);
@@ -567,8 +581,8 @@ int DXFW_test (char *txt1) {
     // change all '/' of mNam into '_' - else no correct filename possible
     UTX_safeName (s1, 1);
     p1 = s1;
-      printf("\n++++++++++++++++++++++++++++\n nxt blk: %d %d |%s|\n",
-             *ip,mTyp,p1);
+      // printf("\n++++++++++++++++++++++++++++\n nxt blk: ip=%d mTyp=%d |%s|\n",
+             // *ip,mTyp,p1);
 
 
     fprintf(fpo1,"0\nBLOCK\n");
@@ -584,9 +598,10 @@ int DXFW_test (char *txt1) {
     if(mTyp < Mtyp_DXF) {
       // native subModel (Mtyp_Gcad)
       // load DB
-      DB_load__ (p1);
-      // export subModel
-      DXFW_Mdl_gcad (0);
+      irc = DB_load__ (p1);
+      if(irc < 0) { 
+        LOG_A__ (ERR_ERR, "DXFW__ sm %s",p1);
+      } else DXFW_Mdl_gcad (0); // export subModel
 
     } else {
       // Mockup-model
@@ -606,7 +621,9 @@ int DXFW_test (char *txt1) {
   DB_load__ ("");   // reload main-DB
 
 
-  //----------------------------------------------------------------
+
+  //================================================================
+  // all objs exported;
   // join files
   if ((fpo1 = fopen (fnam, "w+")) == NULL) {
   // if ((fpo1 = fopen (fnam, "wb")) == NULL) {     // crash in MS !
@@ -639,12 +656,13 @@ int DXFW_test (char *txt1) {
   // OS_file_delGrp (s1);
 
 
-  LOG_A_exit (dxfw_errNr);           // close logfile
+  LOG_A_exit (&dxfw_errNr);           // close logfile
+  TX_Print ("- logFile is %sexport_dxf.log",AP_get_tmp_dir());
 
 
   //----------------------------------------------------------------
   if(AP_errStat_get() == 0) {
-    TX_Print("%s exported ",fnam);
+    TX_Print("- outFile is %s",fnam);
   }
 
 
@@ -988,7 +1006,7 @@ int DXFW_test (char *txt1) {
       zparl = OFF;
       UT3D_vc_normalize (&ci1->vz, &ci1->vz);
       dxfw_load_mat (m1, &ci1->vz);  // make TrMat nach DXF-Konvention
-      UT3D_m3_invm3 (im1, m1);       // RuecktransformationsMat. generieren
+      UT3D_m3_inv_ma (im1, m1);       // RuecktransformationsMat. generieren
       UT3D_pt_tra_pt_m3 (&pt1, im1, &ci1->pc);
       //TX_Print(" pt1=%f,%f,%f",pt1.x,pt1.y,pt1.z);
 
@@ -1044,7 +1062,7 @@ int DXFW_test (char *txt1) {
       zparl = OFF;
       UT3D_vc_normalize (&ci1->vz, &ci1->vz);
       dxfw_load_mat (m1, &ci1->vz);  // make TrMat nach DXF-Konvention
-      UT3D_m3_invm3 (im1, m1);       // RuecktransformationsMat. generieren
+      UT3D_m3_inv_ma (im1, m1);       // RuecktransformationsMat. generieren
       UT3D_pt_tra_pt_m3 (&ptc, im1, &ci1->pc);
       UT3D_pt_tra_pt_m3 (&pt1, im1, &ci1->p1);
       UT3D_pt_tra_pt_m3 (&pt2, im1, &ci1->p2);
@@ -1813,7 +1831,7 @@ usw.
     UT3D_vc_invert (&vxa, &mr->vx);
     UT3D_pl_pto_vcz_vcx (&pl1, (Point*)&UT3D_PT_NUL, &mr->vz, &vxa);
     UT3D_m3_loadpl (m1, &pl1);
-    UT3D_m3_invm3 (mi1, m1);
+    UT3D_m3_inv_ma (mi1, m1);
     // translate the origin into the new axisSystem
     UT3D_pt_tra_pt_m3 (&p1, mi1, &mr->po);
     ar = RAD_180;
@@ -1833,7 +1851,7 @@ usw.
     ar = UT3D_angr_3vcn_CCW (vz2, &vxa, vx2);
 
     // inverse matrix
-    UT3D_m3_invm3 (mi1, m1);
+    UT3D_m3_inv_ma (mi1, m1);
     // translate the origin into the new axisSystem
     UT3D_pt_tra_pt_m3 (&p1, mi1, &mr->po);
     iarb = 2;
@@ -2064,7 +2082,7 @@ usw.
 //=============================================================================
   int DXFW_main () {
 //=============================================================================
-// export all objs in group
+// DXFW_main          export all objs in group
 
   int       oNr, i1, iTyp, tra_ind = 0;
   ObjDB     *oTab;
@@ -2074,6 +2092,7 @@ usw.
   oNr = Grp_get__ (&oTab);
 
   printf("DXFW_main ============================ %d\n",oNr);
+  printf("- NR PT=%ld LN=%ld CI=%ld\n",APT_PT_IND,APT_LN_IND,APT_CI_IND);
 
 
   for(i1=0; i1<oNr; ++i1) {
@@ -2216,125 +2235,80 @@ usw.
 }
 
 
+//================================================================
+  int DXFW_dbo__ (int typ, long dbi) {
+//================================================================
+ 
+  int      i1, tra_ind = 0;
+  ObjGX    ox1;
+
+
+  if(DB_QueryDef(typ, dbi) < 0) goto L_exit;
+
+  // printf("DXFW_dbo__ %d %ld\n",typ,dbi);
+
+
+  // skip obj if hidden
+  i1 = GA_find_disp (typ, dbi);  // 0=visible; 1=hidden
+  if(i1) goto L_exit;
+
+  ox1 = DB_GetObjGX (typ, dbi);
+  if(ox1.typ == Typ_Error) goto L_exit;
+
+  DXFW_ox (&ox1, tra_ind, typ, dbi);
+  ++dxfw_objNr;
+ 
+
+  L_exit:
+    return 0;
+
+}
+
+
 //=============================================================================
   int DXFW_Mdl_gcad (int modNr) {
 //=============================================================================
 // AP_ExportIges_Model
 
-  long     gr_ind;
-  long     l1, apt_ind;
-  int      i1, irc, tra_act, apt_typ,  anz_obj=0, tra_ind = 0,
-           anz_pt=0, anz_ln=0, anz_ac=0, anz_cv=0;
-  Point    pt1;
-  Line     ln1;
-  Circ     ci1;
-  ObjG     o1;
-  ObjGX    ox1, *op1;
-  Plane    pl1;
-  Mat_4x3  m1;
-  DL_Att   dla;
+  int    typ;
+  long   dbi;
+
+
+  // printf("DXFW_Mdl_gcad %d\n",modNr);
+  // printf("- NR PT=%ld LN=%ld CI=%ld\n",APT_PT_IND,APT_LN_IND,APT_CI_IND);
 
 
 
-  printf("DXFW_Mdl_gcad %d\n",modNr);
+  typ = Typ_PT;
+  for(dbi=1; dbi<=APT_PT_IND; ++dbi) DXFW_dbo__ (typ, dbi);
 
 
-  //----------------------------------------------------------------
-  apt_typ = Typ_PT;
-
-  for(apt_ind=1; apt_ind<APT_PT_SIZ; ++apt_ind) {
-    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
-    ox1 = DB_GetObjGX (apt_typ, apt_ind);
-    if(ox1.typ == Typ_Error) continue;
-
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
-    ++anz_obj;
-  }
+  typ = Typ_LN;
+  for(dbi=1; dbi<=APT_LN_IND; ++dbi) DXFW_dbo__ (typ, dbi);
 
 
-  //-----------------------------------
-  apt_typ = Typ_LN;
-
-  for(apt_ind=1; apt_ind<APT_LN_SIZ; ++apt_ind) {
-    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
-    ox1 = DB_GetObjGX (apt_typ, apt_ind);
-    if(ox1.typ == Typ_Error) continue;
-
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
-    ++anz_obj;
-  }
+  typ = Typ_CI;
+  for(dbi=1; dbi<=APT_CI_IND; ++dbi) DXFW_dbo__ (typ, dbi);
 
 
-  //-----------------------------------
-  apt_typ = Typ_CI;
-
-  for(apt_ind=1; apt_ind<APT_CI_SIZ; ++apt_ind) {
-    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
-    ox1 = DB_GetObjGX (apt_typ, apt_ind);
-    if(ox1.typ == Typ_Error) continue;
-
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
-    ++anz_obj;
-  }
+  typ = Typ_CV;
+  for(dbi=0; dbi<=APT_CV_IND; ++dbi) DXFW_dbo__ (typ, dbi);
 
 
-  //-----------------------------------
-  apt_typ = Typ_CV;
-
-  for(apt_ind=0; apt_ind<APT_CV_SIZ; ++apt_ind) {
-    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
-    ox1 = DB_GetObjGX (apt_typ, apt_ind);
-    if(ox1.typ == Typ_Error) continue;
-
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
-    ++anz_obj;
-  }
+  typ = Typ_GTXT;
+  for(dbi=0; dbi<=APT_TX_IND; ++dbi) DXFW_dbo__ (typ, dbi);
 
 
-  //-----------------------------------
-  apt_typ = Typ_GTXT;
-
-  for(apt_ind=0; apt_ind<APT_TX_SIZ; ++apt_ind) {
-    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
-    ox1 = DB_GetObjGX (apt_typ, apt_ind);
-    if(ox1.typ == Typ_Error) continue;
-
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
-    ++anz_obj;
-  }
+  typ = Typ_SUR;
+  for(dbi=0; dbi<=APT_SU_IND; ++dbi) DXFW_dbo__ (typ, dbi);
 
 
-  //-----------------------------------
-  apt_typ = Typ_SUR;
-
-  for(apt_ind=0; apt_ind<APT_SU_SIZ; ++apt_ind) {
-    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
-    ox1 = DB_GetObjGX (apt_typ, apt_ind);
-    if(ox1.typ == Typ_Error) continue;
-
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
-    ++anz_obj;
-  }
-
-
-  //-----------------------------------
   // SubfigInst; 
-  apt_typ = Typ_Model;
-
-  for(apt_ind=0; apt_ind<APT_MR_SIZ; ++apt_ind) {
-    if(DB_QueryDef(apt_typ, apt_ind) < 0) continue;
-    ox1 = DB_GetObjGX (apt_typ, apt_ind);
-    if(ox1.typ == Typ_Error) continue;
-
-    DXFW_ox (&ox1, tra_ind, apt_typ, apt_ind);
-    ++anz_obj;
-  }
+  typ = Typ_Model;
+  for(dbi=0; dbi<=APT_MR_IND; ++dbi) DXFW_dbo__ (typ, dbi);
 
 
-
-
-  //-----------------------------------
-  return anz_obj;
+  return 0;
 
 }
 

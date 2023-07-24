@@ -147,7 +147,7 @@ static int     lngNr;
 
 
   int     i1, i2, irc;
-  char    txbuf1[800], txbuf2[512], *p1;
+  char    txbuf1[1024], txbuf2[512], *p1;
   double  d1;
   MemObj  win0;
   stru_FN ofn;
@@ -170,9 +170,15 @@ static int     lngNr;
     // hide the command-window
     OS_hide_win ();
 #else
-    // display Linux-Version, libc-Version, gtk-Version
-    OS_config ();
+    // display Linux-Version, libc-Version
+    irc = OS_config (txbuf1);
+    if(irc) {GUI_MsgBox (txbuf1); return -1;}
 #endif
+
+
+  // check GUI-(Gtk)-version
+  irc = GUI_config (txbuf1);
+  if(irc) {GUI_MsgBox (txbuf1); return -1;}
 
 
   // init variables of ../xa/xa.h
@@ -214,18 +220,19 @@ static int     lngNr;
   AP_get_dir__ ();
 
 
-  // get dialog-software (check if GUI (file GUI_dlg1..) exists
-  // OS_get_dialog ();
-  // p1 = OS_get_zenity ();
-  // if(!p1) {
-  irc = OS_get_GUI ();
-  if(irc) {
-    // abort; GUI_dlg1 - exe not found / installed !
-    sprintf(txbuf2, "******* ERROR: GUI_dlg1 not installed *****");
-    fprintf(stdout, "%s\n",txbuf2);
-    fprintf(stderr, "%s\n",txbuf2);
-    exit(2);
-  }
+// now GUI_config
+//   // get dialog-software (check if GUI (file GUI_dlg1..) exists
+//   // OS_get_dialog ();
+//   // p1 = OS_get_zenity ();
+//   // if(!p1) {
+//   irc = OS_get_GUI ();
+//   if(irc) {
+//     // abort; GUI_dlg1 - exe not found / installed !
+//     sprintf(txbuf2, "******* ERROR: GUI_dlg1 not installed *****");
+//     fprintf(stdout, "%s\n",txbuf2);
+//     fprintf(stderr, "%s\n",txbuf2);
+//     exit(2);
+//   }
 
 
 

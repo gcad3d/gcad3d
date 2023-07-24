@@ -190,6 +190,7 @@ enum {
 
   char* APP_MSG_get_0 (char *key);
   char* APP_MSG_get_1 (char *key, char *fmt, ...);
+
   char* MSG_get_0 (char *key);
   char* MSG_const__ (int iMsg);
   char* MSG_read (char *sbuf, int bufSiz, char *key);
@@ -197,6 +198,11 @@ enum {
   char* MSG_get_str (char *keyStr);
   int   MSG_get__ (char *msg, int msgSiz, char *key, FILE *fpIn,
                    char *fmt, va_list *va);
+
+  int MSG_get_1 (char *msg, int msgSiz, char *key, char *fmt, ...);
+  int MSG_err_1 (char *key, char *fmt, ...);
+  int MSG_pri_1 (char *key, char *fmt, ...);
+  int MSG_simple (int mode, char *key, char *fmt, va_list *va);
 
 
 /*

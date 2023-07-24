@@ -452,7 +452,7 @@ static FILE      *EDMPT_fp_dep = NULL;
     // get mat1 = 2D->3D-matrix from plane
     UT3D_m3_loadpl (EDMDAT.mat1, &ors);
     // get mat2 = 3D->2D-matrix
-    UT3D_m3_invm3 (EDMDAT.mat2, EDMDAT.mat1);
+    UT3D_m3_inv_ma (EDMDAT.mat2, EDMDAT.mat1);
   }
 
 

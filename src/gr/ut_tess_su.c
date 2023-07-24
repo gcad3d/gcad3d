@@ -539,7 +539,7 @@ extern Point     *GLT_pta;
   // get matrix for basic-plane
   UT3D_m3_loadpl (m0, &pl0);
   // get inverse-matrix for basic-plane
-  UT3D_m3_invm3  (im0, m0);
+  UT3D_m3_inv_ma  (im0, m0);
 
 
   //----------------------------------------------------------------

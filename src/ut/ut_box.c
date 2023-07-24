@@ -620,7 +620,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 
 
   va_start(va,txt);
-  vsprintf(cbuf,txt,va);
+  vsnprintf(cbuf,sizeof(cbuf),txt,va);
   va_end(va);
 
   printf("UT3D_box_dump %s\n",cbuf);
@@ -643,7 +643,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
 
 
   va_start(va,txt);
-  vsprintf(cbuf,txt,va);
+  vsnprintf(cbuf,sizeof(cbuf),txt,va);
   va_end(va);
 
   printf("UT2D_box_dump %s\n",cbuf);
@@ -2240,13 +2240,12 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
   int UT3D_box_obja (Point *pb1, Point *pb2,
                      int form, int oNr, void *obj) {
 //================================================================
-/// \code
-/// UT3D_box_obja       get box for structs
-/// Input:
-///   form   type of struct of obj
-///   oNr    nr of structs in obj
-///   retCod 0=ok, 1=skipped obj
-/// \endcode
+// UT3D_box_obja       get box for structs
+// Input:
+//   form   type of struct of obj
+//   oNr    nr of structs in obj
+//   retCod 0=ok, 1=skipped obj
+//
 // TODO: Prism Dzt in als (form=204 oNr=1)  MIST ! See myReadme.solids
 
 
@@ -2260,17 +2259,16 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
   ModelBas    *mb;
 
 
-  // printf("UT3D_box_obja form=%d oNr=%d\n",form, oNr);
-
+  // printf("\nUT3D_box_obja form=%d oNr=%d\n",form, oNr);
 
     // TESTBLOCK
     // if(form == Typ_ObjGX) {
+       // DEB_dump_obj__ (form, obj, "_box_obja-obj");
        // oxa = obj;
        // for(i1=0; i1<oNr; ++i1) {
          // DEB_dump_ox_0 (&oxa[i1], "_box_obja");
        // }
     // } else DEB_dump_obj__ (form, obj, "_box_obja");
-    // if(typ0 == 80) AP_debug__ ("UT3D_box_obja");
     // END TESTBLOCK
 
 
@@ -2397,7 +2395,16 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
   //----------------------------------------------------------------
   } else if(form == Typ_ObjGX) {
     typ0 = ((ObjGX*)obj)->typ;
-       // printf(" _obja-ObjGX typ=%d form=%d\n",typ0,((ObjGX*)obj)->form);
+    form = ((ObjGX*)obj)->form;
+       // printf(" _obja-ObjGX typ=%d form=%d\n",typ0,form);
+
+    if(form == Typ_Index) {
+      if((typ0 == Typ_SURPTAB)||(typ0 == Typ_SURPMSH)) { // mesh/group-of-points
+        // obj is a link to the A-index of the PTAB, not into DB !
+        return UT3D_box_surPMsh (pb1, pb2, (ObjGX*)obj);
+      }
+      goto L_ogx_direct;
+    }
 
     switch (typ0) {
 
@@ -2425,11 +2432,6 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
       case Typ_SURSTRIP:
         return UT3D_box_surStripe (pb1, pb2, (ObjGX*)obj);
 
-      case Typ_SURPTAB:        // group-of-points
-      case Typ_SURPMSH:        // Mesh from PTAB
-        // obj is a link to the A-index of the PTAB
-        return UT3D_box_surPMsh (pb1, pb2, (ObjGX*)obj);
-
       default:
         // TX_Print("***** UT3D_box_obja TODO ObjGX typ %d",typ0);
         printf("***** UT3D_box_obja TODO ObjGX typ %d\n",typ0);
@@ -2437,8 +2439,11 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
     }
 
 
-    // resolve direct: Typ_SURCIR (points)
+    //----------------------------------------------------------------
+    // resolve ObjGX LN-PLN;
+    L_ogx_direct:
     oxa = obj;
+    oNr = ((ObjGX*)obj)->siz;
 
     for(i1=0; i1<oNr; ++i1) {
       ox1 = &oxa[i1];
@@ -2448,6 +2453,7 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
       if(ox1->form == Typ_Index) {
         typ1 = ox1->typ;
         frm1 = UTO__dbo (&o1, &sNr, typ1, LONG__PTR(ox1->data));
+          // printf(" _obja-ObjGX-indxd-typ1=%d frm1=%d\n",typ1,frm1);
         UT3D_box_obja (pb1, pb2, frm1, sNr, o1);
         continue;
  

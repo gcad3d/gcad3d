@@ -459,7 +459,7 @@ extern APP_OBJ_NAM *UI_User_appNamTab;
 
 
   // open temp. html-File
-  sprintf(cbuf1, "%stmp.htm",AP_get_tmp_dir());
+  sprintf(cbuf1, "%stmp.htm",AP_get_tmp_dir()); // TODO: use OS_get_tmp_dir
   printf("APP_htm_fop |%s|\n",cbuf1);
 
 

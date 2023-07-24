@@ -117,7 +117,7 @@ touch ../ut/ut_geo2d.c && ./do c
 
 
 //================================================================
-// constant geometric objects:
+// constant geometric objects:  defined in ../ut/ut_geo2d.c 
 #ifndef INCLUDE_FULL
 extern const Point2  UT2D_PT_NUL;
 extern const Point   UT3D_PT_NUL;

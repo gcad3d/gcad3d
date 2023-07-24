@@ -40,10 +40,12 @@ Modifications:
 List_functions_start:
 
 GR_sSym_srus         RuledSurfaces / supported (nicht getrimmt)
-GR_sSym_spl          trimmed/punched surfs
+GR_sSym_spl          planar surfs
+GR_sSym_stp          trimmed/punched surfs
 GR_sSym_srv          RevolvedSurface
 GR_sSym_sbsp
 GR_sSym_srbsp
+GR_sSym_plg          get auxiliary line(s) to display symbolic surface   
 
 List_functions_end:
 =====================================================
@@ -72,6 +74,7 @@ List_functions_end:
 #include "../ut/ut_obj.h"                 // UTO_obj_load
 #include "../ut/func_types.h"                  // UI_Func... SYM_..
 #include "../ut/ut_memTab.h"           // MemTab
+// #include "../ut/ut_face.h"                // UFA_esn_nxt
 
 #include "../db/ut_DB.h"                  // DB_GetObjGX
 #include "../gr/ut_GL.h"                  //
@@ -92,6 +95,16 @@ extern long      GLT_pta_SIZ;
 
 // aus ../gr/tess_su.c:
 extern int TSU_mode;   // 0=normal darstellen; 1=speichern
+
+
+
+//----------------------------------------------------------------
+// ../ut/ut_face.h
+// get next esn; 1 -> 2; 2 -> 3; 3 -> 1.
+int UFA_esn_nxt (int);
+#define UFA_esn_nxt(esn) ((esn) > 2 ? 1 : esn + 1)
+
+
 
 
 
@@ -223,12 +236,136 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
 
 //================================================================
-  int GR_sSym_spl (ContTab *cTab, int cNr, ObjGX *ox1, int att, long ind) {
+  int GR_sSym_plg (Point *pa1, Point *pTab, int ptNr) {
 //================================================================
-// for trimmed/punched surfs.
+// GR_sSym_plg        get auxiliary line(s) to display symbolic surface   
+// Input:
+//   pTab    closed polygon
+//   ptNr    nr of points in pTab
+// Output:
+//   pa1     two points max; line inside closed polygon pTab[ptNr]
+
+  int     ip1, ip2, ip3;
+  Point   pt1;
+
+
+  // printf("GR_sSym_plg %d\n",ptNr);
+
+  if(ptNr == 4) {  // last pt == first point
+    // from midpoint of longest side to opposite cornetr
+    // find midpoint of longest side
+    UT3D_ipt2_npt (&ip1, &ip2, pTab, ptNr);
+      // printf(" sSym_plg-1 %d %d\n",ip1,ip2);
+    UT3D_pt_mid2pt (&pa1[0], &pTab[ip1], &pTab[ip2]);
+    if(ip2 < ip1) ip2 = ip1;
+    if(ip2 > 2) ip2 = 0;
+    ip1 = UFA_esn_nxt (ip2);
+      // printf(" sSym_plg-2 %d %d\n",ip1,ip2);
+    pa1[1] = pTab[ip1];
+
+
+  } else {
+    // find m
+// TODO: find nearest points or use tesselator ?
+    pa1[0] = pTab[0];
+    pa1[1] = pTab[ptNr / 2];
+  }
+
+  return 0;
+
+}
+
+
+//=========================================================================
+  int GR_sSym_spl (ContTab *cTab, int cNr, ObjGX *ox1, int att, long ind) {
+//=========================================================================
+// GR_sSym_spl                create symbolic-display of trimmed,perforated-surfs
+// Input:
+//   ox1       obj outer-boundary - Plane
+//   in diesem Fall ist (cTab[0].pa == NULL) !!
+
+
+  int    irc, i1, ii, cvMax, sTyp, pNr, pMax, rNr;
+  long   dli;
+  void   *sur;
+  Point  *pTab, pa1[2];
+  ObjGX  oo, *cvTab;
+  Memspc wrkSeg;
+
+
+  // printf("ssssssssssssssssssssssssssssssssssssssssssssssssssss \n");
+  // printf("GR_sSym_spl %d %ld %d %d\n",cNr,ind,ox1->typ,ox1->form);
+
+  if(cTab[0].pa == NULL) {printf("skip DUMMY!!\n");return 0;}
+
+  pTab = cTab[0].pa;
+  pNr  = cTab[0].iNr;
+
+
+    // TESTBLOCK
+    // printf("sSym_spl-iNr=%d\n",pNr);
+    // for(i1=0;i1<pNr;++i1) DEB_dump_obj__(Typ_PT,&pTab[i1],"sSym_spl-%d",i1);
+    // GR_tDyn_npt__ (pNr, pTab, SYM_STAR_S, 2);   //SYM_TRI_S, 4);
+    // return 0;
+    // END TESTBLOCK
+
+
+  if(TSU_mode != 0) return 0;  // tessel -> mem: nothing to do.
+
+
+  // ACHTUNG: TSU_DrawSurTC:memspc55,memspc501,memspc101 used.
+  //          TSU_DrawSurTP1:memspc501,memspc201 used.
+  cvTab = (ObjGX*)memspc54;
+  cvMax = sizeof(memspc54) / sizeof(ObjGX);
+
+
+  // get auxiliary line to display symbolic surface
+  GR_sSym_plg (pa1, pTab, pNr);
+
+
+  // add outer-boundary
+  cvTab[0].typ  = Typ_PT;
+  cvTab[0].form = Typ_PT;
+  cvTab[0].siz  = cTab[0].iNr;
+  cvTab[0].data = cTab[0].pa;
+
+  oo.typ  = Typ_GL_CV;
+  oo.form = Typ_ObjGX;
+  oo.siz  = 1;
+  oo.data = cvTab;
+
+
+  // add a line tru surface
+  cvTab[1].typ  = Typ_PT;
+  cvTab[1].form = Typ_PT;
+  cvTab[1].siz  = 2;
+  cvTab[1].data = pa1;
+
+  oo.siz += 1;
+  
+
+
+  // disp polygons of boundaries ...
+  GL_set_ox_cv (&oo);
+
+
+  return 0;
+
+  L_eom:
+    TX_Error("GR_sSym_spl EOM");
+    return -1;
+
+}
+
+
+//=========================================================================
+  int GR_sSym_stp (ContTab *cTab, int cNr, ObjGX *ox1, int att, long ind) {
+//=========================================================================
+// GR_sSym_stp                create symbolic-display of trimmed,perforated-surfs
+// Input:
+//   ox1       obj outer-boundary (planar: Plane)
 // ACHTUNG: bei BSP-surfs (und RBP-surs ?) kommen keine Aussenkonturen;
 //   in diesem Fall ist (cTab[0].pa == NULL) !!
-// TODO: make line trough contour, but do do not cross boundaries/holes.
 
 
   int    irc, i1, ii, cvMax, sTyp, pNr, pMax, rNr;
@@ -240,7 +377,7 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
 
   // printf("ssssssssssssssssssssssssssssssssssssssssssssssssssss \n");
-  // printf("GR_sSym_spl %d %ld %d %d\n",cNr,ind,ox1->typ,ox1->form);
+  printf("GR_sSym_stp %d %ld %d %d\n",cNr,ind,ox1->typ,ox1->form);
   // for(i1=0; i1<cNr; ++i1) {
     // if(cTab[i1].pa == NULL) {printf("skip DUMMY!!\n");continue;}
     // printf("  [%d] iNr=%d\n",i1,cTab[i1].iNr);
@@ -251,7 +388,6 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
 
 
   if(TSU_mode != 0) return 0;  // tessel -> mem: nothing to do.
-
 
 
   //----------------------------------------------------------------
@@ -268,26 +404,35 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
   L_out:
   ii = 0;
   for(i1=0; i1<cNr; ++i1) {
+
     if(cTab[i1].pa == NULL) {
       // printf("skip DUMMY!!\n");
       UME_init (&wrkSeg, memspc102, sizeof(memspc102));
       pTab = (Point*)memspc53;
       pMax = sizeof(memspc53) / sizeof(Point);
       pNr = pMax;
+
       // get sur-record
       sTyp = UTO_objDat_ox (&sur, &rNr, ox1);
       if(sTyp != Typ_ObjGX) {TX_Error("GR_sSym_spl E001"); return -1;}
+
       // create polygon <= outLine of suppSur
       if(((ObjGX*)sur)->form == Typ_SURBSP) {
         irc = UT3D_cv_sbspout (&pNr, pTab, ((ObjGX*)sur)->data, &wrkSeg);
         if(irc < 0) return -1;
+
       } else if(((ObjGX*)sur)->form == Typ_SURRBSP) {
         irc = UT3D_cv_srbspout (&pNr, pTab, ((ObjGX*)sur)->data, &wrkSeg);
         if(irc < 0) return -1;
+
       } else {TX_Error("GR_sSym_spl E002"); return -1;}
+
       cTab[i1].iNr = pNr;
       cTab[i1].pa = pTab;
+
     }
+
+
     // printf(" %d add %d\n",i1,cTab[i1].iNr);
     cvTab[ii].typ  = Typ_PT;
     cvTab[ii].form = Typ_PT;
@@ -295,6 +440,10 @@ extern int TSU_mode;   // 0=normal darstellen; 1=speichern
     cvTab[ii].data = cTab[i1].pa;
     ++ii;
   }
+
+    // TESTBLOCK
+    // END TESTBLOCK
+
 
   oo.typ  = Typ_GL_CV;
   oo.form = Typ_ObjGX;

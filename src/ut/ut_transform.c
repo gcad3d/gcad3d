@@ -147,7 +147,7 @@ Mat_4x3:
   // TRANSFORMATION:  (obj von einer Plane in Nullage transportieren   oder
   //                  aus dem HauptRefSys in ein Refsys PlaneX transportieren)
   UT3D_m3_loadpl (m1, pl1);      // trMat m1 zu Plane pl1 generieren
-  UT3D_m3_invm3 (mi1, m1);       // inv. trMat zu m1 generieren
+  UT3D_m3_inv_ma (mi1, m1);       // inv. trMat zu m1 generieren
   // mi1: obj von einer Plane in Nullage transformieren
   // m1: obj aus Nullage in Refsys m1 (pl1) transportieren
   UTRA_def__ (1, Typ_M4x3, mi1);
@@ -2400,7 +2400,7 @@ exit(0);
     // get trMat from given plane
     UT3D_m3_loadpl (ma, pl1);
     if(mode == 1) {
-      UT3D_m3_invm3 (ima, ma);           // invert trMat
+      UT3D_m3_inv_ma (ima, ma);           // invert trMat
       UTRA_def__ (1, Typ_M4x3, ima);
     } else {
       UTRA_def__ (1, Typ_M4x3, ma);
@@ -2552,7 +2552,7 @@ exit(0);
 // see UT3D_rsys_pl UT2D_pt_tra_pt3_rsys UT3D_pt_tra_pt2_rsys (with backplane)
 
   UT3D_m3_loadpl (TRA_mat_3D_2D, pln);
-  UT3D_m3_invm3 (TRA_mat_2D_3D, TRA_mat_3D_2D);
+  UT3D_m3_inv_ma (TRA_mat_2D_3D, TRA_mat_3D_2D);
 
   return 0;
 

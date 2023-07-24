@@ -247,7 +247,7 @@ static int exp_objNr = 0;
   LOG_A__ (ERR_INF, "nr of errors = %d", exp_errNr);
   LOG_A__ (ERR_INF, "nr of objs exported = %d", exp_objNr);
 
-  LOG_A_exit (exp_errNr);
+  LOG_A_exit (&exp_errNr);
 
   MemTab_free (&smTab);
   MemTab_free (&dlGrp);

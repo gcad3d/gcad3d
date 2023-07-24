@@ -16,6 +16,7 @@ MMsmcp=Mainmodel mover en submodelo
 MMsmcr=submodelo crear nuevos
 MMsmsf=guardar el submodelo activa en el archivo
 MMsmlf=Modelfile carga como submodelo
+MMsmrm=remove all unused Submodels
 MMsmre=cambiar el nombre del submodelo de activos
 MMsmde=eliminar el submodelo activos
 MMsmmp=modificar la posición de un submodelo de

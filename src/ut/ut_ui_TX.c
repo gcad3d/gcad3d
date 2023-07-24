@@ -149,7 +149,7 @@ static char   TX_buf1[1024];
 
 
   va_start (va, txt);
-  vsprintf(TX_buf1, txt, va);
+  vsnprintf(TX_buf1, sizeof(TX_buf1), txt, va);
   va_end(va);
 
   // sprintf(TX_buf1,txt,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11);
@@ -181,7 +181,7 @@ static char   TX_buf1[1024];
 /// \endcode
 
 
-
+  int     i1;
   char    *p1;
   va_list va;
 
@@ -200,8 +200,10 @@ static char   TX_buf1[1024];
   // vsprintf(&TX_buf1[12],txt,va);
 
   sprintf(TX_buf1, "*** %s: ", MSG_const__(MSG_Error));
-  p1 = strchr(TX_buf1, '\0');
-  vsprintf(p1, txt, va);
+  // p1 = strchr(TX_buf1, '\0');
+  // vsprintf(p1, txt, va);
+  i1 = strlen(TX_buf1);
+  vsnprintf(&TX_buf1[i1], sizeof(TX_buf1)-i1, txt, va);
 
   va_end(va);
 

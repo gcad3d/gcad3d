@@ -103,7 +103,7 @@ int   TX_mode = ON;
 
   va_start(va,txt);
 
-  vsprintf(TX_buf1,txt,va);
+  vsnprintf(TX_buf1,sizeof(TX_buf1),txt,va);
 
   va_end(va);
 
@@ -153,7 +153,7 @@ int   TX_mode = ON;
   // sprintf(TX_buf1,txt,p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11);
   strcpy(TX_buf1, "*** Fehler: ");
                 // o123456789012
-  vsprintf(&TX_buf1[12],txt,va);
+  vsnprintf(&TX_buf1[12],sizeof(TX_buf1)-12,txt,va);
   // UTX_CleanCR (TX_buf1);
   va_end(va);
 

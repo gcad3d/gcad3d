@@ -268,7 +268,7 @@ export int gCad_fini ();
 
   // resolv all defined surfaces
   // Typ Typ_SUR        DB_GetSur
-  iMax = DB_dbo_get_free (Typ_SUR);
+  iMax = DB_dbo_get_last (Typ_SUR);
   printf(" iMax=%ld\n",iMax);
 
   for(dbInd = 1; dbInd<iMax; ++dbInd) {

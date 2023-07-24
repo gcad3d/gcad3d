@@ -116,6 +116,7 @@ AP_Get_ConstPl_Z    returns ConstrPln or its Z-vec
 AP_Get_ConstPl_vz   returns WC_sur_act.vz
 AP_Get_scale        AP_scale
 AP_Set_scale        AP_scale
+AP_impTyp_get       get impTyp UID_ckb_impTyp (CAD-Model or mockup)
 
 AP_PT2EyeBp
 AP_PT2EyePln
@@ -285,6 +286,7 @@ DL_GetTrInd
 #include "../ut/os_dll.h"      // DLL_LOAD_only DLL_CONNECT DLL_EXEC ..
 
 #include "../gui/gui__.h"              // GUI_SETDAT_EI ..
+#include "../gui/gui_types.h"          // UI_Func..
 #include "../gr/ut_gr.h"               // GR_TMP_I0
 #include "../db/ut_DB.h"               // DB_PLX_IND
 
@@ -450,7 +452,7 @@ void *kex_dll = NULL;
 //================================================================
 // AP_init_xa_h          init global variables of ../xa/xa.c
 
-  AP_fVwr = NULL;
+  // AP_fVwr = NULL;
 
   return 0;
 
@@ -1649,7 +1651,8 @@ static stru_FN  fnLast;
 
     // no - new sm; ask user for modelname
     // get ofm = extern filename for primary-model
-    MDLFN_ofn_set (&ofm, AP_mod_sym, pmNam, "gcad");
+    MDLFN_ofn_set (&ofm, AP_mod_sym, pmNam, fTyp);
+    // MDLFN_ofn_set (&ofm, AP_mod_sym, pmNam, "gcad");
 
     // get full filename primary model from ofm
     MDLFN_ffNam_oFn (fno, &ofm);
@@ -1698,7 +1701,7 @@ static stru_FN  fnLast;
 
 
   //================================================================
-  L_sav_main:
+  L_sav_main:  // save main and ist subModels
     // printf(" L_sav_main: iOver=%d\n",iOver);
 
   if(iOver == 2) {
@@ -1781,7 +1784,7 @@ static stru_FN  fnLast;
   //================================================================
   // ask for save unused subModels;
   L_sav_3:
-    // printf(" L_sav_3: uuSav=%d\n",uuSav);
+    printf(" L_sav_3: uuSav=%d\n",uuSav);
 
 
   if(uuSav == 2) {
@@ -1800,7 +1803,7 @@ static stru_FN  fnLast;
 
   //================================================================
   // save|export
-    // printf(" L_sav_sav: mode=%d\n",mode);
+    printf(" L_sav_sav: mode=%d\n",mode);
 
   if(mode == 0) {
 
@@ -3260,6 +3263,8 @@ remote control nur in VWR, nicht MAN, CAD;
   // delete DL-temp and AP_mdlbox_invalid_set
   GR_Init1 (dbMode);
 
+  DB_clear__ ();  // clear DB-objs and DYN-objs
+
   // jetzt die DefaultColor nochmal setzen ! (macht eine DL-Eintrag !)
   // DEFCOL-Abarbeitung wurde mit GR_Init1 geloescht !
   // if(AP_indCol != 5)
@@ -4386,7 +4391,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
     } else if((!strcmp(s1, "IGS"))||
               (!strcmp(s1, "IGE"))||
-              (!strcmp(s1, "IG2"))) {
+              (!strcmp(s1, "IGES"))) {           // "IG2" ???
       ift = Mtyp_Iges;
 
     } else if((!strcmp(s1, "STEP"))||
@@ -4531,7 +4536,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   // printf("\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA \n");
-  printf("AP_Mod_load_fn |%s| %d\n",fn,mode);
+  // printf("AP_Mod_load_fn |%s| %d\n",fn,mode);
 
   UI_block__ (1, 1, 1);  // block all
 
@@ -5389,7 +5394,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
 
   } else {                                    // get next
-    i1 = DB_dbo_get_free (Typ_VAR, ii - 1);
+    i1 = DB_dbo_get_last (Typ_VAR, ii - 1);
        printf(" Last: i1=%d ii=%d\n",i1,ii);
     // if(ii < 1)  ii = DB_QueryNxtUsed (Typ_VC, 0);
     if(i1 > 0)  ii = i1;
@@ -5427,7 +5432,7 @@ remote control nur in VWR, nicht MAN, CAD;
 
   // printf("AP_get_nxtVec ii=%d mode=%d\n",ii,mode);
 
-  if(ii < 0) ii = DB_dbo_get_free (Typ_VC);
+  if(ii < 0) ii = DB_dbo_get_last (Typ_VC);
 
 
   if(mode > 0) {                       // get next
@@ -5834,6 +5839,24 @@ return -1;
   AP_scale = scl;
 
   return 0;
+}
+
+
+//================================================================
+  int AP_impTyp_get () {
+//================================================================
+// AP_impTyp_get       get impTyp UID_ckb_impTyp (CAD-Model or mockup)
+// returns   1=Mockup, 0=native
+ 
+  int     impTyp;
+
+  UI_AP (UI_FuncGet, UID_ckb_impTyp, (void*)&impTyp); // 1=Mockup, 0=native
+
+    printf(" ex-AP_impTyp_get %d\n",impTyp);
+
+
+  return impTyp;
+
 }
 
 

@@ -680,7 +680,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
 
 
   // get net free modelIndex of AP_stru_2_txt
-  mr_ind = DB_dbo_get_free (Typ_Model);
+  mr_ind = DB_dbo_get_last (Typ_Model);
   if(mr_ind < 20) mr_ind = 20;
 
   // // TEST-DEBUG-ON

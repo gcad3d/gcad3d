@@ -334,7 +334,10 @@ UT2D_ci_2vc2ptrd          2D-Circ; verrundet 2 Lines; 4 Lösungen
 UT2D_ci_ciptvcrd          2D-Circ; verrundet Circ/Line; 4 Lösungen
 UT2D_ci_cip1              change startpoint of circ
 UT2D_ci_cip2              change endpoint of circ
+UT2D_ciTra_ci3            get 2D-circ + transformation from 3D-circ
 UT2D_ci_obj2              2D-Circ = 2D-ObjG                         DO NOT USE
+
+-------------- CurvEll2 CurvEll2c see ../ut/ut_elli.c -
 
 -------------- CurvPol2 Typ_CVPOL2 see UPLG -----------
 
@@ -6683,6 +6686,46 @@ void UT2D_vc_setLength (Vector2 *vco, Vector2 *vci, double new_len) {
 
 }
 
+
+//===================================================================
+  int UT2D_ciTra_ci3 (Mat_4x4 mtra, Circ2 *ci2, Circ *ci3) {
+//===================================================================
+// UT2D_ciTra_ci3    get 2D-circ + transformation from 3D-circ
+//  trMat:  origin=centerPt; z-axis=circ-axis; x-axis=centerPt->startPt;
+//  circle: center=0,0; startPt=rad,0; endPt=startPt rotated;
+// Output:
+//   mtra      transformation
+//   ci2       2D-circ
+
+  double      rda;
+  Plane       pl1;
+  Point       pt3;
+
+
+  // get Plane from ci3-center, ci3-axis, startpoint of circ = x-axis
+  UT3D_pl_pto_vcz_ptx (&pl1, &ci3->pc, &ci3->vz, &ci3->p1);
+
+  // get Matrix from Plane erstellen
+  UT3D_m3_loadpl (mtra, &pl1);
+
+  ci2->pc = UT2D_PT_NUL;
+
+  ci2->rad  = ci3->rad;
+  ci2->ango = ci3->ango;
+
+  rda = fabs(ci3->rad);
+  ci2->p1.x = rda;
+  ci2->p1.y = 0.;
+
+  ci2->p2.x = cos(ci3->ango) * rda;
+  ci2->p2.y = sin(ci3->ango) * rda;
+
+    // DEB_dump_obj__ (Typ_CI2, ci2, "ex-UT2D_ciTra ci3");
+    // DEB_dump_obj__ (Typ_M4x4, mtra, "ex-UT2D_ciTra mtra");
+
+  return 0;
+
+}
 
 
 /*=====================================================================*/

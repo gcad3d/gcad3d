@@ -136,7 +136,7 @@ DO NOT USE - does not work with OS_sys1
 
 
   if(DEB_prt_stat) {
-    vsprintf(s1,format,va);
+    vsnprintf(s1,sizeof(s1),format,va);
     UTX_CleanCR (s1);
 
 #if defined _MSC_VER || __MINGW64__

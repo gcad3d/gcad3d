@@ -237,7 +237,7 @@ L_InErr:
 
 
   // translate point
-  UT3D_m3_invm3 (imc, mc);             // get inv. mat
+  UT3D_m3_inv_ma (imc, mc);             // get inv. mat
   UT3D_pt_tra_pt_m3 (&xp1, imc, lpt);    // translate point to search
   UT3D_vc_tra_vc_m3 (&xvc, imc, lvc);    // translate vector
 
@@ -386,7 +386,7 @@ L_InErr:
 
 
   // translate point
-  UT3D_m3_invm3 (imc, mc);             // get inv. mat
+  UT3D_m3_inv_ma (imc, mc);             // get inv. mat
   UT3D_pt_tra_pt_m3 (&xp1, imc, lpt);    // translate point to search
 
 
@@ -865,7 +865,7 @@ Returncode:
   vz = UT3D_VECTOR_Z;
   UT3D_m3_load_povxvz (ma, &qts, &ths, &vz);
     // DEB_dump_obj__ (Typ_M4x3, ma, "ma:");
-  UT3D_m3_invm3 (ima, ma);
+  UT3D_m3_inv_ma (ima, ma);
     // DEB_dump_obj__ (Typ_M4x3, ima, "ima:");
   UT3D_m3_load_povxvz (mb, &(cl->stp), &(cl->stv), &(cl->plv));
     // DEB_dump_obj__ (Typ_M4x3, mb, "mb:");

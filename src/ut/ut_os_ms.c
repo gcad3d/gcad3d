@@ -726,6 +726,48 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 
 
 //================================================================
+  char* OS_fVwr__ (char *sVwr) {
+//================================================================
+// OS_fVwr__                set/get pdf/ps-fileViewer
+// Input:
+//   sVwr     filename of fileViewer to be stored; else empty;
+// Output:
+//   retCode  filename of pdf/ps-fileViewer
+
+
+  static char  actVwr[128] = "";
+  int  i1;
+  char s1[256];
+
+
+  // printf("OS_fVwr__\n");
+
+  //----------------------------------------------------------------
+  i1 = strlen(sVwr);
+  if(i1 > 2) {
+    // store new filename
+    if(i1 > 127) {TX_Error("OS_fVwr__ string too long"); return NULL;}
+    strcpy(actVwr, sVwr);
+    return actVwr;
+  }
+
+
+  //----------------------------------------------------------------
+  i1 = strlen(actVwr);
+  if(i1 < 2) {
+    // empty; get defViewer
+    strcpy(actVwr, "explorer");
+      printf("OS_fVwr__ set |%s|\n",actVwr);
+  }
+
+
+  return actVwr;
+
+}
+
+
+/*
+//================================================================
   char* OS_fVwr_get (char *pVwr) {
 //================================================================
 // OS_fVwr_get              get fileViewer
@@ -775,7 +817,6 @@ BOOL CALLBACK OS_hide_winCB (HWND hw1, LPARAM lParam) {
 }
 
 
-/*
 //================================================================
   char* OS_get_vwr_ps  () {
 //================================================================

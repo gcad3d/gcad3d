@@ -5715,6 +5715,9 @@ static  TraRot  trr;
   int APT_decode_spl (ObjGX *ox1, int aus_anz,int aus_typ[],double aus_tab[]) {
 //=============================================================================
 // APT_decode_spl                     decode planar surf
+// returns Typ_TPS for all planar surfaces;
+// TODO: no TPS of bounded planar-surf with outerBound possible !
+// TODO: use Typ_SURPLN for planar supportsurface (plane, boundary)
 // 
 // P24=P(100 500 0)
 // S20=POL P24 P(1500 1500 0) P(500 1500 0) P24
@@ -6028,7 +6031,7 @@ static  TraRot  trr;
   }
 
 
-  ox1->typ    = Typ_SUR;
+  ox1->typ    = Typ_SUTP;   // Typ_SUR;
   ox1->form   = Typ_ObjGX;
   ox1->siz    = aus_anz - 1;
   ox1->data   = oxTab;
@@ -7679,10 +7682,8 @@ return -2;
   int APT_decode_sur (ObjGX *ox1, int aus_anz, int aus_typ[], double aus_tab[],
                       Memspc *wrkSpc) {
 //=============================================================================
-// Surf in Punkte zerlegen und -> ??
-// ACHTUNG: ox1->ptiTab = memspc55
-// TODO: returns typ=Typ_SURSUP for planar surf "C20";
-//       should return Typ_SURTPS.  Or SurPLN, get TPS by STPS ??
+// Using: ox1->ptiTab = memspc55
+
 
   int      i1, i2, i3, irc, ausInd, ptNr, fTabNr, iRow;
   long     *iTab;
@@ -9084,7 +9085,7 @@ goto Error;
 
 
 
-  bd1->typ   = Typ_SOL;
+  bd1->typ   = Typ_PRI;           // Typ_SOL;
   bd1->form  = Typ_ObjGX;
   bd1->siz   = 2;
   bd1->data  = oTab;
@@ -15632,7 +15633,7 @@ Rückgabewert ist der gefundene Index.
   // die Transformationsmatrix zu den 3 Objekten suchen ..
   UT3D_pl_nobj (&pl1, 3, oa1);       // get plane from 3 objects
   UT3D_m3_loadpl (m1, &pl1);         // get trMat from plane
-  UT3D_m3_invm3 (mi1, m1);           // invert trMat
+  UT3D_m3_inv_ma (mi1, m1);           // invert trMat
   UTRA_def__ (1, Typ_M4x3, mi1);   // load trMat
 
   // die 3 Objekte transformieren (in die absolute X-Y-Ebene)
@@ -15859,7 +15860,10 @@ Rückgabewert ist der gefundene Index.
     oNr = UT3D_ci_cicird (cia, oa1[0].data, oa1[1].data, rdc, iMod);
     iMod = 0;
 
-  }
+  } else goto Par_err;
+
+    // printf(" _cttr-oNr=%d iMod=%d\n",oNr,iMod);
+
 
 
   if(oNr < 0) goto Par_err;
@@ -18714,23 +18718,22 @@ Rückgabewert ist der gefundene Index.
   int APT_store_obj (int *eTyp, long *eInd,
                      int aus_anz, int* aus_typ, double* aus_tab) {
 /*==========================================================================*/
-/// \code
-/// Ein Objekt eTyp aus den Parametern aus_typ/aus_tab erzeugen;
-///   Objekt in der DB speichern.
-/// MemoryUsage:
-///   Die decode-Funktionen benutzen die globalen Memspc APTSpcObj,APTSpcTmp.
-///   Sind nach DB-speichern wieder frei.
-/// Input:
-///   eTyp eInd            ErgebnisTyp u DB-Index 
-///   aus_typ[] aus_tab[]  die decodierten Eingabeparameter
-///                        if(!aus_anz) return typ and ind of last processed obj
-/// Output:
-///   Retcode -1: Error;
-///           -2: obj is symbolic-obj (VC,Tra,VAR,Act); disp only in MAN 
-///           -3  object not yet complete;
-///
-/// see also APT_obj_ato
-/// \endcode
+// Ein Objekt eTyp aus den Parametern aus_typ/aus_tab erzeugen;
+//   Objekt in der DB speichern.
+// MemoryUsage:
+//   Die decode-Funktionen benutzen die globalen Memspc APTSpcObj,APTSpcTmp.
+//   Sind nach DB-speichern wieder frei.
+// Input:
+//   eTyp eInd            ErgebnisTyp u DB-Index 
+//   aus_typ[] aus_tab[]  die decodierten Eingabeparameter
+//                        if(!aus_anz) return typ and ind of last processed obj
+// Output:
+//   Retcode -1: Error;
+//           -2: obj is symbolic-obj (VC,Tra,VAR,Act); disp only in MAN 
+//           -3  object not yet complete;
+//           //-4  ignore object (export mockup - ignore subModel; eg OBJ)
+//
+// see also APT_obj_ato
 
 // TODO: change Att_ln -> Ind_Att_ln
 
@@ -18795,7 +18798,14 @@ long defInd;
   defTyp = *eTyp;
   defInd = *eInd;
   APT_act_ind = *eInd;
-    // printf(" _store_obj defTyp=%d defInd=%ld\n",defTyp,defInd);
+    // printf("APT_store_obj-defTyp=%d defInd=%ld TSU_ftyp=%d\n",
+           // defTyp,defInd,TSU_ftyp);
+
+
+//   // do not export subModels for OBJ
+//   if(defTyp == Typ_Model) {
+//     if(TSU_ftyp == Mtyp_OBJ) return -4;
+//   }
 
 
   iNew = 0;                 // def; save data.
@@ -20855,7 +20865,7 @@ Rückgabewert ist der gefundene Index.
     UT3D_m3_loadpl (m1, pl1);
 
     if(iDir < 0) {
-      UT3D_m3_invm3 (mi1, m1);
+      UT3D_m3_inv_ma (mi1, m1);
       memcpy (m1, mi1, sizeof(Mat_4x3));
     }
 
@@ -22685,7 +22695,7 @@ static Line lno;
   OGX_SET_INDEX (&ox2, dbTyp2, dbInd2);
   pNr = 0;
   irc = UTO_npt_int_2ox (&pNr, pa, NULL, 20, 0, iUnl, &ox1, &ox2, tSpc1);
-    // printf("ex _npt_int_2ox irc=%d pNr=%d\n",irc,pNr);
+    // printf("ex-_npt_int_2ox irc=%d pNr=%d\n",irc,pNr);
   if(irc < 0) {
     TX_Print("***** %s",MSG_get_0("E_INT_1"));
     return irc;
@@ -23070,8 +23080,8 @@ static Line lno;
 
 
   
-  printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCC  APT_CUT__ %d\n",aus_anz);
-  for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+  // printf("CCCCCCCCCCCCCCCCCCCCCCCCCCCC  APT_CUT__ %d\n",aus_anz);
+  // for(i1=0;i1<aus_anz; ++i1) printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
 
 
   //----------------------------------------------------------------
@@ -23198,7 +23208,7 @@ static Line lno;
   L_exit:
 
     // TESTBLOCK
-    DEB_dump_ox__ (oxo, "ex-APT_CUT__");
+    // DEB_dump_ox__ (oxo, "ex-APT_CUT__");
     // DEB_dump_ox_0 (oxo, "ex-APT_CUT__");
     // printf("ex-APT_CUT__ CCCCCCCCCCCCCCCCCCCCCCCCCCCC  APT_CUT__\n");
     // return MSG_ERR__ (ERR_TEST, "ex-APT_CUT__");

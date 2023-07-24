@@ -711,11 +711,11 @@ static double  newRot[4], newpRot[4];  // rotation
 
 
   // get next free surf-index
-  iLin = DB_dbo_get_free (Typ_LN) + 1;
-  iCrv = DB_dbo_get_free (Typ_CV) + 1;
-  iSur = DB_dbo_get_free (Typ_SUR) + 1;
-  iSol = DB_dbo_get_free (Typ_SOL) + 1;
-  iMdl = DB_dbo_get_free (Typ_Model) + 1;
+  iLin = DB_dbo_get_last (Typ_LN) + 1;
+  iCrv = DB_dbo_get_last (Typ_CV) + 1;
+  iSur = DB_dbo_get_last (Typ_SUR) + 1;
+  iSol = DB_dbo_get_last (Typ_SOL) + 1;
+  iMdl = DB_dbo_get_last (Typ_Model) + 1;
     // printf(" iCrv=%d iSur=%d iSol=%d iMdl=%d\n",iCrv,iSur,iSol,iMdl);
 
 

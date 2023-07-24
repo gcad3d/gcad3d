@@ -3181,7 +3181,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
   // draw symbolic; done.
   if(TSU_sStyl > 0) {
     // GL_att_cv (Typ_Att_dash_long);  // attrib for symbolic
-    return GR_sSym_spl (cTab, cNr, &oTab[0], att, dbi);
+    return GR_sSym_stp (cTab, cNr, &oTab[0], att, dbi);
   }
 
 
@@ -4029,7 +4029,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
     // DEB_dump_obj__ (Typ_M4x3,  TSU_mat, "              TSU_mat:\n");
 
     // Matrix invertieren
-    UT3D_m3_invm3 (TSU_imat, TSU_mat);
+    UT3D_m3_inv_ma (TSU_imat, TSU_mat);
 
     // Konus hat eine Basisebene, einen Radius r1 in dieser Basisebene,
     // eine Hoehe h und einen Radius r2 in Hoehe h.
@@ -4088,7 +4088,7 @@ memspc102  TSU_grid  Vergleichspunkteraster
     UT3D_m3_loadpl (TSU_mat, &TSU_tor->pl);
     // DEB_dump_obj__ (Typ_M4x3,  TSU_mat, "              TSU_mat:\n");
     // Matrix invertieren
-    UT3D_m3_invm3 (TSU_imat, TSU_mat);
+    UT3D_m3_inv_ma (TSU_imat, TSU_mat);
 
 
 
@@ -4678,7 +4678,7 @@ uOff abhaengig von Aussenkonturtyp:
         TX_Error("TSU_tr_init_ ESRV003 %d",TSU_ox1.form);
       }
       UT3D_m3_loadpl (TSU_mat, &TSU_pln);
-      UT3D_m3_invm3 (TSU_imat, TSU_mat);
+      UT3D_m3_inv_ma (TSU_imat, TSU_mat);
         // DEB_dump_obj__ (Typ_M4x3, TSU_mat, " TSU_mat:");
         // DEB_dump_obj__ (Typ_M4x3, TSU_imat, " TSU_imat:");
 
@@ -7987,7 +7987,7 @@ static double du,dv;
   // fix Matrix zur Tansformation in Nulllage
   UT3D_m3_loadpl (mat, &con->pl);
   // DEB_dump_obj__ (Typ_M4x3,  mat, "              _mat:\n");
-  UT3D_m3_invm3 (imat, mat);
+  UT3D_m3_inv_ma (imat, mat);
   // DEB_dump_obj__ (Typ_M4x3, imat, "              imat:\n");
 
   // einen Punkt des Konus -> Nullage transferieren
@@ -8055,7 +8055,7 @@ static double du,dv;
   // fix Matrix zur Tansformation in Nulllage
   UT3D_m3_loadpl (mat, &tor->pl);
   // DEB_dump_obj__ (Typ_M4x3,  mat, "              _mat:\n");
-  UT3D_m3_invm3 (imat, mat);
+  UT3D_m3_inv_ma (imat, mat);
   // DEB_dump_obj__ (Typ_M4x3, imat, "              imat:\n");
 
 

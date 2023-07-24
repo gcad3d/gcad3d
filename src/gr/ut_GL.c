@@ -3206,7 +3206,7 @@ GEHT NED ..
   // DL_temp_init ();
 
   UT3D_m3_loadpl (m1, &GL_temp_constr_pln);
-  UT3D_m3_invm3 (mi1, m1);
+  UT3D_m3_inv_ma (mi1, m1);
   GL_grid__ (&GL_temp_constr_pln, m1, mi1);
 
   // GL_list_close (); // close GL-record

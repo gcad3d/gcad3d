@@ -48,7 +48,12 @@ def_MemTab(void) MemTab;
 // prototypes:
 int MemTab_ini__ (void *memTab, int rSiz, int typ, int incSiz);
 int MemTab_add (void *memTab, long *spcOff, void* objDat, int recNr, int mode);
+int MemTab_sav (void *memTab, long *spcOff, void* objDat, int recNr);
+int MemTab_get (void* objDat, void *mt, int ipos, int recNr);
+int MemTab_mod (void *mtb, void* objDat, int ipos, int recNr);
 int MemTab_check (MemTab *memTab, long *spcOff, int recNr);
+int MemTab_ins (void *mtb, long *spcOff, void* objDat, int ipos, int insRecNr);
+int MemTab_del (void *mt, int ipos, int delRecNr);
 // inline:
 int MemTab_free (void*);  // (MemTab*);
 int MEMTAB_IND (MemTab*);            // get nr of used records

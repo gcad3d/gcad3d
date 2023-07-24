@@ -9,16 +9,21 @@
 
 */
 
+#if defined _MSC_VER || __MINGW64__
 #include <windows.h>
+#include <processenv.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <processenv.h>
+
+#include "../ut/ut_TX.h"        // TX_Error TX_Print
+#include "../xa/xa_msg.h"       // MSG_get_1 MSG_err_1 MSG_pri_1
 
 
 char    s0[512], s1[1024], s2[1024];
-char    sx[2056];
+char    sx[2600];
 
 
   int DIROUT ();
@@ -27,9 +32,13 @@ char    sx[2056];
 
   char* UTX_CleanCR (char* string);
   int UTX_fnam_ck_abs (char *fn);
+
   int OS_osVar_eval_1 (char *sio, int sSiz);
   int OS_osVar_eval__ (char *so, char *si, int soSiz);
   int OS_checkFilExist (char* filnam, int mode);
+
+
+
 
 
 //================================================================
@@ -124,7 +133,7 @@ char    sx[2056];
 
   char   *p1;
 
-    // printf(" DIRSRC |%s|\n",s0);
+    printf(" DIRSRC |%s|\n",s0);
   strcpy(s1, s0);
 
   // expand shell variables
@@ -144,17 +153,17 @@ char    sx[2056];
   // check for absolute;
   if(UTX_fnam_ck_abs(s0)) {
     // absolut; cp <fn> <OUT>.
-    sprintf (sx, "cp -f \"%s\" \"%s.\"", s0, s2);
+    sprintf (sx, "cp -fP \"%s\" \"%s.\"", s0, s2);
       printf("%s\n",sx);
 
 
   } else {
     // default; cp <SRC><fn> <OUT>.
-    sprintf (sx, "cp -f \"%s%s\" \"%s.\"", s1, s0, s2);
+    sprintf (sx, "cp -fP \"%s%s\" \"%s.\"", s1, s0, s2);
   }
 
 
-    printf("%s\n",sx);
+    printf("do: %s\n",sx);
   irc = system (sx);
 
   return irc;
@@ -229,6 +238,7 @@ char    sx[2056];
 }
 
 
+/*
 //================================================================
   int OS_osVar_eval_1 (char *sio, int sSiz) {
 //================================================================
@@ -312,7 +322,6 @@ char    sx[2056];
   return i1;
 
 }
-
-
+*/
 
 // EOF

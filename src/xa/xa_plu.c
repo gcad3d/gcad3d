@@ -36,10 +36,12 @@ Modifications:
 =====================================================
 List_functions_start:
 
-// PLU_clear              clear and unload plugin <APP_act_nam>
+PLU_export__           export active model 
+PLU_oid_appNam         create name (oid) for application-object
 PLU_appNamTab_get      return name of AppNam[iNam]
-PLU_oid_appNam      create name (oid) for application-object
+PLU_appNamTab_set      provide names for application-objects
 
+// PLU_clear              clear and unload plugin <APP_act_nam>
 // PLU_start
 // PLU_free               kernel-free; see PLU_realloc
 // PLU_realloc            kernel-realloc
@@ -47,7 +49,6 @@ PLU_oid_appNam      create name (oid) for application-object
 // PLU_unl                unload plugin
 // PLU_Loa                reStart remote
 // PLU_restart            exec plugin
-PLU_appNamTab_set      provide names for application-objects
 
 List_functions_end:
 =====================================================
@@ -329,6 +330,27 @@ APP_OBJ_NAM *UI_User_appNamTab = NULL;     // appObjNamTab
 }
 
 
+//================================================================
+  int PLU_export__ (char* fNam) {
+//================================================================
+// PLU_export_igs    export active model
+// Input:
+//   fNam        full filename; eg "/tmp/test1.igs"
+//
+
+
+  stru_FN  ofn;
+
+  printf("PLU_export_igs |%s|\n",fNam);
+
+  MDLFN_oFn_fNam (&ofn, fNam);
+    // MDLFN_dump_ofn (&ofn, "PLU_export_igs");
+
+  MDL_exp__ (&ofn, 0, 1);
+
+  return 0;
+
+}
 
 
 //======================= EOF ====================================

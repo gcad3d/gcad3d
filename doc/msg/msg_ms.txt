@@ -16,6 +16,7 @@ MMsmcp=alih modelutama ke dalam submodel
 MMsmcr=cipta submodel baharu
 MMsmsf=simpan submodel aktif ke dalam fail
 MMsmlf=muat failmodel sebagai submodel
+MMsmrm=remove all unused Submodels
 MMsmre=namakan semula submodel aktif
 MMsmde=padam submodel aktif
 MMsmmp=ubahsuai Kedudukan subModel

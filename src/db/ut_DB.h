@@ -160,10 +160,10 @@ long   DB_QueryCirc     (Point*);
 long   DB_QueryCurv     (Point*);
 int    DB_QueryDynPoint (Point *, Point *);
 
-long DB_QueryPrvUsed (int typ, long istart);
-long DB_QueryNxtUsed (int typ, long istart);
-long   DB_QueryNxtFree   (int typ, int istart);
-long   DB_dbo_get_free  (int typ);
+long   DB_QueryPrvUsed  (int typ, long istart);
+long   DB_QueryNxtFree  (int typ, int istart);
+long   DB_QueryNxtUsed  (int typ, long istart);
+long   DB_dbo_get_last  (int typ);
 
 void   DB_fix_tol       (double);
 int    DB_2DTyp_3DTyp   (int);

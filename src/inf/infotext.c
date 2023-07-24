@@ -64,7 +64,7 @@ INF_DEV_GC__        workflow events select timer load_save models
 INF_APP__           create modify undo resolve attributes Userinteractions coords
 INF_OBJ_FORM__      INF_obj_types, source-obj SRC, atomic-obj ato, DBO dlo ..
 INF_OBJ_CONV__      ObjectFormatConversions
-INF_DEV_C__         C-software-developmant - MEM const tol C_types INF_debug
+INF_DEV_C__         C-software-development - MEM const tol C_types INF_debug
 
 INF_geom            INF_func_3D    INF_func_2D      INF_surfaces   INEW_surf__
                     INF_Intersect_Surf INF_Intersect_Body INF_Create_Body
@@ -243,6 +243,13 @@ INF_workflow_events         main-events
 
 GR               create graphic objects;                           ../gr/ut_gr.c
 INF_GL__         OpenGL INF_GL_surfaces INF_GL2D__                 ../gr/ut_GL.c
+
+
+Functions:
+GR_*             display objects;                                    ../gr/ut_gr.c
+GR_sSym_*        display surfaces symbolic (not shaded)
+  (if(TSU_sStyl > 0) then display surfaces symbolic (not shaded)     ../gr/gr_sSym.c
+
 
 
 
@@ -1730,6 +1737,9 @@ void INF_MemTab (){        /*! \code
 MemTab            Fixed-Length-Records         MemTab_       ../ut/ut_memTab.c
                                                              ../ut/ut_memTab.h
 
+- see also MemTab_test__()
+
+
   MemTab_add ..      // add or reserve records
   MEMTAB_IND         // get or set index (next free = nr of used)
   MEMTAB_DAT         // get data-record complete
@@ -2241,7 +2251,7 @@ UTO_obj_tra_obj2_rsys     2D->3D
 
 
 UT3D_m3_loadpl
-UT3D_m3_invm3
+UT3D_m3_inv_ma
 UT3D_pt_tra_pt_m3        3D->2D or 2D->3
 UT3D_ln_ln2
 UT2D_ln_ln3__

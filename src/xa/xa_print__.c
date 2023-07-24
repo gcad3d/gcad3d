@@ -114,7 +114,6 @@ export int PRI__ (void**);
 // Externals aus ../xa/xa.c:
 extern char      AP_mod_fnam[SIZMFNam];
 extern char      AP_printer[80];           // Printer
-extern char      *AP_fVwr;                 // fileViewer
 extern AP_STAT   AP_stat;                  // AP_stat.fVwr
 
 
@@ -243,7 +242,7 @@ int win1__ (MemObj *mo, void **data);
       wtmp3 = GUI_box_v (&wtmp2, "e");
         // set w_cmd1 - viewer
         wtmp4 = GUI_box_h (&wtmp3, "e");
-        w_cmd1 = GUI_entry__(&wtmp4, NULL, OS_fVwr_get(AP_fVwr), NULL, NULL, "e");
+        w_cmd1 = GUI_entry__(&wtmp4, NULL, OS_fVwr__(""), NULL, NULL, "e");
 
 	// set w_cmd2 - outfilename
         wtmp4 = GUI_box_h (&wtmp3, "e");
@@ -384,8 +383,8 @@ int win1__ (MemObj *mo, void **data);
         cmdTyp = 'P';
         // get preview-progName
         txcmd1 = GUI_entry_get (&w_cmd1);  // preview-command
-        // save preview-progName in AP_fVwr
-        AP_fVwr = OS_fVwr_set (AP_fVwr, txcmd1);
+        // save preview-progName
+        OS_fVwr__ (txcmd1);
 
       } else if(GUI_radiobutt_get (&w_func2)) {
         // do write-file
@@ -416,7 +415,7 @@ int win1__ (MemObj *mo, void **data);
       sprintf(fNam,"%s.%s", txcmd2, fTyp);
 
         // TESTBLOCK
-        // printf(" preView AP_fVwr = |%s|\n",AP_fVwr);
+        // printf(" preView pdf/ps  = |%s|\n",OS_fVwr__(""));
         // printf(" filename txcmd2 = |%s|\n",txcmd2);
         // printf(" printCmd txcmd3 = |%s|\n",txcmd3);
         // printf(" fNam = |%s|\n",fNam);
@@ -502,10 +501,10 @@ int win1__ (MemObj *mo, void **data);
 //         }
         // fix preview-command
 #if defined _MSC_VER || __MINGW64__
-        sprintf(cbuf1,"%s \"file:///%s\" &", AP_fVwr, fNam);
+        sprintf(cbuf1,"%s \"file:///%s\" &", OS_fVwr__(""), fNam);
 #else
         // Linux: system "evince <fNam.eps>"
-        sprintf(cbuf1,"%s %s &", AP_fVwr, fNam);
+        sprintf(cbuf1,"%s %s &", OS_fVwr__(""), fNam);
 #endif
 
           printf("system %s\n",cbuf1);

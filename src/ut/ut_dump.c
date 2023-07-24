@@ -209,7 +209,7 @@ DBO_dump__
 
 
   va_start (va, txt);
-  vsprintf (cbuf1, txt, va);
+  vsnprintf (cbuf1, sizeof(cbuf1),txt, va);
   va_end (va);
 
   // if(strlen(cbuf1) > 255) {
@@ -356,7 +356,7 @@ static FILE     *uo = NULL;
 
 
   va_start(va,txt);
-  vsprintf(cbuf,txt,va);
+  vsnprintf(cbuf,sizeof(cbuf),txt,va);
   va_end(va);
 
     // printf(" _stru_dump cbuf |%s|\n",cbuf);
@@ -2904,7 +2904,7 @@ static char cOff[64];
 
   
   va_start(va,txt);
-  vsprintf(cbuf,txt,va);
+  vsnprintf(cbuf,sizeof(cbuf),txt,va);
   va_end(va);
   
   printf("%s %9.3f,%9.3f,%9.3f\n",cbuf,pt->x,pt->y,pt->z);
@@ -2924,7 +2924,7 @@ static char cOff[64];
 
   
   va_start(va,txt);
-  vsprintf(cbuf,txt,va);
+  vsnprintf(cbuf,sizeof(cbuf),txt,va);
   va_end(va);
   
   printf("%s %9.3f,%9.3f\n",cbuf,pt2->x,pt2->y);

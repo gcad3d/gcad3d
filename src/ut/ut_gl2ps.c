@@ -3,6 +3,11 @@
  * GL2PS, an OpenGL to PostScript Printing Library
  * Copyright (C) 1999-2015 C. Geuzaine
  *
+
+TODO:
+- too slow for very complex surfaces ....
+
+
  */ 
 
 
@@ -73,7 +78,7 @@
   // opts = GL2PS_DRAW_BACKGROUND; // gray, no bitmaps
 
   // icol = 16;
-  opts = GL2PS_OCCLUSION_CULL;
+  // opts = GL2PS_OCCLUSION_CULL;
   // opts = GL2PS_DRAW_BACKGROUND;
   // opts = GL2PS_BEST_ROOT;
   opts = GL2PS_DRAW_BACKGROUND | GL2PS_BEST_ROOT;
@@ -91,7 +96,8 @@
 
   // write outfile
   while (state == GL2PS_OVERFLOW) {
-    buffsize += 1024*1024;
+    // buffsize += 1024*1024;
+    buffsize += 2056*2056;
     gl2psBeginPage (title, producer,
                     viewport,
                     format,

@@ -28,10 +28,21 @@ void OS__(){}
 #endif
 // 
 /*
+\file  ../ut/os__.c
+\brief opsys functions for Linux and MS-Win
+
+
 =====================================================
 List_functions_start:
  
+OS_bin_dir_set         set binary directory (from exe-argv[0])
+OS_bin_dir_get         get binary directory (from exe-argv[0])
 
+OS_tim_timA            get timestamp from time-string
+OS_timA_diff_s         get difftime in seconds of two timestrings
+OS_FilSiz              returns filesize in bytes
+OS_file_rename         rename File; NO Wildcards
+OS_file_delete         delete File; NO Wildcards
 
 List_functions_end:
 =====================================================
@@ -85,17 +96,16 @@ _______________________________________________________________________________
 
 //----------------------------------------------------------------
 // ex ../xa/gCAD3D.c
-extern char *AP_bin_dir;         // dir binaries
 
 
+char*  OS_bin_dir;
 
 
 //================================================================
   int OS_bin_dir_set (char** argv) {
 //================================================================
-// OS_bin_dir_set         set binary directory (from exe-argv[0])
-// - to set: OS_bin_dir_set (&argv);
-// - to get: char *binDir = OS_bin_dir_get ();
+// OS_bin_dir_set       set/get binary directory (from exe-argv[0])
+// - to set: OS_bin_dir__ (&argv);
 
 
   int      sl;
@@ -116,12 +126,12 @@ extern char *AP_bin_dir;         // dir binaries
     sl = p1 - argv[0];
       // printf(" OS_bin_dir__-sl=%d\n",sl);
     // get memspc
-    AP_bin_dir = (char*) malloc (sl + 8);
-    strncpy (AP_bin_dir, argv[0], sl + 1);
-    AP_bin_dir[sl + 1] = '\0';
+    OS_bin_dir = (char*) malloc (sl + 8);
+    strncpy (OS_bin_dir, argv[0], sl + 1);
+    OS_bin_dir[sl + 1] = '\0';
   }
 
-    printf(" ex-OS_bin_dir_set |%s|\n",AP_bin_dir);
+    printf(" ex-OS_bin_dir_set |%s|\n",OS_bin_dir);
 
   return 0;
 
@@ -139,9 +149,9 @@ extern char *AP_bin_dir;         // dir binaries
 
 
 
-    // printf(" ex-OS_bin_dir_get |%s|\n",AP_bin_dir);
+    // printf(" ex-OS_bin_dir_get |%s|\n",OS_bin_dir);
 
-  return AP_bin_dir;
+  return OS_bin_dir;
 
 }
 

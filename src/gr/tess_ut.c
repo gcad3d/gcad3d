@@ -16,6 +16,8 @@
  *
 -----------------------------------------------------
 TODO:
+- create plugin for export mockup (OBJ, WRL, ..)
+
  VRML1 removed;
  VRML2 now with plugin VR2_exp__
 Remove unused:
@@ -263,6 +265,7 @@ Separator {
 #include "../xa/xa_mem.h"              // memspc51, mem_cbuf1
 #include "../xa/xa_tex.h"              // Tex_get_fn
 // #include "../xa/ut_ui_TX.h"            // TX_Print
+#include "../xa/gcad_version.h"        // INIT_TXT
 #include "../xa/xa.h"                  // AP_STAT AP_mod_fnam
 
 
@@ -274,6 +277,9 @@ typedef_MemTab(ColRGB);
 extern ColRGB    AP_defcol;
 extern AP_STAT   AP_stat;
 
+
+// ../db/ut_DB.c
+extern long APT_MR_IND;
 
 
 //========= local Vars: ====================
@@ -2266,6 +2272,8 @@ static FILE *fpo = NULL;
   if(TSU_ftyp == Mtyp_OBJ) {
     if(strlen(mnam) < 1) {       // init mainModel
       fprintf(TSU_fp,"# Model %s       %s\n",AP_mod_fnam,OS_date1());
+      fprintf(TSU_fp,"# %s       https://gcad3d.org\n",INIT_TXT);
+
     //----------------------------------------------------------------
     } else {                     // init subModel
       fprintf(TSU_fp,"#<<<<<<<<<<<<<< Beg. subModel %s\n",mnam);
@@ -2374,8 +2382,8 @@ static FILE *fpo = NULL;
   // ColRGB  defCol;
 
 
-  printf("TSU_exp_sur ftyp=%d typ=%d form=%d siz=%d\n",
-         TSU_ftyp,oxi->typ,oxi->form,oxi->siz);
+  // printf("TSU_exp_sur ftyp=%d typ=%d form=%d siz=%d\n",
+         // TSU_ftyp,oxi->typ,oxi->form,oxi->siz);
   // printf("   _exp_sur actModNam=|%s|\n",actModNam);
   // BMSH_dump_bfMsh (oxi, "TSU_exp_sur ");
 
@@ -2513,8 +2521,8 @@ static FILE *fpo = NULL;
 // static char oldNam[128];
 
 
-  printf("TSU_exp_Open |%s|\n",modNam);
-  printf("   TSU_ftyp=%d\n",TSU_ftyp);
+  // printf("TSU_exp_Open |%s|\n",modNam);
+  // printf("   TSU_ftyp=%d\n",TSU_ftyp);
 
 
   if(modNam == NULL) {    // Init
@@ -2861,6 +2869,7 @@ static char  mStat[1024];
   char       cbuf[256];
 
 
+  printf("TSU_exp_Mod mode=%d TSU_ftyp=%d\n",mode,TSU_ftyp);
 
   if(mode  < 0) {
 
@@ -2886,7 +2895,7 @@ static char  mStat[1024];
   // get basicModel
   mdb = DB_get_ModBas (mdr->modNr);
   if(mdb == NULL) {TX_Error("TSU_exp_Mod E002"); return -1;}
-    // printf(" mnam=|%s|\n",mdb->mnam);
+    printf(" mnam=|%s|\n",mdb->mnam);
 
 
   // printf("===========================================\n");
@@ -2942,7 +2951,8 @@ static char  mStat[1024];
 
 
   // printf("||||||||||||||||||||| TSU_exp__ |||||||||||||||||||||||||||||\n");
-  // printf(" |%s|%s|\n",mode,fnam);
+  printf("TSU_exp__ |%s|%s|\n",mode,fnam);
+  // printf(" APT_MR_IND = %ld\n",APT_MR_IND);
 
 
   TSU_errStat = 0;
@@ -3001,7 +3011,7 @@ static char  mStat[1024];
 
   // reset tesselation; get accumulated Vertices (of MainModel)
   recNr = TSU_Init (0, &vTab);
-    printf(" recNr=%d\n",recNr);
+    // printf(" recNr=%d\n",recNr);
   if(recNr < 0) {irc = -1; goto L_fertig;}
   // recNr ist nun die Anzahl exportierter surfs (nicht die Anzahl von Dittos);
 
@@ -3039,7 +3049,10 @@ static char  mStat[1024];
 
   // free memspace
   L_fertig:
-    // printf(" TSU_errStat=%d irc=%d\n",TSU_errStat,irc);
+    // TSU_ftyp = 0;
+    printf(" TSU_errStat=%d irc=%d\n",TSU_errStat,irc);
+    printf("-------------- exit TSU_exp__\n\n");
+
 
 
   // OBJ: exportiert subModels aber ohne positionieren;
@@ -3049,6 +3062,12 @@ static char  mStat[1024];
     }
 
   } else if(TSU_ftyp == Mtyp_OBJ) {         // OBJ
+    if(APT_MR_IND > 0) {                                                   
+// 2023-07-17  TODO - comlete rewrite as plugin.
+      TX_Print("***** SUBMODELS NOT EXPORTED (TESS cannot (yet) export subModels)");
+      // irc = -1;
+    }
+
     if(TSU_errStat > 0) {
       TX_Print("%d  ERRORS detected (cannot set subModel-position)",TSU_errStat);
     }
@@ -3064,7 +3083,7 @@ static char  mStat[1024];
 
 
   if(AP_errStat_get() == 0) {
-    TX_Print("%s exported %s",mode,fnam);
+    TX_Print("- exported into file %s",fnam);
   }
 
 
@@ -3097,7 +3116,6 @@ static char  mStat[1024];
 
   L_exit:
     // TSU_ftyp = 0;
-
     // UI_wait_Esc__ ();   // TESTONLY; display 
     // printf("||||||||||||||||||||| ex TSU_exp__ %d ||||||||||||||||||||||\n",irc);
 

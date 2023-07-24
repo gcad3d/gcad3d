@@ -17,6 +17,9 @@
  *
 -----------------------------------------------------
 TODO:
+UT3D_parsbsp_pt   exits after 16 approximations ; find better solution ....
+
+-----------------------------
  SEE ../ut/ut_bspl_utils.c  (unused functions !!!!)
  Noch nicht verwendet:
  UT3D_bspl_surcrvcrv aus xa_ut.c     b-spline surface <-- two b-spline curves
@@ -111,7 +114,6 @@ Beispiel ptUNr=2 ptVNr=4:
 #include "../ut/ut_memTab.h"           // MemTab
 
 #include "../xa/xa_mem.h"                 // memspc51-55
-
 
 
 
@@ -1487,7 +1489,7 @@ L_outOfWorkSpace:
   if(iloop < 16) goto L_next_try;  // Anzahl Versuche Defaul=100
   // keine Loesung nach n Versuchen ..
   // printf("UT3D_parsbsp_pt I000 Pos %f,%f,%f\n",pti->x,pti->y,pti->z);
-  printf("UT3D_parsbsp_pt I000\n");
+  // printf("UT3D_parsbsp_pt I000\n");
   // TX_Error("UT3D_parsbsp_pt I000");
   // exit(0);
 

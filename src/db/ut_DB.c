@@ -164,10 +164,10 @@ DB_GetDynInd       get next dyn. Index
 DB_get_ObjNr       get nr of defined objects of given type
 DB_QueryDef        check if obj is defined in DB;
 
-DB_dbo_get_free    get next free index
+DB_dbo_get_last    returns next free DB-index; 0=Error
 DB_QueryNxtFree    get next free index from typ,startIndex
-DB_QueryNxtUsed    get next used index
-DB_QueryPrvUsed    get previous used index
+DB_QueryNxtUsed    get next used DB-index, starting from istart
+DB_QueryPrvUsed    get previous used DB-index, starting from istart
 DB_Query__         get dataTable, lastIndex, tabSiz from typ
 
 DB_isFree_Var
@@ -186,6 +186,7 @@ DB_isFree_ModRef
 
 DB_Error
 DB_Delete          delete obj in DB (set Free)
+DB_clear__         clear DB-objs and DYN-objs
 DB_setFree_Var     kill DB-obj; other objects DB_setFree_..
 
 DB_set_state       save/restore all saved DB-Pointers (kill newer objects)
@@ -232,7 +233,6 @@ DB_ModBas_seqMax   get highest seqNr
 DB_list_ModBas     Modelnames in korrekter Reihenfolge -> Datei
 DB_ModNod_ckLoop_  check for call itsef
 DB_ModNod_ckLoop1
-
 
 \endcode *//*----------------------------------------
 see also UTO_obj_dbo
@@ -695,11 +695,51 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
  
 
 //================================================================
+  int DB_clear__ () {
+//================================================================
+// DB_clear__ ();             // clear DB-objs and DYN-objs
+
+  // printf("DB_clear__ \n");
+  // printf(" _clear__ APT PT=%ld LN=%ld\n",APT_PT_IND,APT_LN_IND);
+  // printf(" _clear__ DYN PT=%ld LN=%ld\n",DYN_PT_IND,DYN_LN_IND);
+  // printf(" _clear__ DYN VC=%ld PL=%ld\n",DYN_VC_IND,DYN_PL_IND);
+ 
+ 
+  APT_VR_IND = 0;
+  APT_PT_IND = 0;
+  APT_VC_IND = 0;
+  APT_LN_IND = 0;
+  APT_CI_IND = 0;
+  APT_PL_IND = 0;
+  APT_MR_IND = 0;
+  APT_AC_IND = 0;
+  APT_CV_IND = 0;
+  APT_TX_IND = 0;
+  APT_SU_IND = 0;
+  APT_SO_IND = 0;
+
+  DYN_VR_IND = 0;
+  DYN_PT_IND = 0;
+  DYN_VC_IND = 6;   // keep defaults
+  DYN_LN_IND = 0;
+  DYN_CI_IND = 0;
+  DYN_PL_IND = 6;   // keep defaults
+  DYN_CV_IND = 0;
+  DYN_TX_IND = 0;
+  DYN_SU_IND = 0;
+
+  return 0;
+
+}
+
+
+//================================================================
    void DB_Init (int mode) {
 //================================================================
-/// mode=0: init all (new)
-/// mode=1: init DB and dyn-objects; not baseModels
-/// mode=2: init dyn-objects only
+// mode=0: init all (new)
+// mode=1: init DB and dyn-objects; not baseModels
+// mode=2: init dyn-objects only
+// mode=3: init DB-objs and DYN-objs only
 
 
   long i1;
@@ -712,15 +752,19 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
     MDL_reset (0);            // reset loadmap and mdl_tab
     // APT_MR_IND=-1;
     goto L_DB;
-  }
 
 
-  if(mode == 1) {
+  } else if(mode == 1) {
     MDL_reset (1);            // reset loadmap and mdl_tab
     goto L_DB;
-  }
 
-  if(mode == 2) goto L_dyn;
+  } else if(mode == 2) {
+    goto L_dyn;
+
+  } else if(mode == 3) {
+    goto L_DB;
+
+  } else {TX_Error("DB_Init %d"); return;};
 
 
 
@@ -834,7 +878,7 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
 //=======================================================================
   int DB_save__ (char *mNam) {
 //=======================================================================
-/// gesamte DB -> Datei raus
+// DB_save__                  gesamte DB -> Datei raus
 // die Felder muessen schon die erfolderliche Groesse haben; sonst waere
 // nach dem einlesen von _SIZ noch ein alloc erforderlich !
 // Do not save mdb_dyn,mdb_nam
@@ -849,6 +893,7 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
 
   // printf("------------------ DB_save__ |%s| ------------------------\n",mNam);
   // printf(" _save__-GA_recNr=%d\n",GA_recNr);
+  // printf(" _save__ PT=%ld LN=%ld\n",APT_PT_IND,APT_LN_IND);
 
 
 
@@ -857,7 +902,9 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
   UTX_safeName (s1, 2);
 
   sprintf(fnam, "%sDB__%s.dat",AP_get_tmp_dir(),s1);
+
     // printf("DB_save__ |%s|\n",fnam);
+    // printf("- NR PT=%ld LN=%ld CI=%ld\n",APT_PT_IND,APT_LN_IND,APT_CI_IND);
 
 
   if((fp1=fopen(fnam,"wb")) == NULL) {
@@ -865,7 +912,8 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
     return -1;
   }
 
-
+  //----------------------------------------------------------------
+  // save DB
   fwrite(&APT_ModSiz, sizeof(double), 1, fp1);
   fwrite(&UT_TOL_pt, sizeof(double), 1, fp1);
   fwrite(&UT_TOL_ln, sizeof(double), 1, fp1);
@@ -991,15 +1039,22 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
   if(DYN_TX_IND > 0)
   fwrite(tx_dyn, sizeof(ObjGX), DYN_TX_IND+1, fp1);
 
+ 
+  //----------------------------------------------------------------
+  // save GA - graf.attributes
   fwrite(&GA_recNr, sizeof(int),  1, fp1);
   if(GA_ObjTab > 0)
   fwrite(GA_ObjTab, sizeof(ObjAtt), GA_recNr, fp1);
 
-  // save UTF_FilBuf0 (UTF_save__)
+
+  //----------------------------------------------------------------
+  // save src (UTF_FilBuf0 (UTF_save__)
   fwrite(&UTF_FilBuf0Len, sizeof(long),  1, fp1);
   if(UTF_FilBuf0Len > 0)
   fwrite(UTF_FilBuf0, UTF_FilBuf0Len, 1, fp1);
 
+
+  //----------------------------------------------------------------
   // save AP_box_pm1,2 AP_stat-bits mdl_modified and mdl_box_valid
   AP_stat_file (1, fp1);
 
@@ -1198,15 +1253,21 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
   for(i1=DYN_TX_IND+1; i1<DYN_TX_SIZ; ++i1) tx_dyn[i1].typ = Typ_Error;
 
 
+  //----------------------------------------------------------------
+  // get GA - graf.attributes
   fread(&GA_recNr, sizeof(int),  1, fp1);
   if(GA_ObjTab > 0)
   fread(GA_ObjTab, sizeof(ObjAtt), GA_recNr, fp1);
 
-  // save UTF_FilBuf0 (UTF_save__)
+
+  //----------------------------------------------------------------
+  // get src (UTF_FilBuf0 (UTF_save__)
   fread(&UTF_FilBuf0Len, sizeof(long),  1, fp1);
   if(UTF_FilBuf0Len > 0)
   fread(UTF_FilBuf0, UTF_FilBuf0Len, 1, fp1);
 
+
+  //----------------------------------------------------------------
   // read AP_box_pm1,2 AP_stat-bits mdl_modified and mdl_box_valid
   AP_stat_file (2, fp1);
 
@@ -1594,6 +1655,7 @@ static ModelBas _MODELBAS_NUL = {NULL, {0., 0., 0.}, {FLT_32_MAX, 0., 0.},
       case Typ_CVBSP:
       case Typ_CVRBSP:
       case Typ_CVTRM:
+      case Typ_CVCLOT:
       // case Typ_CVTRM2:
         oxp = DB_GetCurv (apt_ind);
           // printf("cv.typ=%d form=%d siz=%d\n",oxp->typ,oxp->form,oxp->siz);
@@ -2968,8 +3030,8 @@ long DB_StoreGTxt (long Ind, GText *gtx1) {
   int DB_StoreSol (long *dbi, ObjGX *bd1) {
 //======================================================================
 // store solid in DB.
-// types: Typ_SPH,Typ_CON,Typ_TOR,Typ_SOL
-//    Typ_SOL,TypObjGX = PRISM: 2 ox (baseCurve & value (thick) or vector)
+// types: Typ_SPH,Typ_CON,Typ_TOR,Typ_PRI
+//    Typ_PRI,TypObjGX = PRISM: 2 ox (baseCurve & value (thick) or vector)
 
 
   int       irc;
@@ -7977,21 +8039,17 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
 
 
 //====================================================================
-  long DB_dbo_get_free (int typ) {
+  long DB_dbo_get_last (int typ) {
 //====================================================================
-/// \code
-/// returns next free DB-index; 0=Error
-/// \endcode
-
+// DB_dbo_get_last          returns next free DB-index; 0=Error
 // was DB_dbo_get_free
-
-// see also DB_QueryNxtUsed
+// see also DB_QueryNxtFree
 
   int     ie;
   long    i1;
 
 
-  // printf("DB_dbo_get_free %d\n",typ);
+  // printf("DB_dbo_get_last %d\n",typ);
 
 
   if(typ == Typ_VAR) {
@@ -8051,7 +8109,7 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
   }
 
 
-  TX_Print("DB_dbo_get_free unknown typ %d",typ);
+  TX_Print("DB_dbo_get_last unknown typ %d",typ);
 
 
   return 0;
@@ -8062,14 +8120,12 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
 //====================================================================
   long DB_QueryPrvUsed (int typ, long istart) {
 //====================================================================
-/// \code
-/// DB_QueryPrvUsed    get previous used index
-/// RetCode:
-///    0      Error; no obj with index istart or higher exists
-///    >0     index of existing obj. Is equal to istart or higher.
-/// \endcode
+// DB_QueryPrvUsed    get previous used DB-index, starting from istart
+// RetCode:
+//    0      Error; no obj with index istart or higher exists
+//    >0     index of existing obj. Is equal to istart or higher.
 
-// see also DB_dbo_get_free
+// see also DB_dbo_get_last
 
 
   int     ie;
@@ -8108,52 +8164,6 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
 }
 
 
-//====================================================================
-  long DB_QueryNxtUsed (int typ, long istart) {
-//====================================================================
-/// \code
-/// DB_QueryNxtUsed       get next used DB-index, starting from istart
-/// RetCode:
-///    0      Error; no obj with index istart or higher exists
-///    >0     index of existing obj. Is equal to istart or higher.
-/// \endcode
-
-// see also DB_dbo_get_free
-
-
-  int     ie;
-  long    i1;
-
-
-  // printf("DB_QueryNxtUsed %d %ld\n",typ,istart);
-
-
-  if(typ == Typ_VC) {
-    for (i1 = istart; i1<APT_VC_SIZ; ++i1) {
-      if(DB_isFree_VC (&vc_tab[i1])) continue;
-      return i1;
-    }
-
-
-  } else if(typ == Typ_VAR) {
-    for (i1 = istart; i1<APT_VR_SIZ; ++i1) {
-      if(DB_isFree_Var (&vr_tab[i1])) continue;
-      return i1;
-    }
-
-
-  } else if(typ == Typ_Tra) {
-    for (i1 = istart; i1<APT_TR_SIZ; ++i1) {
-      if(DB_isFree_Tra (&tra_tab[i1])) continue;
-      return i1;
-    }
-
-
-  } else TX_Print("DB_QueryNxtUsed: objTyp %d not yet supported",typ);
-
-  return 0;
-
-}
 
 
 //==================================================================
@@ -8244,7 +8254,7 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
 /// \code
 /// returns next free index
 /// search free record starting from istart up to last active index.
-/// see also DB_dbo_get_free
+/// see also DB_dbo_get_last
 /// \endcode
 
   long    i1;
@@ -8371,6 +8381,53 @@ long   DB_GetObjTyp2Pt  (int *typ, Point2 *pt1, Point2 *pt2) {
   return 0;
 
 }
+
+
+//====================================================================
+  long DB_QueryNxtUsed (int typ, long istart) {
+//====================================================================
+// DB_QueryNxtUsed       get next used DB-index, starting from istart
+// RetCode:
+//    0      Error; no obj with index istart or higher exists
+//    >0     index of existing obj. Is equal to istart or higher.
+
+// see also DB_dbo_get_free
+
+
+  int     ie;
+  long    i1;
+
+
+  // printf("DB_QueryNxtUsed %d %ld\n",typ,istart);
+
+
+  if(typ == Typ_VC) {
+    for (i1 = istart; i1<APT_VC_SIZ; ++i1) {
+      if(DB_isFree_VC (&vc_tab[i1])) continue;
+      return i1;
+    }
+
+
+  } else if(typ == Typ_VAR) {
+    for (i1 = istart; i1<APT_VR_SIZ; ++i1) {
+      if(DB_isFree_Var (&vr_tab[i1])) continue;
+      return i1;
+    }
+
+
+  } else if(typ == Typ_Tra) {
+    for (i1 = istart; i1<APT_TR_SIZ; ++i1) {
+      if(DB_isFree_Tra (&tra_tab[i1])) continue;
+      return i1;
+    }
+
+
+  } else TX_Print("DB_QueryNxtUsed: objTyp %d not yet supported",typ);
+
+  return 0;
+
+}
+
 
 
 //============================================================
@@ -9276,7 +9333,7 @@ long DB_QueryCurv (Point *pt1) {
       *oo = DB_cPos ();
       oTab = *oo;
       // for solid-PRISM must save the parent-record
-      if(typ == Typ_SOL) {
+      if(typ == Typ_PRI) {
         // save parentrecord (data = DB_cPos)
         l1 = DB_Store_hdr_so (&ox1, typ, form, iNr, *ind);
         if(l1 < 0L) return -1;

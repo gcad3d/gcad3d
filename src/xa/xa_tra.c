@@ -423,7 +423,7 @@ static int otra_typ2[]={
   // 1) in das HauptRefSys transportieren
   //      UT3D_pl_pt2vc
   //      UT3D_m3_loadpl
-  //      UT3D_m3_invm3
+  //      UT3D_m3_inv_ma
   // 2) vom HauptRefSys in das neue RefSys transportieren
   //      UT3D_pl_pt2vc
   //      UT3D_m3_loadpl
@@ -439,7 +439,7 @@ static int otra_typ2[]={
   UT3D_vc_2pt (&vc2, &pt1, &pt2);
   UT3D_pl_pto_vcx_vcy (&pl1, &pt1, &vc1, &vc2);
   UT3D_m3_loadpl (ma, &pl1);
-  UT3D_m3_invm3 (ima, ma);
+  UT3D_m3_inv_ma (ima, ma);
 
 
   // das ModelRef mr1 (po,vx,vz) transformieren ...

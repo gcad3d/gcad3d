@@ -16,6 +16,7 @@ MMsmcp=move mainmodel into submodel
 MMsmcr=create new submodel
 MMsmsf=save the active submodel into file
 MMsmlf=load modelfile as submodel
+MMsmrm=remove all unused Submodels
 MMsmre=rename the active submodel
 MMsmde=delete the active submodel
 MMsmmp=modify the Position of a subModel

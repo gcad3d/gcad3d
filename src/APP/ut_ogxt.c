@@ -407,7 +407,7 @@ typedef_MemTab(ObjGX);
 
 
   va_start(va,txt);
-  vsprintf(s1,txt,va);
+  vsnprintf(s1,sizeof(s1),txt,va);
   va_end(va);
 
 

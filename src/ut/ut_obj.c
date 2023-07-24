@@ -2519,7 +2519,7 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
   OGX_SET_OBJ (&ox1, typ, form, siz, obj);
 
 
-  // DB_dbo_get_free (Typ_CV, 0);
+  // DB_dbo_get_last (Typ_CV, 0);
 
 
   // change Object -> Text
@@ -3578,7 +3578,7 @@ static ObjGX  *odb;
 ///   changes start/enpoint, dir,
 ///   the resulting curves looks identical !
 /// 
-/// see also UT3D_vc_invert UT3D_pl_invert UT3D_cv_inv UT3D_m3_invm3 
+/// see also UT3D_vc_invert UT3D_pl_invert UT3D_cv_inv UT3D_m3_inv_ma 
 ///          APT_decode_cvco_invCC
 /// \endcode
 
@@ -4030,15 +4030,16 @@ static ObjGX  *odb;
             // irc 1-4 have connection; 5-12 overlap; 
           if(irc < 0) goto NoInt;
           if(irc > 4) goto NoInt;
-          if(iUnl == 0) {
-            // limited; check endPoints or outside line
-            pts = &((Line*)o2)->p1;
-            pte = &((Line*)o2)->p2;
-            ue = 0.;
-            ue = 1.;
-          }
+          // 5-8 overlapping; ??
+//           if(iUnl == 0) {
+//             // limited; check endPoints or outside line
+//             pts = &((Line*)o2)->p1;
+//             pte = &((Line*)o2)->p2;
+//             ue = 0.;
+//             ue = 1.;
+//           }
           nip = 1;
-          break;
+          goto L_done;   // break;
 
         case Typ_CI:  // LN x CI
             // printf(" npt_int_2ox LN x CI\n");
@@ -4532,6 +4533,8 @@ static ObjGX  *odb;
     }
   }
 
+
+  L_done:
 
   // nip intersection-points found.
   // if(nip > 0) *pNr += nip;

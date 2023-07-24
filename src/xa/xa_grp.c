@@ -613,7 +613,7 @@ static TimeStamp GrpTS;
   dlNr = DL_get__ (&dla);
 
 
-
+  // loop tru dispList
   for(l1=0; l1<dlNr; ++l1) {
 
     // skip model

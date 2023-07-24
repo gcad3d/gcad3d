@@ -36,6 +36,7 @@ void GUI_GTK(){}
 =====================================================
 List_functions_start:
 
+GUI_config             check for correct GUI (gtk) version
 GUI_Init__             must be 1. call ..
 
 GUI_Win__              create new window
@@ -2040,6 +2041,60 @@ static int       UI_act_Id;
 
 }
 */
+
+//================================================================
+  int GUI_config (char *s1) {
+//================================================================
+// GUI_config              check for correct GUI (gtk) version
+// Output:
+//   s1    size must be 1024; errorInfo; only if irc < 0
+//   irc   0=OK; -1=error; stop.
+//
+
+#ifdef _LP64
+  // Linux64
+  // 2011-07-13 2/16;
+# define VER_GTK_MAJ 2
+# define VER_GTK_MIN 16
+
+
+#else
+  // Linux32
+  // 2011-07-13 2/16;
+# define VER_GTK_MAJ 2
+# define VER_GTK_MIN 16
+
+#endif
+
+
+  // gtk-Version
+  // Linux32: 2011-07-13  2/16.
+  if(GUI_ck_version (VER_GTK_MAJ, VER_GTK_MIN) < 0) {
+    sprintf(s1,"GUI_config ERROR gtkVersion; GTK %d.%d or newer necessary.",
+            VER_GTK_MAJ, VER_GTK_MIN);
+    printf("%s\n",s1);
+    return -1;
+  }
+
+/* was OS_get_GUI OS_get_zenity
+  // get gtk-major-version
+  GUI_get_version (sGui, &vGtk, &irc);
+
+  // sEnam = exeFilename
+  sprintf(sEnam,"%sGUI_dlg1_%s%d", OS_bin_dir_get(), sGui, vGtk);
+    printf(" OS_get_GUI |%s|\n",sEnam);
+
+  // test if exe exists
+  if(!OS_checkFilExist(sEnam,1)) {
+    TX_Print("**** file %s does not exist ..", sEnam);
+    return -1;
+  }
+*/
+
+  return 0;
+
+}
+
 
 //================================================================
   int GUI_get_version (char *SW, int *vMaj, int *vMin) {

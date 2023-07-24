@@ -1857,8 +1857,11 @@ static int lnr1, lnr2;
 
   // init (clear) DB and dyn-objects; not baseModels; clear DL.
   // - but not if process is active ...
-  if(!PRC_IS_ACTIVE)
-    AP_Init2 (mode);
+    // TESTBLOCK
+    // printf(" PRC_IS_ACTIVE=%d AP_stat=%d APP_act_typ=%d\n",
+           // PRC_IS_ACTIVE,AP_stat.APP_stat,APP_act_typ);
+    // END TESTBLOCK
+  if(PRC_IS_ACTIVE == 0) AP_Init2 (mode);
 
 /*
   // reset SubmodelLevel

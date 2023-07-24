@@ -16,6 +16,7 @@ MMsmcp=Hauptmodell in ein neues Submodel verschieben
 MMsmcr=ein neues Submodel generieren
 MMsmsf=das aktuelle Submodel in eine Datei speichern
 MMsmlf=Model aus Datei als Submodel laden
+MMsmrm=alle unbenutzten Submodels löschen
 MMsmre=das aktuelle Submodel umbenennen
 MMsmde=das aktuelle Submodel löschen
 MMsmmp=ändern subModel-Position

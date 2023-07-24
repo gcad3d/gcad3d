@@ -41,7 +41,7 @@ Modifications:
 /*!
 \file  ../xa/xa_msg.c
 \brief functions for output of messages in different languages 
-\code
+
 =====================================================
 List_functions_start:
 
@@ -84,6 +84,8 @@ MSG_fread       read message <key> in (open) file <fpIn>
 List_functions_end:
 =====================================================
 
+See also:
+../ut/msg_simple.c   MSG_get_1 MSG_err_1 MSG_pri_1  for funcs without gui
 
 
 
@@ -734,7 +736,7 @@ char *MSG_ERR_tab[]={
   // printf("MSG_get__ key=|%s| msgSiz=%d\n",key,msgSiz);
 
 
-  vsprintf(sbuf2, fmt, *va);
+  vsnprintf(sbuf2, sizeof(sbuf2), fmt, *va);
     // printf("  sbuf2=|%s|\n",sbuf2);
 
 
@@ -786,7 +788,10 @@ char *MSG_ERR_tab[]={
   int MSG_err_1 (char *key, char *fmt, ...) {
 //================================================================
 // print errormessage with 1 parameter, formatted ..
-// get msg from ../msg/msg_de.txt
+// Input:
+//   key      keyword message; get message from ../../doc/msg/msg_en.txt
+//   fmt      formatstring for following text
+//   ...      parameters corresponding formatstring fmt
 
 // MSG_pri_1 ("TST0", "%d %.2f",5,12.3489);
 
@@ -811,8 +816,10 @@ char *MSG_ERR_tab[]={
   int MSG_pri_1 (char *key, char *fmt, ...) {
 //================================================================
 // print message with 1 parameter, formatted ..
-// get msg from ../msg/msg_de.txt
-
+// Input:
+//   key      keyword message; get message from ../../doc/msg/msg_en.txt
+//   fmt      formatstring for following text
+//   ...      parameters corresponding formatstring fmt
 
 
   int     irc;
@@ -1098,7 +1105,7 @@ char *MSG_ERR_tab[]={
 
 
   va_start (va, txt);
-  vsprintf (s1, txt, va);
+  vsnprintf (s1, sizeof(s1), txt, va);
   va_end (va);
   iKey = iErr - ERR_internal;   // ERR_internal = first element in enum-list
     printf(" s1=|%s| iKey=%d\n",s1,iKey);
@@ -1182,7 +1189,7 @@ char *MSG_ERR_tab[]={
     
 
   va_start (va, txt);
-  vsprintf (s1, txt, va);
+  vsnprintf (s1, sizeof(s1), txt, va);
   va_end (va);
     // printf(" MSG_ERR_std s1=|%s|\n",s1);
 

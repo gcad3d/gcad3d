@@ -525,7 +525,7 @@ static struct {int ifwd, ibwd,
       // store oOut = CCV into DB
       // get next free curve-index
       // { long       dbi1;
-        // dbi1 = DB_dbo_get_free (Typ_CV);   printf("  dbi = %ld\n",dbi1);
+        // dbi1 = DB_dbo_get_last (Typ_CV);   printf("  dbi = %ld\n",dbi1);
         // if(!dbi1) return -1;
         // irc = DB_StoreCvCCV (dbi1, oxo->data, oxo->siz);
         // if(irc < 0) return -1;

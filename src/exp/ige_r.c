@@ -136,11 +136,15 @@ IGE_r__ main import iges
 
 
 Types:
-116=PT 110=LN 100=CI
+100=CI
+110=LN
+116=PT
 142=CCV (CurveOnParametricSurface)
 124=TrMat
 108=190=PLN
-118=122=SRU 120=SRV 128=SRBS
+118=122=SRU
+120=SRV
+128=SRBS
 143=144=TPS
 
 
@@ -236,14 +240,17 @@ G-Block:  Global Section.
 ---------------------------------------------------------------------------
 D-Block ("Definition")
   Fixes Format: 9 Integers/Chars zu je 8 Chars, 2 Zeilen pro Objekt.
+       0       1       2       3       4       5       6       7       8D     9
+                                                ...matID        01234567
+    1-8     9-16   17-24   25-32   33-40   41-48   49-56   57-64   65-72  74-80
 
   Zeile 1:
 
   0:
     Entity-type. 100=AC, 110=LN, 116=PT, 124 = TrMat
   1:
-    Die Zeilen# des zugehoerigen P-Blocks. Es gibt immer einen P-Teil !
-    lineNr of obj in P-block
+    Die Zeilen# des zugehoerigen P-Blocks. 
+    lineNr of obj in P-block (col. 74-80)
   2:
     Structure; Negated D-Pointer; ??
   3:
@@ -254,7 +261,7 @@ D-Block ("Definition")
            (damit ein Obj auf mehreren Levels moeglich ist).
   5:
     VIEW-Pointer.
-  6:
+  6: 
     Matrix. 0: keine Transformation; sonst ein Zeiger auf die P-Block# der
     Tranformation  (diese ist ein Zeiger auf die D-Zeilen# der Transformation).
   7:
@@ -279,7 +286,8 @@ D-Block ("Definition")
       67:  Hierarchie; 00=TopDown, 01 02                     Col 71-72
 
       00 01 00 01   part of subfig or CCV; visible.
-
+  9:
+    Fortlaufende ZeilenNummer, beginnend mit 1
 
 
   Zeile 2:
@@ -307,6 +315,8 @@ D-Block ("Definition")
     Label, Textbezeichnung, kann leer sein.
   8:
     "Subscr"; ?
+  9:
+    Fortlaufende ZeilenNummer, beginnend mit 2
 
 
 

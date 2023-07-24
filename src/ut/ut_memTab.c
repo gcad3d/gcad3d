@@ -77,6 +77,7 @@ MEMTAB_CLEAR          reset  (memTab->rNr = 0;)                      INLINE
 MemTab_dump
 MemTab_disp_tdyn      display MemTab dynamic        alias GR_tDyn_mtb > GR_set_mtb
 MemTab_disp_temp      display MemTab temporary      alias GR_temp_mtb > GR_set_mtb
+MemTab_test__         testprog - info - doku
 
 List_functions_end:
 =====================================================
@@ -517,7 +518,7 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
 
 //=========================================================================
-  int MemTab_sav (MemTab *memTab, long *spcOff, void* objDat, int recNr) {
+  int MemTab_sav (void *memTab, long *spcOff, void* objDat, int recNr) {
 //=========================================================================
 // MemTab_sav          save objDat to memSpc; malloc/realloc if necessary.
 
@@ -605,10 +606,10 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
 
 //================================================================
-  int MemTab_get (void* objDat, MemTab *mt, int ipos, int recNr) {
+  int MemTab_get (void* objDat, void *mtb, int ipos, int recNr) {
 //================================================================
 /// \code
-/// MemTab_get          retrieve (copy out) records 
+/// MemTab_get          retrieve (copy out) records out of MemTab mtb
 ///   get <recNr> records starting with record <ipos>
 /// 
 /// Input:
@@ -621,12 +622,14 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 /// \endcode
 
   char   *oPos;
+  MemTab *memTab = mtb;
 
-  if(mt->rNr < (ipos + recNr)) return -1;
 
-  oPos = (char*)mt->data;
+  if(memTab->rNr < (ipos + recNr)) return -1;
 
-  memcpy(objDat, &oPos[ipos * mt->rSiz], recNr * mt->rSiz);
+  oPos = (char*)memTab->data;
+
+  memcpy(objDat, &oPos[ipos * memTab->rSiz], recNr * memTab->rSiz);
 
   return 0;
 
@@ -634,10 +637,10 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
 
 //================================================================
-  int MemTab_mod (MemTab *mt, void* objDat, int ipos, int recNr) {
+  int MemTab_mod (void *mtb, void* objDat, int ipos, int recNr) {
 //================================================================
 /// \code
-/// MemTab_mod               modify records 
+/// MemTab_mod               modify records of MemTab mtb
 /// modify <recNr> records starting with record <ipos>
 /// 
 /// Input:
@@ -649,12 +652,13 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 /// \endcode
 
   char   *oPos;
+  MemTab *memTab = mtb;
 
-  if(mt->rNr < (ipos + recNr)) return -1;
+  if(memTab->rNr < (ipos + recNr)) return -1;
 
-  oPos = (char*)mt->data;
+  oPos = (char*)memTab->data;
 
-  memcpy(&oPos[ipos * mt->rSiz], objDat, recNr * mt->rSiz);
+  memcpy(&oPos[ipos * memTab->rSiz], objDat, recNr * memTab->rSiz);
 
   return 0;
 
@@ -662,7 +666,7 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
 
 //================================================================
-  int MemTab_del (MemTab *mt, int ipos, int delRecNr) {
+  int MemTab_del (void *mtb, int ipos, int delRecNr) {
 //================================================================
 /// \code
 /// MemTab_del               delete records in MemTab
@@ -674,19 +678,21 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 /// \endcode
 
 
+  MemTab *memTab = mtb;
+
   if(delRecNr < 0) {
     // delete all records including <ipos>
-    mt->rNr = ipos;
+    memTab->rNr = ipos;
     return 0;
   }
 
-  return MEM_del_nrec (&mt->rNr, mt->data, ipos, delRecNr, mt->rSiz);
+  return MEM_del_nrec (&memTab->rNr, memTab->data, ipos, delRecNr, memTab->rSiz);
 
 }
 
 
 //================================================================
-  int MemTab_ins (MemTab *mt, long *spcOff,
+  int MemTab_ins (void *mtb, long *spcOff,
                     void* objDat, int ipos, int insRecNr) {
 //================================================================
 /// \code
@@ -695,14 +701,16 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 /// \endcode
 
   int      irc;
+  MemTab *memTab = mtb;
+
 
 
   // check space
-  irc = MemTab_add (mt, spcOff, NULL, insRecNr, 2);
+  irc = MemTab_add (memTab, spcOff, NULL, insRecNr, 2);
   if(irc < 0) return irc;
 
   // insert
-  MEM_ins_nrec (&mt->rNr, mt->data, ipos, objDat, insRecNr, mt->rSiz);
+  MEM_ins_nrec (&memTab->rNr, memTab->data, ipos, objDat, insRecNr, memTab->rSiz);
 
 
   return 0;
@@ -920,6 +928,82 @@ MemTab MEMTAB_NUL = _MEMTAB_NUL;
 
   return 0;
 
+}
+
+
+//================================================================
+  int MemTab_test__ () {
+//================================================================
+// MemTab_test__   Tests MemTab - fixed-length-records in memory  ../ut/ut_memTab.c
+// needs:
+//   #include "../ut/ut_memTab.h"  // MemTab_..
+//   typedef_MemTab(Point);        // init type; see also ../ut/ut_itmsh.h
+// see INF_MemTab
+
+// typedef struct {double x, y, z;} Point;
+
+// from ../ut/ut_geo.h
+typedef struct {double x, y, z;}                                    Point;
+
+typedef_MemTab(Point);
+
+
+  int           i1, ii;
+  long          ld;
+  Point         pt1, pta[]={{0,0,0},{1,0,0},{1,1,0}}, *pa;
+  MemTab(Point) pTab = _MEMTAB_NUL;  // needs typedef_MemTab(Point);
+
+
+  printf("MemTab_test__ \n");
+
+
+  // alloc for 100 points; does automatic realloc
+  MemTab_ini__ (&pTab, sizeof(Point), Typ_PT, 100);
+
+  // add records to pTab
+  MemTab_sav (&pTab, &ld, &pta[0], 1);   // add 1 record
+  MemTab_sav (&pTab, &ld, &pta[1], 2);   // add 2 records
+
+  printf("recNr = %d\n",pTab.rNr);       // nr of records in pTab (Count)
+
+  // get 1 record starting with record # 2
+  ii = 0;
+  MemTab_get (&pt1, &pTab, 2, 1);
+    // dumpTab (&pTab, 2);
+    printf(" pt1=%f,%f,%f\n",pt1.x,pt1.y,pt1.z);
+
+  // get 1 record direct out of tab.data:
+  pt1 = pTab.data[ii];
+
+  // insert 1 record before record # 2
+  pt1.x = 3; pt1.y = 4; pt1.z = 5;
+  MemTab_ins (&pTab, &ld, &pt1, 2, 1);
+
+  // modify 1 record starting at record # 2
+  pt1.x = 5; pt1.y = 4; pt1.z = 3;
+  MemTab_mod (&pTab, &pt1, 2, 1);
+
+  // get the datablock
+  pa = MEMTAB_DAT (&pTab);
+    DEB_dump_obj__ (Typ_PT, &pa[2], "pa[2]");
+
+  // get nr of records
+  printf(" recNr = %d\n",MEMTAB_IND(&pTab));
+
+
+  // delete 1 record starting at record # 2
+  MemTab_del (&pTab, 2, 1);
+
+  // reset the data (clear)
+  // MEMTAB_CLEAR (&pTab);         // memTab->rNr = 0; 
+
+
+  // free memory
+  MemTab_free (&pTab);
+
+  printf(" sizof = %ld\n",sizeof(MemTab));
+
+  return 0;
 }
 
 

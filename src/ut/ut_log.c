@@ -39,15 +39,17 @@ Modifications:
 =====================================================
 List_functions_start:
 
+LOG_A_init      set logfilename
+LOG_A_exit      close logfile, reset AP_stat.logStat
+LOG_A_disp      display logfile
+
 LOG_A__         write
 LOG_A_pt2       report errPos
 LOG_A_pt3       report errPos
 LOG_A_write     write, fopen if not yet open; set AP_stat.logStat
-
 LOG_A_set_fnam  (re)define logfilename
-LOG_A_init      set logfilename
-LOG_A_disp      display logfile
-LOG_A_exit      close logfile, reset AP_stat.logStat
+
+LOG_A_test      test 
 
 List_functions_end:
 =================================================================
@@ -108,6 +110,8 @@ static char      LOG_A_fnam[128];  // filename Logfile
 
 static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 
+static int       LOG_errNr;
+
 
   int LOG_A__ (int msgTyp, char* txt, ...);
 
@@ -148,6 +152,10 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
   // open log-file
   if(iopen) irc = LOG_A__ (ERR_INF, "=========== logfile %s ",fnam);
   else      irc = 0;
+
+  LOG_errNr = 0;
+
+
   return irc;
 
 }
@@ -200,10 +208,14 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
   strcpy(s1, LOG_A_txt[msgTyp]);
 
   va_start(va,txt);
-  vsprintf(&s1[4], txt, va);
+  vsnprintf(&s1[4], sizeof(s1)-4, txt, va);
   va_end(va);
 
-    // printf(" LOG_A__ |%s|\n",s1);
+
+  if(msgTyp == ERR_ERR) {
+    printf(" LOG_A__ |%s|\n",s1);
+    ++LOG_errNr;
+  }
 
   return LOG_A_write (s1);
 
@@ -278,7 +290,7 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 //================================================================
   int LOG_A_init (char *appNam) {
 //================================================================
-// set automatic logfilename and open logfile
+// set logfilename and open logfile
 
   char   s1[256];
 
@@ -295,19 +307,20 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 
 
 //================================================================
-  int LOG_A_exit (int errNr) {
+  int LOG_A_exit (int *errNr) {
 //================================================================
-/// if (errNr >= 0) then nr of errors is reported with TX_Print
+/// if (LOG_errNr >= 0) then nr of errors is reported with TX_Print
 
   // close logfile
   if(LOG_A_fp) {
-    fprintf (LOG_A_fp, "ENR %d errors\n",errNr);
+    fprintf (LOG_A_fp, "ENR %d errors\n",LOG_errNr);
     fprintf (LOG_A_fp, "INF =========== Logend %s\n",OS_date1());
     fclose (LOG_A_fp);
     LOG_A_fp = NULL;
     AP_stat.logStat = 0; // OFF
 
-    if(errNr > 0) TX_Print ("**** Logfile reports %d errors",errNr);
+    if(LOG_errNr > 0) TX_Print ("**** Logfile reports %d errors",LOG_errNr);
+    *errNr = LOG_errNr;
   }
 
   return 0;
@@ -328,7 +341,36 @@ static char      *LOG_A_txt[]={"INF ","WNG ","ERR ","****","  - "};
 }
 
 
+//================================================================
+  int LOG_A_test () {
+//================================================================
+ 
 
+  int     errNr = 0, irc = -1;
+  char    fn[400];
+
+
+  sprintf(fn, "%sLog_xy.txt", AP_get_tmp_dir());
+
+  // set filename and open
+  LOG_A_init (fn);
+
+  // errMsg
+  LOG_A__ (ERR_ERR, "**** xyz - retCod=%d",irc);
+    // Messagetypes for LOG_A__: see ../xa/xa_msg.h ERR_INF - ERR_CON
+
+  // infMsg
+  LOG_A__ (ERR_INF, "- infotext %s ..","param");
+
+
+  LOG_A_exit (&errNr);      // close
+
+  // display logfile manually: Dump/view_logfile or with func.
+  LOG_A_disp ();
+
+  return 0;
+
+}
 
 
 

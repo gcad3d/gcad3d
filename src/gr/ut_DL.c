@@ -166,6 +166,7 @@ DL_ReScale_pt_get       uxmin-uzmax erweitern um Box
 DL_ReScalePoint
 DL_ReScaleObj
 
+DL_file__               save / load DL in file
 DL_DumpObjTab           dump complete DL
 DL_DumpObj__            dump single DL-record
 
@@ -2987,6 +2988,31 @@ static long   DL_hidden = -1L;
         GR_ObjTab[idl].lNr);
 
   printf("%s\n",cbuf);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int DL_file__ (int mode, FILE *fp1) {
+//================================================================
+// DL_file__               file write|read DL
+// UU
+
+  char   s1[64];
+
+
+  //----------------------------------------------------------------
+  if(mode == 1) {          // write
+    fwrite(&GR_TAB_IND, sizeof(long), 1, fp1);
+    fwrite(GR_ObjTab, sizeof(DL_Att), GR_TAB_IND, fp1);
+
+  //----------------------------------------------------------------
+  } else if(mode == 2) {   // read
+    fread(&GR_TAB_IND, sizeof(long), 1, fp1);
+    fread(GR_ObjTab, sizeof(DL_Att), GR_TAB_IND, fp1);
+  }
 
   return 0;
 

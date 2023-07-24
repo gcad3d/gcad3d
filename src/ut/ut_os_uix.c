@@ -32,10 +32,22 @@ void OS(){}
 /*!
 \file  ../ut/ut_os_aix.c
 \brief opsys functions for unix (AIX, Linux)
-\code
+
 Needs:
 #include "../ut/ut_os.h"               // OS_ ..
 -ldl (unix)
+
+for use without gui:
+../ut/ut_TX.c       for functions TX_Error TX_Write TX_Print
+../ut/msg_simple.c  for functions MSG_err_1 MSG_get_1 MSG_pri_1
+
+
+for use with gui:
+../ut/ut_ui_TX.c    for functions TX_Error TX_Write TX_Print
+../xa/xa_msg.c      for functions MSG_err_1 MSG_get_1 MSG_pri_1
+
+
+
 =====================================================
 List_functions_start:
 
@@ -133,8 +145,7 @@ DLL_dyn_close             close dll
 // DLL_dyn_close_fn          close dll from libraryName  
 OS_dll_unload_idle       unload a dll (idle-callback)
 
-OS_fVwr_get              get fileViewer
-OS_fVwr_set              store/modify ps-viewer (xdg-open|gv|evince)
+OS_fVwr__                set/get pdf/ps-fileViewer
 
 List_functions_end:
 =====================================================
@@ -207,10 +218,12 @@ _______________________________________________________________________________
 
 
 #include "../ut/ut_os.h"               // OS_ ..
-#include "../ut/ut_txt.h"         // fnam_del_s
+#include "../ut/ut_txt.h"              // fnam_del_s
 #include "../ut/ut_cast.h"             // INT__PTR
-#include "../ut/func_types.h"             // FUNC_Pan FUNC_Rot FUNC_LOAD ..
+#include "../ut/func_types.h"          // FUNC_Pan FUNC_Rot FUNC_LOAD ..
 #include "../ut/deb_prt.h"             // printd
+#include "../ut/ut_TX.h"               // TX_Error TX_Print
+#include "../xa/xa_msg.h"              // MSG_get_1 MSG_err_1 MSG_pri_1
 
 
 #define PTRSIZ             sizeof(void*)   // 4 || 8
@@ -301,9 +314,13 @@ extern int errno;
 
 
 //================================================================
-  int OS_config () {
+  int OS_config (char *s1) {
 //================================================================
 // Linux only
+// Output:
+//   s1    size must be 1024; errorInfo; only if irc < 0
+//   irc   0=OK; -1=error; stop.
+//
 // set VER_LIBC_MIN to the version actual existing on the linking computer !
 
 #ifdef _LP64
@@ -312,25 +329,13 @@ extern int errno;
 # define VER_LIBC_MAJ 2
 # define VER_LIBC_MIN 11
 
-  // 2011-07-13 2/16;
-# define VER_GTK_MAJ 2
-# define VER_GTK_MIN 16
-
-
 #else
   // Linux32
   // 2011-07-13 2/9;
 # define VER_LIBC_MAJ 2
 # define VER_LIBC_MIN 9
   
-  // 2011-07-13 2/16;
-# define VER_GTK_MAJ 2
-# define VER_GTK_MIN 16
-
 #endif
-
-
-  char    s1[256];
 
 
   printf("%s\n",OS_get_os_bits());  // 32/64-bit
@@ -349,19 +354,8 @@ extern int errno;
     sprintf(s1,"OS_config ERROR libcVersion; libc %d.%d or newer necessary.",
             VER_LIBC_MAJ, VER_LIBC_MIN);
     printf("%s\n",s1);
-    GUI_MsgBox (s1);
+    return -1;
   }
-
-
-  // gtk-Version
-  // Linux32: 2011-07-13  2/16.
-  if(GUI_ck_version (VER_GTK_MAJ, VER_GTK_MIN) < 0) {
-    sprintf(s1,"OS_config ERROR gtkVersion; GTK %d.%d or newer necessary.",
-            VER_GTK_MAJ, VER_GTK_MIN);
-    printf("%s\n",s1);
-    GUI_MsgBox (s1);
-  }
-
 
 
   return 0;
@@ -670,49 +664,60 @@ extern int errno;
 
 
 //================================================================
-  char* OS_fVwr_get (char *pVwr) {
+  char* OS_fVwr__ (char *sVwr) {
 //================================================================
-// OS_fVwr_get              get fileViewer
+// OS_fVwr__                set/get pdf/ps-fileViewer
+// Input:
+//   sVwr     filename of fileViewer to be stored; else empty;
+// Output:
+//   retCode  filename of pdf/ps-fileViewer
 
-  char s1[128];
+
+  static char  actVwr[256] = "";
+  int  i1;
+  char s1[256];
 
 
-  printf("OS_fVwr_get\n");
+  // printf("OS_fVwr__\n");
 
   //----------------------------------------------------------------
-  if(!pVwr) {
-    // empty; get defViewer
-    if(system("which xdg-open 1>/dev/null 2>/dev/null") == 0) {
-      strcpy(s1, "xdg-open");
-
-    } else if(system("which evince 1>/dev/null 2>/dev/null") == 0) {
-      strcpy(s1, "evince");
-
-    } else if(system("which gv 1>/dev/null 2>/dev/null") == 0) {
-      strcpy(s1, "gv");
-
-    } else if(strlen(s1) < 2) {
-      printf(" **** no postcript-viewer found\n");
-      return NULL;
-    }
-
-    // store s1 as sVwr
-    MEM_str__ (&pVwr, s1);
-    goto L_exit;
+  i1 = strlen(sVwr);
+  if(i1 > 2) {
+    // store new filename
+    if(i1 > 255) {TX_Error("OS_fVwr__ string too long"); return NULL;}
+    strcpy(actVwr, sVwr);
+    return actVwr;
   }
 
 
   //----------------------------------------------------------------
-  // get
-  MEM_str__ (&pVwr, "");
+  i1 = strlen(actVwr);
+  if(i1 < 2) {
+    // empty; get defViewer
+    if(system("which xdg-open 1>/dev/null 2>/dev/null") == 0) {
+      strcpy(actVwr, "xdg-open");
 
-  L_exit:
-    printf(" ex-OS_fVwr_get |%s|\n",pVwr);
-  return pVwr;
+    } else if(system("which evince 1>/dev/null 2>/dev/null") == 0) {
+      strcpy(actVwr, "evince");
+
+    } else if(system("which gv 1>/dev/null 2>/dev/null") == 0) {
+      strcpy(actVwr, "gv");
+
+    } else if(strlen(s1) < 2) {
+      printf(" **** no postcript-viewer found\n");
+      actVwr[0] = '\0';
+      return NULL;
+    }
+      printf("OS_fVwr__ set |%s|\n",actVwr);
+  }
+
+
+  return actVwr;
 
 }
 
 
+/*
 //================================================================
   char* OS_fVwr_set (char *pVwr, char *sVwr) {
 //================================================================
@@ -730,7 +735,7 @@ extern int errno;
   return pVwr;
 
 }
-
+*/
 
 //================================================================
   char* OS_get_user  () {
@@ -768,7 +773,7 @@ extern int errno;
   //----------------------------------------------------------------
   // test if file given; else use <temp>/temp.htm
   if(fNam == NULL) {
-    sprintf(s1, "%stmp.htm",AP_get_tmp_dir());
+    sprintf(s1, "%stmp.htm",OS_get_tmp_dir());
 
   } else {
     strcpy(s1, fNam);
@@ -2515,34 +2520,6 @@ static char  dlNamAct[256];
 }
 
 
-//================================================================
-  int OS_get_GUI () {
-//================================================================
-// OS_get_GUI                       check if GUI (file GUI_dlg1..) exists
-// retCod        0=OK, -1= Error, no GUI
-
-
-  int      irc, vGtk;
-  char     sEnam[256], sGui[32];
-
-  // get gtk-major-version
-  GUI_get_version (sGui, &vGtk, &irc);
-
-  // sEnam = exeFilename
-  sprintf(sEnam,"%sGUI_dlg1_%s%d", OS_bin_dir_get(), sGui, vGtk);
-    printf(" OS_get_GUI |%s|\n",sEnam);
-
-  // test if exe exists
-  if(!OS_checkFilExist(sEnam,1)) {
-    TX_Print("**** file %s does not exist ..", sEnam);
-    return -1;
-  }
-
-  return 0;
-
-}
-
-
 //==========================================================================
   int OS_file_copy (char *oldNam, char *newNam) {
 //==========================================================================
@@ -2697,6 +2674,7 @@ static char  dlNamAct[256];
 //================================================================
 // OS_get_tmp_dir                get directory for temporary files
 // - must end with "/" or (MS-Win) "\"
+// see also AP_get_tmp_dir
 
 
 

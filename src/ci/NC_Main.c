@@ -1311,7 +1311,7 @@ enum Typ_TPCT {
   WC_sur_ind = RefInd;
 
   UT3D_m3_loadpl (WC_sur_mat, &WC_sur_act);
-  UT3D_m3_invm3 (WC_sur_imat, WC_sur_mat);
+  UT3D_m3_inv_ma (WC_sur_imat, WC_sur_mat);
 
   // 
   // GL_SetConstrPln (1);  // GL_constr_pln setzen (hier ist Z-Wert aufgerechnet !)
@@ -3148,6 +3148,11 @@ static long     actDLi;
     // printf(" f-_store_obj %d defTyp=%d defInd=%ld APT_subTyp=%d\n",
            // i1, defTyp, defInd, APT_subTyp);
   if(i1 < 0) {
+//     if(i1 == -4) {
+//       // ignore object (export mockup - ignore subModel; eg OBJ)
+//       return 0;
+// 
+//     } else 
     if(i1 == -2) {
       // have not-geometric-object; eg:
       // Typ_VAR Typ_VC Typ_Activ Typ_Joint some-surfaces some-models

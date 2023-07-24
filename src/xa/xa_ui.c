@@ -35,6 +35,8 @@ void UI(){}
 =====================================================
 List_functions_start:
 
+UI_AP                 init|set|get UI-functions,checkboxes ..
+
 UI_win_main           Das gesamte Window-Layout
 UI_title_set          display / update titlebar
 UI_open_last          display file <tmpDir>MdlLst.txt as subMenu
@@ -45,15 +47,15 @@ UI_block_get          query if functions, input, cursor is blocked
 UI_block_input        activate / disactivate keystrokes & grafic_selections
 UI_func_stat_set__    activate / disactivate Functions.
 UI_func_stat_set_tab  activate / disactivate Functions.
-UI_wait_Esc__           Wait for pressing the Esc-Key ...
+UI_wait_Esc__         Wait for pressing the Esc-Key ...
 UI_wait_time          wait <msTim> millisecs or stop with Esc
 UI_askEscape          get state of Esc-key (work all pending events before)
 UI_Escape_set         set active mode of Esc-key
 
 UI_ckb_nam__          set checkbox ckb_nam
 
-AP_view_upd             enable/disable active view-button
-AP_view_set             enable/disable active view-button
+AP_view_upd           enable/disable active view-button
+AP_view_set           enable/disable active view-button
 AP_view_ck_std        check if active plane is Top, Front or Side
 
 UI_CAD_ON
@@ -76,7 +78,7 @@ UI_EdKeyCR            CR|M3
 AP_UserKeyIn_reset
 AP_UserKeyIn_get
 AP_User_reset         alle reset-funcs, die bei MS-Win u Linux gleich sind
-PLU_appNamTab_set   provide names for application-objects
+PLU_appNamTab_set     provide names for application-objects
 UI_CAD_activate
 UI_PRI__              export / print
 UI_PRI_unl            unload dll xa_print__
@@ -143,7 +145,6 @@ UI_Ed_sel_ln
 UI_Ed_sel              auch zum CurPos setzen
 UI_Ed_scroll           auch zum CurPos setzen
 UI_Ed_sel1             text selektiert darstellen
-UI_AP                  Hauptinterface zur App (APP ruft UI);
 
 UI_dump_oid            dump DB-object  into file & display with browser
 UI_dump_dbo            dump DB-object  into file & display with browser
@@ -2739,7 +2740,7 @@ return 0;
   // AP_set_dir_open (AP_mod_dir);
 
   // create line N1=IMG P(0 0 0) "BMP/Andi.bmp"
-  ind = DB_dbo_get_free (Typ_GTXT); // N
+  ind = DB_dbo_get_last (Typ_GTXT); // N
   ++ind;
   sprintf(cbuf,"N%ld=IMG P(0 0 0) \"%s/%s\"",ind,AP_mod_sym,fnam),
 
@@ -2771,7 +2772,7 @@ return 0;
   // AP_set_dir_open (AP_mod_dir);
 
   // get next free Model-index
-  ind = DB_dbo_get_free (Typ_Model); // M
+  ind = DB_dbo_get_last (Typ_Model); // M
   ++ind;
 
   // create line M# = "symDir/fnam" P(0 0 0)
@@ -2808,7 +2809,7 @@ return 0;
   Mod_sym_get2 (dirSym, dirNam, 0);
 
   // create line M#=IMG "fnam" P(0 0 0)
-  ind = DB_dbo_get_free (Typ_GTXT); // M
+  ind = DB_dbo_get_last (Typ_GTXT); // M
   ++ind;
   sprintf(cbuf,"N%ld=IMG P(0 0 0) \"%s/%s\"",ind,dirSym,fnam),
 
@@ -4487,7 +4488,7 @@ return 0;
   long   ll;
 
 
-  // printf(" butEND: InpMode=%d\n",UI_InpMode); // 2=MAN,3=CAD
+  // printf("UI_butEND: InpMode=%d\n",UI_InpMode); // 2=MAN,3=CAD
 
   GUI_set_enable (&but_end, FALSE);
 
@@ -6472,13 +6473,15 @@ return 0;
     MDL_load_mdl_f (NULL);  // create subModel from load file
     // Mod_LoadFile__ ();
 
-  } else if(!strcmp(cp1, "mod_ren")) {
+  } else if(!strcmp(cp1, "mod_clr")) {  // remove unused subModels
+    MDL_clr__ ();
+
+  } else if(!strcmp(cp1, "mod_ren")) {  // rename active subModel
     MDL_ren__ (AP_modact_nam);
 
-  } else if(!strcmp(cp1, "mod_del")) {
+  } else if(!strcmp(cp1, "mod_del")) {  // delete active subModel
     // subModel must be active
     if(MDL_IS_MAIN) return MDL_msg_no_sm (0);
-    // delete active subModel
     // Mod_del_mdb2 ();   
     Brw_sMdl_del__ (AP_modact_nam);
 
@@ -6877,7 +6880,7 @@ return 0;
     sprintf(cbuf1, "%stmp.html",AP_get_tmp_dir());
     DEB_dump_obj__ (TYP_FuncInit, (void*)"htm", cbuf1);
 
-    // il1 = DB_dbo_get_free (Typ_Model);
+    // il1 = DB_dbo_get_last (Typ_Model);
     sprintf(cbuf2, "\nReference models:\n"); // APT_MR_IND
     DEB_dump_obj__(Typ_Txt, cbuf2, "");
     DB_dump_ModRef ("");
@@ -7466,6 +7469,10 @@ box1
       GUI_menu_entry(&men_mod,"load Submodel from File",
                      UI_menCB, (void*)"mod_loa");
         MSG_Tip ("MMsmlf"); //("Model aus Datei als Submodel laden");
+
+      GUI_menu_entry(&men_mod,"remove unused Submodels",
+                     UI_menCB, (void*)"mod_clr");
+        MSG_Tip ("MMsmrm");
 
       GUI_menu_entry(&men_mod,"rename active Submodel",
                      UI_menCB, (void*)"mod_ren");
@@ -9986,9 +9993,11 @@ return 0;
 //=================================================================
   void UI_AP (int func, int widgetID, void* data) {
 //=================================================================
-// das Hauptinterface zur App (APP ruft UI);
-// Checkboxen liefern mit UI_FuncGet ein int zurueck; 0=selektiert, 1=nicht!
-// data MUSS IMMER mit (void*) gecastet werden !
+// UI_AP             init|set|get UI-functions,checkboxes ..
+
+// Output:
+//   data     int or pointer ..
+//            checkboxes provide int - 0=selected; 1=not-selected
 
 // func       see ../ut/func_types.h
 // widgetID   see ../xa/xa_uid.h

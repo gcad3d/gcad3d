@@ -1979,7 +1979,7 @@ void   UT3D_m3_load_povxvz (Mat_4x3 ma, Point *ori, Vector *vx, Vector *vz);
 void   UT3D_m3_load_o   (Mat_4x3, Point *);
 // int    UT3D_m3_get      (void *out, int mode, Mat_4x3 ma);
 // int    UT3D_m3_set      (Mat_4x3 ma, int mode, void *da);
-int    UT3D_m3_invm3    (Mat_4x3, Mat_4x3);
+int    UT3D_m3_inv_ma    (Mat_4x3, Mat_4x3);
 void   UT3D_m3_multm3   (Mat_4x3 m3, Mat_4x3 m1, Mat_4x3 m2);
 int    UT3D_m3_tram3m3  (Mat_4x3 m3, Mat_4x3 m1, Mat_4x3 m2);
 

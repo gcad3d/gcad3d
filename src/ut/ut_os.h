@@ -22,6 +22,7 @@ Korr:
   double OS_prc_time_diff (double timStart);
   double OS_prc_time_start ();
   int    OS_system (char *buf);
+  int    OS_sys1 (char *sOut, int sSiz, char *cmd);
   int    OS_browse_htm (char *filnam, char *label);
   void   OS_Wait   (int millisecs);
   void   OS_beep   ();
@@ -50,8 +51,7 @@ Korr:
   char*  OS_get_browse_htm   ();
   char*  OS_get_printer   ();
   char*  OS_get_imgConv1  ();
-  char*  OS_fVwr_set      (char *pVwr, char *sVwr);
-  char*  OS_fVwr_get      (char *pVwr);
+  char*  OS_fVwr__        (char *sVwr);
   int    OS_get_GUI       ();
   char*  OS_get_dir_pwd   ();
   char*  OS_get_os__      ();
@@ -63,8 +63,8 @@ Korr:
   int    OS_file_delete (char *fNam);
   int    OS_file_readm1 (char *cbuf, int cSiz, char *fnam);
   int    OS_file_waitExist (char *fn, int maxTim);
+  int    OS_files_join (char *fno, char *fn1, char *fn2, ...);
   // int OS_file_concat (char *fno, char *fn1, char *fn2);
-  int OS_files_join (char *fno, char *fn1, char *fn2, ...);
 
   int    OS_debug_dll_ (char *dllNam);
   int    OS_ck_libcVersion (int vMaj, int vMin);

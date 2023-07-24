@@ -985,9 +985,9 @@ static jmp_buf     jmp1;
 
   fclose (stpw_fp);
 
-  LOG_A__ (ERR_INF, "nr of errors = %d", exp_errNr);
-  LOG_A__ (ERR_INF, "nr of objs exported = %d", exp_objNr);
-  LOG_A_exit (exp_errNr);
+  // LOG_A__ (ERR_INF, "nr of errors = %d", exp_errNr);
+  // LOG_A__ (ERR_INF, "nr of objs exported = %d", exp_objNr);
+  LOG_A_exit (&exp_errNr);
 
   MemTab_free (&ol_ref);
   // MemTab_free (&olSs);
@@ -6289,7 +6289,7 @@ STP_w_ERREX ("STP_w_EDGE_LOOP__-L2");
 
   va_start(va,eTxt);
 
-  vsprintf(s1,s2,va);
+  vsnprintf(s1,sizeof(s1),s2,va);
 
   va_end(va);
 

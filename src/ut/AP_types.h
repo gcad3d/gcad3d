@@ -106,12 +106,12 @@ void INF_OTYP (){}
 #define Typ_SURSWP        55  ///< A Sweep Surf          SurSwp
 #define Typ_SURBSP        56  ///< A B_Spline_Surf       SurBSpl
 #define Typ_SURRBSP       57  ///< A Rat.B_Spline Surf   SurRBSpl
-#define Typ_SURHAT        60  ///< A Hatch
+#define Typ_SURPLN        58  ///< A Planar surf. (also Typ_SUTP,Typ_PLN,curve)
 
 // trimmed, perforated surfaces:
-#define Typ_SURPLN        58  ///< A Planar surf. NOT supportSurf !
-#define Typ_SURSUP        69  ///< A support-surface (PLN SURCON SURTOR SURRU SURRV ..)
+#define Typ_SURSUP        69  // A support-surface (PLN SURCON SURTOR SURRU SURRV)  UU
 #define Typ_SUTP          59  ///< A surface-trimmed-perforated-supported
+#define Typ_SURHAT        60  ///< A Hatch
 
 // pretesselated surfaces
 #define Typ_SURCIR        61  ///< tesselated fan

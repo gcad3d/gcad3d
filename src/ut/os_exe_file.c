@@ -110,7 +110,7 @@ cat /tmp/debug.dat
   va_list va;
 
 
-  // printf("OS_exe_file__ |%s|\n",fnExe);
+  printf("OS_exe_file__ |%s|\n",fnExe);
 
   // get full exename
   irc = OS_exe_file_fn (fnfExe, fnExe);
@@ -187,7 +187,7 @@ cat /tmp/debug.dat
   char     sGui[32];
 
 
-  // printf("OS_exe_file_fn |%s|\n",sNam);
+  printf("OS_exe_file_fn |%s|\n",sNam);
 
 
   // get gtk-major-version

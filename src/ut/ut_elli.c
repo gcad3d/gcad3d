@@ -91,6 +91,7 @@ UT3D_el_inv1              turn direction and p1/p2 (same display !)
 UT3D_el_inv2              turn direction (do not swap p1,p2)
 UT3D_el_cpyDef_el         copy defaults (ango,srot,clo,trm)
 UT3D_el_cpyDef_el2        copy defaults (ango,srot,clo,trm)
+UT2D_elTra_el3            get 2D-elli in centerPos + trMat from 3D-elli
 
 -------------- CurvEll2 --------------------------------------
 UT2D_pt_el_ptx            get y-coord of point on elli
@@ -600,6 +601,53 @@ cl -c ut_geo.c
 
 
     // DEB_dump_obj__ (Typ_CVELL, el2, " ex-UT3D_el_el_parl");
+
+  return 0;
+
+}
+
+
+//===================================================================
+  int UT2D_elTra_el3 (Mat_4x3 mtra, CurvEll2C *el2c, CurvElli *el3) {
+//===================================================================
+// UT2D_elTra_el3    get 2D-elli in centerPos + trMat from 3D-elli
+// see also UT2D_el* in ../ut/ut_elli.c
+
+  Point       p1;
+  Vector      vcx;
+  Plane       pl1;
+  Mat_4x3     imat;
+
+  // get Plane from ell-center, ell-majAxis, ell-minAxis
+  UT3D_pl_pto_vcz_vcx (&pl1, &el3->pc, &el3->vz, &el3->va);
+    DEB_dump_obj__ (Typ_PLN, &pl1, "UT2D_elTra_el3 ci3-pln");
+
+  // get Matrix from Plane
+  UT3D_m3_loadpl (mtra, &pl1);
+    DEB_dump_obj__ (Typ_PLN, &pl1, "UT2D_elTra_el3 ci3-pln");
+    DEB_dump_obj__ (Typ_M4x3, mtra, "UT2D_elTra_el3 mtra");
+
+  UT3D_m3_inv_ma (imat, mtra);
+    DEB_dump_obj__ (Typ_M4x3, imat, "UT2D_elTra_el3 imat");
+ 
+  // transfer points
+  UT3D_pt_tra_pt_m3 (&p1, imat, &el3->p1);
+  el2c->p1 = UT2D_pt_pt3 (&p1);
+
+  UT3D_pt_tra_pt_m3 (&p1, imat, &el3->p2);
+  el2c->p2 = UT2D_pt_pt3 (&p1);
+
+  // ci2->angs =                     TODO !
+  // ci2->ango =                     TODO !
+
+  el2c->a    = UT3D_len_vc (&el3->va);
+  el2c->b    = UT3D_len_vc (&el3->vb);
+  el2c->srot = el3->srot;
+  el2c->clo  = el3->clo;
+  el2c->trm  = el3->trm;
+
+    DEB_dump_obj__ (Typ_CVELL2C, el2c, "ex-UT2D_elTra_el3 ci3");
+    // DEB_dump_obj__ (Typ_M4x4, mtra, "ex-UT2D_ciTra mtra");
 
   return 0;
 
@@ -1683,7 +1731,7 @@ cl -c ut_geo.c
     // ellipse = line
 
     // invert matrix
-    UT3D_m3_invm3 (ima, ma);
+    UT3D_m3_inv_ma (ima, ma);
 
     // make vectors from ellipse start- and endpoint
     UT3D_vc_2pt (&v1, &(el->pc), &(el->p1));
@@ -1761,7 +1809,7 @@ cl -c ut_geo.c
   // UT3D_m3_load_povxvy (m1, &UT3D_PT_NUL, &(el->va), &(el->vb));
 
   // invert matrix
-  UT3D_m3_invm3 (ima, ma);
+  UT3D_m3_inv_ma (ima, ma);
 
   // make vectors from ellipse start- and endpoint
   UT3D_vc_2pt (&v1, &(el->pc), &(el->p1));
@@ -2256,7 +2304,7 @@ cl -c ut_geo.c
   UT3D_m3_load (ma, &(ell->va), &(ell->vb), &(ell->vz)); 
 
   // invert matrix
-  UT3D_m3_invm3 (ima, ma);
+  UT3D_m3_inv_ma (ima, ma);
 
   // transform point
   UT3D_pt_tra_pt_m3 (&pp, ima, &pp);
@@ -2764,7 +2812,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT3D_m3_load_o (ma, &(el->pc));
 
   // invert matrix
-  UT3D_m3_invm3 (ima, ma);
+  UT3D_m3_inv_ma (ima, ma);
 
   // transform line points
   UT3D_pt_tra_pt_m3 (&p1, ima, &(ln->p1));

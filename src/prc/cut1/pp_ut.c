@@ -38,7 +38,7 @@ extern FILE *fpLog;
 
   va_start(va,txt);
 
-  vsprintf(TX_buf1,txt,va);
+  vsnprintf(TX_buf1,sizeof(TX_buf1),txt,va);
 
   va_end(va);
 
@@ -69,7 +69,7 @@ extern FILE *fpLog;
 
   strcpy(TX_buf1, "*** Fehler: ");
                 // o123456789012
-  vsprintf(&TX_buf1[12],txt,va);
+  vsnprintf(&TX_buf1[12],sizeof(TX_buf1)-12,txt,va);
   va_end(va);
 
   TX_Write (TX_buf1);

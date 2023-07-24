@@ -286,7 +286,7 @@ TxtTab txTab1 = _UTXTAB_NUL;
   printf("TX_Print-ut_txTab |%s|\n",txt);
 
   va_start(va,txt);
-  vsprintf(TX_buf1,txt,va);
+  vsnprintf(TX_buf1,sizeof(TX_buf1),txt,va);
   va_end(va);
 
   if(strlen(TX_buf1) > 255) {

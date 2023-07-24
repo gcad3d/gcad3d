@@ -1,6 +1,6 @@
 /*
  * GL2PS, an OpenGL to PostScript Printing Library
- * Copyright (C) 1999-2020 C. Geuzaine
+ * Copyright (C) 1999-2015 C. Geuzaine
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of either:
@@ -33,8 +33,8 @@
  * Please report all bugs and problems to <gl2ps@geuz.org>.
  */
 
-#ifndef GL2PS_H
-#define GL2PS_H
+#ifndef __GL2PS_H__
+#define __GL2PS_H__
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,14 +44,9 @@
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #  if defined(_MSC_VER)
 #    pragma warning(disable:4115)
-#    pragma warning(disable:4127)
 #    pragma warning(disable:4996)
 #  endif
-#  if !defined(NOMINMAX)
-#    define NOMINMAX
-#  endif
 #  include <windows.h>
-#  undef NOMINMAX
 #  if defined(GL2PSDLL)
 #    if defined(GL2PSDLL_EXPORTS)
 #      define GL2PSDLL_API __declspec(dllexport)
@@ -88,15 +83,15 @@
 /* Version number */
 
 #define GL2PS_MAJOR_VERSION 1
-#define GL2PS_MINOR_VERSION 4
-#define GL2PS_PATCH_VERSION 2
+#define GL2PS_MINOR_VERSION 3
+#define GL2PS_PATCH_VERSION 9
 #define GL2PS_EXTRA_VERSION ""
 
 #define GL2PS_VERSION (GL2PS_MAJOR_VERSION + \
                        0.01 * GL2PS_MINOR_VERSION + \
                        0.0001 * GL2PS_PATCH_VERSION)
 
-#define GL2PS_COPYRIGHT "(C) 1999-2020 C. Geuzaine"
+#define GL2PS_COPYRIGHT "(C) 1999-2015 C. Geuzaine"
 
 /* Output file formats (the values and the ordering are important!) */
 
@@ -139,8 +134,6 @@
 #define GL2PS_COMPRESS             (1<<10)
 #define GL2PS_NO_BLENDING          (1<<11)
 #define GL2PS_TIGHT_BOUNDING_BOX   (1<<12)
-#define GL2PS_NO_OPENGL_CONTEXT    (1<<13)
-#define GL2PS_NO_TEX_FONTSIZE      (1<<14)
 
 /* Arguments for gl2psEnable/gl2psDisable */
 
@@ -148,16 +141,6 @@
 #define GL2PS_POLYGON_BOUNDARY    2
 #define GL2PS_LINE_STIPPLE        3
 #define GL2PS_BLEND               4
-
-/* Arguments for gl2psLineCap/Join */
-
-#define GL2PS_LINE_CAP_BUTT       0
-#define GL2PS_LINE_CAP_ROUND      1
-#define GL2PS_LINE_CAP_SQUARE     2
-
-#define GL2PS_LINE_JOIN_MITER     0
-#define GL2PS_LINE_JOIN_ROUND     1
-#define GL2PS_LINE_JOIN_BEVEL     2
 
 /* Text alignment (o=raster position; default mode is BL):
    +---+ +---+ +---+ +---+ +---+ +---+ +-o-+ o---+ +---o
@@ -176,25 +159,6 @@
 #define GL2PS_TEXT_TR 9
 
 typedef GLfloat GL2PSrgba[4];
-typedef GLfloat GL2PSxyz[3];
-
-typedef struct {
-  GL2PSxyz xyz;
-  GL2PSrgba rgba;
-} GL2PSvertex;
-
-/* Primitive types */
-#define GL2PS_NO_TYPE          -1
-#define GL2PS_TEXT             1
-#define GL2PS_POINT            2
-#define GL2PS_LINE             3
-#define GL2PS_QUADRANGLE       4
-#define GL2PS_TRIANGLE         5
-#define GL2PS_PIXMAP           6
-#define GL2PS_IMAGEMAP         7
-#define GL2PS_IMAGEMAP_WRITTEN 8
-#define GL2PS_IMAGEMAP_VISIBLE 9
-#define GL2PS_SPECIAL          10
 
 #if defined(__cplusplus)
 extern "C" {
@@ -218,31 +182,15 @@ GL2PSDLL_API GLint gl2psTextOpt(const char *str, const char *fontname,
 GL2PSDLL_API GLint gl2psTextOptColor(const char *str, const char *fontname,
                                      GLshort fontsize, GLint align, GLfloat angle,
                                      GL2PSrgba color);
-GL2PSDLL_API GLint gl2psTextOptColorBL(const char *str, const char *fontname,
-                                       GLshort fontsize, GLint align, GLfloat angle,
-                                       GL2PSrgba color, GLfloat blx, GLfloat bly);
 GL2PSDLL_API GLint gl2psSpecial(GLint format, const char *str);
-GL2PSDLL_API GLint gl2psSpecialColor(GLint format, const char *str, GL2PSrgba rgba);
 GL2PSDLL_API GLint gl2psDrawPixels(GLsizei width, GLsizei height,
                                    GLint xorig, GLint yorig,
                                    GLenum format, GLenum type, const void *pixels);
 GL2PSDLL_API GLint gl2psEnable(GLint mode);
 GL2PSDLL_API GLint gl2psDisable(GLint mode);
 GL2PSDLL_API GLint gl2psPointSize(GLfloat value);
-GL2PSDLL_API GLint gl2psLineCap(GLint value);
-GL2PSDLL_API GLint gl2psLineJoin(GLint value);
 GL2PSDLL_API GLint gl2psLineWidth(GLfloat value);
 GL2PSDLL_API GLint gl2psBlendFunc(GLenum sfactor, GLenum dfactor);
-GL2PSDLL_API GLint gl2psSorting(GLint mode);
-
-/* referenced in the documentation, but not fully documented */
-GL2PSDLL_API GLint gl2psForceRasterPos(GL2PSvertex *vert);
-GL2PSDLL_API void gl2psAddPolyPrimitive(GLshort type, GLshort numverts,
-                                        GL2PSvertex *verts, GLint offset,
-                                        GLfloat ofactor, GLfloat ounits,
-                                        GLushort pattern, GLint factor,
-                                        GLfloat width, GLint linecap,
-                                        GLint linejoin, char boundary);
 
 /* undocumented */
 GL2PSDLL_API GLint gl2psDrawImageMap(GLsizei width, GLsizei height,
@@ -251,10 +199,9 @@ GL2PSDLL_API GLint gl2psDrawImageMap(GLsizei width, GLsizei height,
 GL2PSDLL_API const char *gl2psGetFileExtension(GLint format);
 GL2PSDLL_API const char *gl2psGetFormatDescription(GLint format);
 GL2PSDLL_API GLint gl2psGetFileFormat();
-GL2PSDLL_API GLint gl2psSetTexScaling(GLfloat scaling);
 
 #if defined(__cplusplus)
 }
 #endif
 
-#endif
+#endif /* __GL2PS_H__ */

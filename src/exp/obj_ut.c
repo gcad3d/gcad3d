@@ -33,7 +33,7 @@ Modifications:
 =====================================================
 List_functions_start:
 
-gCad_main            read WaveFront-OBj-File (for mockup)
+gCad_main            main-entry read WaveFront-OBj-File (for mockup)
 obj_readTess__       read WaveFront-OBj-File (for mockup)
 obj_read__           read WaveFront-OBj-File (for model)
 obj_r_v__            read vertex (for mockup)
@@ -63,29 +63,24 @@ Filetypes:
 ------------ .obj - spec: ---------------
 # Kommentarzeile
 
-
 v xCoord yCoord zCoord
 # vertex-coords; orientation: cad-z = obj-y; cad-y = obj-z * -1
 
 
+vt ..      #   TexturVertices
+vn ..      #   VertexNormalvektoren
+vp ..      #   parameter space vertices   (f Freiformkurven)
 
+f          # Face
 f vertexNr1 vertexNr2 vertexNr3 [vertexNr4]
 # Face with 3 or 4 vertices. Vertexdelimiter is a blank
 # f 1//1 2//2 3//3    indexes to vertexes/textureCoords/normals
 
-
-vt   TexturVertices
-vn   VertexNormalvektoren
-vp   parameter space vertices   (f Freiformkurven)
-g    group name
-f    Face
-surf surface
-
-o name
-# user-defined object name for all following objects
+o name     # user-defined object name for all following objects
+g ..       # group name
 
 s off
-# smoothing group; 0 or off is of; else group-nr.
+# smoothing group; 0 or off or group-nr.
 
 # define material-library
 mtllib xx.mtl
@@ -99,6 +94,9 @@ UNUSED:
 p  point
 sp special-point
 l  line
+
+??
+surf surface
 
 
 
@@ -218,7 +216,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 // 3) Typ_Memspc outSpc
 
 
-  int     irc, mode;
+  int     irc, mode, impTyp;
   char    *fnam;
   ObjGX   *oTab;
 
@@ -228,26 +226,39 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
 
   oTab   = ((ObjGX*)fdat)->data;
-  mode   = INT__PTR(oTab[0].data);  // 1) Typ_Int4   mode; 1=work, 3=free.
-  fnam   = oTab[1].data;           // 2) Typ_Txt    filename
-  impSpc = oTab[2].data;           // 3) Typ_Memspc outSpc
+  mode   = INT__PTR(oTab[0].data);  // int mode; 0=native; 1=mock-work, 3=mock/free
+  fnam   = oTab[1].data;            // Typ_Txt    filename
+  if(mode)                          // only for mockup
+  impSpc = oTab[2].data;            // Typ_Memspc outSpc
 
   // printf("gCad_main/xa_WRL_R mode=%d fnam=|%s|\n",mode,fnam);
 
 
 
   //----------------------------------------------------------------
-  if(mode != 1) goto L_free;                 // WORK
+  if(mode == 0) {
+    // export as CAD-model
+    irc = obj_read__ (fnam);
+    goto L_exit;
+
+
+  } else if(mode != 1) goto L_free;
   // printf(" OBJ-read-work\n");
 
+  // export as mockup
   irc = obj_readTess__ (fnam);
-  // printf("ex wrl_readTess__ %d\n",irc);
+
+
+
+  L_exit:
+    printf("ex-plugin-obj-imp %d\n",irc);
+
   return irc;
 
 
 
   //----------------------------------------------------------------
-  L_free:                                    // FREE
+  L_free:                                    // mockup/FREE
   if(mode != 3) return 0;
   // printf(" OBJ-read-Exit/free\n");
   return 0;
@@ -267,8 +278,8 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   char cbuf1[256];
   FILE *fpi;
 
-  printf("========================================\n");
-  printf("obj_read__ |%s|\n",fnam);
+  // printf("========================================\n");
+  // printf("obj_read__ |%s|\n",fnam);
   TX_Print("obj_read__ |%s|",fnam);
 
 
@@ -301,7 +312,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   UTF_add1_line (mem_cbuf1);
 
 
-  ioffP = DB_dbo_get_free (Typ_PT);    // P
+  ioffP = DB_dbo_get_last (Typ_PT);    // P
     // printf(" ioffP=%ld\n",ioffP);
 
 
@@ -309,7 +320,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   AP_obj_2_txt (NULL, 0L, NULL, 0L);
 
   // als offset erforderlich
-  ioffP = DB_dbo_get_free (Typ_PT);    // P
+  ioffP = DB_dbo_get_last (Typ_PT);    // P
     printf(" ioffP=%ld\n",ioffP);
 
   colInd = -1;
@@ -622,7 +633,7 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 //================================================================
   int obj_r_f__ (char *cbuf, int ioffP) {
 //================================================================
-// face aus 3 od 4 indices  (for model)
+// export face aus 3 od 4 indices  (for model)
 // see also obj_r_face (for mockup)
 
   int    irc, i1;
@@ -889,14 +900,12 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 //================================================================
   int obj_r_f_r (long *ia, char *cbuf) {
 //================================================================
-/// \code
-/// read 3 od 4 indices 
-/// see also obj_r_f__ (for model)
-/// retCode:  -1 less than 3 vertices;
-///            0   3 vertices
-///            1   4 vertices
-/// \endcode
-
+// read 3 od 4 indices 
+// see also obj_r_f__ (for model)
+// retCode:  -1 less than 3 vertices;
+//            0   3 vertices
+//            1   4 vertices
+//
 // Input:  (f -line)
 //   1 2 3
 //   1//1 2//2 3//3

@@ -1,0 +1,42 @@
+gcad3d/src/UIX/README - build unix executables, dll's;
+
+./do help            - display options
+./do complete        - complete rebuild
+
+
+
+//================================================================
+Directories gcad-devel:
+
+<DIR_BAS>/gcad3d/src/UIX                        # Unix-package devel (debian & rpm)
+                |   |
+                |   /MSYS                       # Windows/MSYS2 devel
+                |   |
+                |   /MSYS                       # Windows/MSYS2 devel
+                |
+                /gCAD3D/cfg_Linux               # test app here
+                |      |
+                |      /bin_Linux_x86_64        # Linux-binaries
+                |
+                /packages                       # install-packages
+                |
+                /debian                         # aux.files for debian-package
+                |
+                /rpm                            # aux.files for rpm-package
+
+
+//================================================================
+Directories installed gCAD3D:
+
+${HOME}/gCAD3D/cfg_Linux           # config-files *.rc, ..
+              |
+              /dat                 # cad-model *.gcad, *.dxf, *.igs, *.stp ...
+              |
+              /tmp                 # temporary files
+              |
+              /prg                 # application-programs *.gcap
+              |
+              /ctlg                # catalog-model *.ctlg
+
+
+# eof

@@ -1,0 +1,692 @@
+#!/bin/bash
+# help usage                        ./do help
+# Development-Start gcad3d          ./do
+# must be started in directory ${DIR_DEV}gcad3d/src/APP/
+# 2023-02-10
+
+
+echo
+echo entering build__ $1 -------------------------------------------------
+
+if test "$1" = "help"; then
+echo "---------------------------------------------------------------------"
+echo "./do debug_ON           # debug ON for following builds (development)"
+echo "./do debug_OFF          # debug OFF for following builds (production)"
+echo "./do complete           # compile, link all."
+echo "./do                    # start gcad3d in local-test-environment"
+echo "---------------------------------------------------------------------"
+#echo "./do gui-gtk2           # set GUI gtk2"
+#echo "./do gui-gtk3           # set GUI gtk3"
+#echo "./do guiinit            # recompile all sources of active GUI-version"
+echo "./do guiexe             # rebuild executables GUI_*"
+echo "./do gui                # rebuild xa_gui_gtk-*.so"
+echo "./do c                  # compile & link core"
+echo "./do all                # compile & link corelibs"
+echo "./do allDemos           # compile & link demos"
+echo "./do allPrcs            # compile & link processes"
+echo "./do allExtras          # compile & link postprocessors and extras"
+echo "---------------------------------------------------------------------"
+echo "./do pack_deb           # create gCAD3D.<version>-<machine>.deb"
+echo "./do uninstall_deb      # remove installation (sudo)"
+echo "./do install_deb        # install into system (sudo -E)"
+#echo "./do install_test_deb   # test-install into system (sudo -E)"
+#echo "./do uninstall_test_deb # remove test-installation (sudo)"
+#echo "./do pack_src           # create zip-file of sources "
+#echo "./do pack_doc           # create zip-file of complete doc"
+echo "---------------------------------------------------------------------"
+echo "./do pack_rpm           # create gCAD3D.<version>-<machine>.rpm"
+echo "./do uninstall_rpm      # remove installation (sudo)"
+echo "./do install_rpm        # install into system (sudo -E)"
+echo "---------------------------------------------------------------------"
+echo "./do pack_MSYS          # create gCAD3D..<version>-win64.exe"
+echo "---------------------------------------------------------------------"
+echo "./do examples_init      # unpack examples.gz into $HOME"
+echo "./do examples_pack      # create examples.gz - ONLY HOST HDEV4"
+echo "./do delete             # delete all objects"
+echo "./do fnd_sym <sym_x>    # find & touch all files using symbol <sym_x>"
+echo "./do fnd_inc <incFile>  # find & touch all files with #include <incFilNam>"
+echo "./do fnd_inf <text>     # find <text> in Info-files"
+echo "./do fnd_msg <text>     # find <text> in message-file msg_en"
+echo "./do *.mak              # link a plugin (for the first time)"
+echo "./do gdb_ed             # edit debug-file, start with debugger"
+echo "./do gdb <params>       # start with debugger gdb"
+echo "./do valgrind <params>  # start valgrind (Linux only; creates ~/t1)"
+echo "./do windbg             # start windbg (Windows only)"
+echo "./do gprof              # start gprof"
+echo "./do trc                # start with mtrace"
+echo "---------------------------------------------------------------------"
+echo "./do ud                 # display userDoc"
+echo "./do dd                 # display devDoc"
+echo "./do udd                # update & display devDoc"
+echo "./do gty                # display AP_types.h"
+echo "./do gh                 # display ut_geo.h"
+echo "./do g2                 # display ut_geo3d.c"
+echo "./do g3                 # display ut_geo3d.c"
+echo "./do gmon               # analyze time"
+echo "./do edm                # edit model"
+echo "./do inf                # update DevDoc infotext.c"
+echo "./do msg-files          # tools for language-files: ls lang*.csh"
+echo "./do tmpClean1          # rm <tmpDir> CTRL* Mod*"
+echo "./do clean              # rm *.out"
+echo "./i                     # display dev-doc"
+echo "./i <text>              # find <text> in dev-doc"
+echo "---------------------------------------------------------------------"
+exit 0
+fi
+
+
+# test if OSTYP DIR_BAS DIR_DEV gcad_dir_bin DEB VGUI defined (devbase.sh)
+if test "$gcad_dir_bin" = ""; then
+  echo "**** ERROR gcad_dir_bin is not set"
+  exit 1
+fi
+
+
+# init Unix
+if test "${OSTYP}" = "UIX"; then
+  cmdVi="vi"
+  #cmdVi='vim -N -u /mnt/serv1/Linux/bin/.vimrc'
+else
+  cmdVi="notepad"
+fi
+#echo $cmdVi
+
+
+# init binary directory -
+# copy all necessary libs and exes into gcad_dir_bin
+if test "${OSTYP}" = "MSYS"; then
+  # test if systemfile exists
+  FN1=$(cygpath -u "${gcad_dir_bin}libstdc++-6.dll")
+  if ! test -f "$FN1"; then
+    echo "- copy systemfiles -"
+    ./osAux.sh ${OSTYP}Files.lst
+    if [ $? -ne 0 ]; then exit -1; fi
+  fi
+
+#else
+#  # UIX - test if systemfile exists
+# FN1=../APP/libgtkgl2/usr/lib/libgtkgl-2.0.so
+# if ! test -f "$FN1"; then
+#    echo "- copy systemfiles -"
+#    ./osAux.sh ${OSTYP}Files.lst
+#    if [ $? -ne 0 ]; then exit -1; fi
+# fi
+fi
+
+
+
+#================================================================================
+# debug ON for following builds (development, see ./deb.mak)
+# in file ./deb.mak change "DEB ="   -> "DEB = 1"
+# set DEB=1 CPDEB LKDEB
+if test "$1" = "debug_ON"; then
+  echo "ON" > gcad_deb
+  exit 0
+fi
+
+
+# debug OFF for following builds (production, see ./deb.mak)
+if test "$1" = "debug_OFF"; then
+  echo "OFF" > gcad_deb
+  exit 0
+fi
+
+
+#================================================================================
+# GUI_exe
+# Create all GUI_*  exectables
+if test "$1" = "guiexe"; then
+  make -f gcad_gui_exe.mak GUI_exe
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR GUI build GUI_exe *******"
+    exit 1;
+  fi
+  # recompile files used in GUI-exefiles and relocatable GUI-plugin
+  touch ../ut/os_uix.c
+  touch ../ut/deb_prt.c
+  exit 0
+fi
+
+
+# GUI-core-so
+if test "$1" = "gui"; then
+  # test if dev-pack for VGUI is installed
+# ../gui/gui_version_ck.sh
+# if [ $? -ne 0 ]; then
+#   echo "****** ERROR GUI-dev-pack not is installed  *******"
+#   exit 1
+# fi
+  # also used for GUI* - exes
+  touch ../gui/gui_base.c
+  # build core-GUI
+  make -f gcad_gui_lib.mak default
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR GUI build core-GUI *******"
+    exit 1;
+  fi
+  # make link core-GUI gCAD3D_gui.so; (not MSYS)
+  if test "${OSTYP}" = "UIX"; then
+    make -f gcad_gui_lib.mak gui_link
+  fi
+  exit $?
+fi
+
+
+
+#===============================================================================
+# Core
+# compile core; gui-libs must already exist
+if test "$1" = "c"; then
+  # no objs in this dir
+  rm -f *.o
+  make -f gcad3d.mak
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR gcad3d.mak core *******"
+    exit 1;
+  fi
+  make -f gcInfo.mak
+  exit $?
+fi
+
+
+# build gcad3d-coreLibs
+if test "$1" = "all"; then
+  make -f gcad3d.mak all
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR gcad3d.mak all *******"
+    exit 1;
+  fi
+  exit $?
+fi
+
+
+# build gcad3d-plugins
+if test "$1" = "allDemos"; then
+  make -f gcad3d.mak allDemos
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR gcad3d.mak allDemos *******"
+    exit 1;
+  fi
+  exit $?
+fi
+
+
+# build gcad3d-NC-processes
+if test "$1" = "allPrcs"; then
+  make -f gcad3d.mak allPrcs
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR gcad3d.mak allPrcs *******"
+    exit 1;
+  fi
+  exit $?
+fi
+
+
+# build extras
+if test "$1" = "allExtras"; then
+  make -f gcad3d.mak allExtras
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR gcad3d.mak allExtras *******"
+    exit 1;
+  fi
+  exit $?
+fi
+
+
+#===============================================================================
+# rebuild all
+if test "$1" = "complete"; then
+  echo do complete ..
+  # delete all gcad-objects
+  ./del_gcad_all.sh
+  if [ $? -ne 0 ]; then exit 1; fi
+  # create xa_gui_(VGUI).so and create link xa_gui.so <- xa_gui_(VGUI).so
+  ./do gui
+  if [ $? -ne 0 ]; then exit 1; fi
+  # rebuild executables GUI_*
+  ./do guiexe
+  if [ $? -ne 0 ]; then exit 1; fi
+  # create core
+  ./do c
+  if [ $? -ne 0 ]; then exit 1; fi
+  # create core-dll's
+  ./do all
+  if [ $? -ne 0 ]; then exit 1; fi
+  # create demo-plugins
+  ./do allDemos
+  if [ $? -ne 0 ]; then exit 1; fi
+  # rebuild processes
+  ./do allPrcs
+  if [ $? -ne 0 ]; then exit 1; fi
+  # build extras
+  ./do allExtras
+  if [ $? -ne 0 ]; then exit 1; fi
+  echo "- success do complete"
+  exit 0
+fi
+
+
+#================================================================================
+# create debian-package
+# MUST SET SW-version in file ../gcad_version
+if test "$1" = "pack_deb"; then
+  ../../debian/pack_deb.sh
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR create debian-package *******"
+    exit 1;
+  fi
+  exit 0
+fi
+
+
+# test-install into system. Must be root & preserve $DIR_DEV & $DIR_BIN (sudo -E)
+if test "$1" = "install_deb"; then
+  # get packNam
+  . ${DIR_DEV}gcad3d/debian/platform_deb.sh
+  echo "# install ${DIR_DEV}gcad3d/packages/${packNam}"
+  dpkg -i ${DIR_DEV}gcad3d/packages/${packNam}
+  exit 0
+fi
+
+
+# uninstall testfiles in system-directories. Must be root (sudo).
+if test "$1" = "uninstall_deb"; then
+  apt-get remove gcad3d
+  exit 0
+fi
+
+
+
+
+# test-install into system. Must be root & preserve $DIR_DEV & $DIR_BIN (sudo -E)
+if test "$1" = "install_test_deb"; then
+  ${DIR_DEV}gcad3d/debian/install_deb.sh
+  # debian/_control/postinst:
+  xdg-desktop-menu install --novendor /usr/share/gcad3d/gcad3d.desktop
+  # ? update-menus
+  exit 0
+fi
+
+
+# uninstall testfiles in system-directories. Must be root (sudo).
+if test "$1" = "uninstall_test_deb"; then
+  ${DIR_DEV}gcad3d/debian/uninstall_deb.sh
+  # debian/_control/prerm:
+  xdg-desktop-menu uninstall gcad3d.desktop
+  # see ../../debian/_control/prerm
+  echo "*** REMOVE ~/gCAD3D manually !"
+  exit 0
+fi
+
+
+#================================================================================
+# create rpm-package
+if test "$1" = "pack_rpm"; then
+  ../../rpm/pack_rpm.sh
+  exit $?
+fi
+
+
+# install package into system. Must be root & preserve $DIR_DEV & $DIR_BIN (sudo -E)
+if test "$1" = "install_rpm"; then
+  ${DIR_DEV}gcad3d/rpm/install_rpm.sh
+  exit $?
+fi
+
+
+# uninstall testfiles in system-directories. Must be root (sudo).
+if test "$1" = "uninstall_rpm"; then
+  packNam=`rpm -qa | grep gcad3d`
+  rpm -e ${packNam}
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR removing package ${packNam} *******"
+    exit 1
+  fi
+
+  echo "- ${packNam} removed -"
+  echo "*** REMOVE ~/gcad3d manually !"
+  exit 0
+fi
+
+
+#================================================================================
+# create MSYS2-package
+if test "$1" = "pack_MSYS"; then
+  export packer=$(cygpath -w "/mingw64/bin/makensis.exe")
+  cd ../../pack_MSYS
+  ./pack.bat
+  exit $?
+fi
+
+
+#================================================================================
+# create zip-file of sources
+if test "$1" = "pack_src"; then
+  ../pack_src.sh
+  exit 0
+fi
+
+
+# create zip-file of complete doc
+if test "$1" = "pack_doc"; then
+  ../../doc/packDoc.sh
+  exit 0
+fi
+
+
+# unpack examples.gz
+if test "$1" = "examples_init"; then
+  ../APP/examples_init.sh
+  exit 0
+fi
+
+
+# create examples.gz
+if test "$1" = "examples_pack"; then
+  ../APP/examples_pack.sh
+  exit 0
+fi
+
+
+if test "$1" = "delete"; then
+  ./del_obj.sh
+  exit 0
+fi
+
+
+#if test "$1" = "gui-gtk2"; then
+#  # test if gtk2 installed and set as active gui-version          
+#  ../gui_version_set.sh gtk2
+#  if [ $? -ne 0 ]; then
+#    exit 0
+#  fi
+#  # compile ..
+#  ./do guiinit
+#  exit $?
+#fi
+#
+#
+#if test "$1" = "gui-gtk3"; then
+## test if gtk3 installed and set as active gui-version
+#../gui_version_set.sh gtk3
+#if [ $? -ne 0 ] ; then
+#  exit 1
+#fi
+## compile ..
+#./do guiinit
+#  exit $?
+#fi
+
+
+# find & touch all files using symbol <sym_x>
+if test "$1" = "fnd_sym"; then
+  ../APP/fnd_sym.sh $2
+  exit $?
+fi
+
+
+# find & touch all files with #include <incFilNam>". cscope must be installed.
+if test "$1" = "fnd_inc"; then
+  ../APP/fnd_inc.sh $2
+  exit $?
+fi
+
+
+# find text in Info-files
+if test "$1" = "fnd_inf"; then
+#  grep $2 ../inf/*
+  grep $2 inf/*
+  exit $?
+fi
+
+
+# find text in message-file msg_en
+if test "$1" = "fnd_msg"; then
+  shift
+  cmd='grep "`echo $*`" ../../doc/msg/msg_en.txt'
+  eval "$cmd"
+  exit 0
+fi
+
+
+# trc ?
+if test "$1" = "clean"; then
+  ./del_gcad_all.sh
+  exit 0
+fi
+
+
+if test "$1" = "ud"; then
+  firefox ../../doc/html/index_de.htm 2>/dev/null &
+  exit 0
+fi
+
+
+if test "$1" = "dd"; then
+  firefox ../../doc/gcad/index.htm
+  exit 0
+fi
+
+
+# ReCreate development-documentation (doxygen must be installed):
+if test "$1" = "udd"; then
+# cd ../../doc && ./gcad_doxygen.sh > t1
+  ../../doc/gcad_doxygen.sh
+  exit 0
+fi
+
+if test "$1" = "gty"; then
+  $cmdVi ../ut/AP_types.h
+  exit 0
+fi
+
+if test "$1" = "gh"; then
+  $cmdVi ../ut/ut_geo.h
+  exit 0
+fi
+
+if test "$1" = "g2"; then
+  $cmdVi ../ut/ut_geo2d.c
+  exit 0
+fi
+
+if test "$1" = "g3"; then
+  $cmdVi ../ut/ut_geo3d.c
+  exit 0
+fi
+
+if test "$1" = "edm"; then
+   $cmdVi "${DIR_DEV}gCAD3D/tmp/Model"
+  exit 0
+fi
+
+if test "$1" = "inf"; then
+#  make "SCR1=`ls ../inf/*.c`" -f inf_gcad3d.mak
+  make "SCR1=`ls inf/*.c`" -f inf_gcad3d.mak
+  exit 0
+fi
+
+
+if test "$1" = "msg-files"; then
+  echo "\nsee INF_MSG_new; functions:"
+  ls -1 lang*.csh
+  exit 0
+fi
+
+
+# check filetyp
+ftyp=`echo $1 | cut -d"." -f2-`
+
+if test "$ftyp" = "mak"; then
+  make -f $1
+  exit 0
+fi
+
+
+#=================================================================
+echo "=================== start gCAD3D ${OSTYP}  ==================="
+#=================================================================
+
+#export UBUNTU_MENUPROXY=
+
+#OPSYS=`uname`
+## "Linux" = Ubuntu 12/32
+#echo "- OPSYS = " $OPSYS
+#if test  $OPSYS != "Linux"; then
+#  echo "******* ERROR OPSYS $OPSYS not supported .."
+#  exit 1
+#fi
+
+
+exeNam=${gcad_dir_bin}gCAD3D
+
+# executables (shared-libs ..)
+export LD_LIBRARY_PATH=${gcad_dir_bin}
+
+# gcad_dir_bas: used for /icons/  and /doc/
+#export gcad_dir_bas=${DIR_DEV}../../
+
+## icons (def.: /usr/share/gcad3d/icons/)
+#export gcad_dir_ico=${DIR_DEV}../../icons/
+## /usr/share/gcad3d/icons/
+
+## gcad_dir_doc: html and msg-files
+#export gcad_dir_doc=${DIR_DEV}../../doc/
+## /usr/share/gcad3d/doc/
+
+# gcad_dir_local: used for /gCAD3D/tmp/ and /gCAD3D/cfg_<OPSYS>
+#export gcad_dir_local=${DIR_DEV}../../
+# gcad_dir_local: def is $HOME;
+
+
+echo "LD_LIBRARY_PATH |"${LD_LIBRARY_PATH}"|"
+echo "gcad_dir_bas    |"${gcad_dir_bas}"|"
+echo "gcad_dir_local  |"${gcad_dir_local}"|"
+echo "gcad_dir_ico    |"${gcad_dir_ico}"|"
+echo "gcad_dir_doc    |"${gcad_dir_doc}"|"
+echo "exeNam          |"${exeNam}"|"
+
+
+# check if exe exists
+if [ ! -f "${exeNam}" ]; then
+  echo "****** executable ${exeNam} does not exist .."
+  exit 1
+fi
+
+
+# DO NOT USE - done by gCAD3D-core
+# config-files; def. is ${HOME}/gCAD3D/cfg_Linux/
+#gcad_dir_cfg=${gcad_dir_local}/gCAD3D/cfg_${OPSYS}/
+## if <cfg>gCAD3D.rc does not exist unpack examples.gz
+#if [ ! -f ${gcad_dir_cfg}gCAD3D.rc ]; then
+#  echo "****** file ${gcad_dir_cfg}gCAD3D.rc does not exist - unpack examples.gz .."
+#  examples_init.sh
+#  if [ $? -ne 0 ]; then
+#    echo "****** ERROR unpacking examples.gz *******"
+#    exit 1
+#  fi
+#fi
+
+
+#=================================================================
+# ... start ..
+
+if [ "$1" = "valgrind" ] ; then
+  cd ~
+  valgrind --leak-check=yes --track-origins=yes ${exeNam}
+  #valgrind --leak-check=yes --track-origins=yes ${exeNam} > t1 2>&1 && vi t1
+  exit 0
+
+
+
+#-----------------------------------------------------
+elif [ "$1" = "windbg" ] ; then
+  "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\windbg.exe" ${exeNam}
+  #nemiver ${gcad_dir_bin}/gCAD3D
+  exit 0
+
+
+
+#-----------------------------------------------------
+elif [ "$1" = "gdb_ed" ] ; then
+  echo " edit-init-file: ./gCAD3D.gdb"
+   $cmdVi "./gCAD3D.gdb"
+  echo " start debug: gdb ./gCAD3D.gdb"
+  gdb ${exeNam} $* -x gCAD3D.gdb
+  #nemiver ${gcad_dir_bin}/gCAD3D
+  exit 0
+
+
+#-----------------------------------------------------
+# gdb
+elif [ "$1" = "gdb" ] ; then
+  echo " debug-init-file: ./gCAD3D.gdb"
+  echo " exe = ${exeNam}"
+  gdb ${exeNam}
+  #shift
+  #echo " parNr = $#"
+  #/bin/cp gCAD3D.gdb tmp.gdb
+  # test if parameters exist; if yes: add "run <parameters>" to gdb-startup-file
+  #if [ $# -gt 0 ]; then
+  #  echo " params |$*|"
+  #  echo "run $*" >> tmp.gdb
+  #else
+  #  echo "run" >> tmp.gdb
+  #fi
+  #gdb ${exeNam} -x tmp.gdb
+  #nemiver ${gcad_dir_bin}/gCAD3D
+  exit 0
+
+
+#-----------------------------------------------------
+# gprof; needs option -pg in symbols CPDEB and LKDEB in file deb.mak
+#   use after closing executable.
+# analyze times in file gmon.out - AFTER run gcad
+elif [ "$1" = "gprof" ] ; then
+  echo " profile-t-file: ./gCAD3D.gdb"
+  gprof ${exeNam} > t1 && vi t1
+  #gprof -z ${exeNam} > t1 && vi t1
+  #nemiver ${gcad_dir_bin}/gCAD3D
+  exit 0
+
+
+#-----------------------------------------------------
+# trc ?
+elif [ "$1" = "trc" ] ; then
+  export MALLOC_TRACE=mtrace.txt
+  ${exeNam}
+  #mtrace  ${exeNam} $MALLOC_TRACE
+  exit 0
+
+
+#-----------------------------------------------------
+# trc ?
+elif [ "$1" = "tmpClean1" ] ; then
+  echo "rm ${gcad_dir_local}gCAD3D/tmp CTRL* Mod*"
+  rm -rf ${gcad_dir_local}gCAD3D/tmp/CTRL* ${gcad_dir_local}gCAD3D/tmp/Mod*
+  exit 0
+fi
+
+
+#-----------------------------------------------------
+echo "normal start .."
+# i = Init (nach MS_Windows)
+#if test "$1" = "i"; then
+#fi
+  
+"${exeNam}" $*
+exit 0
+
+
+
+#----------------------------------------------------
+#elif [ "$OSTYPE" = "msys" ] ; then
+#  cp -f dirw.lst dir.lst
+#  #cp -f xa.rc_MS ../tmp\xa.rc
+#  cd ..
+#  gdb binMS32/gCAD3D.exe $*
+
+
+
+
+# EOF

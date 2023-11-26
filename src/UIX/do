@@ -1,0 +1,8 @@
+#!/bin/bash
+# build gCAD3D; help usage:   ./do help
+# 2023-03-23
+
+# set OSTYP DIR_DEV gcad_dir_bin DEB VGUI
+. ../UIX/devbase.sh && cd ../UIX  && ./build__ $*
+
+# eof

@@ -1,0 +1,36 @@
+#!/bin/bash
+# script for cscope
+# start without building new DB: "./cs -d"
+
+
+# set EDITOR = name of script-file with editor-call
+#export EDITOR=vi
+export EDITOR=/usr/bin/vim
+#export EDITOR='/usr/bin/vim -u /x/vim/vimrc_msys'
+#export CSCOPE_EDITOR=vi
+
+
+if test "$#" != "0"; then
+  cscope $1
+  exit
+fi
+
+
+# create list of gcad-sourcefiles in file srcFiles
+# get DIR_DEV DIR_BIN gcad_dir_bin
+. ./devbase.sh && make -f gcad3d.mak srclst
+#. ./devbase.sh && make -f gcad3d.mak srclst > /dev/null
+
+# add gui-sources >> srcFiles
+. ./devbase.sh && make -f gcad_gui_lib.mak add_srclst
+
+rm -f cscope.*
+#mv srcFiles cscope.files
+
+#cscope -k
+# start; -p2 = 2 directory-levels
+#cscope -p2 -i srcFiles
+cscope -i srcFiles
+
+exit
+#

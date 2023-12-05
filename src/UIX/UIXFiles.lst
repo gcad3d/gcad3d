@@ -1,0 +1,14 @@
+# MSYS: copy all rumtime-libs, exes ..
+
+[DIROUT]
+${gcad_dir_bin}
+
+[DIRSRC]
+${gcad_dir_bas}src/APP/libgtkgl2/usr/lib/
+
+[COPYFILE]
+libgtkgl-2.0.so
+libgtkgl-2.0.so.1
+libgtkgl-2.0.so.1.0.2
+
+# eof

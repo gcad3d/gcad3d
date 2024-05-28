@@ -65,44 +65,34 @@
 ~~~
 ---
 ## This version
----
-~~~
+
   V2.60.04 - see [logfile](https://www.gcad3d.org/gCAD3D_log.txt)
 
-~~~
 ---
 ## Installation
----
-~~~
-  see [install_en.txt](https://www.gcad3d.org/doc/install_en.txt)
 
-~~~
+ - see [install_en.txt](https://www.gcad3d.org/doc/install_en.txt)
+
 ---
 ## Build
----
-~~~
-  see [build_en.txt](https://www.gcad3d.org/doc/build_en.txt)
 
-~~~
+ - see [build_en.txt](https://www.gcad3d.org/doc/build_en.txt)
+
 ---
 ## Development:
----
+
+ - see [dev_doc_en](https://www.gcad3d.org/doc/html/dev_doc_en.htm)
+
 ~~~
-
-  see [dev_doc_en](https://www.gcad3d.org/doc/html/dev_doc_en.htm)
-
-
-  for USING-DEVELOPMENT-DOCUMENTATION
+  for USING-DEVELOPMENT-DOCUMENTATION  
       UPDATE-DEVELOPMENT-DOCUMENTATION
-  see [dev_inf_en](https://www.gcad3d.org/doc/html/dev_inf_en.htm)
-
 ~~~
+ - see [dev_inf_en](https://www.gcad3d.org/doc/html/dev_inf_en.htm)
+
 ---
 ## Todo:
----
-~~~
-  see [Todo](https://www.gcad3d.org/Todo.htm)
 
-~~~
-==================================================================  
+ - see [Todo](https://www.gcad3d.org/Todo.htm)
+
+---
 // EOF

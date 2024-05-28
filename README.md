@@ -1,6 +1,11 @@
-###gCAD3D   2.60.08 / 2024-05-25
-<br>
-####provides functions for -
+# gCAD3D   2.60.04 / 2024-05-28
+
+![](https://www.gcad3d.org/Renault2.png)
+
+
+
+---
+## provides functions for -
 >
       import and export of cad-models and pictures (bitmaps)  
       creation of geometrical objects  
@@ -13,7 +18,7 @@
 >
   
   
-####The creation of geometrical elements / NC-programs can be done by -  
+## The creation of geometrical elements / NC-programs can be done by -  
 >
       interactively generated geometrical objects or  
       manually generated command texts or by  
@@ -23,7 +28,7 @@
 >
   
   
-####Interactions connect to geometric objects can -  
+## Interactions connect to geometric objects can -  
 >
       load models (like HTML - HREF)  
       activate userprograms (plugins)  
@@ -32,7 +37,7 @@
 >
   
   
-####The data can be exported from the program by -  
+## The data can be exported from the program by -  
 >
       export modules ((Dxf, Iges, Vrml, Svg ..)  
       Standard - ISO - post processor  
@@ -41,67 +46,62 @@
 >
   
   
-####The program interface makes possible -
+## The program interface makes possible -
 ~~~
       The creation and analysis of geometry Objects
       interactive dialogue functions (selections..)
       automatic compiling, link and reload at execution time
 
 ~~~
-#### License -
+## License -
 ~~~
      License is GPLv3,
      the complete sourcecode is 100% free and fully documented
 
-     For examples, videos, binary-packages see gcad3d.org
+     For examples, videos, binary-packages see [gcad3d.org](https://www.gcad3d.org)
 
      Send bug reports, suggestions for improvements to support@gcad3d.org
 
 ~~~
-==================================================================  
-####This version
-==================================================================  
+---
+## This version
+---
 ~~~
-  V2.60.10 is a prerelease-version, not a production-version.
+  V2.60.04 - see [logfile](https://www.gcad3d.org/gCAD3D_log.txt)
 
 ~~~
-==================================================================  
-####Installation
-==================================================================  
+---
+## Installation
+---
 ~~~
-  see doc/install_en.txt
+  see [install_en.txt](https://www.gcad3d.org/doc/install_en.txt)
 
 ~~~
-==================================================================  
-####Build
-==================================================================  
+---
+## Build
+---
 ~~~
-  see doc/build_en.txt
+  see [build_en.txt](https://www.gcad3d.org/doc/build_en.txt)
 
 ~~~
-==================================================================  
-####Development:
-==================================================================  
+---
+## Development:
+---
 ~~~
 
-see doc/html/dev_doc_en.htm      for:
-  Install gCAD3D
-  Build gCAD3D
-  Directories
-  Development - documentation
-  Create new plugin
+  see [dev_doc_en](https://www.gcad3d.org/doc/html/dev_doc_en.htm)
 
 
-see doc/html/dev_inf_en.htm      for:
-  USING-DEVELOPMENT-DOCUMENTATION
-  UPDATE-DEVELOPMENT-DOCUMENTATION
+  for USING-DEVELOPMENT-DOCUMENTATION
+      UPDATE-DEVELOPMENT-DOCUMENTATION
+  see [dev_inf_en](https://www.gcad3d.org/doc/html/dev_inf_en.htm)
 
 ~~~
-==================================================================  
-###Todo:
-==================================================================  
+---
+## Todo:
+---
 ~~~
-  see TODO/Todo_en.txt
+  see [Todo](https://www.gcad3d.org/Todo.htm)
 
 ~~~
 ==================================================================  

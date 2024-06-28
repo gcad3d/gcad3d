@@ -22,6 +22,7 @@ TSTF_load - fileName is not yet symbolic ..
 -----------------------------------------------------
 Modifications:
 2022-01-10 First version - replacing testTool CTRLF_*       RF
+2023-10-31 "can process subroutines" added.                 RF
   ..
 
 -----------------------------------------------------
@@ -41,6 +42,7 @@ List_functions_end:
 
 \endcode *//*----------------------------------------
 
+See INF_tstf__ in ../ut/tstf__.c
 
 Does execute file ../APP/Demo_tstf_1.dat
 
@@ -51,7 +53,6 @@ Test_it:
 - Ctrl-P will rebuild and restart the plugin 
 
 
-See INF_tstf__ in ../ut/tstf__.c
 Info remote-command-control codes see ../../doc/html/RemoteControl_en.htm
 
 */
@@ -94,6 +95,8 @@ extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
   int gCad_main () {
 //=========================================================
 // user has selected this plugin; starting ...
+// modify this file, save, Ctrl-P (recompile, start ..)
+// modify datafile ../APP/Demo_tstf_1.dat, save, Ctrl-P
 
   int    irc;
   char   s1[256];
@@ -102,19 +105,24 @@ extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
   // write to Main-Infowindow ..
   TX_Print("gCad_main of Demo_TSTF_1.dll");
 
-  // get modelname from Mainprog
-  printf("Modelname = %s\n",AP_mod_fnam);
+
+  //----------------------------------------------------------------
+  // set s1 = filename for following TSTF_load-call
+  sprintf(s1, "%ssrc/APP/Demo_tstf_1.dat",AP_get_bas_dir());
+
 
   //----------------------------------------------------------------
   // load and execute commandfile; start at label, stop end exit at following label.
-  sprintf(s1, "%ssrc/APP/Demo_tstf_1.dat",AP_get_bas_dir());
-  // irc = TSTF_load (s1, ":L1:"); // CirSeg-Tria
-  irc = TSTF_load (s1, ":L2:"); // CirSeg-Tria
+  // irc = TSTF_load (s1, ":L1:");
 
 
+  //----------------------------------------------------------------
+  // irc = TSTF_load (s1, ":L2:");
+  // TX_Print("- text of N20 is |%s|\n",DB_get_Text (20L));   // only for :L2:
 
-  // get text-only (stored with "N#="text")
-  TX_Print("- text of N20 is |%s|\n",DB_get_Text (20L));
+
+  //----------------------------------------------------------------
+  irc = TSTF_load (s1, ":Demo_subProg:");
 
 
   //----------------------------------------------------------------
@@ -162,6 +170,8 @@ extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
 
 
 
+
+
   // dispatch
   if(!strcmp (cmd, "myFunc1")) {
     myFunc1 (p2);
@@ -178,7 +188,17 @@ extern  char      AP_mod_fnam[SIZMFNam];  // der Modelname
   int myFunc1 (char *data) { 
 //================================================================
 
-  printf(" >>>>>>>>>>> myFunc1 - %s\n",data);
+  int       i1, wNr;
+  char      *wTab[6];
+
+
+  printf(" >>>>>>>>>>> myFunc1 - |%s|\n",data);
+
+
+  // get words from parameters
+  wNr = UTX_wTab_str (wTab, 6, data);
+    for(i1=0;i1<wNr;++i1) TX_Print("myFunc1 - wTab[%d]=%s\n",i1,wTab[i1]);
+
 
   return 0;
 

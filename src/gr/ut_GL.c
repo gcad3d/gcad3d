@@ -7702,7 +7702,7 @@ static double old_view_Z = 0.;
   if(*ind > GR_TAB_IND) {
     // DL_Ind_nxt = *ind;
     // wozu war das gut ?
-    TX_Print("GL_fix_DL_ind  E001 %d\n",*ind);
+    // TX_Print("GL_fix_DL_ind  E001 %d\n",*ind); // 2024-06-25
     *ind = GR_TAB_IND - 1;
   }
 
@@ -11289,8 +11289,8 @@ glCallList (DL_shade_wire);
 
 
 
-  UT3D_vc_multvc (&vcx, &GL_eye_pln.vx, sclx);
-  UT3D_vc_multvc (&vcy, &GL_eye_pln.vy, scly);
+  UT3D_vc_mult_d (&vcx, &GL_eye_pln.vx, sclx);
+  UT3D_vc_mult_d (&vcy, &GL_eye_pln.vy, scly);
 
   pa[0] = *p1;
   UT3D_pt_add_vc__ (&pa[0], &vcx);
@@ -16610,12 +16610,12 @@ static float  xpos, ypos;
           // iSizX,iSizY,iCol);
 
 
-  UT3D_vc_multvc (&vcy, GL_eyeY, GL2D_Scale);       // scale Y-vec
-  UT3D_vc_multvc (&vcz, GL_eyeZ, GL2D_Scale);       // scale Z-vec
+  UT3D_vc_mult_d (&vcy, GL_eyeY, GL2D_Scale);       // scale Y-vec
+  UT3D_vc_mult_d (&vcz, GL_eyeZ, GL2D_Scale);       // scale Z-vec
 
 
-  UT3D_vc_multvc (&vch, &vcy, (double)iSizX); 
-  UT3D_vc_multvc (&vcv, &vcz, (double)iSizY); 
+  UT3D_vc_mult_d (&vch, &vcy, (double)iSizX); 
+  UT3D_vc_mult_d (&vcv, &vcz, (double)iSizY); 
 
 
   UT3D_pt_traptvc (&p1, oPos, &vch);
@@ -16796,11 +16796,11 @@ static float  xpos, ypos;
   // printf(" GL_ModScale=%lf\n",GL_ModScale);
 
 
-  UT3D_vc_multvc (&vcy, GL_eyeY, GL2D_Scale);       // scale Y-vec
-  UT3D_vc_multvc (&vcz, GL_eyeZ, GL2D_Scale);       // scale Z-vec
+  UT3D_vc_mult_d (&vcy, GL_eyeY, GL2D_Scale);       // scale Y-vec
+  UT3D_vc_mult_d (&vcz, GL_eyeZ, GL2D_Scale);       // scale Z-vec
 
-  UT3D_vc_multvc (&vch, &vcy, (double)idx);
-  UT3D_vc_multvc (&vcv, &vcz, (double)idy);
+  UT3D_vc_mult_d (&vch, &vcy, (double)idx);
+  UT3D_vc_mult_d (&vcv, &vcz, (double)idy);
 
 
   UT3D_pt_trapt2vc (po, pi, &vch, &vcv);

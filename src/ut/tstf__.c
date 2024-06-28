@@ -58,32 +58,34 @@ List_functions_end:
 - start a plugin using function:
   irc = TSTF_load ("<file-with-testcommands>", "<Label>"); // CirSeg-Tria
 
-- ../ut/tstf__.c
-- Example see Demo_tstf_1.c Demo_tstf_1.dat Demo_tstf_1.mak
+- Example see ../APP/Demo_tstf_1.c ../APP/Demo_tstf_1.dat ../UIX/Demo_tstf_1.mak
+- see ../../doc/html/TSTF_en.htm
+- Source is ../ut/tstf__.c
 
 - execute remoteCommand - ":: <remoteCommand>"; see ../../doc/html/RemoteControl_en.htm
 - copy modelCodes into CAD-madel and process
 
 
-Commands:
-# internal commentline - is skipped
-:<label>:                  # label; processing starts here and ends at next label;
-:: LOAD(modelfilename)     # load model
-:: WAIT_ESC                # in TSTF_do__ extra implement.
-::: test_disp__ (A1 A2)    # call user-function test_disp__ with parameter "A1 A2"
-:: WAIT_ESC                # stop; wait for Esc-key
-# commentline  (first char '#') - is copied into model
-A20=S29 # CW               # modelCode - is copied into model and processed
+Format commandfile:
+# #             as first char defines commentline - is skipped
+# ##            as first char defines commentline - is displayed
+# :funcx:       startlabel, start of block; blockname ist "funcx";
+#               end of block is start of next block - eg ":Block_2:"
+#                 
+# ::            starts remote-command; eg ":: WAIT_ESC" or ":: CLEAR"
+# ::: fnc par   starts callBack with parameters;
+# ::: :funcx:   starts subProgram, returns to calling program;
+
 
 
 //----------------------------------------------------------------
-// for the function test_disp__ the plugin must provide function TSTF_cb like this:
+// for a callback the plugin must provide function TSTF_cb like this:
 
 
 //================================================================
   int TSTF_cb (char * cmd) {
 //================================================================
-// callback from TSTF-mudule (see TSTF_load INF_tstf__)
+// callback from TSTF-module (see TSTF_load INF_tstf__)
 // execute private testfunctions - must start with "::: " in <cmdfile>
 // MS-Win: function must be exported.
 
@@ -92,33 +94,13 @@ A20=S29 # CW               # modelCode - is copied into model and processed
 
 
   printf("TSTF_cb |%s|\n",cmd);
+  // cmd is a string with functionname, parameters;
+  // for example see ../APP/Demo_tstf_1.c - TSTF_cb and myFunc1
 
-  // get s1 = functionname
-  p2 = UTX_cp_word__ (s1, cmd);
-     // printf(" _do_tstCmd-0 |%s|%s|%s|\n",cmd,s1,p2);
-
-  // remove brackets
-  p2 = UTX_CleanBracks (p2, '(', ')');
-
-
-  // call
-  if(!strcmp (s1, "test_disp__")) {
-    test_disp__ (p2);
-
-  } else if(!strcmp (s1, "test_hide_last")) {
-    test_hide_last (p2);
-
-  } else {
-    TX_Error("function %s not found",s1);
-  }
 
   return 0;
 
 }
-
-
-int test_disp__ (char *txt) { printf("test_disp__ %s\n",txt); return 0; }
-int test_hide_last (char *txt) { printf("test_hide_last\n"); return 0; }
 
 
 
@@ -157,64 +139,102 @@ int test_hide_last (char *txt) { printf("test_hide_last\n"); return 0; }
   int TSTF_load (char *fNam, char *lbs) {
 //================================================================
 // TSTF_load                   work file <fNam>; store obj's in DB
+// - calls TSTF_cb
 
-  int    irc;
+
+#define mem_cbuf1_SIZ 200000
+#define SIZ_PSTACK        12
+
+  int    actInd,                  // lineNr of active file
+         prgInd,                  // index in prgStack of calling prog
+         prgStack[SIZ_PSTACK];    // returnIndex (lineNr) of calling prog
+
+  int    irc, i1;
   FILE   *fpi;
-  char   s1[512], s2[512], *p1;
+  char   *p1, *p2;
+  char   *txs;                    // read lines of file into txs
+  char   prgNam[128];
 
 
-  printf("TSTF_load |%s|%s|\n",fNam,lbs);
+  printf("\nTSTF_load |%s|%s|\n",fNam,lbs);
+
+  prgInd = 0;  // next free index prgStack = nr of calling (stacked) progs
+  actInd = 0;  // lineNr
+
+  if(strlen(lbs) > 128) {TX_Error ("TSTF_load - label too long"); return -1;}
+  strcpy(prgNam, lbs);
+
 
   if((fpi = fopen (fNam, "r")) == NULL) {
     TX_Error ("TSTF_load - open file %s\n", fNam);
     return -1;
   }
 
-  //----------------------------------------------------------------
-  // find startlabel (eg ":L1:")
-  while (!feof (fpi)) {
-    if (fgets (s1, 512, fpi) == NULL) break;
-    UTX_CleanCR (s1);
-    if(s1[0] != ':') continue;
-    // first word starts with ':'; test second char 
-    if(s1[1] == ':') continue; // skip remote-command outside block
+  // get memSpace for inputline
+  txs = (char*) malloc (mem_cbuf1_SIZ);
+  if(!txs) {TX_Print("*** TSTF_load - EOM"); return -1;}
 
-    p1 = strchr(&s1[1], ':');
+
+  //----------------------------------------------------------------
+  L_prgFind:           // find startlabel <prgNam> (eg ":L1:")
+    printf(" L_prgFind: |%s|\n",prgNam);
+  while (!feof (fpi)) {
+    if(fgets(txs, mem_cbuf1_SIZ, fpi) == NULL) goto L_err_not_found;
+    ++actInd;
+    UTX_CleanCR (txs);
+    if(txs[0] != ':') continue;
+    // first word starts with ':'; test second char 
+    if(txs[1] == ':') continue; // skip remote-command outside block
+    // find closing ':'
+    p1 = strchr(&txs[1], ':');
        // printf(" p1=|%s|\n",p1);
     if(!p1) continue;
-
     // found label;
     // cut string at secd ':'
     p1[1] = '\0';
-    if(!strcmp(s1, lbs)) goto L_start;
+    if(!strcmp(txs, prgNam)) goto L_start;
   }
-
-  TX_Print("*** TSTF_load - startLabel %s not found ...",lbs);
-  irc = -1;
-  goto L_exit;
 
 
   //----------------------------------------------------------------
-  L_start:
-      printf(" TSTF_load-startLabel |%s|\n",s1);
+  L_prg_exit:     // exit or continue with calling program
+  --prgInd;
+    // printf(" L_prg_exit: prgInd=%d stack=%d\n",prgInd,prgStack[prgInd]);
+  if(prgInd < 0) goto L_done;  // no more stacked progs
+  // rewind, continue with line <prgStack[prgInd]>
+  rewind (fpi);
+  actInd = 0;
   while (!feof (fpi)) {
-    if (fgets (s1, 256, fpi) == NULL) break;
-    UTX_CleanCR (s1);
-    if(!strlen(s1)) continue;
-      // printf(" in1 |%s|\n",s1);
-//     if(s1[0] == '#') continue;
-    if(s1[0] == ':') {
-      if(s1[1] == '#') continue;     // skip commentlines ":#<comment>"
-      if(s1[1] == ':') {
-        if(s1[2] == ':') goto L_tstCmd;
+    if(fgets (txs, mem_cbuf1_SIZ, fpi) == NULL) goto L_err_intern;
+    ++actInd;
+    if(actInd < prgStack[prgInd]) continue;
+    goto L_start;  // continue calling prog
+  }
+
+
+  //================================================================
+  L_start:   // found startlabel; process proglines until next startlabel;
+      // printf(" TSTF_load-L_start |%s|\n",txs);
+  while (!feof (fpi)) {
+    if(fgets(txs, mem_cbuf1_SIZ, fpi) == NULL) goto L_prg_exit;  // eof = end of prog
+    ++actInd;
+    UTX_CleanCR (txs);
+    if(!strlen(txs)) continue;        // skip empty line
+      // printf("TSTF_load-in |%s|\n",txs);
+ 
+    if(txs[0] == ':') {
+      if(txs[1] == ':') {
+        if(txs[2] == ':') goto L_tstCmd;
         goto L_remCmd;
       }
-      goto L_exit;
+      goto L_prg_exit;  // found start of next block = end of prog
     }
-      // printf(" in2 |%s|\n",s1);
+      // printf(" in2 |%s|\n",txs);
+    if(txs[0] == '#') {
+      if(txs[1] != '#') continue; // display line "## xxx"; skip line "# xxx"
+    }
     // work line
-    // irc = TSTF_do__ (s1);
-    irc = ED_srcLn_add (s1, 0);
+    irc = ED_srcLn_add (txs, 0);
     if(irc < 0) goto L_exit;
     continue;
 
@@ -222,11 +242,12 @@ int test_hide_last (char *txt) { printf("test_hide_last\n"); return 0; }
     //----------------------------------------------------------------
     L_remCmd:
     // found remote-command (":: cmd")
-    p1 = &s1[2];
-    UTX_pos_skipLeadBlk (p1);
-      printf(" rem.cmd |%s|\n",p1);
+    p1 = &txs[2];
+    UTX_pos_skipLeadBlk (p1);   // skip leading blanks
+      // printf(" rem.cmd |%s|\n",p1);
 
     if(!strcmp (p1, "WAIT_ESC")) {
+      DL_Redraw ();
       UI_wait_Esc__ ();
 
     } else {
@@ -238,23 +259,68 @@ int test_hide_last (char *txt) { printf("test_hide_last\n"); return 0; }
     //----------------------------------------------------------------
     L_tstCmd:
     // found test-command (("::: cmd") must be defined as user-supplied function)
-    p1 = &s1[3];
-    UTX_pos_skipLeadBlk (p1);
-      printf(" TSTF-userCmd |%s|\n",p1);
-    // call function TSTF_cb with parameters p1
-    // strcpy(s2, "TSTF_cb ");
-    // strcat(s2, p1);
-    // start function <s2> in active plugin
-    // DLL_run2 (s2, 2);
+    p1 = &txs[3];
+    UTX_pos_skipLeadBlk (p1);   // skip leading blanks
+    // test if it is a startlabel (subprog)
+    if(p1[0] == ':') {
+      p2 = strchr(&p1[1], ':');  // find closing ':'
+      if(!p2) goto L_err_syntax;
+      p2[1] = '\0';               // cut
+      strcpy(prgNam, p1);
+      goto L_subProg;
+    }
+    // user-command; call function TSTF_cb with parameters p1
+      // printf(" TSTF-userCmd |%s|\n",p1);
     irc = DLL_plu_exec ("TSTF_cb", (void*)p1);
-  }
+    if(irc < 0) goto L_exit;
+    continue;
 
+
+    //----------------------------------------------------------------
+    L_subProg:
+      // printf("L_subProg: goto |%s| at lNr=%d\n",p1,actInd);
+    // add active linNr to prgStack; start new scriptProg
+    prgStack[prgInd] = actInd;
+      // printf(" set prgStack[%d]=%d\n",prgInd,prgStack[prgInd]);
+    ++prgInd;
+    if(prgInd >= SIZ_PSTACK) {TX_Error("TSTF_load stack E1"); irc=-1; goto L_exit;} 
+    // rewind and find new prog
+    rewind (fpi);
+    actInd = 0;
+    goto L_prgFind;
+  }
+  //================================================================
+
+
+
+  //----------------------------------------------------------------
+  L_err_syntax:
+  TX_Print("*** TSTF_load - error syntax line %d",actInd);
+  irc = -1;
+  goto L_exit;
+
+
+  L_err_not_found:
+  TX_Print("*** TSTF_load - startLabel %s not found",prgNam);
+  irc = -1;
+  goto L_exit;
+
+
+  L_err_intern:
+  TX_Print("*** TSTF_load - internal error");
+  irc = -1;
+  goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_done:
   irc = 0;
 
 
   //----------------------------------------------------------------
   L_exit:
   fclose(fpi);
+  if(txs) free (txs);
 
   DL_Redraw ();
   GUI_update__ ();

@@ -69,6 +69,7 @@ MMsePcp=assegna le Coordinate del cursore sul piano di costruzione alla selezion
 MMsePop=assegna punto parametrico del cursore su un oggetto selezionato alla prossima selezione
 MMseLoO=Ausgabe einer Linie als Teilsegment eines Polygons oder einer Kontur
 MMselOid=add objects to group, hilite, (key objID)
+MMselTyp=select objects by type / name; add to group
 
 MMgrAdd=Aggiunge l'oggetto al gruppo; lo rimuove dal gruppo, se è già selezionato
 MMgrSav=Salva tutti gli oggetti del gruppo in un File (nativo)
@@ -247,8 +248,8 @@ TRAnsform_obj__Tra_=trasla o ruota un oggetto
 REV__reverse__curve=reverse curve
 Project_obj__Prj_=proiezione di un elemento del progetto su una superficie
 Parallel_obj__offset_=parallel object (offset-curve or surface)
-Mirror_about_line=specchio: riflette gli oggetti in un linea
-Mirror_about_plane=specchio: riflette gli oggetti in un piano
+Mirror_over_line_plane=mirror obj over line or plane
+curvature_2_curves=modify 2 curves to fit curvature G1 or G2
 ISOparametric_Curve_from_Surf=curva estratta da: superficie (da parametri (s)); [CX (tutta; Default = lungo)]
 Surf_OPEration_cut_join___=cut or join surface using curve, plane or surface (boolean AND OR NOT)
 
@@ -292,6 +293,8 @@ Typ_goGeo6=Digita il valore dell'angolo (gradi); Seleziona Vec / LN per direzion
 Typ_goGeo7=Digita il valore dell'angolo in gradi; Seleziona PT
 Typ_goGeo8=Digita il valore; Seleziona PT
 Typ_goAxis=Sel LN / CIR / PLN / PT + PT / PT + LN / PT + VC (PgUp) / PT + PLN
+Typ_go_LCS=select line circle or curve
+Typ_go_LR=select line or plane
 Typ_goRadius=Digita il valore del Raggio; Seleziona PT / Cir
 Typ_goGeoSUSU=Sel Conus Torus RuledSurf RevolvedSurf B-SPL-Surf
 Typ_go_RA=Sel Plane (R) or surface (A)
@@ -410,6 +413,7 @@ Lang_chg1=*** for full functionality (translation of info-tags) restart gcad3d
 
 ED1CW=ultimo input in senso orario
 ED1CCW=ultimo input in senso antiorario
+EDGRP1=last input reversed
 ED1MOD+=seleziona la successiva variante di soluzione
 ED1MOD-=seleziona la precedente variante di soluzione
 ED1<<<=indietro di un input (prima dell'inserimento)

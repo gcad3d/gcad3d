@@ -4837,10 +4837,10 @@ static Point  p1, p2;
 
   //----------------------------------------------------------------
   // u1, u2 are parameter-values
-  UT3D_vc_multvc (&vc2, &vc1, u1);
+  UT3D_vc_mult_d (&vc2, &vc1, u1);
   UT3D_pt_traptvc (&pt2, &pt1, &vc2);
   
-  UT3D_vc_multvc (&vc2, &vc1, u2);
+  UT3D_vc_mult_d (&vc2, &vc1, u2);
   UT3D_pt_traptvc (&pt3, &pt1, &vc2);
 
 
@@ -5309,8 +5309,8 @@ static Point  p1, p2;
   STP_r_PLN_AXIS2 (&pl1, i_tab[l1]);  // AXIS --> Plane
 
   // create EllipsenHauptachsen
-  UT3D_vc_multvc (&vca, &pl1.vx, d1);
-  UT3D_vc_multvc (&vcb, &pl1.vy, d2);
+  UT3D_vc_mult_d (&vca, &pl1.vx, d1);
+  UT3D_vc_mult_d (&vcb, &pl1.vy, d2);
 
   // set length
   UT3D_vc_setLength (&vca, &vca, d1);
@@ -5365,8 +5365,8 @@ static Point  p1, p2;
     // printf(" d1=%f d2=%f\n",d1,d2);
 
   // create EllipsenHauptachsen
-  UT3D_vc_multvc (&vca, &pl1.vx, d1);
-  UT3D_vc_multvc (&vcb, &pl1.vy, d2);
+  UT3D_vc_mult_d (&vca, &pl1.vx, d1);
+  UT3D_vc_mult_d (&vcb, &pl1.vy, d2);
 
 
   // create the points
@@ -5443,8 +5443,8 @@ static Point  p1, p2;
 
 
   // UT3D_vc_setLength
-  UT3D_vc_multvc (&vca, &pl1.vx, d1);
-  UT3D_vc_multvc (&vcb, &pl1.vy, d2);
+  UT3D_vc_mult_d (&vca, &pl1.vx, d1);
+  UT3D_vc_mult_d (&vcb, &pl1.vy, d2);
   
 
   // add Hauptachsen (NICHT AP_obj_add_vc - Laenge muss erhalten bleiben !)
@@ -9681,7 +9681,7 @@ typedef struct {long ptUNr, ptVNr, degU, degV;
 
 
   // multiply vector
-  UT3D_vc_multvc (vc1, vc1, d1);
+  UT3D_vc_mult_d (vc1, vc1, d1);
 
   printd("ex VC_VEC_t %lf %lf %lf\n",vc1->dx,vc1->dy,vc1->dz);
 

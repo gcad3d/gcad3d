@@ -1779,9 +1779,15 @@ static  CurvPoly plg1;
   int APT_decode_conv_cv (CurvBSpl *cv1, Memspc *tbuf1, Memspc *tbuf2,
                            int aus_anz, int aus_typ[], double aus_tab[]) {
 //=============================================================================
-// aus_[1] = Typ_CV
-// iTyp: 0=Interpolierend 1=Controlpoints
+// APT_decode_conv_cv            CurvBSpl from polygon,deg,iTyp
+// Input:
+//   Typ_CV     polygon
+//   Typ_Val    degree
+//   T_CTRL     iTyp: 0=Interpolierend 1=Controlpoints
+// Output:
+//   cv1        tbuf1=memspc201, tbuf2=memspc501
 // ACHTUNG: liefert Knotentabelle in memspc51
+// see also APT_decode_pt2bsp APT_decode_bsp_
 
 
   int      i1, ii, deg, iTyp;
@@ -2758,7 +2764,8 @@ S24=CCV2,S23,0.2        - Circ/Line from 2D-Polygon, tol
   // umwandeln in BSP;
   if(iTyp == 0) {   // iTyp: 0=Interpolierend
     // i1 = UCBS_cbsp_npt (cv1, ptNr, pTab, deg, tbuf1, tbuf2);
-    iTyp = 0; //0=Standard; 1=optimized;
+    // iTyp = 0; //0=Standard; 1=optimized;
+    iTyp = 1; //0=Standard; 1=optimized; 2024-05-22
     // optimized=genauer, aber f GordonSurfs nicht verwendbar).
     i1 = UCBS_BspCrvPts (cv1, tbuf1, ptNr, pTab, deg, iTyp, tbuf2);
     if(i1 < 0) {TX_Error("APT_decode_pt2bsp E001"); return -1;}
@@ -2770,7 +2777,7 @@ S24=CCV2,S23,0.2        - Circ/Line from 2D-Polygon, tol
     if(i1 < 0) {TX_Error("UT3D_cbsp_ptn E001"); return -1;}
   }
 
-  cv1->clo = UT3D_bsp_ck_closed__ (cv1);
+  cv1->clo = UT3D_bsp_ck_closed__ (cv1);   // 2024-06-25
 
 
   L_exit:
@@ -6965,6 +6972,126 @@ static  TraRot  trr;
 */
 
 
+//======================================================================
+  int APT_decode_sru (ObjGX *ox1, int tbNr, int* typTb, double* valTb) {
+//======================================================================
+// APT_decode_sru            decode ruled-surf
+// Input-BSP: Typ_cmdNCsub T_BSP0
+//            Typ_Group    nr-objects (2)
+//            atomic-obj-1:  curve (base)
+//            atomic-obj-2:  curve | point | vector
+//   - cannot yet habe T_REV
+// Input-SRU: Typ_cmdNCsub T_SRU
+//            atomic-obj-1:  curve (base)
+//            atomic-obj-2:  curve | point | vector
+// Output:
+//   oxo     ObjGX Typ_SURRU SurRul
+//   retCode 0=OK; 1=notComplete; <0=error; 
+//   
+// "A20=SRU C20 D(0 0 16)"
+// Testmodel: test_sur_all.gcad 
+
+
+// static SurRul    sru1;
+static ObjGX     oxa[2];
+
+
+  int      irc, i1, i2, i3, oTyp, vTyp;
+  long     oDbi, vDbi;
+
+
+
+
+  // printf("APT_decode_sru %d\n",tbNr);
+  // for(i1=0; i1<tbNr; ++i1) {
+    // printf(" %d %d %f\n",i1,typTb[i1],valTb[i1]);
+  // }
+
+
+  if(typTb[0] != Typ_cmdNCsub) return MSG_ERR__ (ERR_internal, "E1");
+
+  if(valTb[0] == T_SRU) {
+    i1 = 1;  // i0 = startpos data in typTb/valTb
+    if(tbNr < 3) goto L_not_complete;
+
+  } else if(valTb[0] == T_BSP0) {
+    if(valTb[1] < 2) goto L_not_complete;
+    i1 = 2;
+
+  } else return MSG_ERR__ (ERR_internal, "E2");
+
+
+  i2 = i1 + 1;
+
+
+  //----------------------------------------------------------------
+  // get reverse-direction
+  oxa[0].dir = 0;
+  oxa[1].dir = 0;
+
+  i3 = i2 + 1;
+
+  if(tbNr > i3) {
+    // if((typTb[i3] == Typ_cmdNCsub)||(typTb[3] == Typ_modif)) {
+    if(typTb[i3] == Typ_cmdNCsub) {
+      if((valTb[i3] == T_REV)||(valTb[i3] == T_CW)) { 
+        if(valTb[i3] == T_CW) TX_Print("**** SRU CW obsolete - change to REV");
+        oxa[1].dir  = 1;
+      } else goto L_errPar;
+    } else goto L_errPar;
+  }
+
+    // printf(" i3=%d dir=%d\n",i3,oxa[1].dir);
+
+
+  //----------------------------------------------------------------
+  oTyp  = typTb[i1];   // typ of contourelement
+  oDbi  = valTb[i1];   // Ind of contourelement
+  vTyp  = typTb[i2];   // typ of vector
+  vDbi  = valTb[i2];   // Ind of vector
+
+  // if contourelement is trimmed-curve: change to standard-curve
+  irc = DBO_cvStd_cvTrm (&oTyp, &oDbi);
+  if(irc < 0) return irc;
+
+
+  //----------------------------------------------------------------
+  // set contour
+  OGX_SET_INDEX (&oxa[0], oTyp, oDbi);
+
+  // set vector
+  OGX_SET_INDEX (&oxa[1], vTyp, vDbi);
+
+  // set RuledSurf
+  OGX_SET_OBJ (ox1, Typ_SURRU, Typ_ObjGX, 2, (void*)oxa);
+
+    // TESTBLOCK
+    // DEB_dump_ox_0 (ox1, "ex-APT_decode_sru");  // full decode ..
+    // DEB_dump_ox_s_ (ox1, "APT_decode_sru");
+    // { ObjGX     *o1, *o2;
+      // o1 = ox1->data; o2 = &o1[0];
+      // printf("  SurRu 0 typ=%d ind=%ld dir=%d\n",o2->typ,(long)o2->data,o2->dir);
+      // o2 = &o1[1];
+      // printf("  SurRu 1 typ=%d ind=%ld dir=%d\n",o2->typ,(long)o2->data,o2->dir); }
+    // END TESTBLOCK
+
+
+  return 0;
+
+
+  L_errPar:
+    TX_Print("**** SRU - parameter error ");
+    return -1;
+
+
+  L_not_complete:
+    // TX_Print("**** SRU - not complete ");
+    return 1;
+
+}
+
+
+/* V60.04
 //=============================================================================
   int APT_decode_sru (ObjGX *ox1, int aus_anz,int aus_typ[],double aus_tab[]) {
 //=============================================================================
@@ -6985,10 +7112,10 @@ static ObjGX   oxa[2];
   ObjGX     *o1, *o2;
 
 
-  // printf("APT_decode_sru %d\n",aus_anz);
-  // for(i1=0; i1<aus_anz; ++i1) {
-    // printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
-  // }
+  printf("APT_decode_sru %d\n",aus_anz);
+  for(i1=0; i1<aus_anz; ++i1) {
+    printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+  }
 
   oxa[0].dir = 0;
   oxa[1].dir = 0;
@@ -7038,8 +7165,499 @@ static ObjGX   oxa[2];
   return 0;
 
 }
+*/
 
 
+//=========================================================================
+  int APT_decode_sbsp_d (ObjGX *ox1, int tbNr, int* typTb, double* valTb) {
+//=========================================================================
+// APT_decode_sbsp_d                         create surface from BSP direct-values
+// RetCod:
+//   1          obj not yet complete (only one curve)
+//   -99        curves do not end on surface - boundaries
+// was in APT_decode_sbsp :L_BSP
+// Testmodel: test_sur_all.gcad
+
+
+  int      irc, i1, i2, fTabNr, fTabSiz;
+  double   *fTab;
+  SurBSpl  *su1;
+
+
+
+  // printf("================================================ \n");
+  // printf("APT_decode_sbsp_d: %d\n",tbNr);
+  // for(i1=0; i1<tbNr; ++i1) {
+    // printf("_loft %d typ=%3d val=%f\n",i1,typTb[i1],valTb[i1]);
+  // }
+
+
+  // get space for su1
+  su1 = UME_reserve (&APTSpcObj, sizeof(SurBSpl));
+  if(su1 == NULL) return -1;
+
+
+  // get space for fTab
+  fTab = (void*) APTSpcObj.next;
+  fTabSiz = UME_ck_free(&APTSpcObj) / sizeof(double);
+
+
+  // zuerst alle variablen in eine tabelle fTab kopieren
+  fTabNr  = 0;
+  irc = APT_decode_ValTab (fTab, &fTabNr, fTabSiz, tbNr, typTb, valTb);
+  if(irc < 0) return irc;
+    // printf(" pt1/2Nr=%f,%f deg1/2=%f,%f\n",fTab[0],fTab[1],fTab[2],fTab[3]);
+
+
+
+  // fill
+  su1->ptUNr  = fTab[0];
+  su1->ptVNr  = fTab[1];
+  su1->degU   = fTab[2];
+  su1->degV   = fTab[3];
+  su1->cpTab  = (Point*)&fTab[4];
+
+  i1 = 4 + (su1->ptUNr * su1->ptVNr * 3);
+  su1->kvTabU = &fTab[i1];
+
+  i2 = su1->ptUNr + su1->degU + 1;           // Anzahl U-Knots
+  su1->kvTabV = &fTab[i1+i2];
+
+    // DEB_dump_obj__ (Typ_SURBSP, su1, "" );
+
+
+  ox1->typ   = Typ_SURBSP;
+  ox1->form  = Typ_SURBSP;
+  ox1->siz   = 1;
+  ox1->data  = su1;
+
+
+  L_exit:
+    // printf("ex APT_decode_sbsp irc=%d\n",irc);
+  return irc;
+
+}
+
+
+//=========================================================================
+  int APT_decode_sbsp_1U (ObjGX *ox1, int tbNr, int* typTb, double* valTb) {
+//=========================================================================
+// APT_decode_sbsp_1U                  create surface from 1 group of Curves
+// BSP U(Curves) [deg]
+// Surfcae from 2-19 Querschnittskurven: SkinnedSurface; exact.
+// exact: es werden die Knotentabellen aller curves exact gleich gemacht
+//   (sehr hoher Rechenaufwand)
+// max 19 curves.
+// RetCod:
+//   1          obj not yet complete (only one curve)
+//   -99        curves do not end on surface - boundaries
+// was APT_decode_sbsp
+// Testmodel: test_sur_cyl5.gcad
+
+
+  int      irc, i1, i2, typ, iu1, cv1Nr, deg1;
+  long     ind;
+  CurvBSpl **cv1tab;
+  SurBSpl  *su1;
+  Memspc   tbuf1;
+
+
+  // printf("================================================ \n");
+  // printf("APT_decode_sbsp_1U: %d\n",tbNr);
+  // for(i1=0; i1<tbNr; ++i1) {
+    // printf("  %d typ=%3d val=%f\n",i1,typTb[i1],valTb[i1]);
+  // }
+
+
+  if((typTb[0] != Typ_cmdNCsub)||(valTb[0] != T_BSP0)) {
+    TX_Error("APT_decode_sbsp_1U: InputError ****");
+    return -1;
+  }
+
+
+  // get cv1Nr = nr of curves/points
+  if(typTb[1] == Typ_Group) {         // group of curves
+    cv1Nr = valTb[1];
+    if(cv1Nr > 19) goto Err_2;
+    if(cv1Nr < 2) goto Err_2;
+    iu1 = 2;
+    i1 = iu1 + cv1Nr;
+
+  } else if(typTb[1] == Typ_CV) {     // 1. Group = single curve
+    cv1Nr = 1;
+    iu1 = 1;
+    i1 = 2;
+
+  } else goto Par_err;
+
+
+  // get degree = last param.
+  i1 = tbNr - 1;
+  if(typTb[i1] == Typ_Val) {
+    deg1 = valTb[i1];
+    ++i1;
+  } else {
+    deg1 = 0;
+  }
+
+    // TESTBLOCK
+    // for(i1=0; i1<cv1Nr; ++i1)
+    // printf(" G1[%d] typ=%d ind=%d\n",i1,typTb[i1+iu1],(int)valTb[i1+iu1]);
+    // printf(" deg1=%d\n",deg1);
+    // return -1;
+    // END TESTBLOCK
+
+
+
+  // reserve space for output-surf su1 in tbuf1
+  // su1 = tbuf1->next;
+  su1 = UME_reserve (&APTSpcObj, sizeof(SurBSpl));
+  if(su1 == NULL) return MSG_ERR__ (ERR_EOM, "E1");
+
+  // reserve space for cv1tab inside tbuf1
+  cv1tab = UME_reserve (&APTSpcObj, cv1Nr * sizeof(void*));   //CurvBSpl));
+  if(cv1tab == NULL) return MSG_ERR__ (ERR_EOM, "E2");
+
+  // get extra-space
+  UME_init (&tbuf1, mem_cbuf1, mem_cbuf1_SIZ);
+
+
+
+  // put 1. group of curves > cv1tab
+  i2 = 2;
+  for(i1=0; i1<cv1Nr; ++i1) {
+    typ = typTb[i2];
+    ind = valTb[i2];
+      // printf(" G1[%d] typ=%d ind=%d\n",i1,typ,ind);
+    // add lfig(LN/CI/CV) (typ,ind) as cbsp to cv1tab
+    irc = UT3D_cbsp_dbo (&cv1tab[i1], &APTSpcObj, typ, ind, &APTSpcTmp);
+    if(irc < 0) return irc;
+      // DEB_dump_obj__ (Typ_CVBSP, cv1tab[i1], "U1[%d]",i1);
+    ++i2;
+  }
+
+
+  // orient B-SplCurves cv1tab (same direction)
+  irc = UT3D_ncvbsp_orient (cv1Nr, cv1tab, tbuf1);
+  if(irc < 0) return -1;
+
+
+  // create bspl-surf from 2-n across-curves
+  irc = UT3D_sbsp_ncv (su1, &APTSpcObj,
+                  cv1Nr, cv1tab, deg1,
+                  &APTSpcTmp, &tbuf1);
+  if(irc < 0) return irc;
+
+
+  // OK
+  ox1->typ   = Typ_SURBSP;
+  ox1->form  = Typ_SURBSP;
+  ox1->siz   = 1;
+  ox1->data  = su1;
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_SURBSP, su1, "ex-APT_decode_sbsp_1U" );
+    // END TESTBLOCK
+
+  return irc;
+
+
+
+  //================= Errors =============================
+  Par_err:
+    TX_Error("APT_decode_sbsp_1U: ParameterError ****");
+    return -1;
+
+
+  Err_2:
+    TX_Error("APT_decode_sbsp_1U - BsplSurf: max 19 curves ****");
+    return -1;
+
+}
+
+
+//==========================================================================
+  int APT_decode_sbsp_2U (ObjGX *ox1, int tbNr, int* typTb, double* valTb) {
+//==========================================================================
+// APT_decode_sbsp_2U                    create surface from 2 groups of Curves
+// BSP U(Curves) U(Curves) [deg1] [deg2]
+// GordonSurface;
+// braucht 2 Basiflaechentypen:
+// - SkinnedSurface
+//     (Flaeche nur aus Querschnittskurven) und
+// - punktinterpolierende Flaeche
+//     (spannt eine Flaeche ueber einen Punkteraster)
+// 
+// RetCod:
+//   1          obj not yet complete (only one curve)
+//   -99        curves do not end on surface - boundaries
+// was APT_decode_sbsp
+// Testmodel: gcad test_sur_bsp_u2.gcad
+
+
+  int      irc, i1, i2, typ, iu1, iu2, cv1Nr, cv2Nr, deg1, deg2;
+  long     ind;
+  CurvBSpl **cv1tab, **cv2tab;
+  SurBSpl  *su1;
+  Memspc   tbuf1;
+
+
+
+  // printf("================================================ \n");
+  // printf("APT_decode_sbsp_2U: %d\n",tbNr);
+  // for(i1=0; i1<tbNr; ++i1) {
+    // printf("  %d typ=%3d val=%f\n",i1,typTb[i1],valTb[i1]);
+  // }
+
+
+  if((typTb[0] != Typ_cmdNCsub)||(valTb[0] != T_BSP0)) {
+    TX_Error("APT_decode_sbsp_1U: InputError ****");
+    return -1;
+  }
+
+
+  i1 = 1;
+
+  // get curveGroup 1 ----------------------
+  if(typTb[i1] == Typ_Group) {         // group of curves
+    cv1Nr = valTb[i1];
+    if(cv1Nr > 19) goto Err_2;
+    iu1 = i1 + 1;
+
+  } else if(typTb[i1] == Typ_CV) {     // a single curve
+    cv1Nr = 1;
+    iu1 = i1;
+
+  } else goto Par_err;
+    // printf(" _sbsp-iu1=%d cv1Nr=%d iu2=%d cv2Nr=%d i1=%d\n",
+           // iu1,cv1Nr,iu2,cv2Nr,i1);
+
+  i1 = iu1 + cv1Nr;
+
+
+  // get curveGroup 2 ----------------------
+  if(typTb[i1] == Typ_Group) {         // group of curves
+    cv2Nr = valTb[i1];
+    if(cv2Nr > 19) goto Err_2;
+    iu2 = i1 + 1;
+
+  } else if(typTb[i1] == Typ_CV) {     // a single curve
+    cv2Nr = 1;
+    iu2 = i1;
+
+  } else goto Par_err;
+    // printf(" _sbsp-iu1=%d cv1Nr=%d iu2=%d cv2Nr=%d i1=%d\n",
+           // iu1,cv1Nr,iu2,cv2Nr,i1);
+
+  i1 = iu2 + cv2Nr;
+
+
+  // get deg1, deg2 ----------------------
+  if(i1 > tbNr) {
+    deg1 = valTb[i1];
+    ++i1;
+  } else {
+    deg1 = 0;
+  }
+
+  if(i1 > tbNr) {
+    deg2 = valTb[i1];
+    ++i1;
+  } else {
+    deg2 = 0;
+  }
+    // printf(" _sbsp-deg1=%d deg2=%d\n",deg1,deg2);
+
+
+  //----------------------------------------------------------------
+  // get space for su1 in APTSpcObj
+  su1 = UME_reserve (&APTSpcObj, sizeof(SurBSpl));
+  if(su1 == NULL) return MSG_ERR__ (ERR_EOM, "E1");
+
+  // reserve space for cv1tab & cv2tab inside APTSpcObj
+  // Minimum space is for 2 curves !!
+  i1 = IMAX(cv1Nr, 2);
+  cv1tab = UME_reserve (&APTSpcObj, i1 * sizeof(void*));   //CurvBSpl));
+  if(cv1tab == NULL) return -1;
+
+  i1 = IMAX(cv2Nr, 2);
+  cv2tab = UME_reserve (&APTSpcObj, i1 * sizeof(void*));   //CurvBSpl));
+  if(cv2tab == NULL) return -1;
+
+  // get extra-space
+  UME_init (&tbuf1, mem_cbuf1, mem_cbuf1_SIZ);
+
+
+
+  // put 1. group of curves > cv1tab
+  for(i1=0; i1<cv1Nr; ++i1) {
+    i2 = iu1 + i1;
+    typ = typTb[i2];
+    ind = valTb[i2];
+    // change points, lines -> bsp-curves
+    irc = UT3D_cbsp_dbo (&cv1tab[i1], &APTSpcObj, typ, ind, &tbuf1);
+    if(irc < 0) return irc;
+      // printf(" U1[%d] typ=%d ind=%ld\n",i1,typ,ind);
+      // DEB_dump_obj__ (irc, cv1tab[i1], "U1[%d]",i1);
+  }
+
+
+  // put 2. group of curves > cv2tab
+  for(i1=0; i1<cv2Nr; ++i1) {
+    i2 = iu2 + i1;
+    typ = typTb[i2];
+    ind = valTb[i2];
+    // change points, lines -> bsp-curves
+    irc = UT3D_cbsp_dbo (&cv2tab[i1], &APTSpcObj, typ, ind, &tbuf1);
+    if(irc < 0) return irc;
+      // printf(" U2[%d] typ=%d ind=%ld\n",i1,typ,ind);
+      // DEB_dump_obj__ (irc, cv2tab[i1], "U2[%d]",i1);
+  }
+
+
+  //----------------------------------------------------------------
+  // single-curve: add a second (degenerated) curve
+  if(cv1Nr < 2) {
+    irc = UT3D_4cvbsp_3cvbsp (cv1tab, cv2tab, &APTSpcObj);
+    if(irc < 0) goto Err_3;
+    cv1Nr = 2;
+    goto L_sdraw;
+
+  } else if(cv2Nr < 2) {
+    irc = UT3D_4cvbsp_3cvbsp (cv2tab, cv1tab, &APTSpcObj);
+    if(irc < 0) goto Err_3;
+    cv2Nr = 2;
+    goto L_sdraw;
+
+  }
+
+
+  //----------------------------------------------------------------
+  // orient 2 groups of curves for surf
+    // printf(" - orient curves 1+2 ..\n");
+  i1 = UT3D_2ncvbsp_orient (cv1Nr, cv1tab, cv2Nr, cv2tab, &APTSpcObj);
+  if(i1 < 0) return -1;
+
+
+
+  L_sdraw:
+  // create bspl-surf from 2 groups of curves
+  irc = UT3D_sbsp_2ncv (su1, &APTSpcObj, 
+                        cv1Nr, cv1tab, deg1, cv2Nr, cv2tab, deg2,
+                        &APTSpcTmp, &tbuf1);
+  if(irc < 0) return irc;
+
+
+
+  //================================================================
+  L_done:
+
+    // TESTBLOCK
+    // DEB_dump_obj__ (Typ_SURBSP, su1, "" );
+    // printf("ex APT_decode_sbsp_2U irc=%d\n",irc);
+    // END TESTBLOCK
+
+
+  ox1->typ   = Typ_SURBSP;
+  ox1->form  = Typ_SURBSP;
+  ox1->siz   = 1;
+  ox1->data  = su1;
+
+
+  return irc;
+
+
+
+  //================= Fehler =============================
+  Par_err:
+    TX_Error("BsplSurfDefinition: ParameterError ****");
+    goto Error;
+
+  Err_2:
+    TX_Error("BsplSurf: max 19 curves ****");
+    goto Error;
+
+  Err_3:
+    TX_Print("**** BsplSurf: Error CoonsPatchSurf - add curve ****");
+
+
+  Error:
+  return -1;
+
+}
+
+
+//=======================================================================
+  int APT_decode_loft (ObjGX *ox1, int tbNr, int* typTb, double* valTb) {
+//=======================================================================
+// APT_decode_loft                           create surface from Curves along [across]
+// RetCod:
+//   1          obj not yet complete (only one curve)
+//   -99        curves do not end on surface - boundaries
+// was APT_decode_sbsp
+
+
+  int      i1, ii;
+
+
+  // printf("================================================ \n");
+  // printf("APT_decode_loft: %d\n",tbNr);
+  // for(i1=0; i1<tbNr; ++i1) {
+    // printf("  %d typ=%3d val=%f\n",i1,typTb[i1],valTb[i1]);
+  // }
+
+  // check if input is SRU or BSP ..
+  if(typTb[0] == Typ_cmdNCsub) {
+     if(valTb[0] != T_BSP0) return MSG_ERROR (-1, "E 1");
+  }
+
+  // surf from "CAD / A Loft across" with 1 or 2 groups of curves
+  if(typTb[1] != Typ_Group) goto L_loft_d;  // bspl surf from direct data
+
+  // get ii = nr of group-records in ato1
+  ii = 0;
+  for(i1=0; i1<tbNr; ++i1) if(typTb[i1] == Typ_Group) ++ii;
+  if(ii > 1) goto L_loft_2U;
+
+  // only one group of curves;
+  // get ii = nr of curves/points in ato1; if(cvNr > 2) goto loft
+  ii = 0;
+  for(i1=0; i1<tbNr; ++i1) {
+    if(TYP_IS_LFIG(typTb[i1])) {
+      ++ii;
+    } else if(typTb[i1] == Typ_PT) ++ii;
+  }
+  // if(cvNr > 2) goto loft
+  if(ii > 2) goto L_loft_1U;   // do NOT use APT_decode_sru__ - use BSPL for ruled-surf
+
+
+  //----------------------------------------------------------------
+  // ruled surf
+  L_sru:
+    return APT_decode_sru (ox1, tbNr, typTb, valTb);
+
+
+  //----------------------------------------------------------------
+  // bspl surf from direct data
+  L_loft_d:
+    return APT_decode_sbsp_d (ox1, tbNr, typTb, valTb);
+
+
+  //----------------------------------------------------------------
+  // bspl surf from 1 group of curves
+  L_loft_1U:
+    return APT_decode_sbsp_1U (ox1, tbNr, typTb, valTb);
+
+
+  //----------------------------------------------------------------
+  // bspl surf from 2 groups of curves
+  L_loft_2U:
+    return APT_decode_sbsp_2U (ox1, tbNr, typTb, valTb);
+
+}
+
+
+/* replaced by APT_decode_loft and APT_decode_sbsp_*
 //=============================================================================
   int APT_decode_sbsp (ObjGX *ox1, Memspc *tbuf1, Memspc *tbuf2, Memspc *tbuf3,
                        int aus_anz, int aus_typ[], double aus_tab[]) {
@@ -7344,6 +7962,7 @@ static ObjGX   oxa[2];
 
 
 }
+*/
 
 
 //======================================================================
@@ -7733,7 +8352,7 @@ static  SurRBSpl  rsu1;
       // goto L_work1;
       return APT_decode_suStrip (ox1,aus_anz,aus_typ,aus_tab,wrkSpc);
 
-    } else if (i1 == T_SRU)  {               // 22 = SRU (RuledSurf)
+    } else if (i1 == T_SRU)  {               // 22 = SRU (RuledSurf) Typ_SURRU
       return APT_decode_sru (ox1,aus_anz,aus_typ,aus_tab);
 
     } else if (i1 == T_HAT)  {               // 23 = HAT (hatch)
@@ -9883,10 +10502,10 @@ goto Error;
         // printf(" mult vc %d %f\n",i1,d1);
         // DEB_dump_obj__ (Typ_VC, &vc2, "vc2=");
       if(i1 == '*') {          // '*'
-        UT3D_vc_multvc (&vc1, &vc2, d1);
+        UT3D_vc_mult_d (&vc1, &vc2, d1);
       } else if(i1 == '/') {   // '/'
         d1 = 1. / d1;
-        UT3D_vc_multvc (&vc1, &vc2, d1);
+        UT3D_vc_mult_d (&vc1, &vc2, d1);
       } else goto L_parErr;
       goto Fertig;
     }
@@ -10015,7 +10634,7 @@ goto Error;
   L_parl:
   // in: vc2, vc3;
   UT3D_parvc_2vc (&d1, &vc3, &vc2);
-  UT3D_vc_multvc (&vc1, &vc2, d1);
+  UT3D_vc_mult_d (&vc1, &vc2, d1);
   if(iParl == 2) goto L_cx_lin;
   goto Fertig;
 
@@ -18745,7 +19364,7 @@ int defTyp;
 long defInd;
 
 
-  int       i1, oTyp, iNew, iCmd;
+  int       irc, i1, oTyp, iNew, iCmd;
   long      dbi, dli, oSiz;
   double    d1;
   char      obj1[OBJ_SIZ_MAX];
@@ -18764,7 +19383,7 @@ long defInd;
   GText     gtx1;
   Dimen     dim1;
   Dim3      dim3;
-  ObjGX     ox1, *oxp1;
+  ObjGX     ox1, ox2, *oxp1;
   Memspc    tbuf1;
 
   char      *cp1, *cp2, *cp3; // temp test
@@ -18781,10 +19400,9 @@ long defInd;
 
 
 
-  // testen, ob noch Platz in DB
-  if(DB_CSEG_ck() < 0) return -1;
-
-  // DB_CSEG__ (APT_obj_stat);  // reset DB_CSEG
+  // test for enough space in DB; NO: irc and AP_stat.errStat is set to ERR_DB_CSEG_EOM
+  irc = DB_CSEG_ck ();
+  if(irc) return irc;
 
 
   if(!aus_anz) {
@@ -18859,10 +19477,15 @@ long defInd;
       // goto L_sub_store;
 
     //----------------------------------------------------------------
-    } else if((int)aus_tab[0] == T_TNG) {    // tangential line
-      i1 = APT_TNG__ (&ox1, aus_anz, aus_typ, aus_tab, &APTSpcTmp);
-        // DEB_dump_obj__ (ox1.form, obj1, "ex APT_TNG__");
-      if(i1 < 0) return -1;
+    } else if((int)aus_tab[0] == T_TNG) {    // tangential objs
+      if(defTyp == Typ_CV) {
+        i1 = APT_CBSP_tng (&ox1, &ox2, aus_anz, aus_typ, aus_tab);
+        if(i1 < 0) return -1;
+      } else {
+        i1 = APT_TNG__ (&ox1, aus_anz, aus_typ, aus_tab, &APTSpcTmp);
+          // DEB_dump_obj__ (ox1.form, obj1, "ex APT_TNG__");
+        if(i1 < 0) return -1;
+      }
       // goto L_sub_store;
 
 
@@ -19321,8 +19944,9 @@ long defInd;
         if(iCmd == T_BSP0) {
           // bspl-surf
           UME_init (&tbuf1, mem_cbuf1, mem_cbuf1_SIZ); // 2014-01-23
-          i1 = APT_decode_sbsp (&ox1, &APTSpcObj, &APTSpcTmp, &tbuf1,
-                                aus_anz,aus_typ,aus_tab);
+          i1 = APT_decode_loft (&ox1, aus_anz,aus_typ,aus_tab);
+          // i1 = APT_decode_sbsp (&ox1, &APTSpcObj, &APTSpcTmp, &tbuf1,
+                                // aus_anz,aus_typ,aus_tab);
           if(i1 == -99) {
             if(APT_obj_stat == 0) {
               TX_Error("BsplSur - curves do not end on surface - boundaries");
@@ -22144,6 +22768,74 @@ ev eine eigene struct fuer die Gittersurf (mit ptab, iu,iv,du,dv)
 }
 
 
+//==================================================================
+  int APT_CBSP_tng  (ObjGX *ox1, ObjGX *ox2,
+                     int aus_anz, int aus_typ[], double aus_tab[]) {
+//==================================================================
+// curvature to 2 bspl-curves
+
+  int      irc, i1, opt, c1se, typ1, typ2;
+  long     dbi1, dbi2;
+  double   pc;
+  CurvBSpl *cv1, *cv2;
+static  CurvBSpl *cvm1, *cvm2;
+
+
+
+  printf("APT_CBSP_tng %d\n",aus_anz);
+  for(i1=0;i1<aus_anz;++i1)printf(" %d %d %f\n",i1,aus_typ[i1],aus_tab[i1]);
+
+  typ1 = aus_typ[1];
+  dbi1 = aus_tab[1];
+
+  typ2 = aus_typ[2];
+  dbi2 = aus_tab[2];
+
+  pc   = aus_tab[3];    // pc: deviation of tangent in degree; def. = 0.
+  opt  = aus_tab[4];    // opt: 1 | 2 | 3
+
+
+// TODO: get c1se; or find if cv1 connects with cv2 at start or endPt
+  c1se = 1;             // modify start of cv1; 1=modify end of cv1;
+
+
+
+  // get curves to modify
+  cv1 = DB_get_CV (&typ1, dbi1);
+  cv2 = DB_get_CV (&typ2, dbi2);
+
+  if(typ1 != Typ_CVBSP) return MSG_ERR__ (ERR_TODO_E, "typ curve-1");
+  if(typ2 != Typ_CVBSP) return MSG_ERR__ (ERR_TODO_E, "typ curve-2");
+
+
+  // copy objs > cvm1, &cvm2;
+  irc = UME_add_obj (&APTSpcObj, (void**)&cvm1, Typ_CVBSP, 1, cv1);
+  if(irc < 0) goto L_EOM;
+  irc = UME_add_obj (&APTSpcObj, (void**)&cvm2, Typ_CVBSP, 1, cv2);
+  if(irc < 0) goto L_EOM;
+
+
+  irc = CBSP_tng__ (cvm1, cvm2, opt, c1se, pc, &APTSpcObj);
+  if(irc < 0) return -1;
+
+
+//   // out modified curve 1
+  ox1->typ   = Typ_CVBSP;
+  ox1->form  = Typ_CVBSP;
+  ox1->siz   = 1;
+  ox1->data  = cvm1;
+
+
+  return 0;
+
+
+  L_EOM:
+    TX_Error ("APT_CBSP_tng - EOM");
+    return -1;
+
+}
+
+
 //================================================================
   int APT_TNG__  (ObjGX *oxo,
                   int aus_anz, int aus_typ[], double aus_tab[],
@@ -22466,7 +23158,7 @@ static Line lno;
     if(typ2 == Typ_CVELL) {
       i1 = UT3D_vc_tng_elpt__ (&vco, obj1, obj2, imod);
       if(i1 < 0) goto L_Par_err;
-      if(i1 > 0) UT3D_vc_multvc (&vco, &vco, APT_ln_len);
+      if(i1 > 0) UT3D_vc_mult_d (&vco, &vco, APT_ln_len);
       APT_modMax1 = 2;
       UT3D_ln_ptvc (&lno, (Point*)obj1, &vco);
       goto L_out;

@@ -61,7 +61,7 @@ CVOFF2_int_ckConn          ignore connection-points
 CVOFF2_int_upd_bwd         update segments ii1 and ii2 of bwd-loop
 CVOFF2_int_bl_wr           add fwd-loop to file; <tmpDir>/oibo_parl.dat
 CVOFF2_int_bl_rd           read next loop from file into ObjTab
-CVOFF2_int_ll              fill 2 IgaTab with indexes of a loop
+CVOFF2_int_ll              fill 2 IndTab with indexes of a loop
 CVOFF2_int_save_sr         save loop as output if sense-of-rotation OK
 CVOFF2_int_srl1            get sense-of-rotation of contour-loop
 CVOFF2_int_save_l1         add closed-loop to output-file
@@ -2170,7 +2170,7 @@ printf(" ?????????????\n");
 // TODO: OTB_save_rec + OTB_save_aux (oder aux == NULL or data)
 
   int        irc, i1, oNr, lfNr, *ia, iix, typ1;
-  IgaTab   lfa[2];
+  IndTab   lfa[2];
   // Memspc     oSpc=UME_NEW;
   BBox2      box2;
   char       fnam[256];
@@ -2188,13 +2188,13 @@ printf(" ?????????????\n");
   // get list of all objs for loop
   CVOFF2_int_ll (lfa, ii1, ii2, otb1->oNr);
 
-  // get nr of ints of IgaTab
-  lfNr = UTI_ni_ObjRange (NULL, lfa, 2);
+  // get nr of ints of IndTab
+  lfNr = MemTab_IndTab_all (NULL, lfa, 2);
 
   ia = (int*)MEM_alloc_tmp (sizeof(int) * lfNr);
 
-  // get table of indexes of IgaTab
-  UTI_ni_ObjRange (ia, lfa, 2);
+  // get table of indexes of IndTab
+  MemTab_IndTab_all (ia, lfa, 2);
 
 
   //----------------------------------------------------------------
@@ -2282,14 +2282,14 @@ printf(" ?????????????\n");
 
 
 //============================================================================
-  int CVOFF2_int_ll (IgaTab *ora, int i1, int i2, int oNr) {
+  int CVOFF2_int_ll (IndTab *ora, int i1, int i2, int oNr) {
 //============================================================================
 // Input:
-//   ora     2 structs IgaTab (to be filled)
+//   ora     2 structs IndTab (to be filled)
 //   i1-i2   startindex, endindex
 //   oNr     nr of objs
 // Output:
-//   ora     2 structs IgaTab; typ,ind = startObj, oNr nr of following objs
+//   ora     2 structs IndTab; typ,ind = startObj, oNr nr of following objs
 
   int   is, dNr, ii;
 
@@ -2297,17 +2297,17 @@ printf(" ?????????????\n");
   // printf("CVOFF2_int_ll %d %d %d\n",i1,i2,oNr);
 
 
-  ora[0].typ = 0;
-  ora[0].iNr = 0;
-  ora[1].typ = 0;
-  ora[1].iNr = 0;
+  ora[0].typi = 0;
+  ora[0].iNr  = 0;
+  ora[1].typi = 0;
+  ora[1].iNr  = 0;
 
 
   // from i1 to i2;
   if(i1 < i2) {
     is = i1 + 1;    // is = 1. obj to delete
     dNr = i2 - is;  // dNr = nr of objs to delete
-    ora[0].typ = Typ_CV;
+    ora[0].typi = Typ_CV;
     ora[0].ibeg = is;
     ora[0].iNr = dNr;
       // printf(" _ll-1: is=%d dNr=%d\n",is,dNr);
@@ -2320,7 +2320,7 @@ printf(" ?????????????\n");
   if(i1 < oNr-1) {
     is = i1 + 1;    // is = 1. obj to delete
     dNr = oNr - is;  // dNr = nr of objs to delete
-    ora[0].typ = Typ_CV;
+    ora[0].typi = Typ_CV;
     ora[0].ibeg = is;
     ora[0].iNr = dNr;
       // printf(" _ll-2: is=%d dNr=%d\n",is,dNr);
@@ -2331,8 +2331,8 @@ printf(" ?????????????\n");
   if(i2 > 0) {
     is = 0;          // is = 1. obj to delete
     dNr = i2;        // dNr = nr of objs to delete
-    if(ora[0].typ) ii = 1; else ii = 0;
-    ora[ii].typ = Typ_CV;
+    if(ora[0].typi) ii = 1; else ii = 0;
+    ora[ii].typi = Typ_CV;
     ora[ii].ibeg = is;
     ora[ii].iNr = dNr;
       // printf(" _ll-3: is=%d dNr=%d\n",is,dNr);
@@ -2455,7 +2455,7 @@ printf(" ?????????????\n");
 // CVOFF2_int_save_sr          save loop if sense-of-rotation OK
 
   int        irc, i1, iix, lfNr, *ia, typ1, typ2, sr;
-  IgaTab   lfa[2];
+  IndTab   lfa[2];
   char       obj1[OBJ_SIZ_MAX], obj2[OBJ_SIZ_MAX];
 
 
@@ -2466,14 +2466,14 @@ printf(" ?????????????\n");
   // get list of all objs for fwd-loop
   CVOFF2_int_ll (lfa, ii1, ii2, otb1->oNr);
 
-  // get nr of ints of IgaTab
-  lfNr = UTI_ni_ObjRange (NULL, lfa, 2);
+  // get nr of ints of IndTab
+  lfNr = MemTab_IndTab_all (NULL, lfa, 2);
 
   // get tempSpc for list of all objNrs
   ia = (int*)MEM_alloc_tmp (sizeof(int) * lfNr);
 
-  // get ia = table of indexes of IgaTab -> ia
-  UTI_ni_ObjRange (ia, lfa, 2);
+  // get ia = table of indexes of IndTab -> ia
+  MemTab_IndTab_all (ia, lfa, 2);
 
 
   //----------------------------------------------------------------
@@ -2548,7 +2548,7 @@ printf(" ?????????????\n");
   int        irc, i1, oNr, iix, ptNr, ptMax, isr;
   double     d1, *tol;
   // char       obj1[OBJ_SIZ_MAX];
-  // IgaTab   lfa[2];
+  // IndTab   lfa[2];
   Point2     *pta;
 
 

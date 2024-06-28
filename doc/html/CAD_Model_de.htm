@@ -39,17 +39,24 @@ Modelle benutzen den Kennbuchstaben M
 
 
 Submodel
-  - Auswahl eines Submodels aus Liste (oder durch mittlere Maustaste)
+  - Auswahl eines Submodels aus Liste (Icon "LIST")
   - oder Selektion eines bereits vorhandenen Submodels (<a href="CAD_input_de.htm#_ModBas_"></a>)
   
 Position,Orientation
-  <a href="CAD_input_de.htm#_PLN_">Nullpunkt und Ausrichtung</a> des Submodells
+  - Auswahl eines Punktes (Ausrichtung wie aktive Konstruktionsebene) - oder
+  - Auswahl einer <a href="CAD_input_de.htm#_PLN_">Ebene</a>
 
-[Scale]: Vergrösserungsmaßstab; Default ist 1
+[Scale]
+  -  Vergrösserungsmaßstab; Default ist 1
+
 
 Beispiel:
+# Position P20
+M20="submodel_1" P20
+# Position und Orientierung von Ebene R20
+M21="submodel_1" R20
 # Internes Submodell "SM1", 45 Grad um Z-Achse gedreht, Scale=2
-M20="SM1" R(P(100 0) 45) VAL(2)
+M22="SM1" R(P(100 0) 45) VAL(2)
 
 
 

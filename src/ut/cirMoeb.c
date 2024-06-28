@@ -1414,9 +1414,9 @@ L_outOfSpace:
     }	    
     UT2D_vc_2pt (&vn, ci, &(cir->pc));
     UT2D_vc_normalize (&vn, &vn);
-    UT2D_vc_multvc (&vc, &vn, fabs(cir->rad));
+    UT2D_vc_mult_d (&vc, &vn, fabs(cir->rad));
     UT2D_pt_traptvc (&p1, &(cir->pc), &vc);
-    UT2D_vc_multvc (&vc, &vn, -fabs(cir->rad));
+    UT2D_vc_mult_d (&vc, &vn, -fabs(cir->rad));
     UT2D_pt_traptvc (&p2, &(cir->pc), &vc);
     p1 = UT2D_CiInvertPoint (&p1, ci, ri);
     if (UT2D_comp2pt (&p2, ci, UT_TOL_min0)) {

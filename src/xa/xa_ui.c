@@ -2561,7 +2561,7 @@ return 0;
 
   //----------------------------------------------------------------
   // points above
-  UT3D_vc_multvc (&vcInc, GL_eyeZ, incrZ);
+  UT3D_vc_mult_d (&vcInc, GL_eyeZ, incrZ);
     // DEB_dump_obj__ (Typ_VC, &vcInc, " vcInc-1");
   d1 = 1.;
   i1 = 0;
@@ -8881,7 +8881,7 @@ box1
 
 
   strcpy(s1, "License: GPL-3");
-  strcat(s1, "\nCopyright: 1999-2023 CADCAM-Services Franz Reiter");
+  strcat(s1, "\nCopyright: 1999-2024 CADCAM-Services Franz Reiter");
   strcat(s1, "\n(support@gcad3d.org)");
   GUI_AboutInfo (INIT_TXT, s1, "https://gcad3d.org", "xa_logo.xpm");
 

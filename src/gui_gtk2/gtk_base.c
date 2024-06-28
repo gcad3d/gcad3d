@@ -40,8 +40,11 @@ GUI_config             check for correct GUI (gtk) version
 GUI_Init__             must be 1. call ..
 
 GUI_Win__              create new window
+GUI_Win_config_CB      get windowPos and size
 GUI_Win_siz_get        get size of window
 GUI_Win_siz_set        resize window
+GUI_Winpos_set         set winPos
+GUI_Winpos_get         get window-position
 GUI_Win_ev_key         add callback for the key-events
 GUI_Win_ev_button      add callback for the mouse-button event
 GUI_Win_go             windowSetup finished; display it ..
@@ -120,8 +123,11 @@ List_functions_end:
 
 #include "../gui_gtk2/gtk_base.h"
 
+// extern ../xa/xa.h
+extern char AP_winPos[64];        // position of application-window "0,0"
 
-// extern:
+
+// extern: ../gui/gui_base.c:
 extern int       UI_fontsizX, UI_fontsizY;
 extern GtkWidget *UI_MainWin;
 extern GtkWidget *UI_act_wi;
@@ -476,6 +482,59 @@ static int       UI_act_Id;
 }
 
 
+//================================================================
+  int GUI_Winpos_get () {
+//================================================================
+// GUI_Winpos_get           get window-position
+
+  int     ix, iy;
+
+
+  gtk_window_get_position (GTK_WINDOW(UI_MainWin), &ix, &iy);
+
+  sprintf(AP_winPos, "%d,%d", ix, iy);
+
+    // printf("GUI_Winpos_get %d %d |%s|\n",ix,iy,AP_winPos);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GUI_Winpos_set (GtkWidget *widget, gpointer data) {
+//================================================================
+// GUI_Winpos_set                set winPos
+
+  int     sizx, sizy;
+
+
+  // get sizx, sizy from AP_winPos (eg "10,40")
+  sscanf(AP_winPos,"%d,%d", &sizx, &sizy);
+    // printf("GUI_Winpos_set |%s| %d %d\n", AP_winPos, sizx, sizy);
+
+
+  GtkWindow *win1 = GTK_WINDOW(data);
+  gtk_window_move (win1, sizx, sizy);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int GUI_Win_config_CB (GtkWidget *widget, void *event) {
+//================================================================
+// GUI_Win_config_CB              get windowPos and size
+
+
+  GUI_Winpos_get ();
+
+  return FALSE;
+
+}
+
+
 //==============================================================================
   MemObj GUI_Win__ (char *wtit, void *funcnam, char *opts) {
 //==============================================================================
@@ -556,6 +615,16 @@ static int       UI_act_Id;
   // if (border > 0) {
     // gtk_container_set_border_width (GTK_CONTAINER (win1), border);
   // }
+
+
+  // set winPos
+  g_signal_connect (win1, "realize", G_CALLBACK(GUI_Winpos_set), (gpointer)win1);
+
+
+  // get winPos & size
+  gtk_widget_add_events (win1, GDK_CONFIGURE);
+  g_signal_connect (G_OBJECT(win1), "configure-event",
+                    G_CALLBACK(GUI_Win_config_CB), NULL);
 
 
   g_signal_connect (win1, "destroy",

@@ -333,7 +333,7 @@ UT3D_vc_addvc2pt          add Vector + Vector from 2 points         (INLINE)
 UT3D_vc_add3vc            vo = v1 + v2 + v3                         (INLINE)
 UT3D_vc_sub2vc            v3 = v1 - v2                              (INLINE)
 UT3D_vc_div_d             divide vector                             (INLINE)
-UT3D_vc_multvc            vo = vi * fakt     Vec-multiplication     (INLINE)
+UT3D_vc_mult_d            vo = vi * fakt     Vec-multiplication     (INLINE)
 UT3D_vc_perp1vc           normal vector to 3D-vector (in X-Y-plane)
 UT3D_vc_perpvcvc          get normal-vector from vector onto other vector
 UT3D_vc_perp2vc           vector = perpendic. to 2 vectors (crossprod)
@@ -528,6 +528,8 @@ UT3D_rsys_pl              get backplane/transformation-matrix for plane
 UT3D_rsys_bp              get Refsys and plane for backplane
 
 -------------- transformation ------------------------------
+UT3D_m2_inv__             invert 2x2-matrix
+
 UT3D_m3_copy              memcpy
 UT3D_m3_inirot_angr       define rotation (axis, origin angle)
 UT3D_m3_iniZrot_angr      define rotation around z-axis; (center, angle)
@@ -1414,12 +1416,12 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
 
   //----------------------------------------------------------------
   // normal intersection; get px = inters.pt on a-b
-  UT3D_vc_multvc (&vcx, &vab, u1);
+  UT3D_vc_mult_d (&vcx, &vab, u1);
   UT3D_pt_traptvc (&px1, pta, &vcx);
     // DEB_dump_obj__ (Typ_PT, &px1, " px1");
 
   // get px2 = inters.pt on c-d
-  UT3D_vc_multvc (&vcx, &vcd, u2);         // BUG: gleiche Linie !!
+  UT3D_vc_mult_d (&vcx, &vcd, u2);         // BUG: gleiche Linie !!
   UT3D_pt_traptvc (&px2, ptc, &vcx);
     // DEB_dump_obj__ (Typ_PT, &px2, " px2");
 
@@ -1610,7 +1612,7 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
 
 
   // get vector ax
-  UT3D_vc_multvc (&vax, vab, par1);
+  UT3D_vc_mult_d (&vax, vab, par1);
     // DEB_dump_obj__ (Typ_VC, &vax, " vax =");
 
 
@@ -2028,11 +2030,11 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   if(ux_ab) *ux_ab = u_ab;
   if(ux_cd) *ux_cd = u_cd;
 
-  UT3D_vc_multvc (&vax, &vab, u_ab);
+  UT3D_vc_mult_d (&vax, &vab, u_ab);
   UT3D_pt_traptvc (&px1, pta, &vax);
     // DEB_dump_obj__ (Typ_PT, &px1, " px1");
 
-  UT3D_vc_multvc (&vcx, &vcd, u_cd);
+  UT3D_vc_mult_d (&vcx, &vcd, u_cd);
   UT3D_pt_traptvc (&px2, ptc, &vcx);
     // DEB_dump_obj__ (Typ_PT, &px2, " px2");
 
@@ -2095,7 +2097,7 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   // Parameter of e on ab
   u_ab = s_ab_ac / s_ab_ab;
   // Multip. des Vektors a-b mit Parameterwert von e ergibt den Vektor a-e
-  UT3D_vc_multvc (&vae, &vab, u_ab);
+  UT3D_vc_mult_d (&vae, &vab, u_ab);
   // Subtraktion (Vec-a-c - Vec-a-e) = Vec-e-c
   UT3D_vc_sub2vc (&vec, &vac, &vae);
   dec = UT3D_len_vc (&vec);
@@ -5148,7 +5150,7 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   pe_ab = s_ab_ac / s_ab_ab;
 
   // Multip. des Vektors a-b mit Parameterwert von e ergibt den Vektor a-e
-  UT3D_vc_multvc (&vae, vab, pe_ab);
+  UT3D_vc_mult_d (&vae, vab, pe_ab);
 
   // Subtraktion (Vec-a-c - Vec-a-e) = Vec-e-c
   UT3D_vc_sub2vc (&vec, vac, &vae);
@@ -5422,7 +5424,7 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   pe_ab = s_ab_ac / s_ab_ab;
 
   // Multip. des Vektors a-b mit Parameterwert von e ergibt den Vektor a-e
-  UT3D_vc_multvc (&vae, &vab, pe_ab);
+  UT3D_vc_mult_d (&vae, &vab, pe_ab);
 
   // Quadr. Abstand des Punktes e von a:
   // skp a-e mit sich selbst ergibt das Quadrat der Laenge;
@@ -6057,7 +6059,7 @@ Returncodes:
     // printf(" d1=%f\n",d1);
 
   // den Vektor vom pt zum Lotpunkt generieren (vecMult)
-  UT3D_vc_multvc (&vx, vl, d1);
+  UT3D_vc_mult_d (&vx, vl, d1);
     // DEB_dump_obj__ (Typ_VC, &vx, "    vx ");
 
   // den vektor vom vp abziehen
@@ -6223,7 +6225,7 @@ Returncodes:
   // printf(" d1=%f\n",d1);
 
   // den Vektor vom p1 zum Lotpunkt generieren (vecMult)
-  UT3D_vc_multvc (&vx, &vl, d1);
+  UT3D_vc_mult_d (&vx, &vl, d1);
   // DEB_dump_obj__ (Typ_VC, &vx, "    vx ");
 
   // den vektor vom vp abziehen
@@ -6304,7 +6306,7 @@ Returncodes:
   // printf(" d1=%f\n",d1);
 
   // den Vektor vom p1 zum Lotpunkt generieren (vecMult)
-  UT3D_vc_multvc (&vx, &vl, d1);
+  UT3D_vc_mult_d (&vx, &vl, d1);
   // DEB_dump_obj__ (Typ_VC, &vx, "    vx ");
 
 
@@ -8309,8 +8311,8 @@ liegt. ohne acos.
     // GR_tDyn_vc__ (&vcy, &ci1->pc, 2, 0);  // TestDisp Kreis-Z-Vec
 
   // nun vcx und vcy entspr dem Winkel veraendern = neuer Punkt
-  UT3D_vc_multvc (&vcx, &vcx, dx);
-  UT3D_vc_multvc (&vcy, &vcy, dy);
+  UT3D_vc_mult_d (&vcx, &vcx, dx);
+  UT3D_vc_mult_d (&vcy, &vcy, dy);
 
   // UT3D_pt_traptvc (pto, &ci1->pc, &vcy);
   UT3D_pt_trapt2vc (pto, &ci1->pc, &vcx, &vcy);
@@ -8465,8 +8467,8 @@ liegt. ohne acos.
   // DEB_dump_obj__ (Typ_VC, &vcy, "vcy=");
 
   // nun vcx und vcy entspr dem Winkel veraendern = neuer Punkt
-  UT3D_vc_multvc (&vcx, &vcx, dx);
-  UT3D_vc_multvc (&vcy, &vcy, dy);
+  UT3D_vc_mult_d (&vcx, &vcx, dx);
+  UT3D_vc_mult_d (&vcy, &vcy, dy);
   UT3D_pt_trapt2vc (pto, &ptc, &vcx, &vcy);
   // DEB_dump_obj__ (Typ_VC, &vcx, "vcx=");
   // DEB_dump_obj__ (Typ_VC, &vcy, "vcy=");
@@ -9094,7 +9096,7 @@ liegt. ohne acos.
 
   UT3D_vc_2pt (&dvc, p1, p2);         // dvc = p1 --> p2
 
-  UT3D_vc_multvc (&dvc, &dvc, *dl);   // dvc = dvc * dl
+  UT3D_vc_mult_d (&dvc, &dvc, *dl);   // dvc = dvc * dl
 
   UT3D_pt_traptvc (pi, p1, &dvc);     // pi = p1 + dvc
     // GR_tDyn_symB__ (pi, SYM_STAR_S, 2);
@@ -12260,7 +12262,7 @@ Version 2 - auch Mist
 /// 
 /// vco und vci duerfen ident sein
 /// 
-/// use UT3D_vc_multvc with vectors of length=1
+/// use UT3D_vc_mult_d with vectors of length=1
 /// \endcode
 
 
@@ -12428,8 +12430,8 @@ Version 2 - auch Mist
 
 
   // nun vcx und vcy entspr dem Winkel veraendern = neuer Punkt
-  UT3D_vc_multvc (&vx, &vx, dx);
-  UT3D_vc_multvc (&vy, &vy, dy);
+  UT3D_vc_mult_d (&vx, &vx, dx);
+  UT3D_vc_mult_d (&vy, &vy, dy);
     // DEB_dump_obj__ (Typ_VC, &vx, "vx=");
     // DEB_dump_obj__ (Typ_VC, &vy, "vy=");
 
@@ -12751,7 +12753,7 @@ Version 2 - auch Mist
   // ln -> vector vcl
   UT3D_vc_ln (&vcl, ln1);
   UT3D_vc_perpvcvc (vco, vci, &vcl);    // prj vc on ln; get diff-vc
-  UT3D_vc_multvc (vco, vco, -2.);
+  UT3D_vc_mult_d (vco, vco, -2.);
   UT3D_vc_add2vc (vco, vci, vco);
 
     // DEB_dump_obj__ (Typ_VC, vco, "  vco:");
@@ -13096,7 +13098,7 @@ Version 2 - auch Mist
 
   d1 = UT3D_len_vc (&vc1);
   d2 = UT_DISP_ln / d1;   // UT_DISP_ln=length of construction-line
-  UT3D_vc_multvc (&vc1, &vc1, d2);
+  UT3D_vc_mult_d (&vc1, &vc1, d2);
 
 
 
@@ -13649,7 +13651,7 @@ Version 2 - auch Mist
   ci->rad  = rd;
   ci->ango = UT2D_angr_2angr (a1, a2, dreh);
 
-  UT3D_vc_multvc (&vc1, vx, fabs(rd));
+  UT3D_vc_mult_d (&vc1, vx, fabs(rd));
 
   // UT3D_m3_inirot_angr ohne Punkt
   UT3D_m3_inirot_angr (ma, NULL, vz, -a1);
@@ -13736,7 +13738,7 @@ Version 2 - auch Mist
 
   // Abstand = fabs(rd)
   UT3D_vc_setLength (&vcc, &vcc, 1.);    // 2011-08-09
-  UT3D_vc_multvc (&vcc, &vcc, rd);
+  UT3D_vc_mult_d (&vcc, &vcc, rd);
   UT3D_pt_traptvc (&ci->pc, ps, &vcc);
     // GR_tDyn_symB__ (&ci->pc, SYM_TRI_S, 4);
 
@@ -16794,6 +16796,44 @@ static int ia[] = {-1, -2, -3};
 }
 
 
+//=============================================================
+  int UT3D_m2_inv__ (Mat_2x2 Ainv, Mat_2x2 A) {
+//=============================================================
+// UT3D_m2_inv__     inverse matrix <-- 2x2 matrix
+// 
+// UT3D_m2_inv__     Author: Thomas Backmeister    22.3.2024 
+// 
+// Invert a 2x2 matrix.
+//
+// IN:
+//   Mat_2x2  A        2x2 matrix
+// OUT:
+//   Mat_2x2  Ainv     inverse matrix
+//
+// Returncode:
+//   0 = OK
+//  -1 = matrix not invertible
+
+
+  // printf("\nUTM_InvertMat2x2 - start\n");
+
+  double det;
+
+  det = A[0][0] * A[1][1] - A[1][0] * A[0][1];
+  if (fabs(det) < UT_TOL_min1) goto L_InErr;
+  det = 1.0 / det;
+
+  Ainv[0][0] = det * A[1][1];
+  Ainv[1][0] = det * (-A[1][0]);
+  Ainv[0][1] = det * (-A[0][1]);
+  Ainv[1][1] = det * A[0][0];
+
+  return 0;
+
+L_InErr:
+  TX_Error("UTM_InvertMat2x2: matrix not invertible");
+  return -1;
+}
 
 
 //================================================================
@@ -17920,11 +17960,11 @@ extern  ModelRef  *DB_get_ModRef (long);
   
 /*
 //======================================================================
-  int UT3D_vc_multvc (Vector *vo, Vector *vi, double d) {
+  int UT3D_vc_mult_d (Vector *vo, Vector *vi, double d) {
 //==================
-// UT3D_vc_multvc            Vec-multiplication
+// UT3D_vc_mult_d            Vec-multiplication
 
-// UT3D_vc_multvc     	Author: Thomas Backmeister         22.2.2003
+// UT3D_vc_mult_d     	Author: Thomas Backmeister         22.2.2003
 
 // Multiplication of a vector with a factor.
 // vi and vo may be identical.
@@ -18490,7 +18530,7 @@ extern  ModelRef  *DB_get_ModRef (long);
   UT3D_vc_perp2vc (&vy, vz, &vx);
 
   // multiply vy * dist
-  UT3D_vc_multvc (&vy, &vy, dist);
+  UT3D_vc_mult_d (&vy, &vy, dist);
 
   // translate line
   UT3D_ln_tra_vc (lno, lni, &vy);
@@ -18944,7 +18984,7 @@ extern  ModelRef  *DB_get_ModRef (long);
 
   // normalize line vector
   lvl = sqrt (lvl);
-  UT3D_vc_multvc (&vl, &vl, 1.0/lvl);
+  UT3D_vc_mult_d (&vl, &vl, 1.0/lvl);
 
 
   // some cross products
@@ -20201,7 +20241,7 @@ extern  ModelRef  *DB_get_ModRef (long);
     if(dx > 1.) continue;
 
     // get vx = vector from p1 to orth.proj.point 
-    UT3D_vc_multvc (&vx, &vl, dx);
+    UT3D_vc_mult_d (&vx, &vl, dx);
       // DEB_dump_obj__ (Typ_VC, &vx, "    vx ");
 
     // vector orth.proj.point -> ptx = subtract vx from vp
@@ -20542,7 +20582,7 @@ extern  ModelRef  *DB_get_ModRef (long);
   if(pto) {
     // pto = project onto circle
     UT3D_vc_2pt (&vc1, &ci1->pc, pt1);
-    UT3D_vc_multvc (&vc1, &vc1, fabs(ci1->rad) / d1);
+    UT3D_vc_mult_d (&vc1, &vc1, fabs(ci1->rad) / d1);
     UT3D_pt_traptvc (pto, &ci1->pc, &vc1);
   }
 
@@ -21705,7 +21745,7 @@ extern  ModelRef  *DB_get_ModRef (long);
   UT3D_vc_2pt (&vc1, &cii->pc, &cii->p1);
 
   // multiply vec * fRad for new startPt
-  UT3D_vc_multvc (&vc2, &vc1, fRdc);
+  UT3D_vc_mult_d (&vc2, &vc1, fRdc);
 
   // get new startPt p1
   UT3D_pt_traptvc (&cio->p1, &cio->pc, &vc2);
@@ -21719,7 +21759,7 @@ extern  ModelRef  *DB_get_ModRef (long);
   UT3D_vc_2pt (&vc1, &cii->pc, &cii->p2);
 
   // multiply vec * fRad for new startPt
-  UT3D_vc_multvc (&vc2, &vc1, fRdc);
+  UT3D_vc_mult_d (&vc2, &vc1, fRdc);
 
   // get new endPt p2
   UT3D_pt_traptvc (&cio->p2, &cio->pc, &vc2);
@@ -21849,7 +21889,7 @@ extern  ModelRef  *DB_get_ModRef (long);
 
 
   // lno from vco; multiply with length
-  UT3D_vc_multvc (&vco, &vco, lnl);
+  UT3D_vc_mult_d (&vco, &vco, lnl);
   UT3D_ln_ptvc (lno, &lni->p1, &vco);
 
   lno->typ = lni->typ;
@@ -21931,7 +21971,7 @@ extern  ModelRef  *DB_get_ModRef (long);
 /// 
 /// vco und vci duerfen ident sein
 /// 
-/// use UT3D_vc_multvc with vectors of length=1
+/// use UT3D_vc_mult_d with vectors of length=1
 /// \endcode
 
 

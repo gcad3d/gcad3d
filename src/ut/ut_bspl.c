@@ -3299,6 +3299,9 @@ Returncodes:
   cvo->v0    = 0.;
   cvo->v1    = kvTab[pNr + deg];
 
+  cvo->dir  = 0;         // fwd
+  cvo->clo  = UT3D_bsp_ck_closed__ (cvo);
+  cvo->trm  = 1;         // not trimmed
 
   return 0;
 

@@ -27,6 +27,7 @@
 // cadIniS    CAD - init - subFunction
 // mdl_load   0=loading-new-primary-model; 1=primary-model-is-active
 // fVwr       0=print-window-is-off; 1=print-window-is-active;
+// db_cseg_eom  ERR_DB_CSEG_EOM occured at primary startup;
 
 typedef struct {int errLn; short sysStat, errStat;
                 char      cadIniM, cadIniS, mdl_stat, brw_stat,
@@ -49,7 +50,8 @@ typedef struct {int errLn; short sysStat, errStat;
                           zip:1,           
                           mdl_load:1,
                           fVwr:1,
-                          uuBits:14; }                         AP_STAT;
+                          db_cseg_eom:1,
+                          uuBits:13; }                         AP_STAT;
 
 
 

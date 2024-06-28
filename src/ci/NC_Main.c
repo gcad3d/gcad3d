@@ -479,19 +479,6 @@ Verbinden:
 #include "../ci/NC_apt.h"
 
 
-
-
-#define PrgMod_normal            0
-#define PrgMod_continue_if       1
-#define PrgMod_skip_until_label  2
-#define PrgMod_skip_until_macend 3
-#define PrgMod_skip_until_mac    4
-#define PrgMod_skip_until_line   5
-#define PrgMod_skip_until_file   6
-#define PrgMod_continue_file     7
-#define PrgMod_continue_mac      8
-
-
 //===========================================================================
 // EXTERNALS:
 
@@ -625,7 +612,7 @@ static int     UP_level_adr[16];   // RuecksprungzeilenNr
 static int     Prg_line_nr;        // reset to this lineNr after "END"
 
 
-static char    APT_label[64];
+       char    APT_label[64];
 static char    APT_macnam[64];
 static char    APT_filnam[128];
 
@@ -1182,7 +1169,7 @@ enum Typ_TPCT {
 
     }
 
-
+    APT_stat_act = 0;  // reset
 
 
 /*
@@ -2313,6 +2300,7 @@ static long     actDLi;
 //             -1 = Error, stop.
 //             -2 = invisible obj (joint, activity), continue
 //             -3 = obj not yet complete
+//             ERR_DB_CSEG_EOM
 //
 // subModels must be loaded (else use WC_Work1).
 // 
@@ -2357,6 +2345,7 @@ static long     actDLi;
   // printf("XXXXXXXXXXXXX WC_Work1 lNr=%d len=%ld\n",lNr,strlen(cbuf));
   // printf("|");UTX_dump_cnl (cbuf, 60); printf("| %d\n",APT_stat_act);
   // printf("  APT_obj_stat=%d\n",APT_obj_stat);
+  // printf("  APT_stat_act=%d\n",APT_stat_act);
   // printf("  AP_modact_ibm=%d SMnam=|%s|\n",AP_modact_ibm,DB_mdlNam_iBas(AP_modact_ibm));
   // printf("WC_Work1 - AP_stat.batch = %d\n",AP_stat.batch);
   // printf("|%s|\n",cbuf);
@@ -2371,9 +2360,9 @@ static long     actDLi;
 
 
 
+/*  2005-12-09 raus; loescht Submodels !
   if(APT_stat_act == PrgMod_normal) {
 
-/*  2005-12-09 raus; loescht Submodels !
     // vor erster Zeile: Init alles.
     if(APT_lNr == 1) {
       //TX_Write("Line1 - Init");
@@ -2383,11 +2372,12 @@ static long     actDLi;
       APT_Init ();
       ED_Init  ();
     }
+  } else
 */
 
   // skip all Lines im PrgMod_skip_until_line bis Zeile Prg_line_nr
   // (return nach CALL)
-  } else if(APT_stat_act == PrgMod_skip_until_line) {
+  if(APT_stat_act == PrgMod_skip_until_line) {
 
     if(APT_lNr == Prg_line_nr) {
       ED_skip_end ();   // reset vorherigen mode (STEP oder GO
@@ -3164,7 +3154,9 @@ static long     actDLi;
         // APT_dli_hili_old = GR_TMP_I0;
       }
       goto Fertig;
-    }
+
+    } else if(i1 == ERR_DB_CSEG_EOM) return i1;
+
     defTyp = i1; // -1=Error; -3=object_not_yet_complete
     goto Fertig;
   }
@@ -4093,8 +4085,9 @@ static long     actDLi;
   int       i1, irc;
 
 
-  // printf("APT_work_PrgCodTab %d |%s|\n",icod,PrgCodTab[icod]);
-  // if(data)printf("  |%s|\n",*data);
+  printf("APT_work_PrgCodTab %d |%s|\n",icod,PrgCodTab[icod]);
+  printf(" _PrgCodTab-AP_mode__=%d\n",AP_mode__);
+  if(data)printf(" _PrgCodTab-data=|%s|\n",*data);
 
 
   // codes without values. Use direct.
@@ -4106,6 +4099,10 @@ static long     actDLi;
     case TPC_JUMP:
     // im Editmode nix tun; sonst ja.
     if(AP_mode__ == AP_mode_enter) goto Fertig;
+
+    i1 = strlen(*data);
+    if(i1 >= sizeof(APT_label)) { TX_Error ("APT_work_PrgCodTab-E1"); return -1;}
+    if(i1 < 1) { TX_Error ("APT_work_PrgCodTab-E2"); return -2;}
 
     // Jump-Label merken
     strcpy (APT_label, *data);
@@ -4254,7 +4251,7 @@ static long     actDLi;
 
   //====================================================================
   Fertig:
-
+    printf("ex-APT_work_PrgCodTab %d\n",irc);
   return irc;
 
 

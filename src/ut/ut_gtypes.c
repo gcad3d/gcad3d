@@ -1674,6 +1674,7 @@ char  *ObjCodTab[] = {
   Typ_goGeo8,   "Typ_goGeo8",
   Typ_goAxis,   "Typ_goAxis",
   Typ_goGeoSUSU,"Typ_goGeoSUSU",
+  Typ_go_LR,    "Typ_go_LR",
   Typ_go_RA,    "Typ_go_RA",
   Typ_go_lf1,   "Typ_go_lf1",
   Typ_go_lf2,   "Typ_go_lf2",
@@ -1991,6 +1992,9 @@ char  *ObjCodTab[] = {
   // Typ_go_LCS      L|C|S(Ell,Bsp,Plg,CCV)   NOT P|D|A|B
   static int lLS[] = {Typ_LN, Typ_CI, Typ_CV, 0};
 
+  // Typ_go_LR       L|PLN
+  static int lLR[] = {Typ_LN, Typ_PLN, 0};
+
   // Typ_go_RA       plane|surface
   static int lRA[] = {Typ_PLN, Typ_SUR, 0};
 
@@ -2010,7 +2014,7 @@ char  *ObjCodTab[] = {
   //                  5          6         7        8        9
   static int *pa[] = {l_E,       lPr,      lG1,     l_E,     lPD,     // 0-4
                       l_E,       lG5,      lGS,     lG6,     lG7,     // 5-9
-                      lG8,       l_E,      lLS,     l_E,     lRA,     // 10-14
+                      lG8,       l_E,      lLS,     lLR,     lRA,     // 10-14
                       lf1,       lf2,      lJT,     l_E,     l_E};    // 15-19
 
                       // l_E,       l_E,      l_E,     l_E,     l_E,     // 20-24

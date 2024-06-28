@@ -10,8 +10,9 @@ export EDITOR=/usr/bin/vim
 #export CSCOPE_EDITOR=vi
 
 
-if test "$#" != "0"; then
-  cscope $1
+if test "$#" == "0"; then
+# use cscope.out, do not create/modify
+  cscope -d $1
   exit
 fi
 
@@ -30,7 +31,7 @@ rm -f cscope.*
 #cscope -k
 # start; -p2 = 2 directory-levels
 #cscope -p2 -i srcFiles
-cscope -i srcFiles
+cscope -isrcFiles
 
 exit
 #

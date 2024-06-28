@@ -131,6 +131,13 @@ List_functions_end:
     if(irc < 0) return -1;
 
 
+  //----------------------------------------------------------------
+  // set clo; 0=yes, 1=not_closed;
+  if(UT3D_comp2pt(&pTab[0],&pTab[ptNr-1],UT_TOL_pt)) cvo->clo = 0; // closed;
+  else                                               cvo->clo = 1; // not_closed;
+
+
+  //----------------------------------------------------------------
       // TESTBLOCK
       // DEB_dump_obj__ (Typ_CVBSP, cvo, "ex-UT3D_bsp_pta__");
       // END TESTBLOCK

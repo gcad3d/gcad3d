@@ -63,13 +63,14 @@ gcc -c `pkg-config --cflags gtk+-3.0` -DGTK3 gtk_gl_x11.c
 
 #include <gtk/gtk.h>
 #include <gtkgl/gtkglarea.h>
+// #include "../gui_gtk2/gtkglarea.h"  // a copy of gtk-3.0/gtk/gtkglarea.h
 // #include <gdk/gdkx.h>        // gdk_x11_get_default_xdisplay GDK_WINDOW_XID
 
 #include <GL/gl.h>
 #include <GL/glu.h>
 
 // #include "GLB.h"             // GLB_Create
-#include "../gui_gtk2_MS/GLB.h"
+#include "../gui_gtk2/GLB.h"
 
 // 
 // static  GLXContext  GLB_x_context;

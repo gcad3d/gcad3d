@@ -124,6 +124,7 @@ MDL_lst_all             get list of all existing subModels
 MDL_lst_stat            get list of models - filter = stat
 MDL_lst_ptab            make list of all used PTAB-Surfs
 MDL_lst_ptab            make list of all used MSH-Surfs
+MDL_lst_unexp           list unexported submodels
 
 MDL_file_lst__          make list of all used Submodels -> tmp/Mod.lst
 MDL_file_skip_DYNDAT    skip until :DYNAMIC_DATA
@@ -5651,7 +5652,8 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
   // work also  DYNAMIC_DATA 
   ED_lnr_reset ();
-  ED_Run ();
+  irc = ED_Run ();
+  if(irc < 0) return irc;
 
   // save DB                                                2015-11-19
   DB_save__ (mnam);
@@ -6552,6 +6554,39 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // printf("ex-MDL_lst_msh %d\n",fNr);
 
   return fNr;
+
+}
+
+
+//================================================================
+  int MDL_lst_unexp () {
+//================================================================
+// MDL_lst_unexp                        list unexported submodels
+// see DB_dump_ModRef and DB_dump_ModBas
+
+
+  int       irc, i1, mrNr;
+  char      *mNam;
+  ModelRef  *mdr_tab;
+
+
+
+  DB_get_mdr (&mrNr, &mdr_tab);
+
+
+  for(i1=0; i1<=mrNr; ++i1) {
+    // if(mdr_tab[i1].po.x == UT_VAL_MAX) continue;
+    if(DB_isFree_ModRef (&mdr_tab[i1])) continue;
+    
+    // get modelname for M<i1>
+    irc = DB_mdlNam_iRef (&mNam, (long)i1);
+    if(irc) {printf("**** MDL_list_unexp E1-%d\n",i1);}
+
+    TX_Print("*** subModel %s - M%d - not exported - activate subModel and export;",
+            mNam, i1);
+  }
+
+  return 0;
 
 }
 

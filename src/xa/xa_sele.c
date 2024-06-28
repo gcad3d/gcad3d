@@ -369,6 +369,7 @@ static int    bck_GR_NoConstrPln;
 //   Typ_PT    Typ_CI          P(L PTS) | P(C par) & P(C)   endPt|paramPt & cenPt
 //   Typ_PT    Typ_LN          P(L PTS) | P(L par)           
 //   Typ_PT    Typ_PLN         P(R)
+//   Typ_PT    Typ_SUR         P(A parU parV)               TODO
 //   Typ_PT    Typ_Model       P(M)
 //   Typ_PT    Typ_Dimen       P(N PTS)                     3 points 2D
 //   Typ_PT    Typ_ATXT        P(N PTS)                     2 points
@@ -385,6 +386,7 @@ static int    bck_GR_NoConstrPln;
 
 
   int     irc, i1, iNr, basTyp;
+  double  u, v;
   char    so[200];
   Point   pt1;
   // int     irc, iVc, iLn=0, iCi=0, iCv, iPt, ii, oTyp, iTyp;
@@ -400,14 +402,23 @@ static int    bck_GR_NoConstrPln;
   iNr = 0;
   irc = 0;
 
+  // if(reqTyp == selTyp) goto L_exit;
+
+
   basTyp = selTyp;
 
   if(selTyp == Typ_CV) {
+    if(reqTyp == Typ_CV) {
+      sprintf(sCva->cva[0].oid, "S%ld", dbi);
+      iNr = 1;
+      goto L_add__;
+    }
     selTyp = DB_get_typ_cv (dbi);
 
   } else if(selTyp == Typ_Note) {
     selTyp = DB_get_typ_note (dbi);
   }
+
     // printf(" src_cnvt__-selTyp=%d\n",selTyp);
 
 
@@ -651,9 +662,6 @@ static int    bck_GR_NoConstrPln;
 
     //.......................................
     } else return 0;
-
-
-
 /*
   } else if((selTyp == Typ_Model)||(selTyp == Typ_Mock)) {
     if((reqTyp == Typ_CtlgPart)||(reqTyp == TYP_FilNam))
@@ -672,12 +680,14 @@ static int    bck_GR_NoConstrPln;
     GR_selTyp = Typ_SubModel;
 */
 
-
-  // //----------------------------------------------------------------
-  // } else if(selTyp == Typ_SUR) ...
-
-
-
+/*
+  //----------------------------------------------------------------
+  } else if(selTyp == Typ_SUR) {
+    irc = SUR_parUV_pt (&u, &v, dbi, selPos);
+    if(irc < 0) goto L_exit;
+    sprintf(sCva->cva[0].oid, "P(A%ld %f %f)",dbi,u,v);
+    goto L_add_1;
+*/
 
   //----------------------------------------------------------------
   } else if(selTyp == Typ_SOL) {
@@ -834,13 +844,13 @@ static int    bck_GR_NoConstrPln;
   //----------------------------------------------------------------
   L_exit:
 
-    // TESTBLOCK
-    // printf(" ex-sele_src_cnvt__ irc=%d iNr=%d\n",irc,sCva->iNr);
-    // if(sCva->iNr > 0) { for(i1=0; i1<sCva->iNr; ++i1) {
-      // printf("  sele_src_cnvt__-sca[%d] = %d |%s|\n",
-             // i1,sCva->cva[i1].typ,sCva->cva[i1].oid); }}
-    // printf(" ex-sele_src_cnvt__ irc=%d iNr=%d =======================\n",
-           // irc,sCva->iNr);
+    // TESTBLOCK ex-sele_src_cnvt__
+    printf(" ex-sele_src_cnvt__ irc=%d iNr=%d\n",irc,sCva->iNr);
+    if(sCva->iNr > 0) { for(i1=0; i1<sCva->iNr; ++i1) {
+      printf("  sele_src_cnvt__-sca[%d] = %d |%s|\n",
+             i1,sCva->cva[i1].typ,sCva->cva[i1].oid); }}
+    printf(" ex-sele_src_cnvt__ irc=%d iNr=%d =======================\n",
+           irc,sCva->iNr);
     // END TESTBLOCK
 
 

@@ -187,7 +187,7 @@ double SRU_parsru_utLn2 ();
       *oTyp = typ1;
       if(objo == NULL) goto L_exit;
       // modify vector
-      UT3D_vc_multvc (&vc1, (Vector*)dat2, dp);
+      UT3D_vc_mult_d (&vc1, (Vector*)dat2, dp);
       // translate obj1
       UTRA_def__ (1, Typ_VC, &vc1);
       UTRA_app__ (objo, *oTyp, *oTyp, 1, dat1, memSeg);

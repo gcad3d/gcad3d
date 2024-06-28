@@ -1,3 +1,16 @@
+Version 2.60.06 / 2024-06-26
+- Bugfix "JUMP_<label>-in-MAN"
+- BUGfix "ESC-in-CAD-MODIFY"
+- BUGfix "dxf_exp_blockName" (export imported obj-file to dxf)
+- BUGfix "obj_exp_mockup" (obj has no subModels - activate subModel, export)
+- new: TSTF can process subroutines (see www.gcad3d.org/doc/html/TSTF_en.htm)
+- new: modify 2 connected B-spline-curves to get G1, G2 curvature
+- new: mainwindow keeps last position
+
+Programlines (C)       519317
+Functions              4915
+
+
 ===========================================================================
 Version 2.60.04 / 2023-07-21
 - Iges export completely rewritten

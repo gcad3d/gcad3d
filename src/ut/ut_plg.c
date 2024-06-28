@@ -1324,7 +1324,7 @@ Returncodes:
       if(pto) {
         UT3D_vc_2pt (&vcs, &plg->cpTab[i1], &plg->cpTab[i2]);
         d1 = ps / (plg->lvTab[i2] -  plg->lvTab[i1]);
-        UT3D_vc_multvc (&vcs, &vcs, d1);
+        UT3D_vc_mult_d (&vcs, &vcs, d1);
         UT3D_pt_traptvc (pto, &plg->cpTab[i1], &vcs);
       }
       if(ipt) *ipt = i2;

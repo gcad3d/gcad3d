@@ -925,18 +925,19 @@ void *kex_dll = NULL;
 //=================================================================
   int AP_errStat_reset (int mode) {
 //=================================================================
-/// \code
-/// reset errors
-/// mode    0=reset only temporary errors (from CAD in temp-mode)
-/// mode    1=reset 
-/// \endcode
+// reset errors
+// mode    0=reset only temporary errors (from CAD in temp-mode)
+// mode    1=reset 
 
 
   // printf("AP_errStat_reset mode=%d errStat=%d errLn=%d APT_obj_stat=%d\n",
          // mode,AP_stat.errStat,AP_stat.errLn,APT_obj_stat);
+  // printf("AP_errStat_reset sysStat=%d\n",AP_stat.sysStat);
 
 
   if(mode == 1) {
+    // for ERR_DB_CSEG_EOM at primary startup set infor for UI_GL_draw__ 2024-06-19
+    if(AP_stat.errStat == ERR_DB_CSEG_EOM) AP_stat.db_cseg_eom =1;
     AP_stat.errStat = 0;
     return 0;
   }
@@ -1072,24 +1073,24 @@ void *kex_dll = NULL;
   int AP_errStat_set (int stat) {
 //================================================================
 // raise error
-// 0 = default = OK;
-// 1 = Error                   - raise error; set AP_stat.errStat=1;
-// 2 = DB_allocCDAT; rerun (in DB_allocCDAT !)
+// stat:  0 = default = OK;
+//        1 = Error                   - raise error; set AP_stat.errStat=1;
+//        2 = DB_allocCDAT; rerun (in DB_allocCDAT !)
 //
 // see AP_errStat_reset AP_errText_set
-
 // store lineNr of active line. if mode=temporary, store lineNr -1.
 
 
-  // printf("AP_errStat_set %d APT_obj_stat=%d APT_lNr=%d\n",
-         // stat,APT_obj_stat,APT_lNr);
+  printf("AP_errStat_set %d errStat=%d APT_obj_stat=%d APT_lNr=%d\n",
+         stat, AP_stat.errStat, APT_obj_stat, APT_lNr);
   // printf("  AP_stat.errStat=%d AP_stat.errLn=%d\n",
          // AP_stat.errStat,AP_stat.errLn);
 
 
   // do not overwrite a serious error with a temporary error
   if((stat)&&(AP_stat.errStat))  {
-    if(APT_obj_stat) return 1;  // 0=permanent, 1=temporary (workmode)
+    if(APT_obj_stat) return 1;  // APT_obj_stat: 0=permanent, 1=temporary (workmode)
+    if(AP_stat.errStat > stat) return 1;  // do not overwrite; 2024-06-19
   }
 
 
@@ -1101,7 +1102,6 @@ void *kex_dll = NULL;
 
 
   AP_stat.errStat = stat;
-
 
 
   if(APT_obj_stat) {  // 0=permanent, 1=temporary (workmode)
@@ -2986,6 +2986,209 @@ ED_Run
 
 
 //================================================================
+  int AP_startup_params (int iRun) {
+//================================================================
+// AP_startup_params                       work startup-parameters
+// - iRun = 0 - before GL is up;
+// - iRun = 1 - after GL is up;
+// Out:
+//   retCode of iRun=0    mode VWR|CAD|MAN
+
+#define SIZ_PRGSTAT   32
+static char parStat[SIZ_PRGSTAT];   // 1=not-yet-processied; 0=already-done
+static int mode__;
+
+  int       irc, ii, i1, i2, i3;
+  char      *cmd, s1[320];
+  stru_FN   mfn;
+
+
+  // printf("AP_startup_params-in iRun=%d AP_argNr=%d\n",iRun,AP_argNr);
+
+  irc = 0;
+
+  // process startparameters
+
+  if(iRun == 0) {
+    for(i1 = 0; i1 < SIZ_PRGSTAT; ++i1) parStat[i1] = 0;
+  }
+    // TESTBLOCK
+    // for(i1 = 0; i1 < SIZ_PRGSTAT; ++i1) printf("parStat[%d]=%d\n",i1,parStat[i1]);
+    // END TESTBLOCK
+
+
+
+  //----------------------------------------------------------------
+  ii = 1;
+
+  L_next_par:
+  if(ii >= AP_argNr) goto L_exit;
+
+    if(AP_argNr >= SIZ_PRGSTAT) {printf("***** ERROR AP_startup_params\n"); return -1;}
+
+    cmd = AP_argv[ii];
+       // printf(" AP_startup_params1-nxtpar iRun=%d ii=%d |%s|\n",iRun,ii,cmd);
+    if(parStat[ii]) goto L_not_found;
+
+
+
+    //================================================================
+    if(iRun == 0) {
+
+      //------------------------------------------------------------
+      if(!strncmp(cmd, "mode_cad", 8)) {
+        // iStartMode = 1;
+        if(strlen(cmd) > 8) {
+          sscanf (&cmd[8],"_%d_%d",&i2, &i3);
+            // printf(" cadIni = %d %d\n",i2, i3);
+          AP_stat.cadIniM = i2;
+          AP_stat.cadIniS = i3;
+        }
+        mode__ = UI_MODE_CAD;
+
+      //------------------------------------------------------------
+      } else if(!strcmp(cmd, "mode_man")) {
+        // iStartMode = 2;
+        mode__ = UI_MODE_MAN;
+
+      //------------------------------------------------------------
+      } else if(!strcmp(cmd, "noTB")) {
+        UI_ToolBars (1, 0);
+        // return 0;
+
+      } else if(!strcmp(cmd, "noMB")) {
+        UI_ToolBars (2, 0);
+        // return 0;
+
+      } else if(!strcmp(cmd, "noBrw")) {
+        UI_brw__ (-1);           // off
+        // return 0;
+
+      //------------------------------------------------------------
+      // comp = compile DLL's - Checkbox aktivieren
+      } else if(!strcmp(cmd, "comp")) {
+        i1 = 1;
+        UI_AP (UI_FuncSet, UID_ckb_comp, PTR_INT(i1));   // TRUE=1
+        // return 0;
+
+      } else goto L_not_found;
+
+
+    //================================================================
+    } else if(iRun == 1) {
+
+      //------------------------------------------------------------
+      // run
+      if(!strcmp(cmd, "run")) {
+        // UI_but__ ("butEND");     // Ausfuehren END-Button
+        i1 = ED_work_END (0);
+        // return 0;
+
+      //------------------------------------------------------------
+      // debug = debug ON for following DLL
+      } else if(!strcmp(cmd, "AP_test__")) {
+        AP_test__ ();
+        // return 0;
+
+//     //------------------------------------------------------------
+//     } else if(!strcmp(cmd, "testdll")) {
+//       AP_stat.tstDllStat = 1; // 0=normal (OFF); 1=testdll_ON
+//       AP_testdll__ (0);
+//       return 0;
+
+      //------------------------------------------------------------
+      // exit = shutdown
+      } else if(!strcmp(cmd, "exit")) {
+        UI_win_main (NULL, GUI_SETDAT_EI(TYP_EventPress,UI_FuncKill));
+        // goto L_exit;
+
+      //------------------------------------------------------------
+      // Sofortausstieg - ohne sichern..
+      } else if(!strcmp(cmd, "crashEx")) {
+        AP_exit__ (1);      // shutdown
+        exit (0);
+
+      //------------------------------------------------------------
+      }
+      // test if has filetype; if not: start plugin.
+      if(UTX_ftyp_s (s1, cmd, 0) < 0) {
+        TX_Print ("*** no filetype - start plugin %s", cmd);
+        irc = AP_plu_exec (cmd);
+        // set AP_stat.mdl_stat = MDLSTAT_loaded - do not load model after plugin
+        if(irc >= 0) AP_stat.mdl_stat = MDLSTAT_loaded;
+        goto L_next;
+      }
+
+      //------------------------------------------------------------
+      // load modelfilename into AP_mod_sym/AP_mod_fnam/AP_mod_ftyp
+      i1 = MDLFN_oFn_fNam (&mfn, cmd);
+        MDLFN_dump_ofn (&mfn, "AP_startup_params2");
+      if(i1 >= 0) {
+        if(!strcmp (mfn.fTyp, "cmd")) { // test for commandfilename .cmd
+          irc = AP_rcmd (cmd);
+          if(!irc) AP_stat.start_rcmd = 1;
+
+        } else { // cad-modelname
+          MDLFN_set__ (&mfn);  // copy into AP_mod_sym/AP_mod_fnam/AP_mod_ftyp
+          MDLFN_ffNam_AP (s1); // get modelname from AP_mod_dir+AP_mod_fnam+AP_mod_ftyp
+          // AP_Mod_load_fn (s1, 0);
+          AP_Mod_load_init (s1, 0);
+          // i1 = AP_Mod_load_fn (cmd, 0);
+          // DL_Redraw ();
+        }
+
+      //------------------------------------------------------------
+      } else {
+        printf("***** ERROR AP_startup_params |%s|\n",cmd);
+        goto L_not_found;
+      }
+
+    }
+
+
+    //================================================================
+    L_next:
+      parStat[ii] = 1;
+
+    L_not_found:
+      ++ii;
+      goto L_next_par;
+
+
+  //----------------------------------------------------------------
+  L_exit:
+
+    if(iRun == 1) {
+        // printf(" mode__=%d\n",mode__);
+
+      // set radiobuttons VWR|CAD|MAN
+      UI_main_set__ (mode__);
+
+      // activate VWR|CAD|MAN (imods)
+      if(mode__ == UI_MODE_MAN) {
+        UI_but__ ("MAN");
+
+      } else if(mode__ == UI_MODE_CAD) {
+        // if mode == CAD then check for startFunction
+        if(AP_stat.cadIniM >= 0)
+        // activate CAD-menu and inputfields
+        IE_cad_init__ (AP_stat.cadIniM, AP_stat.cadIniS);
+        else UI_but__ ("CAD");
+
+      } else {
+        // UI_but__ ("VWR");
+        UI_VWR_ON ();  // do not if VWR=on; first of buttonChain = ON !
+      }
+    }
+
+    // printf("ex-AP_startup_params %d\n",irc);
+  return irc;
+
+}
+
+
+/* replaced by AP_startup_params
+//================================================================
   int AP_init__ () {
 //================================================================
 // work startup-parameters, load defaultmodel
@@ -3051,6 +3254,7 @@ ED_Run
   return imods;
 
 }
+*/
 
 
 //================================================================
@@ -3477,6 +3681,12 @@ remote control nur in VWR, nicht MAN, CAD;
   fprintf(fp1, "%s\n", txbuf);
 
 
+  // line 13: WindowPosition AP_winPos
+  // GUI_Winpos_get (&i1, &i2);
+  // sprintf(txbuf, "%d,%d    // WindowPosition",i1,i2);
+  sprintf(txbuf, "%s    // WindowPosition",AP_winPos);
+  fprintf(fp1, "%s\n", txbuf);
+
 
   fclose(fp1);
 
@@ -3791,6 +4001,21 @@ remote control nur in VWR, nicht MAN, CAD;
     }
   }
 
+
+  // line 13   winPos -> AP_winPos
+  strcpy(AP_winPos, "0,0");
+  if(fgets (txbuf, 120, fp1)) {
+    p1 = strchr(txbuf, ' ');
+    if(p1) {
+      if((p1 - txbuf) < 128) {
+        sscanf(txbuf, "%s",AP_winPos); // only 1. word, rest is comment
+          printf("AP_defaults_read-AP_winPos |%s|\n",AP_winPos);
+      } else {
+        printf("***** ERR AP_defaults_read line 13");
+      }
+    }
+  }
+    printf(" AP_winPos=|%s|\n",AP_winPos);
 
   fclose(fp1);
 
@@ -4498,6 +4723,9 @@ remote control nur in VWR, nicht MAN, CAD;
 
   int    irc;
 
+
+  printf("AP_Mod_load_init |%s|\n",fn);
+
   // load Model from file <fn> 
   irc = AP_Mod_load_fn (fn, 0);
   if(irc) return irc;
@@ -4510,6 +4738,15 @@ remote control nur in VWR, nicht MAN, CAD;
   sprintf(memspc011, "%sMod_.mod_out",AP_get_tmp_dir());
   sprintf(memspc012, "%sMod_.mod_in",AP_get_tmp_dir());
   OS_file_rename (memspc011, memspc012);
+
+
+  if(AP_stat.db_cseg_eom) {
+    // ERR_DB_CSEG_EOM has been, already fixed; but must redraw;   2024-06-19
+      // printf(" AP_Mod_load_init-reDraw\n");
+    ED_work_END (1);  // error DB_allocCDAT
+    AP_stat.db_cseg_eom = 0;
+  }
+
 
   return 0;
 

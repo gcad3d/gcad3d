@@ -38,21 +38,21 @@ void GUI(){}
 #include "../gui/gui__.h"              // includefile for all GUI-functions
 
 ------ Links to Gtk ---------------
-../gui_gtk3/gtk_base.c              Window Box tooltips
-../gui_gtk3/gtk_label.c             Label
-../gui_gtk3/gtk_button.c            Button (with image) Checkbox
-../gui_gtk3/gtk_menu.c              Menu
-../gui_gtk3/gtk_entry.c             Entry
-../gui_gtk3/gtk_image.c             Image ScreenCast
-../gui_gtk3/gtk_dlg_std.c           Messagebox Dialogbox Slider Colorselect
-../gui_gtk3/gtk_msgWin.c            Messagewindow
-../gui_gtk3/gtk_lists.c             List
-../gui_gtk3/gtk_container.c         Frame Toolbar Notebook Paned
-../gui_gtk3/gtk_multichoice.c       Radiobuttons Popup-menu Option-menu
-../gui_gtk3/gtk_tree_it.c           Treeview with icon + text
-../gui_gtk3/gtk_ed1.c               TextEditor
-../gui_gtk3/gtk_opengl.c            OpenGL-window
-../gui_gtk3/gtk_gl_x11.c            Gtk-binding OpenGL
+../gui_gtk2/gtk_base.c              Window Box tooltips
+../gui_gtk2/gtk_label.c             Label
+../gui_gtk2/gtk_button.c            Button (with image) Checkbox
+../gui_gtk2/gtk_menu.c              Menu
+../gui_gtk2/gtk_entry.c             Entry
+../gui_gtk2/gtk_image.c             Image ScreenCast
+../gui_gtk2/gtk_dlg_std.c           Messagebox Dialogbox Slider Colorselect
+../gui_gtk2/gtk_msgWin.c            Messagewindow
+../gui_gtk2/gtk_lists.c             List
+../gui_gtk2/gtk_container.c         Frame Toolbar Notebook Paned
+../gui_gtk2/gtk_multichoice.c       Radiobuttons Popup-menu Option-menu
+../gui_gtk2/gtk_tree_it.c           Treeview with icon + text
+../gui_gtk2/gtk_ed1.c               TextEditor
+../gui_gtk2/gtk_opengl.c            OpenGL-window
+../gui_gtk2/gtk_gl_x11.c            Gtk-binding OpenGL
 
  
 ------ macros for callback-data ---------

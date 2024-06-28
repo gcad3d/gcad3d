@@ -242,7 +242,7 @@ typedef_MemTab(Line);
 typedef_MemTab(Fac3);
 typedef_MemTab(IntTab);
 typedef_MemTab(IndTab);
-typedef_MemTab(IgaTab);
+// typedef_MemTab(IgaTab);
 typedef_MemTab(ObjDB);
 typedef_MemTab(CurvCCV);
 typedef_MemTab(ObjGX);

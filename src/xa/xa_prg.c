@@ -163,7 +163,6 @@ typedef struct {MemObj wp;
 
 
 typedef_MemTab(FormVar);
-// typedef_MemTab(IgaTab);
 
 
 
@@ -182,7 +181,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   static MemObj    PRG_win0, PRG_box;
 
   static MemTab(FormVar) FormTab = _MEMTAB_NUL;
-  static MemTab(IgaTab) PRG_internTab = _MEMTAB_NUL;
+  static MemTab(IndTab) PRG_internTab = _MEMTAB_NUL;
 
 
   static int       PRG_dbg=0;   // 0=off; 1=On.
@@ -1335,7 +1334,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
   // get mem for PRG_internTab or clear PRG_internTab
   if(PRG_internTab.data == NULL)
     // MemTab_ini__ (&PRG_internTab, sizeof(ObjRange), Typ_ObjRange, 100);
-    MemTab_ini__ (&PRG_internTab, sizeof(IgaTab), Typ_IgaTab, 100);
+    MemTab_ini__ (&PRG_internTab, sizeof(IndTab), Typ_IndTab, 100);
   // else
     // PRG_internTab.rNr = 0;
     // printf(" PRG_internTab.rMax=%d\n",PRG_internTab.rMax);
@@ -1576,7 +1575,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
     if(iCod != 0) goto L_copyCopy;
 
     // yes,defLn; test if obj is internal.
-    irc = UTO_queryRange (&PRG_internTab, iTyp, iInd);
+    irc = MemTab_IndTab_ck (&PRG_internTab, iTyp, iInd);
     if(irc == 0) goto L_copyDone;
 
 
@@ -1925,7 +1924,7 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
 
   L_done:
-      // DEB_dump_IgaTab (&PRG_internTab);
+      // DEB_dump_IndTab (&PRG_internTab);
       // printf(" ex PRG_dlg__\n");
     return 0;
 
@@ -2438,17 +2437,17 @@ extern long DL_temp_ind;        // if(>0) fixed temp-index to use; 0: get next f
 
   int      i1;
   long     dbi, ie;
-  IgaTab   *or;
+  IndTab   *or;
 
 
   if(PRG_internTab.data == NULL) return 0;
 
   for(i1=0; i1<PRG_internTab.rNr; ++i1) {
     or = &PRG_internTab.data[i1];
-      // printf(" or[%d]=%ld %d %d\n",i1,or->ind,or->typ,or->oNr);
+      // printf(" or[%d]=%ld %d %d\n",i1,or->ind,or->typi,or->oNr);
     ie = or->ibeg + or->iNr;
     for(dbi=or->ibeg; dbi<ie; ++dbi) {
-      DB_Delete (or->typ, dbi);
+      DB_Delete (or->typi, dbi);
     }
 
   }

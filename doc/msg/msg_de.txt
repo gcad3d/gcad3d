@@ -69,6 +69,7 @@ MMsePcp=Ausgabe Mausposition auf der Konstruktionsebene - nächste Selektion
 MMsePop=Ausgabe Mausposition als parametrischer Punkt am selektierten Objekt - nächste Selektion
 MMseLoO=Ausgabe einer Linie als Teilsegment eines Polygons oder einer Kontur
 MMselOid=add objects to group, hilite, (key objID)
+MMselTyp=select objects by type / name; add to group
 
 MMgrAdd=Objekt zu Gruppe addieren oder (wenn bereits selektiert) aus Gruppe entfernen
 MMgrSav=alle Objekte der Gruppe in Datei speichern (Format .gcad)
@@ -247,8 +248,8 @@ TRAnsform_obj__Tra_=Objekt verschieben (Verschiebung) oder drehen (Verdrehung)
 REV__reverse__curve=Kurve umdrehen
 Project_obj__Prj_=Objekt auf Fläche projizieren.
 Parallel_obj__offset_=parallel object (offset-curve or surface)
-Mirror_about_line=Objekte um eine Linie spiegeln
-Mirror_about_plane=Objekte um eine Ebene spiegeln
+Mirror_over_line_plane=mirror obj over line or plane
+curvature_2_curves=modify 2 curves to fit curvature G1 or G2
 ISOparametric_Curve_from_Surf=Kurve aus einer Fläche extrahieren (von Parameterwert(en)); [CX (Querrichtung)]
 Surf_OPEration_cut_join___=cut or join surface using curve, plane or surface (boolean AND OR NOT)
 
@@ -292,6 +293,8 @@ Typ_goGeo6=Winkel (Grad) eing. / Sel Vec/LN (Richtung) / ReversButton
 Typ_goGeo7=Winkel (Grad) eing.; Sel PT
 Typ_goGeo8=Wert eing. / Sel PT
 Typ_goAxis=Sel LN / Cir / PLN / PT+PT / PT+LN / PT+VC (Bild-Tasten) / PT+PLN
+Typ_go_LCS=select Linie Kreis oder Ebene
+Typ_go_LR=select Linie oder Ebene
 Typ_goRadius=Radius eing. / Sel PT / Cir
 Typ_goGeoSUSU=Sel Kegel Torus RuledSurf RevolvedSurf B-Spl-Surf
 Typ_go_RA=Select Ebene (R) oder Fläche (A)
@@ -409,6 +412,7 @@ Lang_chg1=*** for full functionality (translation of info-tags) restart gcad3d
 
 ED1CW=Drehrichtung Uhrzeigersinn für letzte Eingabe
 ED1CCW=Drehrichtung Gegenuhrzeigersinn für letzte Eingabe
+EDGRP1=last input reversed
 ED1MOD+=nächste Lösungsvariante wählen
 ED1MOD-=vorherige Lösungsvariante wählen
 ED1<<<=eine Eingabe zurücksetzen (vor dem Einfügen)

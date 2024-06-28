@@ -3094,8 +3094,8 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
     // printf(" pf_ab=%f pg_ab=%f\n",pf_ab,pg_ab);
 
   // Multip. des Vektors a-b mit Parameterwert von e ergibt den Vektor a-e
-  UT3D_vc_multvc (&vaf, &vab, pf_ab);
-  UT3D_vc_multvc (&vag, &vab, pg_ab);
+  UT3D_vc_mult_d (&vaf, &vab, pf_ab);
+  UT3D_vc_mult_d (&vag, &vab, pg_ab);
 
   // Subtraktion (Vec-a-c - Vec-a-e) = Vec-e-c
   UT3D_vc_sub2vc (&vfc, &vac, &vaf);
@@ -3119,7 +3119,7 @@ see UT3D_ln_intTriaPln UT3D_ln_intTriaTria UT3D_pt_intptvcpl
   UT3D_vc_2pt (&vae, pa, pe);           // vae = Vector a-e
   s_ab_ae = UT3D_skp_2vc (&vab, &vae);  // gibt Wert fuer e relativ zu s_ab_ab
   ph_ab = s_ab_ae / s_ab_ab;
-  UT3D_vc_multvc (&vah, &vab, ph_ab);
+  UT3D_vc_mult_d (&vah, &vab, ph_ab);
   UT3D_vc_sub2vc (&vhe, &vae, &vah);
   dqe = UT3D_skp_2vc (&vhe, &vhe);
     // printf(" dqc=%f dqd=%f,dqe=%f\n",dqc,dqd,dqe);

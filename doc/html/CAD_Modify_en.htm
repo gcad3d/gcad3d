@@ -237,8 +237,8 @@ S23=PARL S21 VAL(3)
 
 
 <p><a name="F8"></a></p>
-  <h2>Mirror about line       MIR</h2>
-Reflect objects across a line
+  <h2>Mirror about line or plane      MIR</h2>
+Reflect objects across a line or plane
   Currently, only for linear elements, plane, not surfaces.
 
 resulting object = MIR object line
@@ -251,15 +251,22 @@ S20=MIR S20 L20
 
 
 <p><a name="F9"></a></p>
-<h2>Mirror obj (Plane)      MIR</h2>
- Reflect objects across a plane
-   Currently, only for linear elements, not surfaces
+<h2>curvature 2 curves       TNG</h2>
+ Modify 2 connected B-spline-curves to get G1 (tangentiality), G2 (curvature).
+ Input:
+   curv-1,2:     2 Bspl-Curves; must have a common start- or endpoint, may not be trimmed.
+   ang-dev-tng:  0:   same deviation on curv-1 and curv-2;
+                 50:  max. deviation on curv-2, min dev. on curv-1;
+                 -50: max. deviation on curv-1, min dev. on curv-2;
+   1=G1, 2=G2    1=tangential, 2=curvature;
 
- Result object = MIR object plane
+ Output:
+   returns modified curv-1; OK to save.
+   To get modified curv-2: select curve-2, (unmodified) curve-1, negative ang-dev-tng.
 
- Example:
- S20 = MIR S20 R20
- # Curve S20 is mirrored across plane R20
+ The modification affects the second and the following point of the curve.
+ To reduce the deviation insert a point between the first and the second point.
+
 
 
 

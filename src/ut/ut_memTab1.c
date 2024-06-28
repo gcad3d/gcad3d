@@ -39,9 +39,12 @@ List_functions_start:
 
 ------------------- int
 MemTab_int_add_range  add iNr records of incrementing integers starting with iis
+MemTab_int_test       test MemTab_int_add_range
 
 ------------------- IndTab
 MemTab_IndTab_add     add IndTab = table of int's
+MemTab_IndTab_iFind   find index of indtab-record with typi
+MemTab_IndTab_ck      check if typ,ind is in MemTab(IndTab)
 MemTab_IndTab_test
 
 List_functions_end:
@@ -57,8 +60,6 @@ see also ../ut/ut_memTab.c
 
 IntTab - a list of integers for organizing a MemTab(int)
 IndTab - organize groups of integers in IntTab (2 types of typ char)
-IgaTab - organize groups of integers in IntTab (2 types: typ char and typ short)
-
 
 
 
@@ -86,8 +87,8 @@ Testprog: ../ut/tst_memTab.c
 //================================================================
   int MemTab_int_add_range (MemTab_int *ipa, int irs, int iNr) {
 //================================================================
-// MemTab_int_add_range   add iNr records of incrementing integers starting with iis
-//   mtb must be MemTab(int);
+// MemTab_int_add_range   add iNr records of incrementing integers starting with irs
+//   ipa must be MemTab(int);
 //   irs is first integer to be saved, followed by irs+1 ..
 // Input:
 //   iNr      nr of int's to add
@@ -146,11 +147,141 @@ Testprog: ../ut/tst_memTab.c
 }
 
 
+//==================================================================
+  IndTab* MemTab_IndTab_iFind (void* iTab, int iTyp) {
+//==================================================================
+// MemTab_IndTab_iFind   find index of indtab-record with typi
+// retCode  NULL  record not found;
+//          else  indtab-record with typi == <iTyp>
+
+  int     ii, rNr;
+  IndTab  *inda;
+
+  rNr = ((MemTab*)(iTab))->rNr;
+  inda = (IndTab*)((MemTab*)iTab)->data;
+
+  for(ii=0; ii<rNr; ++ii) if(inda[ii].typi == iTyp) return &inda[ii];
+
+  return NULL;
+
+}
+
+
+//================================================================
+  int MemTab_IndTab_ck (MemTab(IndTab) *iTab, int typ, long ind) {
+//================================================================
+// MemTab_IndTab_ck          check if typ,ind is in MemTab(IndTab)
+// RetCod:
+//   0      yes typ,ind is inside a range-obj;
+//  -1      no.
+
+
+  int    irc, i1;
+
+
+  // printf("MemTab_IndTab_ck %d %d\n",typ,ind);
+
+  irc = -1;
+
+  for(i1=0; i1<iTab->rNr; ++i1) {
+    if(iTab->data[i1].typi != typ) continue;
+    if(iTab->data[i1].ibeg > ind) continue;
+    if(iTab->data[i1].ibeg + iTab->data[i1].iNr < ind) continue;
+    irc = 0;
+    break;
+  }
+
+
+  // printf("ex MemTab_IndTab_ck irc=%d typi=%d ind=%d\n",irc,typi,ind);
+
+  return irc;
+
+}
+
+
+//================================================================
+  int MemTab_IndTab_all (int *ia, IndTab *ora, int orNr) {
+//================================================================
+// MemTab_IndTab_all                get list of integers of integer-ranges
+// - get a list of all numbers of all lists
+//  
+// Input:
+//   ia     must have size >= size reported if (ia=NULL)
+//   ora    orNr IgaTab-records to search
+//   orNr   nr of IgaTab-records
+// Output:
+//   ia    list of ints of orNr IgaTab-records  (get size if ia=NULL)
+//   retCod  necessary size of ia (only if ia=NULL)
+//
+// was UTI_ni_ObjRange
+
+  int   io, ir, i1, i2, ii;
+
+  io = 0;
+
+  if(!ia) {
+    // ia = NULL: reported size of ia
+    for(ir=0; ir<orNr; ++ir) if(ora[ir].iNr) io += ora[ir].iNr;
+      // printf("ex-ni_IgaTab siz=%d \n",io);
+    return io;
+  }
+
+  for(ir=0; ir < orNr; ++ir) {
+    if(ora[0].iNr) {
+      i1 = ora[ir].ibeg;
+      i2 = i1 + ora[ir].iNr;
+      for(ii=i1; ii<i2; ++ii) {
+        ia[io] = ii;
+        ++io;
+      }
+    }
+  }
+
+    // TESTBLOCK
+    // printf("ex-MemTab_IndTab_all ia %d\n",io);
+    // for(i1=0; i1<io; ++i1) printf(" ni[%d] = %d\n",i1,ia[i1]);
+    // END TESTBLOCK
+
+  return 0;
+
+}
+
+
 //================================================================
 // TESTFUNCTIONS
 //================================================================
 
 #ifdef DEB
+
+
+
+//================================================================
+  int MemTab_int_test () {
+//================================================================
+// MemTab_int_test              test MemTab_int_add_range
+
+  int          irc;
+  MemTab(int)  ipa = _MEMTAB_NUL;
+
+
+  printf("\nMemTab_int_test \n");
+
+
+  MemTab_ini__ (&ipa, sizeof(int), Typ_Int4, 100);
+
+  irc = MemTab_int_add_range (&ipa, ipa.rNr, 10);
+  if(irc < 0) return MSG_ERROR (irc, "E1");
+
+  irc = MemTab_int_add_range (&ipa, ipa.rNr, 15);
+  if(irc < 0) return MSG_ERROR (irc, "E2");
+
+    MemTab_dump (&ipa, "ex-MemTab_int_test");
+
+
+  return 0;
+
+}
+
 
 //=========================================================================
   int MemTab_IndTab_test () {
@@ -176,6 +307,35 @@ Testprog: ../ut/tst_memTab.c
   return 0;
 
 }
+
+
+//=========================================================================
+  int MemTab_IndTab_dump (MemTab *mtb, char *inf) {
+//=========================================================================
+// test MemTab_IndTab
+// Input:
+//   mtb      *MemTab_IndTab
+
+
+  int     irc, i1, i2, i3, *ia, iNr;
+  IndTab  *ita, *it1;
+
+
+  MemTab_dump (mtb, inf);
+
+  ita = mtb->data;
+
+  for(i1=0; i1<mtb->rNr; ++i1) {
+    i2 = ita[i1].ibeg;
+    i3 = i2 + ita[i1].iNr - 1;
+    printf(" tab[%d] typi=%d  ipFirst=%d .. ipLast=%d\n",i1,ita[i1].typi,i2,i3);
+  }
+
+
+  return 0;
+
+}
+
 
 #endif
 

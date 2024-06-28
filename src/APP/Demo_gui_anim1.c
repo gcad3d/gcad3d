@@ -295,7 +295,7 @@ static MemObj    win0;
 
   //======== WORK =======================
     // fix new origin mr-> and angles according to cycStat
-    UT3D_vc_multvc (&vcd, &vctr, cycStat);
+    UT3D_vc_mult_d (&vcd, &vctr, cycStat);
     UT3D_pt_traptvc (&mr->po, &ptb, &vcd);
     // mr->po.x += 0.1;
     az1 = az * cycStat;

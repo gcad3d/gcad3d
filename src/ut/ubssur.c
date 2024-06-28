@@ -586,8 +586,8 @@ Returncodes:
     }	    
 
     // halt if u,v dont change significantly
-    UT3D_vc_multvc (&Su2, &Suold, (u-uold));
-    UT3D_vc_multvc (&Sv2, &Svold, (v-vold));
+    UT3D_vc_mult_d (&Su2, &Suold, (u-uold));
+    UT3D_vc_mult_d (&Sv2, &Svold, (v-vold));
     UT3D_vc_add2vc (&Ss, &Su2, &Sv2);
     if (UT3D_len_vc (&Ss) < UT_TOL_pt) {
       *PP = S;

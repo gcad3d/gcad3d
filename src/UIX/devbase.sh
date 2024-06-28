@@ -13,6 +13,10 @@
 #if [ $? -ne 0 ]; then exit 1; fi
 
 
+# get version
+export gcad_version=`cat ../gcad_version`
+echo "gcad_version = ${gcad_version}"
+
 #================================================================
 # set gcad_dir_dev - only used for recompile plugin while main is active ..
 export gcad_dir_dev="${PWD}/"
@@ -28,7 +32,7 @@ if test "${OSTYP}" = "MSYS"; then
   export gcad_dir_bin=$(cygpath -u "${APPDATA}\\test_bin\\")
 else
   # Linux - # release-default: gcad3d/test/
-  export gcad_dir_bin=${HOME}/test_bin/
+  export gcad_dir_bin=${HOME}/test_bin/${gcad_version}/
 fi
 
 export LD_LIBRARY_PATH=${gcad_dir_bin}
@@ -36,9 +40,10 @@ export LD_LIBRARY_PATH=${gcad_dir_bin}
 
 #================================================================
 # gcad_dir_bas = home of directories doc, icons, examples.gz,startup-script
-ii=`echo ${gcad_dir_dev} | grep -bo /gcad3d/src/ | cut -d: -f1`
-i1=`expr $ii + 8`
-export gcad_dir_bas=`expr substr $gcad_dir_dev 1 $i1`
+# remove "src/UIX" from end of gcad_dir_dev
+ii=`expr length ${gcad_dir_dev}`
+i1=`expr $ii - 8`
+export gcad_dir_bas=`expr substr ${gcad_dir_dev} 1 $i1`
 
 
 #================================================================

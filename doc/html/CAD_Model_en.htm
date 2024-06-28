@@ -36,18 +36,25 @@ Models use keycode  M
 
 <b>Using internal sub-models in Cad mode:</b>
 
-  Select sub-models from a list (using middle mouse button)
+Submodel
+  - Select sub-model from list (icon "LIST")
   - or select an existing sub-model (<a href="CAD_input_en.htm#_ModBas_"></a>)
   
 Position,Orientation
-  <a href="CAD_input_en.htm#_PLN_">Origin and orientation</a> of the submodel
+  - select point (orientation from active construction-plane) - or
+  - select <a href="CAD_input_en.htm#_PLN_">plane</a>
 
-[Scale]:   magnifying scale; default is 1
+[Scale]
+  - magnifying scale; default is 1
  
 
 Examples:
+# Position P20
+M20="submodel_1" P20
+# Position and Orientation from plane R20
+M21="submodel_1" R20
 # Internal Submodel "SM1", rotated 45 degree around z-axis, scale=2
-M20="SM1" R(P(100 0) 45) VAL(2)
+M22="SM1" R(P(100 0) 45) VAL(2)
 
 
 - External sub-models are internally cached, but not stored with the model

@@ -347,8 +347,7 @@ DB_allocModBas     mdb_dyn   ModelBas  mnam  DYN_MB_INC
 #include "../gr/ut_gr.h"               //
 #include "../gr/ut_DL.h"
 
-
-
+#include "../xa/xa_msg.h"              // MSG_* ERR_*
 
 #include "../db/ut_DB.h"
 
@@ -6001,7 +6000,7 @@ long DB_StoreVector (long Ind, Vector* vc1) {
 
   DB_allocCDAT (1);
 
-  return -1;
+  return ERR_DB_CSEG_EOM;
 
 }
 
@@ -6081,7 +6080,7 @@ long DB_StoreVector (long Ind, Vector* vc1) {
   // nach realloc muss man neu beginnen !
   TX_Print ("realloc DB_allocCDAT - please wait ..");
   // exit(0);  // TEST ONLY
-  AP_errStat_set (2);
+  AP_errStat_set (ERR_DB_CSEG_EOM);
 
   L_exit:
     // printf("ex DB_allocCDAT\n");

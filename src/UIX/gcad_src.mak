@@ -76,7 +76,7 @@ SRC1 =\
   ../ut/u3d.c        ../ut/ut_cvoff.c   ../ut/ut_msh.c     ../ut/ut_face.c\
   ../gr/tess_su.c    ../gr/ut_tess_su.c ../gr/tess_ut.c    ../gr/tess_vr_ut.c\
   ../gr/ut_GLU.c     ../gr/glbt.c       ../gr/grtsu.c\
-  ../ut/ut_prcv__.c  ../ut/ut_prcv_db.c ../ut/ut_cntf.c\
+  ../ut/ut_prcv__.c  ../ut/ut_prcv_db.c ../ut/ut_cntf.c    ../ut/cbsp_tng.c\
   ../ut/ut_geo2d.c   ../ut/ut_geo3d.c   ../ut/ut_iTab.c    ../ut/ut_dbf.c\
   ../ut/ut_obj.c     ../ut/ut_txfil.c   ../ut/ut_txt.c     ../ut/ut_umb.c\
   ../ut/ut_math.c    ../ut/ut_umem.c    ../ut/ut_mem.c     ../ut/ut_box.c\

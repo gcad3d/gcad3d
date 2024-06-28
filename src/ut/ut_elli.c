@@ -569,13 +569,13 @@ cl -c ut_geo.c
   // update va
   d1 = UT3D_len_vc (&el1->va);
   d2 = (d1 + dist) / d1;            
-  UT3D_vc_multvc (&el2->va, &el1->va, d2);
+  UT3D_vc_mult_d (&el2->va, &el1->va, d2);
 
 
   // update vb
   d1 = UT3D_len_vc (&el1->vb);
   d2 = (d1 + dist) / d1;
-  UT3D_vc_multvc (&el2->vb, &el1->vb, d2);
+  UT3D_vc_mult_d (&el2->vb, &el1->vb, d2);
 
 
   
@@ -585,12 +585,12 @@ cl -c ut_geo.c
     // get tangent vc1 of p1; get normal to tangent; offset dist.
     // get vecY from vecX=Curv and vecZ
     UT3D_vc_perp2vc (&vcy, &el1->vz, &vc1);
-    UT3D_vc_multvc (&vc1, &vcy, dist);
+    UT3D_vc_mult_d (&vc1, &vcy, dist);
     UT3D_pt_traptvc (&el2->p1, &el1->p1, &vc1);
 
     // update p2
     UT3D_vc_perp2vc (&vcy, &el1->vz, &vc2);
-    UT3D_vc_multvc (&vc1, &vcy, dist);
+    UT3D_vc_mult_d (&vc1, &vcy, dist);
     UT3D_pt_traptvc (&el2->p2, &el1->p2, &vc1);
 
   } else {
@@ -3128,8 +3128,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
 
 
 // transfer pi1 back into 3D-position
-  UT3D_vc_multvc (&vhx, &vna, pi1.x);
-  UT3D_vc_multvc (&vhy, &vnb, pi1.y);
+  UT3D_vc_mult_d (&vhx, &vna, pi1.x);
+  UT3D_vc_mult_d (&vhy, &vnb, pi1.y);
   UT3D_pt_trapt2vc (&po, &el1->pc, &vhx, &vhy);
     // DEB_dump_obj__ (Typ_PT, &po, "  po:");
 
@@ -3218,8 +3218,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
     // DEB_dump_obj__ (Typ_VC, &vnb, "  vnb:");
 
 // transfer pi1 back into 3D-position
-  UT3D_vc_multvc (&vhx, &vna, dx);
-  UT3D_vc_multvc (&vhy, &vnb, dye);
+  UT3D_vc_mult_d (&vhx, &vna, dx);
+  UT3D_vc_mult_d (&vhy, &vnb, dye);
   UT3D_pt_trapt2vc (&po, &el1->pc, &vhx, &vhy);
     // DEB_dump_obj__ (Typ_PT, &po, "  po:");
 
@@ -3307,8 +3307,8 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
     // DEB_dump_obj__ (Typ_VC, &vnb, "  vnb:");
 
 // transfer pi1 back into 3D-position
-  UT3D_vc_multvc (&vhx, &vna, dxe);
-  UT3D_vc_multvc (&vhy, &vnb, dy);
+  UT3D_vc_mult_d (&vhx, &vna, dxe);
+  UT3D_vc_mult_d (&vhy, &vnb, dy);
   UT3D_pt_trapt2vc (&po, &el1->pc, &vhx, &vhy);
     // DEB_dump_obj__ (Typ_PT, &po, "  po:");
 
@@ -3539,7 +3539,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
     // *vco = UT2D_VECTOR_Y;
     c = ea / eb;
     if(isol) c *= -1.;
-    UT2D_vc_multvc (&vcp, &el1->vb, c);
+    UT2D_vc_mult_d (&vcp, &el1->vb, c);
     UT2D_pt_traptvc (ptg, pt1, &vcp);
     return 1;
   }
@@ -3625,7 +3625,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
     // *vco = UT2D_VECTOR_Y;
     c = 1.;
     if(isol) c = -1.;
-    UT2D_vc_multvc (&vcp, &el1->va, c);
+    UT2D_vc_mult_d (&vcp, &el1->va, c);
     UT2D_pt_traptvc (ptg, pt1, &vcp);
     return 1;
   }
@@ -3733,7 +3733,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
       // make lentgh = va
       y = el2c.a;
       if(isol) y *= -1.;
-      UT2D_vc_multvc (&vcp, &vcp, y);
+      UT2D_vc_mult_d (&vcp, &vcp, y);
       // ptg = pt1 + vcp
       UT2D_pt_traptvc (ptg, pt1, &vcp);
       return 1;
@@ -3955,7 +3955,7 @@ int UT3D_el_elcoe(CurvElli *obj,polcoeff_d5 *ec,Point2 *pa,Point2 *pe,double zt)
   UT3D_vc_2pt (&vc1, &el3->pc, &el3->p2);
   UT3D_2par_vc_vcx_vcy (&el2c->p2.x, &el2c->p2.y, &vc1, &vcx, &vcy);
 
-    DEB_dump_obj__ (Typ_CVELL2C, el2c, "ex UT2D_elc_el3:");
+    // DEB_dump_obj__ (Typ_CVELL2C, el2c, "ex UT2D_elc_el3:");
 
   return 0;
 

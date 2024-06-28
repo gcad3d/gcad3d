@@ -2105,12 +2105,12 @@ static char TR_obj[OBJ_SIZ_MAX];  // speichert TransVektor od TraRot f. UTO_pt_t
   sizTab[Typ_Memspc] = sizeof(Memspc);
   sizTab[Typ_MemTab] = sizeof(MemTab);
   sizTab[Typ_IndTab] = sizeof(IndTab);
-  sizTab[Typ_IgaTab] = sizeof(IgaTab);
-  sizTab[Typ_ObjSRC] = sizeof(ObjSRC);
+  sizTab[Typ_IntTab] = sizeof(IntTab);
   sizTab[Typ_ObjGX] = sizeof(ObjGX);
   sizTab[Typ_ObjBin] = sizeof(ObjBin);
   sizTab[Typ_ObjDB] = sizeof(ObjDB);
   sizTab[Typ_ObjAto] = sizeof(ObjAto);
+  sizTab[Typ_ObjSRC] = sizeof(ObjSRC);
 
   // transformations
   sizTab[Typ_TraRot] = sizeof(TraRot);
@@ -7492,7 +7492,7 @@ static int traAct;
 }
 
 
-
+/* UU
 //================================================================
   int UTO_addRange (MemTab *oTab, int iTyp, long ind, long oNr) {
 //================================================================
@@ -7547,6 +7547,7 @@ static int traAct;
   return irc;
 
 }
+*/
 
 
 //================================================================

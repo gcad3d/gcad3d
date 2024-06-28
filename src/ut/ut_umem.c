@@ -36,7 +36,7 @@ void UME(){}
 /*!
 \file  ../ut/ut_umem.c
        ../ut/ut_umem.h   struct Memspc
-\brief variable-length-records in memory: reserve/connect/release .. UME_
+\brief variable-length-records in memory: reserve/connect/release .. UME_  INF_Memspc
 
 =====================================================
 List_functions_start:
@@ -50,7 +50,7 @@ MEM_CAN_ALLOC         1=memspc CAN be (re)allocated                        INLIN
 UME_NEW               setup                                                INLINE
 UME_malloc            init Memspc (malloc, does realloc, must free)
 UME_init              init with fixed or stack-space (NO realloc, no free)
-UME_reset             reset Memspc
+UME_reset             reset the Memspc; for partial release see UME_set_next
 UME_free              free complete
 
 UME_nStru_get         get memspace for rNr records of size rSiz, no reserve
@@ -104,7 +104,7 @@ List_functions_end:
 // UME_add_oxt           replaced by UME_add_obj
 
 - see also:
-INF_Memspc
+INF_Memspc    infotext for Memspc
 Examples / Testprogs: see ../APP/Test_MEM.c  - plugin Test_MEM.mak
 INF_MEM__
 
@@ -112,8 +112,8 @@ INF_MEM__
 
 Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
 
+--------------------------
 - usage examples:
-
 --------------------------
   // malloc space; does realloc, must free
   int i1, *ipa;
@@ -152,6 +152,18 @@ Memspc            Variable-Length-Records      UME_          ../ut/ut_umem.c
   for(i1=0;i1<iNr;++i1) iTab[i1] = i1;    // write into tmpSeg1
   ...                                     // (increments tmpSeg1.next !)
   UME_set_unused (-1, &tmpSeg1);            // reset tmpSeg1
+
+
+--------------------------
+  // release space in Memspc
+  void *mPos;
+  // get active used-memSpc-pos in Memspc mSpc
+  mPos = UME_get_next (&mSpc);
+  UME_add_obj (&mSpc, &obj, ..   // add obj into mSpc
+  .. obj ..                      // use obj ..
+  // reset old old memSpc-pos (release objects stored after UME_get_next
+  UME_set_next (mPos, &mSpc);
+
 
 
 \endcode *//*----------------------------------------
@@ -929,14 +941,17 @@ const Memspc UME_NUL = UME_NEW;
 //============================================================================
   int UME_add_obj (Memspc *memSpc, void **po, int form, int oNr, void *data) {
 //============================================================================
-// UME_add_obj         add oNr objs into Memspc (serialize)
+// UME_add_obj         copy/add oNr objs into Memspc (serialize, relocate)
 //   does resolv subObjs of ObjGX
 // Input:
-//   oNr   nr of child-record of struct <form> in data copy with subObjs
+//   oNr     nr of child-record of struct <form> in data copy with subObjs
+//   data    ObjGX* of obj-trre to copy into memSpc
 // Output:
 //   memSpc  data is added here
+//   po      startAddress of (ObjGX*) bMesh in memSpc
 //   retCod  pointer to copied obj in spc; NULL=error;
-// see UME_cp_obj
+//
+// see UME_cp_obj OGX_ox_copy_obj
 
   int     irc, i1, xSiz, sNr;
   void    *pStart, *p1;
@@ -999,27 +1014,56 @@ const Memspc UME_NUL = UME_NEW;
                     sizeof(Point)) < 0) goto L_err_ex;
     //............................
     // copy lvTab
-    if(UME_add_nRec (memSpc,
-                    (void**)&(((CurvPoly*)pStart)->lvTab),
-                    oNr,
-                    sizeof(double)) < 0) goto L_err_ex;
+    if(((CurvPoly*)pStart)->lvTab) {
+      if(UME_add_nRec (memSpc,
+                      (void**)&(((CurvPoly*)pStart)->lvTab),
+                      oNr,
+                      sizeof(double)) < 0) goto L_err_ex;
+    }
     break;
 
-//   //-------------------------------------------------------
-//   case Typ_CVBSP:   see OGX_ox_copy_obj
-//     if(oNr != 1) goto L_errNr;
-//     xSiz = sizeof(Typ_CVBSP);
-//       if(OGX_reloc_adr ((void**)&((CurvBSpl*)po)->kvTab, rd)) goto L_err_adr;
-//       if(OGX_reloc_adr ((void**)&((CurvBSpl*)po)->cpTab, rd)) goto L_err_adr;
-// 
-// 
-//   //-------------------------------------------------------
-//   case Typ_SURBSP:   see OGX_ox_copy_obj
-//     if(oNr != 1) goto L_errNr;
-//     xSiz = sizeof(?);
-//       if(OGX_reloc_adr ((void**)&((SurBSpl*)po)->cpTab, rd)) goto L_err_adr;
-//       if(OGX_reloc_adr ((void**)&((SurBSpl*)po)->kvTabU, rd)) goto L_err_adr;
-//       if(OGX_reloc_adr ((void**)&((SurBSpl*)po)->kvTabV, rd)) goto L_err_adr;
+  //-------------------------------------------------------
+  case Typ_CVBSP:   // see OGX_ox_copy_obj
+    if(oNr != 1) goto L_errNr;
+    if(UME_add_nRec (memSpc, &pStart, oNr, sizeof(CurvBSpl)) < 0) goto L_err_ex;
+    // copy kvTab
+    oNr = ((CurvBSpl*)pStart)->ptNr + ((CurvBSpl*)pStart)->deg + 1;
+    if(UME_add_nRec (memSpc,
+                    (void**)&(((CurvBSpl*)pStart)->kvTab),
+                    oNr,
+                    sizeof(double)) < 0) goto L_err_ex;
+    // copy cpTab
+    oNr = ((CurvBSpl*)pStart)->ptNr;
+    if(UME_add_nRec (memSpc,
+                    (void**)&(((CurvBSpl*)pStart)->cpTab),
+                    oNr,
+                    sizeof(Point)) < 0) goto L_err_ex;
+    break;
+
+
+  //-------------------------------------------------------
+  case Typ_SURBSP:   // see OGX_ox_copy_obj
+    if(oNr != 1) goto L_errNr;
+    if(UME_add_nRec (memSpc, &pStart, oNr, sizeof(SurBSpl)) < 0) goto L_err_ex;
+    // copy kvTabU
+    oNr = ((SurBSpl*)pStart)->ptUNr + ((SurBSpl*)pStart)->degU + 1;
+    if(UME_add_nRec (memSpc,
+                    (void**)&(((SurBSpl*)pStart)->kvTabU),
+                    oNr,
+                    sizeof(double)) < 0) goto L_err_ex;
+    // copy kvTabV
+    oNr = ((SurBSpl*)pStart)->ptVNr + ((SurBSpl*)pStart)->degV + 1;
+    if(UME_add_nRec (memSpc,
+                    (void**)&(((SurBSpl*)pStart)->kvTabV),
+                    oNr,
+                    sizeof(double)) < 0) goto L_err_ex;
+    // copy cpTab
+    oNr = ((SurBSpl*)pStart)->ptUNr * ((SurBSpl*)pStart)->ptVNr;
+    if(UME_add_nRec (memSpc,
+                    (void**)&(((SurBSpl*)pStart)->cpTab),
+                    oNr,
+                    sizeof(Point)) < 0) goto L_err_ex;
+    break;
 
 
   //-------------------------------------------------------
@@ -1047,7 +1091,7 @@ const Memspc UME_NUL = UME_NEW;
     //   address of childs is ox.data;
     for(i1=0; i1<oNr; ++i1) {
       ox1 = &((ObjGX*)pStart)[i1];
-        DEB_dump_obj__ (ox1->form, ox1->data, "add_obj-rec-%d",i1);
+        // DEB_dump_obj__ (ox1->form, ox1->data, "add_obj-rec-%d",i1);
       // ignore all primary ObjGX-Records where data ist not pointer
       if(!ox1->data)                     continue;
       if((ox1->form == Typ_Index) ||

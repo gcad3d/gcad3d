@@ -69,6 +69,7 @@ MMsePcp=donner Coordonnées du curseur sur la construction d'avion à la sélect
 MMsePop=donnent le point paramétrique du curseur sur l'objet sélectionné à la prochaine sélection
 MMseLoO=get line from a segment of a polygon or contour at next selection
 MMselOid=add objects to group, hilite, (key objID)
+MMselTyp=select objects by type / name; add to group
 
 MMgrAdd=obj ajouter au groupe, retirer du groupe, s'il est déjà sélectionné
 MMgrSav=enregistrer tous les objets de groupe dans le fichier (natif)
@@ -247,8 +248,8 @@ TRAnsform_obj__Tra_=move or rotate object
 REV__reverse__curve=reverse curve
 Project_obj__Prj_=élément de projet sur une surface
 Parallel_obj__offset_=parallel object (offset-curve or surface)
-Mirror_about_line=Mirror: reflect objects across line
-Mirror_about_plane=Mirror: refléter les objets sur plan
+Mirror_over_line_plane=mirror obj over line or plane
+curvature_2_curves=modify 2 curves to fit curvature G1 or G2
 ISOparametric_Curve_from_Surf=extrait de la courbe de la surface (de paramtere (s)); [CX (en face; Default = long)]
 Surf_OPEration_cut_join___=cut or join surface using curve, plane or surface (boolean AND OR NOT)
 
@@ -292,6 +293,8 @@ Typ_goGeo6=pièce Angle (degrés); Sel Vec / LN pour la direction; ReversButton
 Typ_goGeo7=pièce Val (Angle-Degree); Sel PT
 Typ_goGeo8=pièce Val; Sel PT
 Typ_goAxis=Sel LN / CIR / PLN / PT + PT / PT + LN / PT + VC (PgUp) / PT + PLN
+Typ_go_LCS=select line circle or curve
+Typ_go_LR=select line or plane
 Typ_goRadius=pièce Radius; Sel PT / CIR
 Typ_goGeoSUSU=Sel Conus Torus RuledSurf RevolvedSurf B-Spl-Surf
 Typ_go_RA=Sel Plane (R) or surface (A)
@@ -410,6 +413,7 @@ Lang_chg1=*** for full functionality (translation of info-tags) restart gcad3d
 
 ED1CW=last input clockwise
 ED1CCW=last input counterclockwise
+EDGRP1=last input reversed
 ED1MOD+=select next solution-variant
 ED1MOD-=select previous solution-variant
 ED1<<<=one input back (before inserting)

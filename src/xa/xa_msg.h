@@ -144,6 +144,7 @@ enum ERR_codes {            //  sev
   ERR_unsupported,          //11 0                                    -88
   ERR_USER_ABORT,           //12 0                                    -87
   ERR_STRING_TOO_LONG,      //13 0                                    -86
+  ERR_DB_CSEG_EOM,          //14 0                                    -85
   ERR_STD      // first = standard-error (not specific to function)
 };
 

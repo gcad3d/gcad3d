@@ -69,6 +69,7 @@ MMsePcp=beri Koordinat kursor pada satah-pembinaan di pemilihan berikutnya
 MMsePop=beri titik parametrik kursor pada objek terpilih di pemilihan berikutnya
 MMseLoO=dapatkan garisan dari segmen poligon atau kontur pada pemilihan berikutnya
 MMselOid=add objects to group, hilite, (key objID)
+MMselTyp=select objects by type / name; add to group
 
 MMgrAdd=tambah obj ke dalam kumpulan; buang dari Kumpulan, jika sudah terpilih
 MMgrSav=simpan semua objek Kumpulan ke dalam Fail (tabii)
@@ -247,8 +248,8 @@ TRAnsform_obj__Tra_=alih atau putar objek
 REV__reverse__curve=songsangkan lekung
 Project_obj__Prj_=Unjur unsur ke dalam sebuah permukaan
 Parallel_obj__offset_=parallel object (offset-curve or surface)
-Mirror_about_line=Cermin: pantul objek merentasi garisan
-Mirror_about_plane=Cermin: pantul objek merentasi satah
+Mirror_over_line_plane=mirror obj over line or plane
+curvature_2_curves=modify 2 curves to fit curvature G1 or G2
 ISOparametric_Curve_from_Surf=ekstrak lekung dari permukaan (dari parameter(s)); [CX (merentasi; Lalai = along)]
 Surf_OPEration_cut_join___=cut or join surface using curve, plane or surface (boolean AND OR NOT)
 
@@ -292,6 +293,8 @@ Typ_goGeo6=Key Sudut (darjah); Sel Vec/LN dari arah; ButangSongsang
 Typ_goGeo7=Key Val(Sudut-Darjah); Sel PT
 Typ_goGeo8=Key Val; Sel PT
 Typ_goAxis=Sel LN / Cir / PLN / PT+PT / PT+LN / PT+VC (PgUp) / PT+PLN
+Typ_go_LCS=select line circle or curve
+Typ_go_LR=select line or plane
 Typ_goRadius=Key Jejari; Sel PT / Cir
 Typ_goGeoSUSU=Sel Conus Torus RuledSurf RevolvedSurf B-Spl-Surf
 Typ_go_RA=Sel Plane (R) or surface (A)
@@ -409,6 +412,7 @@ Lang_chg1=*** for full functionality (translation of info-tags) restart gcad3d
 
 ED1CW=input terakhir ikut jam
 ED1CCW=input terakhir lawan jam
+EDGRP1=last input reversed
 ED1MOD+=pilih varian-solusi berikutnya
 ED1MOD-=pilih varian-solusi terdahulu
 ED1<<<=satu input di belakang (sebelum menyisip)

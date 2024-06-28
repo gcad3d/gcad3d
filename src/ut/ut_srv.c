@@ -221,7 +221,7 @@ List_functions_end:
     // printf(" int2pt2vc-irc=%d %f %f\n",irc,parLnx,parCov);
   if(!irc) {
     *nxp = 1;
-    UT3D_vc_multvc (&vc1, &cvLnx.vcl, parLnx);
+    UT3D_vc_mult_d (&vc1, &cvLnx.vcl, parLnx);
     UT3D_pt_traptvc (&xpTab[0], &cvLnx.pt0, &vc1);
   }
 
@@ -234,7 +234,7 @@ List_functions_end:
                              &ptBa[1], &vc1);
       // printf(" int2pt2vc-irc=%d %f %f\n",irc,parLnx,parCov);
     if(!irc) {
-      UT3D_vc_multvc (&vc1, &cvLnx.vcl, parLnx);
+      UT3D_vc_mult_d (&vc1, &cvLnx.vcl, parLnx);
       UT3D_pt_traptvc (&xpTab[*nxp], &cvLnx.pt0, &vc1);
       *nxp += 1;
     }

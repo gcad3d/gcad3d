@@ -15,6 +15,20 @@ needs ut_geo.h
 #define     NC_UPLISTSIZ  100                // siz of NC_up_tab
 
 
+
+
+#define PrgMod_normal            0
+#define PrgMod_continue_if       1
+#define PrgMod_skip_until_label  2
+#define PrgMod_skip_until_macend 3
+#define PrgMod_skip_until_mac    4
+#define PrgMod_skip_until_line   5
+#define PrgMod_skip_until_file   6
+#define PrgMod_continue_file     7
+#define PrgMod_continue_mac      8
+
+
+
 // typedef struct {Point2 actPos; long lNr;
 //                 unsigned tlNr:16, rpd:1, unused:15;}                NC_recTyp;
 

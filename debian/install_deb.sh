@@ -124,17 +124,17 @@ chmod 0644 ${instDir}/usr/share/pixmaps/*
 /bin/cp -f ${gcad_dir_bas}/LICENSE          ${instDir}/usr/share/doc/gcad3d/copyright
 /bin/cp -f ${debDir}/changelog              ${instDir}/usr/share/doc/gcad3d/.
 /bin/cp -f ${gcad_dir_bas}/doc/gCAD3D_log.txt ${instDir}/usr/share/doc/gcad3d/NEWS
-/bin/cp -f ${gcad_dir_bas}/README           ${instDir}/usr/share/doc/gcad3d/README
+/bin/cp -f ${gcad_dir_bas}/README.md        ${instDir}/usr/share/doc/gcad3d/.
 
 gzip -f --best ${instDir}/usr/share/doc/gcad3d/changelog
 gzip -f --best ${instDir}/usr/share/doc/gcad3d/NEWS
-gzip -f --best ${instDir}/usr/share/doc/gcad3d/README
+gzip -f --best ${instDir}/usr/share/doc/gcad3d/README.md
 
 
 chmod 0644 ${instDir}/usr/share/doc/gcad3d/copyright
 chmod 0644 ${instDir}/usr/share/doc/gcad3d/changelog.gz
 chmod 0644 ${instDir}/usr/share/doc/gcad3d/NEWS.gz
-chmod 0644 ${instDir}/usr/share/doc/gcad3d/README.gz
+chmod 0644 ${instDir}/usr/share/doc/gcad3d/README.md.gz
 
 
 
@@ -149,6 +149,6 @@ chmod 0644 ${instDir}/usr/share/doc/gcad3d/README.gz
 
 chmod 0644 ${instDir}/usr/share/menu/gcad3d
 
-
+echo "- leaving install_deb.sh"
 
 # EOF

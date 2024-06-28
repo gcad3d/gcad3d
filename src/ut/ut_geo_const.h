@@ -36,6 +36,7 @@ touch ../ut/ut_geo2d.c && ./do c
 //================================================================
 #define _UT3D_VECTOR_NUL { 0., 0., 0. }
 
+#define _LN_NUL {{0.,0.,0.}, {1.,0.,0.}, 0}
 
 // CurvPoly
 #define _PLG_NUL  { 0, 0., 0., NULL, NULL,\
@@ -66,6 +67,9 @@ touch ../ut/ut_geo2d.c && ./do c
 
 // GridBox
 #define _GRIDBOX_NUL {{0.,0.,0.}, 0,0,0, 0.,0.,0.}
+
+// GridBox2
+#define _GRIDBOX2_NUL {{0.,0.,0.}, 0,0,0, 0.,0.,0.}
 
 // ColRGB
 #define _ColRGB_NUL { 100,100,100, 0,  0,  0,  0,  1}
@@ -102,7 +106,7 @@ touch ../ut/ut_geo2d.c && ./do c
                      (UINT_16)0, (UINT_16)0,\
                      0, 1, 1, 1,\
                      1, 0, 0, 0,\
-                     0};
+                     0, 0, 0, 0, 0};
 
 
 // Mat_4x3         // VX   VY   VZ   PO
@@ -137,6 +141,8 @@ extern const Vector2 UT2D_VECTOR_Y;
 
 extern const Vector2 UT2D_VECTOR_IX;
 extern const Vector2 UT2D_VECTOR_IY;
+
+extern const Line    UT3D_LN_NUL;
 
 extern const CurvPoly UT3D_PLG_NUL;
 extern const CurvCCV  UT3D_CCV_NUL;
@@ -197,6 +203,7 @@ const Mat_4x4 UT3D_MAT_4x4    = { {1.0, 0.0, 0.0, 0.0},
 
 
 
+const Line     UT3D_LN_NUL    = _LN_NUL;
 const CurvPoly UT3D_PLG_NUL   = _PLG_NUL;
 const CurvCCV  UT3D_CCV_NUL   = _CCV_NUL;
 const CurvPrcv UT3D_PRCV_NUL  = _PRCV_NUL;
@@ -204,7 +211,7 @@ const CurvBSpl UT3D_CVBSP_NUL = _CVBSP_NUL;
 const Plane    PLANE_NUL      = _PLANE_NUL;
 const GridBox  GRIDBOX_NUL    = _GRIDBOX_NUL;
 const IndTab   INDTAB_NUL     = _INDTAB_NUL;
-const IgaTab   IGATAB_NUL     = _IGATAB_NUL;
+// const IgaTab   IGATAB_NUL     = _IGATAB_NUL;
 const AText    AText_NUL      = _AText_NUL;
 const ObjTab   OBJTAB_NUL     = _OBJTAB_NUL;
 const ObjDB    OBJDB_NUL      = _OBJDB_NUL;

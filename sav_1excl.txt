@@ -12,6 +12,7 @@
 .nfs*
 core
 .git/
+tmp/
 doc/gcad/
 doc/gui/
 myGIS1/tmp/

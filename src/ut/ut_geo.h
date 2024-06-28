@@ -16,6 +16,7 @@ All curves: (Circ,CurvElli) add flag trimmed or closed;
 New curve "trimmed_curve": 2 points/parameters + Link unlimited_curve
   points/parameters via dbi-index; 0=invalid; neg=temp, pos=normal.
 
+Tess. Objects (Fac3 ..) see ../ut/ut_itmsh.h
 
 
 -------------------------------------------
@@ -150,6 +151,7 @@ typedef struct {unsigned b123:24, b4:8;}                            stru_c3c1;
 
 
 //....................... Math. Objects: ..................................
+typedef double Mat_2x2[2][2];            ///< Typ_M2x2
 typedef double Mat_3x2[2][3];            ///< Typ_M3x2
 typedef double Mat_3x3[3][3];            ///< Typ_M3x3
 typedef double Mat_4x3[3][4];            ///< Typ_M4x3 size 96
@@ -245,16 +247,17 @@ typedef struct {int ibeg, iNr; char typi, typd, aux, stat;}         IndTab;
 // size = 12
 
 
-/// \brief indexGroupArray  Typ_IgaTab;   _IGATAB_NUL
-//   - use for ranges;
-///  ibeg   begin-index; points to first object of index-list
-///  iNr    nr of objects in index-list
-///  iRef   UU 
-///  ind    -
-///  typ    typ of objects                 eg MSH_EDGLN_OB
-///  stat   -
-typedef struct {int ibeg, iNr, iRef; short ind; char typ, stat;}    IgaTab;
-// size = 16
+// // replaced with IndTab
+// /// \brief indexGroupArray  Typ_IgaTab;   _IGATAB_NUL
+// //   - use for ranges;
+// ///  ibeg   begin-index; points to first object of index-list
+// ///  iNr    nr of objects in index-list
+// ///  iRef   UU 
+// ///  ind    -
+// ///  typ    typ of objects                 eg MSH_EDGLN_OB
+// ///  stat   -
+// typedef struct {int ibeg, iNr, iRef; short ind; char typ, stat;}    IgaTab;
+// // size = 16
 
 
 
@@ -332,17 +335,17 @@ typedef struct {long dbi, dli, lnr; char *lPos; int iPar, typ, ll;} ObjSRC;
 typedef struct {short typ, form, ilen, ipar; int ioff;}             ObjTXTSRC;
 
 
-/// \brief atomicObjects Typ_ObjAto ATO_
-/// \code
-/// nr         nr of used records
-/// siz        nr of typ,val - records
-/// txsiz      size of txt (if(!txt))
-/// ilev       level; -1=primary level. NULL=unused
-/// txt        for strings; NULL for none (was APT_defTxt)
-/// spcTyp     type of memory;                                   See INF_MEM_TYP
-///
-/// see ../xa/xa_ato.h _OBJATO_NUL
-/// \endcode
+// \brief atomicObjects Typ_ObjAto ATO_
+// nr         nr of used records
+// siz        nr of typ,val - records
+// txsiz      size of txt (if(!txt))
+// typ        objType; 
+// val        DB-objs: dbi; Typ_cmdNCsub: Typ_Cmd1; Typ_Group: recNr; ..
+// ilev       level; -1=primary level. NULL=unused
+// txt        for strings; NULL for none (was APT_defTxt)
+// spcTyp     type of memory;                                   See INF_MEM_TYP
+//
+// see ../xa/xa_ato.h _OBJATO_NUL
 typedef struct {int nr, siz, txsiz; int *typ; double *val; short *ilev;
                 char *txt; char spcTyp, uu1, uu2, uu3;}             ObjAto;
 
@@ -434,7 +437,9 @@ typedef struct {Point p1, p2; char typ, aux, stat, uu1;}            Line;
 ///           3  both-sides-unlimited                             UNL
 // size 56; 4 char unused
 
+
 /// 3D-line, Typ_CVLN3
+// point + vector + vectorLength
 typedef struct {Point pt0; Vector vcl; double lnl;}                 CVLn3;
 
 
@@ -543,7 +548,7 @@ typedef struct {int ptNr; Point2 *pTab;}                            CurvPol2;
 //   size =
 
 
-/// \brief Curve: polygon, Typ_CVPOL INF_Typ_CVTRM
+/// \brief Curve: polygon, Typ_CVPOL INF_Typ_CVTRM  _PLG_NUL UT3D_PLG_NUL
 /// \code
 /// ptNr    ... number of control points
 /// v0      ... start parameter (len-offset; see INF_struct_par
@@ -687,7 +692,8 @@ typedef struct {long dbi; int mdli, ptNr, siz;
                 short typ; char spcTyp, stat;}                      CurvPrcv;
 
 
-/// \brief Trimmed curve      CurvCCV        Typ_CVTRM   _CCV_NUL
+// \brief Trimmed curve      CurvCCV        Typ_CVTRM   _CCV_NUL
+// INF_FMTB_Curve_CCV
 // typ        type baseCurv (L,C,S)
 // dbi        database index baseCurv (0=undef)
 // is0        segmentNr of start-parameter (for CurvCCV in CurvCCV only)
@@ -729,10 +735,8 @@ typedef struct {long dbi;
 
 
 /// \brief 3D-plane, Typ_PLN
-/// \code
 /// (pln.vz.dx * p.x) + (pln.vz.dy * p.y) + (pln.vz.dz * p.z) + pln.p = 0
 /// p      normal-distance of plane from 0,0,0
-/// \endcode
 typedef struct {Point po; Vector vx, vy, vz; double p;}             Plane;
 // size = 112
 /// bpi    backplane-index; BCKPLN_UNDEF|BCKPLN_FREE|BCKPLN_XY ..
@@ -740,16 +744,23 @@ typedef struct {Point po; Vector vx, vy, vz; double p;}             Plane;
 
 
 /// \brief Typ_Refsys
-/// \code
 /// mat1   from Plane; does eg 2D->3D
 /// mat2   inverted mat1; does eg 3D->2D
 /// bpi    backplane-index; BCKPLN_UNDEF|BCKPLN_FREE|BCKPLN_XY ..
 /// bpv    longest vector of plane
-/// bpd    distance from origint to backplane
-/// \endcode
+/// bpd    distance from origin to backplane
 typedef struct {Plane *pln; Mat_4x3 mat1, mat2; double bpd;
                 char bpi, bpv, uu3, uu4;}                           Refsys;
 // size = 216
+
+
+
+// \brief Typ_Refbox
+// pln    Plane
+// bpi    backplane-index; BCKPLN_UNDEF|BCKPLN_FREE|BCKPLN_XY ..
+typedef struct {Plane pln; double dx, dy, dz;
+                int UU; char bpi, bpv, uu3, uu4;}                   Refbox;
+// size = 144
 
 
 
@@ -761,36 +772,95 @@ typedef struct {Plane *pln; Mat_4x3 mat1, mat2; double bpd;
 typedef struct {long cvID; float off, dir; short cvTyp;}            SurHat;
 
 
-/// \brief RevolvedSurf Typ_SURRV
-/// \code
-/// indCen  DB-index Centerline
-/// typCen  typ of Centerline (Typ_LN)
-/// indCov  DB-index contour(-cover)element
-/// typCov  typ of contourelement (Typ_CI (circle for torus) or Typ_LN for cone)
-/// ang1    starting angle in rad (0 deg = startingpoint = contour at v0)
-/// ang2    ending angle in rad
-/// v0,v1   start/end-parameters of contour; for all types of contour 0-1
-/// dir     direction; 0=CCW, 1=CW.
-/// \endcode
+// // \brief Extrusion-surface    Typ_SUREXT
+// // indCv         DB-index curve
+// // indVc         DB-index vector
+// // typ           type of curve
+// // dir           direction, 0=fwd, 1=bwd, -1=undef
+// // clo           closed; 0=yes, 1=not_closed; -1=undefined; -2=degen;
+// typedef struct {long indCv, indVc;  short typCv;
+//                 char dir, clo;}                                     SurExt;
+
+
+// \brief Ruled-surface    Typ_SURRU
+// ind1,ind2     DB-index contourObj's
+// typ1,typ2     obj-types
+// dir1,dir2     direction, 0=fwd, 1=bwd, -1=undef
+// clo1,clo2     closed; 0=yes, 1=not_closed; -1=undefined; -2=degen;
+typedef struct {long ind1, ind2;  short typ1, typ2;
+                char dir1, dir2, clo1, clo2;}                       SurRul;
+// objTypes: obj1=curve; obj2=curve|point|vector
+
+
+// \brief   RevolvedSurf Typ_SURRV -old-Version
+// indCen    DB-index Centerline
+// typCen    typ of Centerline (Typ_LN)
+// indCov    DB-index contour(-cover)element
+// typCov    typ of contourelement (Typ_CI (circle for torus) or Typ_LN for cone)
+// typRev    TypRev_CYL,CON,SPH,TOR,BSP
+// ang1      starting angle in rad (0 = startingpoint = contour at v0)
+// ang2      ending angle in rad
+// v0,v1     start/end-parameters of contour; for all types of contour 0-1
+// dir       direction; 0=CCW, 1=CW.
+// clo1,clo2 closed; 0=yes, 1=not_closed; -1=undefined; -2=degen;
 typedef struct {double ang1, ang2, v0, v1;
                 long indCen, indCov;  short typCen, typCov;
-                unsigned dir:1;}                                    SurRev;
+                char dir, typRev, clo1, clo2;}                      SurRev;
 // the startPoint of the contourelement defines angle = 0 rad.
 
 
-/// \brief SweepSurf Typ_SURSWP
-/// \code
-/// indPath  DB-index path
-/// typPath  typ of path (Typ_LN ..)
-/// indCov   DB-index contour(-cover)element
-/// typCov   typ of contourelement (Typ_CI ..)
-/// u0,u1    start/end-parameters of path; for all types of contour 0-1
-/// v0,v1    start/end-parameters of contour; for all types of contour 0-1
-/// dir      direction; 0=CCW, 1=CW.
-/// \endcode
+// \brief   RevolvedSurf Typ_SURRV1 -newVersion 2023-09-27
+// plu       Plane origin at axis/defaultPt of curve;
+// indCv     DB-index contour(-cover)element
+// typCv     typ of contourelement (Typ_CI (circle for torus) or Typ_LN for cone)
+// typRev    TypRev_CYL,CON,SPH,TOR,BSP
+// ang1      starting angle in rad (0 = startingpoint = contour at v0)
+// ang2      ending angle in rad
+// v0,v1     start/end-parameters of contour; for all types of contour 0-1
+// dir       direction; 0=CCW, 1=CW.
+// clo1,clo2 closed; 0=yes, 1=not_closed; -1=undefined; -2=degen;
+typedef struct {Plane plu; double ang1, ang2, v0, v1;
+                long indCv;  short typCv, uu;
+                char dir, typRev, clo1, clo2;}                      Sur_Rev;
+// the defaultPt of the contourelement defines angle = 0 rad.
+
+
+
+// Spheric-surface Typ_SURSPH
+// plu       Plane origin ist the sph-centerPt; u=0,v=0 is at x-axis, dist rds
+// au1       start-angle in deg from plu.x-axis CCW, around plu.z;
+// au2       end-angle in deg from plu.x-axis CCW, around plu.z; min 0; max 180;
+// av1       start-angle in deg from plu.x-axis CCW, around plu.iy;
+// av2       end-angle in deg from plu.x-axis CCW, around plu.iy; min -180; max 180;
+// rds       radius sphere
+// clo1,clo2 closed; 0=yes, 1=not_closed; -1=undefined; -2=degen;
+typedef struct {Plane plu; double au1, au2, av1, av2, rds;
+                char clo1, clo2;}                                   SurSph;
+// plu-plane XY is U-parameter-plane; U=0 is on X-axis; CCW around DZ;
+// plu-plane XZ is V-parameter-plane; V=0 is on X-axis; CCW around DIY;
+
+
+
+// \brief SweepSurf Typ_SURSWP
+// indPath  DB-index path
+// typPath  typ of path (Typ_LN ..)
+// indCov   DB-index contour(-cover)element
+// typCov   typ of contourelement (Typ_CI ..)
+// u0,u1    start/end-parameters of path; for all types of contour 0-1
+// v0,v1    start/end-parameters of contour; for all types of contour 0-1
+// dir      direction; 0=CCW, 1=CW.
+// clo      closed; 0=yes, 1=not_closed; -1=undefined; -2=degen;
 typedef struct {double u0, u1, v0, v1;
                 long indPath, indCov;  short typPath, typCov;
-                unsigned dir:1;}                                    SurSwp;
+                char dir, clo;}                                     SurSwp;
+
+
+
+// \brief planar surface, Typ_SURPLN
+// rbx       Refbox = Plane + boxSize in x, y, z;
+// indCv     DB-index boundary
+typedef struct {Refbox rbx; long indCv;}                            SurPln;
+
 
 
 /// \brief StandardSurf (planar, conic, toroid)  Typ_SUR
@@ -824,7 +894,7 @@ typedef struct {int ptUNr, ptVNr; ObjGX *pTab;}                     SurStripe;
 typedef struct {int ptUNr, ptVNr, degU, degV;
                 double v0U, v1U, v0V, v1V, *kvTabU, *kvTabV;
                 Point *cpTab;}                                      SurBSpl;
-// size = 60
+// size = 72
 
 
 /// \brief Area: Rat.B-Spline-Surf   Typ_SURRBSP
@@ -841,14 +911,14 @@ typedef struct {int ptUNr, ptVNr, degU, degV;
 
 
 
-// \brief bounding-box 2D   Typ_BBox2
+// \brief bounding-box 2D   Typ_BBox2                             INF_BBOX
 // pb1     lower left boxPoint
 // pb2     upper right boxPoint
 typedef struct {Point2 pb1, pb2;}                                   BBox2;     
 // size = 32
 
 
-// \brief bounding-box 3D   Typ_BBox
+// \brief bounding-box 3D   Typ_BBox                             INF_BBOX
 // pb1     lower left boxPoint
 // pb2     upper right boxPoint
 typedef struct {Point pb1, pb2;}                                    BBox;   
@@ -1094,34 +1164,34 @@ typedef struct {long ind;
 // size = 12
 
 
-/// \brief DisplayListRecord  _DL_ATT_NUL 
-/// \code
-/// lNr    APTlineNr.
-/// typ    DB-Typ
-/// ind    DB-Index, typ = DB-Typ
-/// irs    index RefSys  (can be int; 
-/// modInd index baseModel of owning model
-/// iatt   for typ=LN/AC/Curve: LineTypNr.
-///        for typ=TAG/IMG: sx/sy
-///        for typ=Surf/Model: ColRGB
-///        in Parent-state DL-index of child
-/// disp, hili:
-///        normal = ((disp == 0)&&(hili == 1))
-///        hilite = ((disp == 1)&&(hili == 0))
-///        hidden = ((disp == 1)&&(hili == 1))
-/// pick   0=unpickable, 1=pickable
-/// dim    0=dimmed,     1=normal
-/// grp_1  0=belongs to active Group, 1=not
-/// unvis  0=visible; 1=obj does not have graph. representation
-/// sChd   0=independent; 1=Child-state is active; obj is child - has parent(s)
-/// sPar   0=independent; 1=Parent-state is active; obj is parent; has child(s)
-/// \endcode
+// \brief DisplayListRecord  _DL_ATT_NUL 
+// lNr    APTlineNr.
+// typ    DB-Typ
+// ind    DB-Index, typ = DB-Typ
+// irs    index RefSys  (can be int; 
+// modInd index baseModel of owning model
+// iatt   for typ=LN/AC/Curve: LineTypNr.
+//        for typ=TAG/IMG: sx/sy
+//        for typ=Surf/Model: ColRGB
+//        in Parent-state DL-index of child
+// disp, hili:
+//        normal = ((disp == 0)&&(hili == 1))
+//        hilite = ((disp == 1)&&(hili == 0))
+//        hidden = ((disp == 1)&&(hili == 1))
+// pick   0=unpickable, 1=pickable
+// dim    0=dimmed,     1=normal
+// grp_1  0=belongs to active Group, 1=not
+// unvis  0=visible; 1=obj does not have graph. representation
+// sChd   0=independent; 1=Child-state is active; obj is child - has parent(s)
+// sPar   0=independent; 1=Parent-state is active; obj is parent; has child(s)
+// sHid   0=normal; 1=hidden; set only after hiliting obj;
 typedef struct {long ind, lNr;
                 INT_32 irs; UINT_32 iatt;
                 short modInd, typ;
                 unsigned disp:1,  hili:1,  pick:1,  dim:1,
                          grp_1:1, unvis:1, sChd:1,  sPar:1,
-                         UU:24;}                                    DL_Att;
+                         sHid:1,  uu1:1,   uu2:1,   uu3:1,
+                         uuu:20;}                                    DL_Att;
 // size = 32
 
 
@@ -1143,143 +1213,29 @@ typedef struct {Mat_4x3 ma; Vector vz; double angr;}                TraRot;
 typedef struct {int typ; long ind; char *data;}                     Activity;
 
 
-/// \brief Typ_GridBox _GRIDBOX_NUL
-/// \code
-/// horizontal/vertical gridBox
-/// pMin          position of lower left startpoint (xMin, yMin, zMin)
-/// dx, dy, dz    size of a gridsection
-/// ix, iy, iz    nr of points in x-direction, y-direction, z-direction
-/// \endcode
+// \brief Typ_GridBox _GRIDBOX_NUL                                 INF_GridBox
+// horizontal/vertical gridBox
+// pMin          position of lower left startpoint (xMin, yMin, zMin)
+// dx, dy, dz    size of a gridsection
+// ix, iy, iz    nr of points in x-direction, y-direction, z-direction
 typedef struct {Point pMin; int ix, iy, iz; double dx, dy, dz;}     GridBox;
+// size = 64
+// see BBox
+
+
+// \brief Typ_GridBox2 _GRIDBOX2_NUL
+// horizontal/vertical gridBox
+// pMin          position of lower left startpoint (xMin, yMin)
+// dx, dy        size of a gridsection
+// ix, iy        nr of sections in x-direction, y-direction
+typedef struct {Point2 pMin; int ix, iy; double dx, dy;}            GridBox2;
+// size = 40
 // see BBox
 
 
 
-/*
-//....................... Tess. Objects: ..................................
-
-/// \code
-/// pTyp[pNr]: NULL=undefined;
-///            0=internal; 1=internal&crease;
-///            2=boundary; 3=boundary&crease
-/// \endcode
-typedef struct {Point *pTab; int pNr; char *pTyp;}                  Verts;
 
 
-/// \code
-/// ipt:  index points; 3 or 4
-/// inf:  index neighbor-faces; 3 or 4
-/// \endcode
-typedef struct {int *ipt; int *inf;}                                Face;
-
-
-/// \code
-/// ipt:  index points; 3 or 4
-/// inf:  index neighbor-faces; 3 or 4
-/// \endcode
-typedef struct {int i1, i2, i3;}                                    Fac3;
-
-
-/// \code
-/// fTyp = 3: Face/TriangMesh; fTab = *Face; Face->ipt = int[3];
-/// fTyp = 4: Face/QuadMesh;
-/// fTyp = 5: Fac3/tableOfTriangIndices; fTab = *int; iTab[fNr][3];
-/// fTyp = 6: optimized format
-/// \endcode
-typedef struct {void *fTab; int fNr; int fTyp;}                     Faces;
-
-
-/// \brief Face with NeigbourFaces
-/// \code
-/// ip1, ip2, ip3   index to points
-/// if1, if2, if3   index to NeigbourFaces. -1=outerBound; -2=unresolved; -3=new
-///                ip3
-///         if3   /  |
-///            /     | if2
-///         /        |
-///   ip1 ----------ip2
-///          if1
-/// \endcode
-typedef struct {int ip1, ip2, ip3, if1, if2, if3;}                  FacNf;
-
-
-/// ipt:  index points;
-typedef struct {int ipt[2];}                                        Edge;
-
-
-/// i1, i2 index to points
-typedef struct {int i1, i2;}                                        Edg3;
-
-
-/// \brief Typ_IntTab
-/// \code
-///  iNr    nr of objects in ia
-///  ia     Indexes into pointTable
-///  typ    MSH_EDGLN_BL   2 IntTab (BreakLine)
-///         MSH_EDGLN_IB   3 InnerBound
-///         MSH_EDGLN_OB   4 OuterBound
-///         MSHIG_EDGLN_AB   5 OuterBound - automatic created
-///         MSH_PATCH  6 faces (eg from GLU)
-///  aux    for MSH_PATCH: GL-typ; GL_TRIANGLE_STRIP|GL_TRIANGLE_FAN|..
-/// \endcode
-typedef struct {int *ia, iNr; char typ, aux, stat;}                 IntTab;
-
-
-/// \code
-/// eTyp[eNr]: NULL=undefined
-///            0=internalEdge       (Edge*)
-///            1=boundaryEdge       (Edge*)
-///            2=IntTab           (IntTab*)
-///            3=InnerBound         (IntTab*)
-///            4=OuterBound         (IntTab*)
-/// \endcode
-typedef struct {Edge *eTab; int eNr; char *eTyp;}                   Edges;
-
-
-/// \brief Typ_SURPMSH  2007-03-24 TB.
-/// \code
-/// f:    Faces; NULL=not yet created
-/// e:    Edges; NULL=not yet created
-/// mTyp: 0=open_mesh; 1=closed_mesh.
-/// \endcode
-typedef struct {Verts *p; Faces *f; Edges *e; int mTyp;}            Mesh;
-
-
-/// \brief Typ_EdgSur
-/// \code
-/// ipt       index endpoint of segment
-/// nbsid     neighbourSurfaceID
-/// \endcode
-typedef struct {int ipt, nbsid;}                                    SegBnd;
-
-
-// /// \brief Typ_EdgSur
-// /// \code
-// /// vxSt    index to startPoint
-// /// vxNr    nr of points following startPoint
-// /// surNb   surfaceIndex of neighbourSurface (surf-record in BODY)
-// /// see also IntTab
-// /// \endcode
-// typedef struct {int vxSt, vxNr, vxMax, surNb;}                      EdgSur;
-
-
-
-/// \brief Typ_SURBND
-/// \code
-/// suID    surface-ID (DB-index A)
-/// contNr  contour-nr; first1=1, ..
-/// typb    MSH_EDGLN_BL   2 IntTab (BreakLine)
-///         MSH_EDGLN_IB   3 InnerBound
-///         MSH_EDGLN_OB   4 OuterBound
-///         MSHIG_EDGLN_AB   5 OuterBound - automatic created
-///         MSH_PATCH  6 faces (eg from GLU)
-/// typt    Typ_SURCIR   (fan)
-///         Typ_SURSTRIP (strip)
-/// dir     0=undefined; 1=CCW; -1=CW
-/// \endcode
-typedef struct {int suID, contNr; char typb, typt, dir, stat;}      BndSur;
-//                                                                  ^
-*/
 
 
 
@@ -1380,6 +1336,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
  int    UT2D_angr_set (double *angr);
  int    UT2D_2angr_set (double *ang1, double *ang2, int irot);
  double UT2D_angr_2angr (double ang1, double ang2, int irot);
+ double UT2D_angr_2angr_rot (double ang1, double ang2, int irot);
  // double UT2D_angr_set_2angr (double as, double aa, int sr);
  int    UT2D_ptNr_ci  (double rdc, double ao, double tol);
 
@@ -1473,6 +1430,7 @@ extern const Mat_4x4 UT3D_MAT_4x4;
                            Point2 *p1,Point2 *p2,Point2 *p3,double tol);
  int    UT2D_pt_ck_inLine (Point2 *p1, Point2 *p2, Point2 *p3, double tol);
  int    UT2D_pt_ck_inplg (Point2 * pTab, int pNr, Point2 *ptx, int iClo);
+ int    UT3D_pt_ck_inPln (Point *pt1, Plane *pln1, double tol);
  int    UT2D_pt_ck_linear (int np, Point2 *ptab, double tol);
  int    UT2D_pt_ck_inBox (Point2 *p1, Point2 *p2, Point2 *p);
  int    UT2D_pt_ck_inBoxTol (Point2 *p1, Point2 *p2, Point2 *p, double tol);
@@ -1769,10 +1727,13 @@ int    UT3D_ptvc_int2pln (Point *pti, Vector *vci,
                   Point *pl1pt, Vector *pl1vz, Point *pl2pt, Vector *pl2vz);
 int    UT3D_ptvc_ox (Point *pta, Vector *vca, ObjGX *oxi);
 
-// double UT3D_acos_2vc (Vector*,Vector*);
+double UT3D_acos_2vc (Vector*,Vector*);
 
+double UT3D_angr_2pt_ax_sr (Point *pt1, Point *pt2, CVLn3 *ax, int sr);
 double UT3D_angr_3pt (Point *p1, Point *pc, Point *p2);
 double UT3D_angr_2vc__ (Vector*,Vector*);
+double UT3D_angr_2pt_ax_sr (Point *pt1, Point *pt2, CVLn3 *lvz, int sr);
+double UT3D_angr_vcx_pt_lvz_sr (Vector *vcx, Point *pt1, CVLn3 *lvz, int sr);
 double UT3D_angr_3vc__ (Vector *vz, Vector *v1, Vector *v2);
 double UT3D_angr_3vcn_CCW (Vector *vz, Vector *v1, Vector *v2);
 double UT3D_angr_ci_par1 (Circ *ci1, double par1);
@@ -1788,7 +1749,7 @@ int    UT3D_vc_ckperp_2vc1 (Vector *vc1, Vector *vc2, double tol);
 int    UT3D_vc_ck_std (Vector *vc1);
 int    UT3D_parvc_2vcbp (double *dl, int mainPln, Vector *v1, Vector *v2);
 int    UT3D_2parvc_3vcbp (double*,double*,int,Vector*,Vector*,Vector*);
-// int    UT3D_vc_multvc (Vector *vo, Vector *vi, double d);
+// int    UT3D_vc_mult_d (Vector *vo, Vector *vi, double d);
 // void   UT3D_vc_3db (Vector *, double, double, double);
 // void   UT3D_vc_pt (Vector *, Point *);
 void   UT3D_vc_txt (Vector *vc, char *txt);
@@ -1946,7 +1907,7 @@ int    UT3D_pta_plg (int *ptNr, Point *pta, CurvPoly *plg);
 
 int UT2D_box_ini0 (Point2 *pt1, Point2 *pt2);
 int UT2D_box_extend (Point2 *pb1, Point2 *pb2, Point2 *pt1);
-int UT2D_rect_pts (Point2 *pmin, Point2 *pmax, int nump, Point2 *ptab);
+int UT2D_box_pts (Point2 *pmin, Point2 *pmax, int nump, Point2 *ptab);
 int UT2D_ckBoxinBox1 (Point2 *p1, Point2 *p2, Point2 *p3, Point2 *p4);
 int UT2D_ckBoxinBox2 (Point2 *p1, Point2 *p2,Point2 *p3, Point2 *p4, double tol);
 int UT2D_pt_ck_inBox (Point2 *p1, Point2 *p2, Point2 *p);
@@ -2014,6 +1975,7 @@ double UT3D_sru_ck_planar (ObjGX *ru1);
 
 #define UT3D_vc_crossprod2vc      UT3D_vc_perp2vc
 #define UT2D_acos_innerprod2vc    UT2D_acos_2vc
+
 
 
 //----------------------------------------------------------------
@@ -2106,45 +2068,41 @@ int UT2D_sr_ci (Circ2 *cii);
 
 
 //----------------------------------------------------------------
-/// UT2D_lenq_vc         quadr.length of 2D-vector
+// UT2D_lenq_vc         quadr.length of 2D-vector
 #define UT2D_lenq_vc(vc) ((vc)->dx*(vc)->dx + (vc)->dy*(vc)->dy)
 
-/// UT2D_len_vc          length of 2D-vector
+// UT2D_len_vc          length of 2D-vector
 #define UT2D_len_vc(vc) (sqrt((vc)->dx*(vc)->dx + (vc)->dy*(vc)->dy))
 
-/// UT2D_lenS_2pt             dx+dy-distance point-point
+// UT2D_lenS_2pt             dx+dy-distance point-point
 #define UT2D_lenS_2pt(p1,p2) (fabs((p2)->x - (p1)->x) + fabs((p2)->y - (p1)->y))
 
-/// UT2D_lenS_vc              dx+dy-distance 2D-vector
+// UT2D_lenS_vc              dx+dy-distance 2D-vector
 #define UT2D_lenS_vc(vc1) (fabs((vc1)->dx) + fabs((vc1)->dy))
 
-/// UT2D_lenq_2pt        quadr. distance pt - pt
+// UT2D_lenq_2pt        quadr. distance pt - pt
 #define UT2D_lenq_2pt(lq,p1,p2){\
   double _dx = (p2)->x - (p1)->x;\
   double _dy = (p2)->y - (p1)->y;\
   *(lq) = _dx * _dx + _dy * _dy;}
 
-/// \brief UT2D_comp2pt              compare 2 points
-/// \code
-/// RC = 0: points not identical; distance > tolerance
-/// RC = 1: points are identical; distance < tolerance
-/// \endcode
+// \brief UT2D_comp2pt              compare 2 points
+// RC = 0: points not identical; distance > tolerance
+// RC = 1: points are identical; distance < tolerance
 #define UT2D_comp2pt(p1,p2,tol)\
   ((fabs((p2)->x - (p1)->x) < tol) &&\
    (fabs((p2)->y - (p1)->y) < tol))
 
-/// \brief UT2D_swap2pt                  swap 2 2D-points
-/// \code
-/// see also MEM_swap_
-/// \endcode
+// \brief UT2D_swap2pt                  swap 2 2D-points
+// see also MEM_swap_
 #define UT2D_swap2pt(p1,p2){\
   Point2 p3 = *(p1); *(p1) = *(p2); *(p2) = p3;}
 
-/// UT2D_pt_2db              2D-Point < 2 doubles (x, y)
+// UT2D_pt_2db              2D-Point < 2 doubles (x, y)
 #define UT2D_pt_2db(pt2,dx,dy){\
   (pt2)->x = dx; (pt2)->y = dy;}
 
-/// UT2D_pt_pt3               2D-Point = 3D-Point (cut off z-coord)
+// UT2D_pt_pt3               2D-Point = 3D-Point (cut off z-coord)
 #define UT2D_pt_pt3(pt3)\
   (*(Point2*)pt3)
 
@@ -2334,8 +2292,8 @@ void UT2D_vc_div_d (Vector2*, Vector2*, double);
  (vo)->dx = (vi)->dx / (d);\
  (vo)->dy = (vi)->dy / (d);}
 
-/// UT2D_vc_multvc                vo = vi * d                 MULT
-#define UT2D_vc_multvc(vo,vi,d){\
+/// UT2D_vc_mult_d                vo = vi * d                 MULT
+#define UT2D_vc_mult_d(vo,vi,d){\
  (vo)->dx = (vi)->dx * (d);\
  (vo)->dy = (vi)->dy * (d);}
 
@@ -2346,6 +2304,12 @@ void UT2D_vc_div_d (Vector2*, Vector2*, double);
 /// UT2D_vc_rot_90_cw             vector = perpendic. to vector ( + 90 degrees)
 #define UT2D_vc_rot_90_cw(vo,vi)\
  {double _dx = -(vi)->dx; (vo)->dx = (vi)->dy; (vo)->dy = _dx;}
+
+// UT2D_len_vc_est     get estimated length of 2D-vector
+void UT2D_len_vc_est (double*, Vector2*);
+#define UT2D_len_vc_est(vl,v2e) {\
+ double _dx = fabs((v2e)->dx); double _dy = fabs((v2e)->dy);\
+ *(vl) = (_dx > _dy) ? _dx : _dy;}
 
 
 /// UT2D_vcPerpAppr_vc_len create vector with fixed length normal to vector
@@ -2379,19 +2343,12 @@ void UT2D_vcPerpAppr_vc_len (Vector2 *vco, Vector2 *vci, double *len);
 /// UT2D_vc_2pt               2D-Vector = 2D-Point -> 2D-Point
 #define UT2D_vc_2pt(vc,p1,p2){\
  (vc)->dx = (p2)->x - (p1)->x;\
- (vc)->dy = (p2)->y - (p1)->y;;}
+ (vc)->dy = (p2)->y - (p1)->y;}
 
 /// UT2D_vc_ln               2D-Vector from 2D-Line
 #define UT2D_vc_ln(vc,ln){\
  (vc)->dx = (ln)->p2.x - (ln)->p1.x;\
  (vc)->dy = (ln)->p2.y - (ln)->p1.y;}
-
-
-/// UT2D_vc_tra_vc3_m3        transf. 3D-vector => 2D-Vector (with 4x3-matrix
-void UT2D_vc_tra_vc3_m3 (Vector2*, Mat_4x3, Vector*);
-#define UT2D_vc_tra_vc3_m3(vco,mat,vci)\
-  UT2D_pt_tra_pt3_m3((Point2*)vco,mat,(Point*)vci)
-
 
 
 //----------------------------------------------------------------
@@ -2447,9 +2404,11 @@ int UT3D_sr_ci (Circ *cii);
 #define UT3D_lenq_vc(vc)\
  ((vc)->dx*(vc)->dx + (vc)->dy*(vc)->dy + (vc)->dz*(vc)->dz)
 
+
 /// UT3D_len_vc          length of 3D-vector
 #define UT3D_len_vc(vc)\
  (sqrt((vc)->dx*(vc)->dx + (vc)->dy*(vc)->dy + (vc)->dz*(vc)->dz))
+
 
 /// \brief UT3D_skp_2vc         scalarprod of 2 vecs (dotprod,Skalarprod)
 /// \code
@@ -2466,6 +2425,7 @@ int UT3D_sr_ci (Circ *cii);
 ///    <---rc--->
 /// \endcode
 // skp mit sich selbst = Laenge * Laenge
+double UT3D_skp_2vc (Vector*, Vector*);
 #define UT3D_skp_2vc(v1,v2)\
  ((v1)->dx*(v2)->dx + (v1)->dy*(v2)->dy + (v1)->dz*(v2)->dz)
 
@@ -2480,18 +2440,24 @@ int UT3D_sr_ci (Circ *cii);
 
 
 //----------------------------------------------------------------
+// UT3D_pt_ck_inPln              test if point is in plane
+// returns   1=YES-in-plane; 0=pt-not-in-plane; -1=Error-
+#define UT3D_pt_ck_inPln(pt1,pln1,tol) ((fabs(\
+ (((pln1)->vz.dx*(pt1)->x+(pln1)->vz.dy*(pt1)->y+(pln1)->vz.dz*(pt1)->z))-(pln1)->p)\
+ < tol) ? 1 : 0)
+
+  
 /// UT3D_pt_NEW              create empty point (UT3D_pt_isFree) 
 #define UT3D_pt_NEW {UT_VAL_MAX, 0., 0.}
     
 /// UT3D_pt_setFree          set point not valid (not initialized)
 #define UT3D_pt_setFree(obj) (obj)->x = UT_VAL_MAX
 
-/// \code
-/// UT3D_pt_isFree           check if pt is empty (UT3D_pt_setFree UT3D_pt_NEW)
-/// 0 = point is valid )(pt->x != FLT_32_MAX)
-/// 1 = point is free (NEW, not set).
-/// \endcode
+// UT3D_pt_isFree           check if pt is empty (UT3D_pt_setFree UT3D_pt_NEW)
+// 0 = point is valid )(pt->x != FLT_32_MAX)
+// 1 = point is free (NEW, not set).
 #define UT3D_pt_isFree(obj) ((obj)->x == UT_VAL_MAX)
+
 
 /// UT3D_pt_pt2               3D-Point = 2D-Point + Z-Val 0.
 #define UT3D_pt_pt2_0(pt3,pt2){\
@@ -2630,7 +2596,19 @@ int UT3D_sr_ci (Circ *cii);
  (po)->z = a1 * (p1)->z + a2 * (p2)->z;}
 
 
+// UT3D_pt_void_set               set point void
+void UT3D_pt_void_set (Point*);
+#define UT3D_pt_void_set(pt) (pt)->x = NAN
 
+
+// UT3D_pt_void_ck         test if point is void
+// - returns   1=YES-point-is-void: 0=point-is-valid
+int UT3D_pt_void_ck (Point*);
+#define UT3D_pt_void_ck(pt) isnan((pt)->x)
+
+
+
+//----------------------------------------------------------------
 /// \brief UT3D_vc_isFree     check if vector is valid
 /// \code
 /// returns 0 if vector is valid (not free)
@@ -2690,11 +2668,20 @@ void   UT3D_vc_ln (Vector*, Line*);
   (vio)->dy = -(vii)->dy;\
   (vio)->dz = -(vii)->dz;}
 
+
 /// UT3D_vc_addvc                vo += vi
 #define UT3D_vc_addvc(vo,vi){\
  (vo)->dx += (vi)->dx;\
  (vo)->dy += (vi)->dy;\
  (vo)->dz += (vi)->dz;}
+
+/// UT3D_vc3f_add2vc                vo += vi
+void UT3D_vc3f_addvc (Vec3f*, Vec3f*);
+#define UT3D_vc3f_addvc(vo,vi){\
+ (vo)->dx += (vi)->dx;\
+ (vo)->dy += (vi)->dy;\
+ (vo)->dz += (vi)->dz;}
+
 
 /// UT3D_vc_add2vc                v3 = v1 + v2                ADD
 #define UT3D_vc_add2vc(v3,v1,v2){\
@@ -2727,9 +2714,9 @@ void   UT3D_vc_div_d (Vector*, Vector*, double);
  (vo)->dy = (vi)->dy / (d);\
  (vo)->dz = (vi)->dz / (d);}
 
-/// UT3D_vc_multvc                vo = vi * d                 MULT
-void   UT3D_vc_multvc (Vector*, Vector*, double);
-#define UT3D_vc_multvc(vo,vi,d){\
+/// UT3D_vc_mult_d                vo = vi * d                 MULT
+void   UT3D_vc_mult_d (Vector*, Vector*, double);
+#define UT3D_vc_mult_d(vo,vi,d){\
  (vo)->dx = (vi)->dx * (d);\
  (vo)->dy = (vi)->dy * (d);\
  (vo)->dz = (vi)->dz * (d);}
@@ -2792,19 +2779,22 @@ int    UT3D_ck2D_equ_2pt (Point*, Point*, double);
 
 /// UT3D_ln_ptpt                Line = Point, Point
 #define UT3D_ln_ptpt(ln1,pt1,pt2)\
- {(ln1)->p1 = *(pt1);\
+ {(*ln1) = UT3D_LN_NUL;\
+  (ln1)->p1 = *(pt1);\
   (ln1)->p2 = *(pt2);}
 
 /// UT3D_ln_ptvc                Line = Point, Vector
 #define UT3D_ln_ptvc(ln,pt,vc)\
- {(ln)->p1 = *(pt);\
+ {(*ln) = UT3D_LN_NUL;\
+  (ln)->p1 = *(pt);\
   (ln)->p2.x = (pt)->x + (vc)->dx;\
   (ln)->p2.y = (pt)->y + (vc)->dy;\
   (ln)->p2.z = (pt)->z + (vc)->dz;}
 
 /// UT3D_ln_ln2                 3D-Line from 2D-Line (Z=0)
 #define UT3D_ln_ln2(ln3,ln2)\
- {(ln3)->p1.x = (ln2)->p1.x;\
+ {(*ln3) = UT3D_LN_NUL;\
+  (ln3)->p1.x = (ln2)->p1.x;\
   (ln3)->p1.y = (ln2)->p1.y;\
   (ln3)->p1.z = UT_DB_NULL;\
   (ln3)->p2.x = (ln2)->p2.x;\
@@ -2817,6 +2807,14 @@ double UT3D_park__par1_clot (double cs, double ce, double par1);
 #define UT3D_park__par1_clot UTP_vx_vMin_vMax_par1
 
 
+
+//----------------------------------------------------------------
+// get backplane from (normalized) vector 
+int UT3D_BP_VCN (double dx, double dy, double dz);
+#define UT3D_BP_VCN(dx,dy,dz)\
+ (fabs((dx) - 1.) < UT_TOL_min1 ? BCKPLN_YZ :\
+ (fabs((dy) - 1.) < UT_TOL_min1 ? BCKPLN_XZ :\
+ (fabs((dz) - 1.) < UT_TOL_min1 ? BCKPLN_XY : BCKPLN_FREE)))
 
 
 //----------------------------------------------------------------
@@ -2864,8 +2862,12 @@ void ODB_set_odb (ObjDB *odb, int oTyp, long oDbi);
 /// check if typ is a DB-object (); returns 0=no; 1=yes.
 #define TYP_IS_DBO(typ) ((typ>Typ_Error)&&(typ<Typ_Val))
 
-/// check if typ is a curve; returns 0=no; 1=yes.
-/// curve is > Typ_CV but < Typ_PLN; not LN,CI
+// check if typ is linear-figure; returns 0=no; 1=yes.
+// returns 1 for LN,CI,curve; else 0;    curve=plg,elli,bspl,clot
+#define TYP_IS_LFIG(typ) ((typ>=Typ_LN)&&(typ<Typ_PLN))
+
+// check if typ is a curve; returns 0=no; 1=yes.
+// returns 1 for curve; 0 for LN,CI, ..
 #define TYP_IS_CV(typ) ((typ>=Typ_CV)&&(typ<Typ_PLN))
 
 // check if typ is a surface; returns 0=no; 1=yes.

@@ -3116,7 +3116,7 @@ static UtxTab_NEW (dxfr_blockTab);   // list of names of used blocks
   
   UT2D_vc_perp2pt (&vcm, p2, p1);
 
-  UT2D_vc_multvc (&vcm, &vcm, ds / dd);      // UT2D_vc_setLength
+  UT2D_vc_mult_d (&vcm, &vcm, ds / dd);      // UT2D_vc_setLength
 
   UT2D_pt_traptvc (&ci1->pc, &pm, &vcm);
 

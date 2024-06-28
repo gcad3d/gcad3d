@@ -8,8 +8,7 @@ Installed-Size: 4506
 Maintainer: Franz Reiter <support@gcad3d.org>
 Homepage: https://www.gcad3d.org
 Origin: https:/github.com/gcad3d
-Source: https:/github.com/gcad3d
-License: GPL-3
+Source: https:/github.com/gcad3d/gcad3d
 Description: 3D CAD-CAM Application
   with
     * import and export-programs (Step, Iges, VRML, DXF, SVG ..),

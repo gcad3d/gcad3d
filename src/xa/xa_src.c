@@ -347,6 +347,11 @@ extern Mat_4x3   WC_sur_imat;           // inverse TrMat of ActiveConstrPlane
     sprintf(so, "R(%s)",actBuf);
 
   //----------------------------------------------------------------
+  } else if(typ == Typ_CV) {
+    if(s1[0] == 'S') goto L_cpy_txt;
+    sprintf(so, "S(%s)",actBuf);
+
+  //----------------------------------------------------------------
   } else if(typ == Typ_SUR) {
     if(s1[0] == 'A') goto L_cpy_txt;
 

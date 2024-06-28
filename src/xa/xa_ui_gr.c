@@ -410,9 +410,14 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   
       // get size of mainWindow and store in AP_winSiz
       GUI_Win_siz_get (NULL, &i1, &i2);
-        // printf(" _GL_draw__-new-siz %d %d\n",i1,i2);
       sprintf(AP_winSiz,"-%d,-%d", i1, i2);
+
+      // get new positon of window
+      GUI_Winpos_get (&i1, &i2);
+      sprintf(AP_winPos,"%d,%d", i1, i2);
+
         // printf(" AP_winSiz = |%s|\n",AP_winSiz);
+        // printf(" AP_winPos = |%s|\n",AP_winPos);
       // must do redraw ..
       return 0;
     }
@@ -448,7 +453,9 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
   // TYP_EventDraw | TYP_EventMap
   L_draw:
   // GDK_EXPOSE = TYP_EventDraw = redraw-after-covered
+  if(AP_stat.sysStat > 3) goto L_redraw;     // 3 = all up; redraw
   if(AP_stat.sysStat < 2) return 0;
+
 
   //----------------------------------------------------------------
   if(AP_stat.sysStat < 3) {
@@ -460,7 +467,8 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
       AP_mdl_init (0);
 
       // work startup-parameters
-      imods = AP_init__ ();
+      // imods = AP_init__ ();
+      imods = AP_startup_params (0);
     }
 
     AP_tmr_init ();
@@ -468,6 +476,32 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     // NC_setRefsys (0L);  2020-10-28
     AP_stat.sysStat = 3;
 
+
+    //----------------------------------------------------------------
+    L_start_8:
+
+    // Title oben auf den Mainwinrahmen
+    UI_AP (UI_FuncSet, UID_Main_title, NULL);
+
+    UNDO_set_bt (2);         // update (dim) do/undo-buttons
+
+  }
+
+
+  //================================================================
+  if(AP_stat.sysStat < 4) {
+    AP_startup_params (1);   // load model, set VWR|CAD|MAN
+    if(AP_stat.mdl_stat < 2) MDL_load_new__ ();
+    AP_stat.sysStat = 4;
+    if(AP_stat.db_cseg_eom) {
+      // ERR_DB_CSEG_EOM has been, already fixed; but must redraw;   2024-06-19
+      ED_work_END (1);  // error DB_allocCDAT
+      AP_stat.db_cseg_eom = 0;
+    }
+  }
+
+
+/*
     //----------------------------------------------------------------
     // load model 
     if(!AP_mod_fnam[0]) {
@@ -505,23 +539,22 @@ static  char   namTab[SELTABSIZ + 1][SELTABLEN];
     }
 
   }
-
+*/
 
   
   //================================================================
   // DL_Redraw (); (sysStat >= 3)
-
-  // if(UI_InpMode == UI_MODE_MAN) GUI_edi_Focus (&winED);
-
-  GUI_gl_block (&winMain, 1); // block mousemoves, keystrokes, selections
-  GLB_DrawInit ();    // GUI_gl_set_active (1, mo);
-  GL_Redraw ();
-  GLB_DrawExit ();    // GUI_gl_set_active (0, mo);
-  GUI_gl_block (&winMain, 0);   // unblock keystrokes & grafic_selections
+  L_redraw:
+    // if(UI_InpMode == UI_MODE_MAN) GUI_edi_Focus (&winED);
+    GUI_gl_block (&winMain, 1); // block mousemoves, keystrokes, selections
+    GLB_DrawInit ();    // GUI_gl_set_active (1, mo);
+    GL_Redraw ();
+    GLB_DrawExit ();    // GUI_gl_set_active (0, mo);
+    GUI_gl_block (&winMain, 0);   // unblock keystrokes & grafic_selections
 
   
-  // necessary for focus on editor after redraw
-  if(UI_InpMode == UI_MODE_MAN) GUI_edi_Focus (&winED);
+    // necessary for focus on editor after redraw
+    if(UI_InpMode == UI_MODE_MAN) GUI_edi_Focus (&winED);
 
 
 // 

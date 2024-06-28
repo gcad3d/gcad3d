@@ -649,7 +649,7 @@ static  CurvElli          el1;
     if(d1 >  (coi->h + UT_TOL_pt))  return -2;
 
     // CirCen liegt auf ConeAchse in Hoehe d1
-    UT3D_vc_multvc (&vc1, &coi->pl.vz, d1);   // vz hat Laenge 1 !
+    UT3D_vc_mult_d (&vc1, &coi->pl.vz, d1);   // vz hat Laenge 1 !
     UT3D_pt_traptvc (&pt1, &coi->pl.po, &vc1);
       // GR_tDyn_symB__ (&pt1, SYM_STAR_S, 2);
     
@@ -684,7 +684,7 @@ static  CurvElli          el1;
 
 
     UT3D_vc_2pt (&vc1, &pt1, &pli->po);
-    UT3D_vc_multvc (&vc1, &vc1, d2);
+    UT3D_vc_mult_d (&vc1, &vc1, d2);
     UT3D_pt_traptvc (&pt3, &pt1, &vc1);
       // GR_tDyn_symB__ (&pt3, SYM_STAR_S, 4);
 

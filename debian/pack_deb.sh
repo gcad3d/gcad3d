@@ -45,7 +45,7 @@ echo "instDir = " ${instDir}
 
 
 # copy package -> ${outDir}
-outDir=${gcad_dir_bas}packages
+outDir=${gcad_dir_bas}../gcad_packages
 echo "outDir = " ${outDir}
 
 
@@ -76,6 +76,7 @@ chmod 0755 ${instDir}/DEBIAN/p*
 
 #------------------------------------------------------
 # copy all application-files
+echo "copy APP-files -> ${instDir}"
 ${debDir}/install_deb.sh ${instDir}
 
 
@@ -100,6 +101,7 @@ chmod 0755 ${instDir}/usr/share/doc
 cd ${instDir}
 
 cd ..
+echo "- now in " `pwd`
  
 rm -f debian.deb
 

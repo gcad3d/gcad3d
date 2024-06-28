@@ -491,6 +491,12 @@ extern char IE_buf[];
 //=====================================================================
 // simple editor for creating concatenated curves (CCV's)
 // using IE_edWin1  (like IE_ed1__ IE_ed2__ IE_ccv__)
+// Input:
+//   GUI_DATA_L1  UI_Func*
+//   winTyp       0 "CCV-Edit"    with REV, MOD
+//                1 "Group-Edit"  with REV, without MOD (grp curves for loft-surface)
+// Output:
+//   IE_buf, &IE_bufSiz
 
 static  MemObj   win0, bREV, lmnr, cb_poc;
   MemObj   box0, box1;
@@ -498,17 +504,17 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
   char     s1[32];
 
 
-  i1 = GUI_DATA_L1;
+  i1 = GUI_DATA_L1;  // UI_Func
 
 
-  // printf("IE_ccv__ %d\n",i1);
+  printf("IE_ccv__ winTyp=%d UI_Func=%d\n",winTyp,i1);
 
 
   switch (i1) {
 
 
     //---------------------------------------------------------
-    case UI_FuncInit:
+    case UI_FuncInit:         // UI_FuncInit 90
 
       // printf(" Ind=%d TypR=%d\n",IE_inpInd,IE_inpTypR[IE_inpInd]);
       // printf(" IE_buf=%ld |%s|\n",IE_bufSiz,IE_buf);
@@ -536,11 +542,12 @@ static  MemObj   win0, bREV, lmnr, cb_poc;
                             IE_ccv__, &GUI_FuncUCB4, "a,a");
 
 
-      if(!winTyp) {
+//       if(!winTyp) {
         bREV=GUI_button__(&box1, "REV", IE_ccv_mod, (void*)"REV", "a,a");
-          MSG_Tip ("ED1CW");
+        if(winTyp == 0)  MSG_Tip ("ED1CW");
+        else             MSG_Tip ("EDGRP1");
         // GUI_set_enable (&bCCW, 0); //1=activ, 0=inaktiv
-      }
+//       }
 
 
       GUI_sep__ (&box1, 1, 0);

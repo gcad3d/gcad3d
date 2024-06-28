@@ -498,6 +498,7 @@ static FILE     *uo = NULL;
   CurvRBSpl  *cvrbs;
   CurvPsp3   *cvpsp;
   CurvCCV    *cvccv;
+  SurRul     *sru;
   SurBSpl    *sbs;
   SurRBSpl   *srbs;
   SurStripe  *sus;
@@ -530,7 +531,7 @@ static FILE     *uo = NULL;
   ColRGB   *col;
   ObjSRC   *os1;
   IndTab   *it1;
-  IgaTab   *ig1;
+  IntTab   *in1;
   ObjDB    *odb1;
   ObjGX    *ox, *o2, *o3, oo1;
   ModelBas* DB_get_ModBas    ();
@@ -1187,9 +1188,13 @@ static FILE     *uo = NULL;
 
   //----------------------------------------------------------------
   } else if(typ == Typ_SURRU) {
-    srv = data;
+    sru = data;
     sprintf(cps,"RuledSurface %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_SUR);
+    sprintf(cps,"SRU typ1=%d ind1=%ld dir=%d",sru->typ1,sru->ind1,sru->dir1);
+      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
+    sprintf(cps,"SRU typ2=%d ind2=%ld dir=%d",sru->typ2,sru->ind2,sru->dir2);
+      UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
 
@@ -1469,7 +1474,6 @@ static FILE     *uo = NULL;
       UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
-
   //----------------------------------------------------------------
   } else if(typ == Typ_IndTab) {
     it1 = data;
@@ -1480,16 +1484,14 @@ static FILE     *uo = NULL;
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
 
 
-
   //----------------------------------------------------------------
-  } else if(typ == Typ_IgaTab) {
-    ig1 = data;
-    sprintf(cps,"IgaTab %s",txt);
+  } else if(typ == Typ_IntTab) {
+    in1 = data;
+    sprintf(cps,"IntTab %s",txt);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-    sprintf(cps," (IgaTab) ibeg=%d inr=%d iRef=%d ind=%d typ=%d stat=%d",
-            ig1->ibeg,ig1->iNr,ig1->iRef,ig1->ind,ig1->typ,ig1->stat);
+    sprintf(cps," (IntTab) iNr=%d typ=%d aux=%d stat=%d",
+            in1->iNr,in1->typ,in1->aux,in1->stat);
     UT3D_dump_add (sTab, cbuf, ipar, ICO_data);
-
 
 
   //----------------------------------------------------------------
@@ -2446,7 +2448,6 @@ static int iLev;
   return 0;
 
 }
-*/
 
 
 
@@ -2474,6 +2475,7 @@ static int iLev;
   return 0;
 
 }
+*/
 
 
 //=======================================================================

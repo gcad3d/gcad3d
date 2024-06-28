@@ -1,37 +1,63 @@
-# #    as first char defines commentlines ..
-# :    startlabel, start of block; eg ":L1:"; next label = end-of-block
-# ::   starts remote-command
-# :::  starts callBack
 # see ../APP/Demo_tstf_1.c   ../UIX/Demo_tstf_1.mak
-# see ../APP/app_ctrlf.c
+# #             as first char defines commentline - is skipped
+# ##            as first char defines commentline - is displayed
+# :funcx:       startlabel, start of block; blockname ist "funcx";
+#               end of block is start of next block - eg ":Block_2:"
+# ::            starts remote-command; eg ":: WAIT_ESC" or ":: CLEAR"
+# ::: fnc par   starts callBack with parameters; see "::: myFunc1" below
+# ::: :funcx:   starts subProgram, returns to calling program; see "::: :SM1:" below;
 
 
+
+#-------------------------------------------------------------
 :L1:
+# unload active model; do not save
 :: clear
-:: LOAD(Data/test_sur_pln4.gcad)
-#:: WAIT_ESC
+# load model
+:: LOAD(Data/sample_Ziegel1.bmp)
+# wait for Esc-key from user
 :: WAIT_ESC
 #:: MODE(BAR1,off)
+# print message
 :: PRI("Test L1")
-::: test_disp__(A20)
-::: test_hide_last ()
-#:: ADD(P20=100 100 0)
-#:: ADD(C20=P20 100)
-
+# add cad-objects
 P20=100 100 0
 C20=P20 60
-DUMP C20               # direct command or remote-control-command:
+# dump cad-objects
 :: DUMP (C20)
+# call editor; wait until closed ..
 :: system (pluma /tmp/t1)
 
 
+#-------------------------------------------------------------
 :L2:
 :: PRI("Test L2")             
 # dump symbolic-directories into console
 :: DUMP("SD")
 # add textstring, unvisible; can only be read with DB_get_Text
 N20="das ist ein Test"
+# call func myFunc1 with 3 parameters;
+::: myFunc1 abc def 123
 
-::: myFunc1 abc def
 
+#-------------------------------------------------------------
+:Demo_subProg:
+:: clear
+# process block ":SM1:", then return
+::: :SM1:
+# zoom all
+:: ZOOMALL
+# wait for Esc-key from user
+:: WAIT_ESC
+# add object
+L20=P(0 0 0) P(C20 0.25)
+
+
+#-------------------------------------------------------------
+:SM1:
+C20=P(0 0 0) 20
+
+
+
+#-------------------------------------------------------------
 :EOF:

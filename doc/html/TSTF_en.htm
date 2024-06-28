@@ -16,13 +16,15 @@
 <h2>Testtool TSTF</h2>
 
 
+- can be used by plugin
 - can process codes and commands read in from a file
 - can execute remote-commands (eg load model ..)
 - can add and process cad-codes
 - can stop / continue program (WAIT_ESC)
-- cam dump data (DUMP (<cad-obj>))
+- can dump data (DUMP (<cad-obj>))
 - can call system-programs (edit (input-)file ..)
 - provides callback for private testfunctions (TSTF_cb())
+- can process subroutines
 
 
 Test_it:
@@ -37,6 +39,42 @@ See demoprogram (plugin Demo_tstf_1 - ../APP/Demo_tstf_1.c).
 See inputfile ../APP/Demo_tstf_1.dat for this plugin.
 
 See <a href="RemoteControl_en.htm">RemoteControl</a>
+
+
+
+<HR><!-- ============================================================ -->
+
+:LOFTU2_1:                  # startlabel; start of block "LOFTU2_1";
+                            # next label = end-of-block;
+
+
+
+#-------------------------------------------------------------------------------
+# remote-commands - see ../../doc/html/RemoteControl_en.htm
+#-------------------------------------------------------------------------------
+::CLEAR                     # clear complete dataspace; no check for save-model;
+::MODSIZ(<modelsize>)       # set modelsize (tolerances)
+::SHOW (S-5,OFF)            # hide curve -5
+::WAIT_ESC                  # wait for Esc-key from user
+::ZOOMALL
+::system (pluma /tmp/t1)    # call editor; wait until closed ..
+::DUMP (C20)                # dump cad-object eg C20
+::LOAD(Data/Haus1.gcad)     # load model
+
+
+
+#-------------------------------------------------------------------------------
+# callBack-commands
+#-------------------------------------------------------------------------------
+
+
+::: :SM1:                   # call subfunction, return into calling block
+
+:::<command> <parameters>   # see example in ../APP/Demo_tstf_1.c
+                            #  - datafile is ../APP/Demo_tstf_1.dat
+
+
+
 
 
 

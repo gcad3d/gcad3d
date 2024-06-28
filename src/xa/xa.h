@@ -50,6 +50,7 @@ extern char AP_printer[80];       // Printer
 extern char AP_editor[80];        // TextEditor
 extern char AP_lang[4];           // en or de
 extern char AP_winSiz[64];        // size of application-window "-1000,-690"
+extern char AP_winPos[64];        // position of application-window "0,0"
 
 extern int  APP_act_typ;          // type of APP_act_nam: 0=none;
                                   // 1=applic. 2=process 3=plugin 4=remote;

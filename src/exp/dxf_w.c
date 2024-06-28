@@ -1789,7 +1789,7 @@ usw.
   // subModelName; for mockup-models: remove filetype for INSERT
   if(mTyp >= Mtyp_DXF) {
     strcpy(s1, mbo->mnam);
-    UTX_ftyp_cut (s1);
+    // UTX_ftyp_cut (s1);    2024-06-19
     UTX_safeName (s1, 2);
   }
 

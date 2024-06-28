@@ -207,6 +207,7 @@ cl -c /I ..\include xa_ed.c
 #include "../xa/xa_undo.h"
 #include "../xa/xa_app.h"         // PRC_IS_ACTIVE
 #include "../xa/xa.h"             // AP_modact_nam
+#include "../xa/xa_msg.h"              // MSG_* ERR_*
 
 
 
@@ -252,6 +253,8 @@ extern int       APT_stat_act;    // 0 = normal; 2 = search for jump-Label;
 extern int       APT_lNr;    // die momentane APT-LineNr
 extern int       UP_level;
 extern int       APT_dispPL;
+extern char      APT_label[64];
+
 
 // ex ../gr/tess_su.c:
 extern int TSU_mode;   // 0=display normal; 1=store objects for export;
@@ -2945,6 +2948,57 @@ static int  actLev=0;
 
 
 //================================================================
+  int ED_search () {
+//================================================================
+// ED_search                    search label/macro is active
+// AP_mode__    = AP_mode_END     = "RUN" - skip until label ..
+// APT_stat_act = PrgMod_skip_until_label
+// APT_label    = where to stop (without leading ":"
+//
+// retCode  0=OK; -1=Esc_by_user; -2=not_found;
+
+  int      is1, lNr;
+  char     *cbuf;
+
+  cbuf = mem_cbuf1;
+
+
+  printf("ED_search |%s|\n",APT_label);
+
+
+  // check for Esc-key ....
+  // es sollte eine Gelegenheit zum Unterbrechen einer Loop gegeben werden
+  //is1 = GetAsyncKeyState (VK_ESCAPE);         // 0=normal <= = pressed.
+  is1 = UI_askEscape();
+  if(is1 < 0) {
+        // OS_Wait (50);  // 500
+        // is1 = UI_askEscape();
+    MSG_pri_0 ("XAesc");
+    return -1;
+  }
+
+
+  L_nxt:
+    lNr = ED_Read_Line (cbuf);
+    if(lNr < 0) { WC_EOF (); return -2; }
+    if(cbuf[0] != ':') goto L_nxt;
+    if(strcmp(&cbuf[1], APT_label)) goto L_nxt;
+
+
+  ED_skip_end ();    // AP_mode__ = AP_mode_old;
+  APT_stat_act = 0;
+
+  ED_lnr_act = lNr;
+
+    printf("ex-ED_search ED_lnr_act=%d\n",ED_lnr_act);
+
+
+  return 0;
+
+}
+
+
+//================================================================
   int ED_Run ()  {
 //================================================================
 // work lines from ED_lnr_von until ED_lnr_bis
@@ -3188,11 +3242,10 @@ static int  actLev=0;
       // printf(" ED_Run_1_rc=%d istat=%d\n",rc,istat);
 
 
-    if(istat == 2) {
-      AP_errStat_reset (1);  // reset Error   2011-08-16
-      AP_Init2 (1);           // clear DB & DL
-      // DB_Init (0);        // clear gesamten DB_CDAT    2009-06-20
-      goto L_start_RUN;      // realloc-alles no amoi
+    if(istat == ERR_DB_CSEG_EOM) {   // 2024-06-19
+        AP_errStat_reset (1);  // reset Error   2011-08-16
+        AP_Init2 (1);           // clear DB & DL
+        goto L_start_RUN;      // realloc-alles no amoi
     }
 
 
@@ -3220,6 +3273,15 @@ static int  actLev=0;
       // printf("ED_Run-act_mode=%d,lNr=%d,ED_lnr_bis=%d\n",act_mode,lNr,ED_lnr_bis);
 
 
+    // search label APT_label
+    if(APT_stat_act == PrgMod_skip_until_label) {
+      rc = ED_search ();
+      if(rc < 0) return -1;
+      goto L_decode;
+    }
+
+
+    //----------------------------------------------------------------
     if(act_mode == AP_mode_END) {                              // "RUN"
       // automatic-run; no display of symbols;
 
@@ -3435,15 +3497,16 @@ static int  actLev=0;
 
 
 //================================================================
-  int ED_addRange (MemTab(IgaTab) *rTab, char *lBuf) {
+  int ED_addRange (MemTab(IndTab) *rTab, char *lBuf) {
 //================================================================
-// decode ObjRanges and add them to MemTab(IgaTab)
+// decode ObjRanges and add them to MemTab(IndTab)
 // Input:
 //   lBuf      eg "P10-20 P50 V1-20 V33 L1"
 
   int    iTyp;
-  long   lInd, lNr;
+  long   lInd, lNr, l1;
   char   *cp1, cDel, *cEnd;
+  IndTab or1 = _INDTAB_NUL;
 
 
   // printf("ED_addRange |%s|\n",lBuf);
@@ -3485,7 +3548,12 @@ static int  actLev=0;
 
 
   // add range to PRG_internTab
-  UTO_addRange (rTab, iTyp, lInd, lNr);
+  // UTO_addRange (rTab, iTyp, lInd, lNr);
+  or1.typi = iTyp;
+  or1.ibeg = lInd;
+  or1.iNr  = lNr - 1;     // Anzahl - 1 !!!!!!!
+  MemTab_sav (rTab, &l1, &or1, 1);
+
 
   // proceed with next word ..
   goto L_nxtExpr;

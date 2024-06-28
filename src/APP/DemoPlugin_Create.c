@@ -949,7 +949,7 @@ char myMemspc[50000];
   for(i1=0; i1<5; ++i1) {
     pt1.x += 2.;
     GR_tDyn_vc__ (&vc1, &pt1, ATT_COL_BLUE, 1);  // true length
-    UT3D_vc_multvc (&vc2, &UT3D_VECTOR_Y, i1+1); // pt1.x);
+    UT3D_vc_mult_d (&vc2, &UT3D_VECTOR_Y, i1+1); // pt1.x);
     GR_tDyn_vc__ (&vc2, &pt1, ATT_COL_RED, 1);  // true length
   }
 

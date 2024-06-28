@@ -3064,8 +3064,8 @@ static char  mStat[1024];
   } else if(TSU_ftyp == Mtyp_OBJ) {         // OBJ
     if(APT_MR_IND > 0) {                                                   
 // 2023-07-17  TODO - comlete rewrite as plugin.
-      TX_Print("***** SUBMODELS NOT EXPORTED (TESS cannot (yet) export subModels)");
-      // irc = -1;
+      // TX_Print("***** SUBMODELS NOT EXPORTED (TESS cannot (yet) export subModels)");
+      MDL_lst_unexp ();  // list unexported submodels
     }
 
     if(TSU_errStat > 0) {

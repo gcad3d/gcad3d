@@ -5971,8 +5971,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
   el1.pc = UT3D_PT_NUL;
 
   el1.vz = UT3D_VECTOR_Z;
-  UT3D_vc_multvc (&el1.va, &UT3D_VECTOR_X, el2c->a);
-  UT3D_vc_multvc (&el1.vb, &UT3D_VECTOR_Y, el2c->b);
+  UT3D_vc_mult_d (&el1.va, &UT3D_VECTOR_X, el2c->a);
+  UT3D_vc_mult_d (&el1.vb, &UT3D_VECTOR_Y, el2c->b);
 
   el1.ango = el2c->ango;
   el1.srot = el2c->srot;

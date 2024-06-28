@@ -1564,8 +1564,8 @@ static IE_rec_txt cad_lst__[]={
   "REV (reverse) curve",    "REV",    // 5
   "Project obj (Prj)",      "PRJ",    // 6
   "Parallel obj (offset)",  "PARL",   // 7
-  "Mirror about line",      "MIR",    // 8
-  "Mirror about plane",     "MIR",    // 9
+  "Mirror over line,plane", "MIR",    // 8
+  "curvature 2 curves",     "TNG",    // 9
   "ISOparametric Curve from Surf", "ISO",   // 10
   "Surf-OPEration cut,join,..",    "FOPE",  // 11
   "",""};
@@ -1616,10 +1616,12 @@ static IE_rec_stru IE_cad__[]={
    // 7, Typ_mod2,      "[rounded]",
   // "Mirror obj        ",   "MIR",
    8, Typ_goGeom,    "obj to mirror",
-   8, Typ_LN,        "mirrorline",
-  // "Mirror about plane",   "MIR",
-   9, Typ_goGeom,    "obj to mirror",
-   9, Typ_PLN,       "mirrorplane",
+   8, Typ_go_LR,     "line/plane",
+  // "curvature 2 curves",     "TNG",
+   9, Typ_CV,        "curve 1",
+   9, Typ_CV,        "curve 2",
+   9, Typ_Val,       "ang dev tng|0||MIN-90|MAX90",
+   9, Typ_mod1,      "1=G1, 2=G2|1||MIN1|MAX2",
   // "ISOparametric Curve from Surf", "ISO",
   10, Typ_goGeom,    "Surface",
   10, Typ_goGeo8,    "Parameter/Point",
@@ -11252,7 +11254,7 @@ PROBLEM: do not (eg edit line p-p) change p1 to "0" if p2 is empty
 
   // i1 = -115; //-120; // hsiz text
   // i2 = -UI_fontsizY * 3;
-  strcpy(opts, "16,e");
+  strcpy(opts, "24,e");             // 16 -> 24; 2024-06-18
 
 
   //......... OptionMenueblock 1 .................................

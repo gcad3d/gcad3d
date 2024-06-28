@@ -3172,8 +3172,8 @@ extern char AP_modact_nam[128];   // name of the active submodel; def="" (main)
   rda = fabs(ci1->rad);
     // printf(" rda=%f\n",rda);
 
-  UT3D_vc_multvc (&vx, &vx, rda);
-  UT3D_vc_multvc (&vy, &vy, rda);
+  UT3D_vc_mult_d (&vx, &vx, rda);
+  UT3D_vc_mult_d (&vy, &vy, rda);
     // DEB_dump_obj__ (Typ_VC, &vx, "-vx");
     // DEB_dump_obj__ (Typ_VC, &vy, "-vy");
 

@@ -657,7 +657,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
 
 
   // up-along TL_vcz
-  UT3D_vc_multvc (&vcz, &TL_vcz, TL_length);
+  UT3D_vc_mult_d (&vcz, &TL_vcz, TL_length);
     // DEB_dump_obj__ (Typ_VC, &vcz, " E_disp_ln_sid-vcz ");
 
   pta[0] = *pt2;
@@ -734,7 +734,7 @@ static MemObj  PRCE_tb__ = GUI_OBJ_NEW;   // Toolbar
   // DEB_dump_obj__ (Typ_CI, &actCir, " PRCE_disp_circ_sid ");
 
   ci1 = &actCir;
-  UT3D_vc_multvc (&vcz, &TL_vcz, TL_length);
+  UT3D_vc_mult_d (&vcz, &TL_vcz, TL_length);
 
   oxTab[0].typ  = Typ_CI;
   oxTab[0].form = Typ_CI;

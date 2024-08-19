@@ -1,0 +1,92 @@
+
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+  <TITLE></TITLE>
+  <meta name="description" content="gCAD3D-Plugin-Spezifikation">
+  <meta name="keywords" content="plugin CAD 3D">
+  <meta name="date" content="2024-08-14">
+  <style>body{font: 10pt Verdana,sans-serif;}</style>
+</HEAD>
+<BODY LANG="en-US">
+<PRE>
+
+________________________________________________________________________
+
+
+
+  <a href="#P_4">Create new plugin</a>
+  <a href="./dev_inf_en.htm">Development - documentation</a>
+  <a href="./dev_tools_en.htm">Development - tools</a>
+  <a href="../SW_layout_en.txt">SW_layout - directories</a>
+
+
+
+
+_______________________________________________________________________
+<p><a name="P_4"></a></p>
+<h2>Create new plug-in</h2>
+
+ Plugins are load modules, compiled (Language C or other).
+ Plugins can use all internal functions.
+ Plugins can be unloaded at run time, recompiled and then reloaded.
+
+ Activating plugins: "Plugin/Select-Start"  (or Ctrl-P).
+
+
+Goto development-directory ~/devel/gcad3d/src/UIX/
+A source program ({progname}.c) and a Link job ({progname}.mak) are required
+
+Examples: Demo*.mak, ../APP/Demo*.c
+
+
+With "Options/compile_DLLs" on, a plugin is unloaded at runtime,
+ recompiled, relinked and reloaded.
+
+
+
+Examples:
+see:
+../UIX/Demosimple.mak             // minimum example plugin
+../UIX/DemoPlugin_Create.mak      // create objects
+../UIX/DemoPlugin_Hili.c          // hilite 
+../UIX/DemoPlugin_Resolv.mak
+../UIX/DemoPlugin_Mousemove.mak
+../UIX/DemoPlugin_Dialog.mak
+../UIX/Demo_gui_plate.mak
+
+
+
+Create new plugin:
+
+cd ~/devel/gcad3d/src/UIX
+
+cp ../APP/Demo_toolbar1.c ../APP/myTest1.c
+
+cp Demo_toolbar1.mak myTest1.mak
+
+# change "Demo_toolbar1" in myTest1.c and in myTest1.mak into "myTest1"
+
+# for the first time the plugin must be built manually:
+. ./devbase.sh && make -f myTest1.mak
+
+# start gcad with "Options/compile_DLLs" on
+./do comp
+
+# select "Plugin / select plugin .. / myTest1"
+
+# keep gcad running; exit plugin;
+# change code (../APP/myTest1.c), save code;
+# in active gcad restart plugin with "Ctrl+P" - makes automatic recompile and start ..
+
+<!--
+See also:
+- <a href="../dev_inf_en.txt">using the development-documentation</a>
+- <a href="../dev_doc_en.txt">installation / customization of the development-tools</a>
+-->
+
+____________________________________________________________________________
+ Send bug reports, suggestions for improvements to support@gcad3d.org
+</PRE>
+</BODY>
+</HTML>

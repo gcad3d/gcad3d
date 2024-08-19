@@ -13,85 +13,14 @@ ________________________________________________________________________
 
 
   <a href="../install_en.txt">Install gCAD3D</a>
-  <a href="../build_en.txt">Build gCAD3D</a>
   <a href="../SW_layout_en.txt">SW_layout - directories</a>
-  <a href="#P_3">Development - documentation</a>
-  <a href="#P_4">Create new plugin</a>
+  <a href="./dev_inf_en.htm">Development - documentation</a>
+  <a href="./Plugin_en.htm">Create new plugin</a>
   <a href="../Todo_en.txt">Todo</a>
   <a href="../known_bugs_en.txt">Known_bugs</a>
 
 
 
-_______________________________________________________________________
-<p><a name="P_3"></a></p>
-<h2>Development - documentation:</h2>
-
-
-Development - documentation is located in ~/devel/gcad3d/src/inf/*
-and can be accessed with a editor.
-The editor should be capable of using tagfiles.
-
-After rebuild (if all tagfiles exist in ../tags) access functions and info with eg:
-vim -t INF
-vim -t DLL_dyn__
-
-
-
-
-_______________________________________________________________________
-<p><a name="P_4"></a></p>
-<h2>Create new plug-in</h2>
-
-Plugins are load modules, compiled (Language C or other).
-Plugins can use all internal functions.
-Plugins do not have specific commands (like processors).
-Plugins can be unloaded, recompiled and reloaded at run time.
-Activate a plugin: "Plugin/Select-Start" (or Ctrl-P).
-
-
-
-Goto development-directory ~/devel/gcad3d/src/UIX/
-A source program ({progname}.c) and a Link job ({progname}.mak) are required
-
-Examples: Demo*.mak, ../APP/Demo*.c
-
-
-With "Options/compile_DLLs" on, a plugin is unloaded at runtime,
- recompiled, relinked and reloaded.
- 
-
-
-Example:
-
-cd ~/devel/gcad3d/src/UIX              
-
-cp ../APP/Demo_toolbar1.c ../APP/myTest1.c
-
-cp Demo_toolbar1.mak myTest1.mak
-
-# change "Demo_toolbar1" in myTest1.c and in myTest1.mak into "myTest1"
-
-# for the first time the plugin must be built manually:
-. ./devbase.sh && make -f myTest1.mak
-
-# start gcad with "Options/compile_DLLs" on
-./do comp
-
-# select "Plugin / select plugin .. / myTest1"
-
-# keep gcad running; exit plugin; change code, save code;
-# restart plugin with "Ctrl+P" makes automatic recompile and start ..
-
-
-
-<!--
-See also:
-- <a href="../dev_inf_en.txt">using the development-documentation</a>
-- <a href="../dev_doc_en.txt">installation / customization of the development-tools</a>
--->
-
-
-________________________________________________________________________
  Send bug reports, suggestions for improvements to support@gcad3d.org
 
 </PRE>

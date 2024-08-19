@@ -20,13 +20,17 @@
 <a name="F1">USING-DEVELOPMENT-DOCUMENTATION</A>
 =====================================================================
 
+- Development - documentation is located in ~/devel/gcad3d/src/inf/*
 - Development-documentation can be shown by accessing tags
+- The editor should be capable of using tagfiles.
 - all tags start with INF_
 - primary tag is "INF"
-- access primary tag with:  "vi -t INF" (in directory ${DIR_DEV}gcad3d/src/APP/)
+- access primary tag with:  "vi -t INF" (in directory ${DIR_DEV}gcad3d/src/UIX/)
 - access info object-types with:  "vi -t INF_obj_types"
 - access tag in vi-editor: key Ctrl-r jumps to tag under cursor; Ctrl-o returns.
+- aceess tag direct - eg: vim -t INF   or vim -t DLL_dyn__
 - acess direct: vi ../inf/infotext.c
+
 
 
 
@@ -46,8 +50,9 @@ see also:
 <a name="F2">UPDATE-DEVELOPMENT-DOCUMENTATION</A>
 =====================================================================
 
+- in directory ${DIR_DEV}gcad3d/src/UIX/
 - the development-documentation consists of textfiles (../inf/*.c)
-- create new documentation-file eg with "vi ../tags/<fnam>.c"
+- create new documentation-file eg with "vi ../inf/<fnam>.c"
 - each reBuild of gcad ("./do c") also recompiles all new / modified info-files 
 
 

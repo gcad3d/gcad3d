@@ -5,7 +5,8 @@ DLLNAM = plugins/DemoPlugin_Create
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../APP/DemoPlugin_Create.c
+	../APP/DemoPlugin_Create.c\
+  ../APP/UPDATE.c
 
 DIRSRC1 := ../APP/
 

@@ -49,6 +49,7 @@ Old doku:
 void INF(){                   /*! \code
                     development-dokumentation gcad3d
 -----------------------------------------------------------------------------------
+INF_intro           primary informations
 INF_CORE__          messagewindow import-export plugin app-script remote-control
                     process-control Group AP_STAT
 INF_GUI__           user-interaction, menus,     ckitgui ..
@@ -97,6 +98,30 @@ INF_tstf__          Testttool to execute commands in file
 
 INF_TODO__          TODO_* BUG_*
 
+
+
+================================================================== \endcode */}
+void INF_intro (){        /*! \code
+
+- the primary data-source of gcad-models is a ascii-text with lines like:
+
+# comment line (first char '#')
+P20=P(10 0 0)
+
+- definition of permanent obj "P20" -
+- "P20" is the ObjID (oid); 'P' the object-type (Typ_PT), 20 the dataBaseIndex (dbi).
+- "P(10 0 0)" is a dynamic point-definition  (x,y,z - coordinates).
+
+Find all permanet and visible objects (of the active (sub)model) in the displayList;
+- Dump/DisplayList (in gcad-top-menu) prints displayList in console;
+- dli ist the displayList-index,
+- the list keeps the typ, dbi, hidden-state, parent/child-state, ..
+
+
+- see also INF_plugins        create add-on-programs
+- see INF_DEV_C__             
+- see INF_obj_types           definitions of gcad-structs
+  - ../ut/ut_geo.h            definitions of gcad-structs
 
 
 ================================================================== \endcode */}
@@ -624,10 +649,14 @@ INF_binaryObjects   get binObj from other objects
 
 ================================================================== \endcode */}
 void INF_SRC__ (){        /*! \code
+see also INF_OID__
 
 source-code, ascii-string; eg "P20=100,0,0"
+
 Functions:
-APED
+AP_obj_2_txt        change obj to text and save it with UTF_add1_line
+AP_src_.
+AP_SRC_.
 
 
 ================================================================== \endcode */}
@@ -638,6 +667,7 @@ source-object-ID     eg "P22",
 Functions:
 *_oid*
 APED_oid_dbo__    make name (oid) from typ and DB-Index
+                  - get objID (eg "S20") from typ (Typ_CV) and dbi (20)
 APED_dbo_oid      get type and dbi from object-ID
 
 
@@ -663,6 +693,7 @@ ATO_ato_srcLn__
 ================================================================== \endcode */}
 void INF_obj_types (){        /*! \code
 every struct has a corresponding typ (interger)
+- struct-definitin see ../ut/ut_geo.h
 
 eg the type of struct Point is Typ_PT
    the type of struct int   is Typ_Int4
@@ -675,7 +706,7 @@ short
 name     funcGrp      struct    form          descr                    files,funcs
 -----------------------------------------------------------------------------------
                     double    Typ_VAR       numer. variable
-                    Vector    Typ_VC
+                    Vector    Typ_VC                                 INF_Typ_VC
 pt     UT3D_        Point     Typ_PT        point                    INF_Typ_PT
 ln                  Line      Typ_LN
                     Circ      Typ_CI        circle                   INF_Typ_CI
@@ -949,6 +980,11 @@ Files:
 ../ut/ut_cvApp.c	               Change polygon -> circles, lines 
 
 
+================================================================== \endcode */}
+void INF_Typ_VC (){        /*! \code
+
+- predefined vectors: UT3D_VECTOR_X  .. (see ../ut/ut_geo_const.h)
+
 
 ================================================================== \endcode */}
 void INF_Typ_CI (){        /*! \code
@@ -980,12 +1016,21 @@ Files:
 void INF_Typ_CVPOL (){        /*! \code
 INF_FMTB_Curve_Polygon
 
+struct CurvPoly has -
+ - a pointer to table of points (cpTab) and -
+ - a pointer to table of segmentLength (lvTab);
+
+- UT3D_plg_pta  - cpTab and lvTab are stored in Memspc;
+- DB_StoreCvPlg - cpTab and lvTab are copied into DB;
+
+
 Functions:
 UT3D_plg_pta          create PolygonCurve from n-points
 
 
 Files:
 ../ut/ut_plg.c
+
 
 ================================================================== \endcode */}
 void INF_Typ_CVBSP (){        /*! \code
@@ -2434,6 +2479,10 @@ SRCU_tmr_CB__
 
 GUI_timer__
 
+// TODO:
+//  during long operations (open/save/workLine) stop/continue remote-control-timer
+
+
 ================================================================== \endcode */}
 void INF_DBF (){        /*! \code
 File-based DB; Save and retrieve key-value-Records
@@ -2501,10 +2550,8 @@ vim                 /usr/bin/vim
 cscope              /usr/bin/cscope, source-file admin program
   ./ed              sh-script; starts cscope
 
-../../doc/html/Plugin_en.htm#P_cust
+../../doc/html/dev_doc_en.htm
 
-
-../../doc/dev_doc_en.txt
 
 
 ================================================================== \endcode */}
@@ -2528,8 +2575,6 @@ DEB_exit                  exit prog; disp func and lineNr
 
 DEB_STAT                  int in ../ut/ut_deb.h; 0=skip-debug-writes; 1=write
 
-DEB_std_file              redirect stdout -> file or console
-
 
 -------------- auxFuncs:
 UI_wait_time                   wait <msTim> millisecs or stop with Esc
@@ -2552,12 +2597,6 @@ ERR_raise                      exit plugin immediate
   // in function printing testdata use:
   if(!DEB_STAT) return 0;
 
-
-
--------------- using DEB_std_file:
-DEB_std_file ("/tmp/t1");      direct all printf-text into file /tmp/t1
-printf(..);
-DEB_std_file (NULL);           close file /tmp/t1, direct all printf-text to console
 
 
 -------------- stop:
@@ -2587,7 +2626,8 @@ DEB_dump_pTab
 -------------- debugging-output:
 // Write into file <tempDir>/debug.dat (not active if -DDEB is not ON):
 DEB_prt_init (1);           // open debugfile
-  printd (...);             // print into debugfile /tmp/
+  DEB_prt_print (...);             // print into debugfile /tmp/
+  // printd (...);             // print into debugfile /tmp/
 DEB_prt_init (0);           // close debugfile
 
 

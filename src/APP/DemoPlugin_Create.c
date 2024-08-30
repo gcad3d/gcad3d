@@ -16,6 +16,9 @@
 -----------------------------------------------------
 Example create objects.
 DemoPlugin_Create.mak ../APP/DemoPlugin_Create.c ../APP/UPDATE.c
+- provides some few examples for creating objects / states in plugin.
+- to find more eg create obj with CAD-mode; check code in MAN; use code in plugin.
+- see also ../gr/ut_gr.c - display-functions
 
 See also:
 ../UIX/Demosimple.mak             // minimum example plugin
@@ -33,6 +36,7 @@ TODO:
 
 -----------------------------------------------------
 Modifications:
+2024-08-30  new functions in ../APP/UPDATE.c added.
 2024-08-19  new functions in ../APP/UPDATE.c added.
 
 -----------------------------------------------------
@@ -44,20 +48,38 @@ Modifications:
 =====================================================
 List_functions_start:
 
-cre_perm_obj              permanent objects from binary-obj
 cre_perm_src              permanent objects from sourceCode
+cre_perm_obj              permanent objects from binary-obj
 cre_perm_src_surpln       planare surf; trimmed / perforated
-cre_perm_src_img_tag      image, tag with text;
+cre_perm_src_note         create 2D-text, 2D-text-tag, 3D-grafic-text, image;
+obj_perm_hide__           hide / redisplay obj permanent
+obj_perm_hide_temp        hide / redisplay perm. obj temporary
+obj_perm_state            perm. change of state ..
+
+obj_perm_attrib_lno       define or set attribute for linear objs (line circ curve)
+obj_perm_attrib_sur       set attributes for surfaces
+
 cre_tDyn_obj              disp. dynamic obj from binary-obj
 cre_tDyn_sym              temporary-dynamic objects (test objects) - symbols
 cre_tDyn_txt              temporary-dynamic text;  (test objects)
-cre_temp_1                temporary objects
+cre_tDyn_mdr              temporary-dynamic modelRefs;
+cre_temp_mdr              temporary modelRefs;
 
-obj_hide__                hide / redisplay obj
+cre_temp_crv              temporary curves
+cre_temp_1                temporary object
+cre_temp_note             temp. 2D-text, 2D-text-tag, 3D-grafic-text, image;
+obj_temp_attrib_lno       linear-attributes for temp-, tDyn-objects
+obj_temp_state            temp. change of state ..
+
 obj_del__                 remove obj
+set_perm_viewport         get / set viewport permanent
+set_temp_viewport         get / set viewport temporary
 
-cre_sav_obj               store DB-obj from source
-SUR_ox_surTP              make ObjGX for trimmed-perforated-surf
+cre_viewBoxPts            create viewBox (lower left Pt & upper right Pt)
+cre_sav_obj               store DB-obj from source - add objID;
+
+scr_freeze                wait <ms> millisecs; no display-update
+scr_wait_keyEsc           wait for pressing the esc-key
 
 List_functions_end:
 =====================================================
@@ -69,12 +91,68 @@ First time build plugin with:
 
 To compile/Link/Reload while gCad3D is up and running: start with "./do comp"
 
-- activate plugin with Plugin/Select slect from list;
+- activate plugin with Plugin/Select select from list;
 
 - restart with keys Ctrl-P
 
 
-*/
+//----------------------------------------------------------------
+Programming-Hints:
+- use a editor capable of jumping to tags (eg vim)
+  - find tag-files in ../tags/
+  - find info-files in ../inf/
+    - the primary tag for info is INF
+- use a c-source-browser (eg cscope, see script ./cs);
+
+
+GCAD3D-Hints:
+- for primary info jump to tag INF_intro
+
+
+
+================================================================== */
+void INF_plugins (){        /*! \code
+
+INF_plugins
+
+permanent objects:
+  - any nr of objects
+  - can be found by "Scale All"
+  - Rework ("END") will update these objects
+  - perm-objects and perm-states are stored in the model;
+    after save-model - load-model all perm-objects and conditions are active;
+
+  methods to add perm.objects:
+  - ED_srcLn_add (single line)
+  - APED_do__    (1 - n lines)
+  - UTF_clear1,UTF_add1_line,APED_do_buf1  (many lines)
+
+  methods to hide perm.objects:
+  - obj_perm_hide__()
+  - obj_perm_hide_temp()
+
+  methods to remove perm.objects:
+  - APED_srcLn_del (obj_del__())
+
+
+//----------------------------------------------------------------
+- temp- and tDyn-objects and states are not stored,
+  - temp-objects: limited nr of objects (~30)
+  - tDyn-objects: any nr of objects
+  - cannot be found by "Scale All"
+  - Rework ("END") will delete these objects
+  - cannot be restored after save-load.
+  
+  methods to remove temp.objects:
+  - GL_temp_del_1 (<dispListIndex>)
+
+
+//----------------------------------------------------------------
+- Debugging:
+  - see tags DEB INF_debug
+
+================================================================== \endcode */}
+
 
 
 // definition "export"
@@ -97,6 +175,9 @@ To compile/Link/Reload while gCad3D is up and running: start with "./do comp"
 #include "../ut/gr_types.h"               // SYM_* ATT_* LTYP_*
 #include "../ut/ut_memTab.h"           // MemTab_..
 #include "../ut/ut_itmsh.h"            // Fac3 MshFac
+#include "../ut/ut_os.h"               // OS_get_tmp_dir
+#include "../ut/deb_prt.h"             // printd
+
 
 #include "../db/ut_DB.h"               // DB_GetObjGX
 
@@ -138,8 +219,6 @@ char myMemspc[50000];
 //================================================================
 // PROTOTYPES:
 
-  int SUR_ox_surTP (ObjGX **oxo, int typ, Memspc *mSeg, ...);
-
 
 //=========================================================
 //=========================================================
@@ -155,7 +234,6 @@ char myMemspc[50000];
 
   return 0;
 }
-
 
 
 //=========================================================
@@ -177,8 +255,8 @@ char myMemspc[50000];
   // UI_GR_ScalAuto (1);   // scale to Model (temp. and dynamic object cannot scale)
 
 
-  // display points also in mode "VWR"
-  SRC_add_cmd ("MODE DISP_PT ON");
+  // display points also in mode "VWR" (but does not store command in source)
+  UI_ckb_dispPT (ON);
 
 
   //================================================================
@@ -189,20 +267,29 @@ char myMemspc[50000];
   // permanent objects
 
   // permanent objects from binary-obj
-  // cre_perm_obj ();        
-
+  cre_perm_obj ();        
 
   // permanent objects from sourceCode
   // cre_perm_src ();
 
-  // image, tag with text;
-  // cre_perm_src_img_tag ();
+  // cre_perm_src_note ();        // create 2D-text, 2D-text-tag, 3D-grafic-text, image;
 
   // planar-surface (trimmed-perforated) - via code
   // cre_perm_src_surpln ();
 
   // B-spline-surf - via direct-code
-  // cre_perm_surbsp ();           // via direct-code
+  // cre_perm_surbsp ();          // via direct-code
+
+  // obj_perm_attrib_lno ();      // define or set attribute for linear objs
+
+  // obj_perm_attrib_sur ();      // set attributes for surfaces
+
+  // obj_perm_hide__ ();          // hide / redisplay obj permanent
+  // obj_perm_hide_temp ();       // hide / redisplay obj temp / tDyn
+  // obj_perm_state ();              // perm. change of state ..
+
+  // remove sourceline (obj)
+  // obj_del__ ();
 
 
   //================================================================
@@ -210,7 +297,14 @@ char myMemspc[50000];
   // - limited nr of objects  (~30)
   // - cannot be found by "Scale All"
   // - Rework ("END") will delete these objects
-  // cre_temp_1 ();          
+  // - not stored with File/save
+
+  // cre_temp_crv ();          // temporary curves
+  // cre_temp_1 ();            // temporary symbols, vectors ..
+  // cre_temp_note ();         // temp. 2D-text, 2D-text-tag, 3D-grafic-text, image;
+  // cre_temp_mdr ();          // temporary modelRefs;
+  // obj_temp_attrib_lno ();   // linear-attributes for temp-, tDyn-objects
+  // obj_temp_state ();        // temp. change of state ..
 
 
   //================================================================
@@ -218,6 +312,7 @@ char myMemspc[50000];
   // - any nr of objects
   // - cannot be found by "Scale All"
   // - Rework ("END") will delete these objects
+  // - not stored with File/save
 
   // Temporary-Dynamic binary-obj
   // cre_tDyn_obj ();
@@ -230,13 +325,23 @@ char myMemspc[50000];
 
   // Temporary-Dynamic modelRefs;
   // cre_tDyn_mdr ();
+ 
 
-  // hide / redisplay obj
-  // obj_hide__ ();
+  //================================================================
+  // set_perm_viewport (); goto L_exit;          // get / set viewport permanent
+  // set_temp_viewport (); goto L_exit;          // get / set viewport temporary
 
-  // remove obj
-  obj_del__ ();
 
+  //================================================================
+  // user_interactions
+  // scr_freeze ();             // wait <ms> millisecs; no display-update
+  // scr_wait_keyEsc ();        // wait for pressing the esc-key
+ 
+
+  //================================================================
+  // debug
+  // deb_dump ();               // testoutputs-console, messagewindow
+  // deb_print ();              // testoutputs-file
 
   //================================================================
 // DO NOT USE; beeing replaced ..
@@ -250,6 +355,7 @@ char myMemspc[50000];
 
 
   //================================================================
+  //================================================================
   UI_GR_ScalAuto (0);  // rescale all
 
   // // Redraw DispList
@@ -258,7 +364,308 @@ char myMemspc[50000];
 
 
   //================================================================
-  gCad_fini ();        // exit & reset
+  L_exit:
+    gCad_fini ();        // exit & reset
+
+  return 0;
+
+}
+
+  
+//================================================================
+  int deb_dump () {
+//================================================================
+// deb_dump                testoutputs-console, messagewindow
+// - see tags DEB INF_debug
+
+  int      irc;
+  Line     ln1 =  {{0., 0., 0.}, {10., 0., 5.}, 0,0,0,0};
+  Memspc   msSu1;
+  char     spc1[10000];  // space for surf
+  ObjGX    ox1;
+
+
+
+  printf("\ndeb_dump \n");
+
+
+  // TX_Error ("test stop error");
+
+
+  TX_Print ("test TX_Print");
+
+  // dump struct (typ, obj)
+  DEB_dump_obj__ (Typ_LN, &ln1, "deb_dump-ln1");
+
+
+  // get B-SplineSurface-data
+  UME_init (&msSu1, spc1, sizeof(spc1));
+  irc = cre_get_surbsp (&ox1, &msSu1);
+
+   
+  DEB_dump_obj__ (Typ_Memspc, &msSu1, "deb_dump-msSu1");
+  DEB_dump_ox__  (&ox1, "deb_dump-ox1");
+
+
+  // MSG_ERR__  (errCode, auxInfo)
+  // see ERR_codes (../xa/xa_msg.h)
+  MSG_ERR__ (ERR_TEST, "deb_dump-testMessage");
+
+  // not processed if TX_Error or MSG_ERR__ wit sev > 1 is active
+  ED_srcLn_add ("C20=P(7.5 7.5 0) 15", NULL);
+  UI_GR_ScalAuto (0);  // rescale all
+
+  return 0;
+
+}
+
+
+//================================================================
+  int deb_print () {
+//================================================================
+// deb_print                     testoutputs-file
+// - needs:
+// #include "../ut/ut_os.h"               // OS_get_tmp_dir
+// #include "../ut/deb_prt.h"             // printd
+// - see tag INF_debug
+
+
+  int        irc;
+
+
+  printf("\ndeb_print outfile is %sdebug.dat\n",OS_get_tmp_dir());
+
+
+  // open debug-outfile (1=open, 0=do not output data);
+  DEB_prt_init (1);
+
+
+  // print into outfile - only if outfile is open, else skip it;
+  DEB_prt_print ("\n%s\n",OS_date1());
+  DEB_prt_print ("\ndeb_print outfile is %sdebug.dat\n",OS_get_tmp_dir());
+  DEB_prt_print ("\nEOF\n");
+
+
+  DEB_prt_init (0);           // close debugfile
+
+
+  printf("exit-deb_print; see outfile \n");
+
+  return 0;
+
+}
+
+
+//================================================================
+  int obj_perm_attrib_lno () {
+//================================================================
+// obj_perm_attrib_lno             define or set attribute for linear objs (line circ curve);
+// ATTL   define or set attribute for linear objs: colour, lineTyp, lineThick;
+
+  long     dbiL1, dbiL2;
+
+
+
+  UTF_clear1(); // init buffer for sourcecodes
+
+
+  //----------------------------------------------------------------
+  // create private LineAttributes (ATTL <attribNr> <colour> <lineTyp> <lineThick>):
+  // colors:    see INF_COL_CV (3 digits 0-9; red green blue);
+  // lineTyp:   0 = full-line (VollLinie);    1 = dash-dot (Strich-Punkt),
+  //            2 = dashed (kurz strichliert) 3 = dashed-long (lang strichliert),
+  // lineThick: 1-6, thickness in pixels
+
+  // att 15 blue; full; thick=2
+  UTF_add1_line ("ATTL 15 9 0 2");
+
+  // att 16 blue; dash-dot; thick=2
+  UTF_add1_line ("ATTL 16 900 1 2");
+
+  // att 17 red; full; thick=2
+  UTF_add1_line ("ATTL 17 900 0 2");
+
+  // att 18 green; dashed-long; thick=1
+  UTF_add1_line ("ATTL 18 90 3 1");
+
+  // att 19 yellow; dashed-long; thick=2
+  UTF_add1_line ("ATTL 19 990 3 2");
+
+  // att 20 magenta; dashed-long; thick=1
+  UTF_add1_line ("ATTL 20 909 3 1");
+
+
+  //----------------------------------------------------------------
+  // create 2 lines
+  UTF_add1_line ("L20=P(10 10) P(20 10)");
+  UTF_add1_line ("L21=P(10 10) P(20 20)");
+  UTF_add1_line ("C20=P(10 10) 10");
+
+
+  // add attrib 15 to L20
+  UTF_add1_line ("ATTL 15 L20");
+
+  // add attrib 19 to L21
+  UTF_add1_line ("ATTL 19 L21");
+
+  // add attrib 16 to C20
+  UTF_add1_line ("ATTL 16 C20");
+
+
+  //----------------------------------------------------------------
+  // add buffer1 to model, update model;
+  APED_do_buf1 ();
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int obj_perm_attrib_sur () {
+//================================================================
+// obj_perm_attrib_sur            set attributes for surfaces
+// ATTS   set attribute for surface: colour, transparency, symbolic;
+
+    int       lNr;
+
+
+  // lNr = ED_work_CurSet (-1);         // get active lineNr;
+
+
+  // create A20 = circ. surf.
+  APED_do__ ("A20=C(P(0 0 2) 10)", NULL);
+
+  // create A21 from polygon
+  APED_do__ ("P20=P(0 0 0)",
+             "S20=POL P20 P(15 0 0) P(15 15 0) P20",
+             "A21=S20",
+             NULL);
+
+  // create A22 from polygon
+  APED_do__ ("P21=P(20 0 0)",
+             "S21=POL P21 P(35 0 0) P(35 15 0) P21",
+             "A22=S21");
+
+  // set A20 to color green (red-share-0, green-share-255, blue-share-0)
+  APED_do__ ("ATTS \"C00ff00\" A20",
+             // set A20 transparent (T0=reset, T1=half transparent, T2=full transparent)
+             "ATTS \"T1\" A20",
+             // set A22 symbolic (not shaded)
+             "ATTS \"S\" A22",
+             NULL);
+
+
+  // wait until user presses Esc-key
+  UI_wait_Esc__ ();
+
+
+  APED_do__ ("ATTS \"T0\" A20",     // reset transparency for A20
+             "ATTS \"C\" A22",      // set A22 shaded
+             NULL);
+
+
+  TX_Print("- done - exit / see \"MAN\" ..");
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int set_perm_viewport () {
+//================================================================
+// set_perm_viewport         get / set viewport permanent
+// - viewport is permanent - is set after save / load;
+
+  int       lNr;
+  char      sVwpt[512];
+  double    bVwpt[10];
+
+
+  //----------------------------------------------------------------
+  // permanent - from source
+  // get active lineNr;
+  lNr = ED_work_CurSet (-1);
+    printf(" active lineNr = %d\n",lNr);
+
+
+  // get active viewport as src
+  AP_view_2_txt  (sVwpt);
+    printf(" act. Vwpt |%s|\n",sVwpt);
+
+
+  // set viewport
+  APED_do__ (
+    // set viewport
+    "VIEW 0 0 1 7.5 7.5 0 25 0 1 0",
+    // add circ to mainbuffer
+    "C20=P(7.5 7.5 0) 15",               
+    NULL);
+
+
+  // wait until user presses Esc-key
+  UI_wait_Esc__ ();
+
+
+  // change viewport
+  APED_do__ (
+    // set predfined view
+    "VIEW 0.5 -0.5 0.5 7.5 7.5 0 4.8 -0.4 0.4 0.8",
+    NULL);
+
+
+  TX_Print("- view changed - see \"MAN\" ..");
+
+  return 0;
+
+
+}
+
+
+//================================================================
+  int set_temp_viewport () {
+//================================================================
+// set_temp_viewport         get / set viewport temporary
+//  viewports temporary - binary;  not stored in model;
+
+  int       lNr;
+  char      sVwpt[512];
+  double    vwpt0[10],
+            vwpt1[] = {0., 0., 1., 7.5, 7.5, 0., 25., 0., 1., 0.},
+            vwpt2[] = {0.5, -0.5, 0.5, 7.5, 7.5, 0., 4.8, -0.4, 0.4, 0.8};
+
+
+  printf("\nset_temp_viewport\n");
+
+  strcpy(mem_cbuf1, "C20=P(7.5 7.5 0) 15");
+  ED_srcLn_add (mem_cbuf1, 0);
+  GL_View_set (vwpt1);
+
+
+  // wait 2 sec
+  UI_freeze (2000, "- active - wait 2 seconds ..");
+
+
+  //----------------------------------------------------------------
+  // get active viewport (10 doubles)
+  GL_View_get (vwpt0);
+
+  // set viewport
+  GL_View_set (vwpt2);
+
+  // wait 2 sec
+  UI_freeze (2000, "- vwpt changed - wait 2 seconds ..");
+
+
+  //----------------------------------------------------------------
+  // restore viewport vwpt0
+  GL_View_set (vwpt0);
+  DL_Redraw ();
+  TX_Print("- vwpt restored - exit - see \"MAN\"");
+
 
   return 0;
 
@@ -291,10 +698,8 @@ char myMemspc[50000];
     printf("IB1-typ=%d dbi=%ld\n",typ1,dbi1);
 
 
-  DL_Redraw ();
-  TX_Print("- active - wait 2 seconds ..");
-  GUI_update__ (); // else TX_Print-text not visible
-  OS_Wait (2000);  // millisecs
+  // wait until user presses Esc-key
+  UI_wait_Esc__ ();
 
 
   // get obj-ID; eg "C20"
@@ -324,44 +729,98 @@ char myMemspc[50000];
 
 
 //================================================================
-  int obj_hide__ () {
+  int obj_perm_hide__ () {
 //================================================================
-// obj_hide__                       hide / redisplay obj
+// obj_perm_hide__                       hide / redisplay obj permanent
 
 
-  int      irc, typ1;
-  long     dbi1, dli1;
+  int      irc, typ1, typ2;
+  long     dbi1, dbi2;
+  char     sOid[80], s1[128];
   Point    ptc = {0., 0., 0.,};
   Circ     ci1;
-
 
 
   // get circ 
   UT3D_ci_ptvcr (&ci1, &ptc, (Vector*)&UT3D_VECTOR_Z, 15.);
 
-  // save Circ in DB as C<dbi1>
+  // save circ in DB as C<dbi1>
   UTO_sav_ost (&typ1, &dbi1, Typ_CI, Typ_CI, 1, &ci1);
     printf("IB1-typ=%d dbi=%ld\n",typ1,dbi1);
 
-  // get dispListIndex from typ,dbi
-  dli1 = DL_dli__dbo (typ1, dbi1, -1L);
+  UTO_sav_ost (&typ2, &dbi2, Typ_PT, Typ_PT, 1, &ptc);
+    printf("IB1-typ=%d dbi=%ld\n",typ1,dbi1);
+  
+  UI_GR_ScalAuto (0);  // rescale all
 
-  DL_Redraw ();
-  TX_Print("- visible - wait 2 seconds ..");
-  GUI_update__ (); // else TX_Print-text not visible
-  OS_Wait (2000);  // millisecs
+  
+  //----------------------------------------------------------------
+  // hide permanent - is hidden after save - load;
 
-
-  DL_hide__ (dli1, 1);   // hide
-  DL_Redraw ();
-  TX_Print("- hidden - wait 2 seconds ..");
-  GUI_update__ (); // else TX_Print-text not visible
-  OS_Wait (2000);  // millisecs
+  // wait until user presses Esc-key
+  UI_wait_Esc__ ();
 
 
-  DL_hide__ (dli1, 0);   // reset
-  DL_Redraw ();
-  TX_Print("- OK");
+  // get objID for circ
+  APED_oid_dbo__ (sOid, typ1, dbi1);
+
+  // hide obj sOid with SHOW <sOid> OFF; restore with "SHOW <sOid>"
+  sprintf(s1, "SHOW %s OFF",sOid);
+  APED_do__ (s1, NULL);
+
+  TX_Print("- hidden - exit;");
+  
+  return 0;
+
+}
+
+
+//================================================================
+  int obj_perm_state () {
+//================================================================
+// obj_perm_state            perm. change of state ..
+// - stores commands in source
+
+
+  printf("\nobj_perm_state \n");
+
+
+  //----------------------------------------------------------------
+  // create 2 points (only for automatic scaling) - temp-objs cannot scale; 
+  // viewBox from lower left point and upper right point;
+  cre_viewBoxPts (-10.,  0.,  0.,
+                   10., 30., 20.);
+
+  sprintf (mem_cbuf1,"N20=TAG P(0., 0., 0.)  \"Origin\"");
+  ED_srcLn_add (mem_cbuf1, 0);
+
+  // plane
+  sprintf (mem_cbuf1,"R20=PERP P(-10. 25. 0) D(0 0 1)");
+  ED_srcLn_add (mem_cbuf1, 0);
+
+
+  //----------------------------------------------------------------
+  ED_srcLn_add ("MODE MEN OFF");       // remove Top-menu
+  ED_srcLn_add ("MODE BAR1 OFF");      // main-toolbar off/on
+  ED_srcLn_add ("MODE BAR2 OFF");      // message-toolbar off/on
+  ED_srcLn_add ("MODE BRW OFF");       // browser-window off/on
+
+
+  //----------------------------------------------------------------
+  // display points also in mode "VWR"
+  ED_srcLn_add ("MODE DISP_PT ON");
+
+  // display planes - OFF or ON
+  // ED_srcLn_add ("MODE DISP_PL OFF");
+
+  // OFF=0=do not displayobjNames for notes, ON=1=display
+  // - inhibits "N20" written over text "Origin"
+  ED_srcLn_add ("MODE DISP_ONAM_NT OFF");
+
+  // display obj-IDs of all objs
+  ED_srcLn_add ("MODE DISP_OID ON");      // perm
+  // for "MODE DISP_OID ON" all objs must be updated:
+  ED_work_END (1);
 
 
   return 0;
@@ -370,10 +829,111 @@ char myMemspc[50000];
 
 
 //================================================================
-  int cre_perm_src_img_tag () {
+  int obj_temp_state () {
 //================================================================
-// cre_perm_src_img_tag             image, tag with text;
-// - imag can be applied to 3D-point (billboard - always full size)
+// obj_temp_state            temp. change of state ..
+
+  Point    tp1 = {0., 0., 0.};
+
+
+  printf("\nobj_temp_state \n");
+
+
+  //----------------------------------------------------------------
+  // create 2 points (only for automatic scaling) - temp-objs cannot scale; 
+  // viewBox from lower left point and upper right point;
+  cre_viewBoxPts (-10.,  0.,  0.,
+                   10., 30., 20.);
+
+  sprintf (mem_cbuf1,"N20=TAG P(0., 0., 0.)  \"Origin\"");
+  ED_srcLn_add (mem_cbuf1, 0);
+
+  // plane
+  sprintf (mem_cbuf1,"R20=PERP P(-10. 25. 0) D(0 0 1)");
+  ED_srcLn_add (mem_cbuf1, 0);
+
+
+  //----------------------------------------------------------------
+  UI_men__ ("Men_off");       // Top-meu off; on with "Men_on"
+  UI_men__ ("Brw_off");       // Browser off; on with "Brw_on"
+  UI_men__ ("Bar1_off");      // main-toolbar off; on with "Bar1_on"
+  UI_men__ ("Bar2_off");      // message-toolbar off; on with "Bar2_on"
+
+
+  //----------------------------------------------------------------
+  UI_ckb_dispPT (ON);     // display points also in mode "VWR"
+
+  UI_ckb_dispPLN (OFF);   // do not display planes
+
+  // 0=do not displayobjNames for notes, 1=display
+  // - inhibits "N20" written over text "Origin"
+  UI_upd_tnDisp (0);
+
+  UI_ckb_nam__ (1);          // 1 = display objNames (oID) for all obj's
+  // for display objNames all objs must be updated:
+  ED_work_END (1);
+ 
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int obj_perm_hide_temp () {
+//================================================================
+// obj_perm_hide_temp                       hide / redisplay perm. obj temporary
+// - hidden obj is visible after save/load;
+
+
+  int      irc, typ1, typ2;
+  long     dbi1, dbi2, dli1;
+  Point    ptc = {0., 0., 0.,};
+  Circ     ci1;
+
+
+  // get circ 
+  UT3D_ci_ptvcr (&ci1, &ptc, (Vector*)&UT3D_VECTOR_Z, 15.);
+
+  // save circ in DB as C<dbi1>
+  UTO_sav_ost (&typ1, &dbi1, Typ_CI, Typ_CI, 1, &ci1);
+    printf("IB1-typ=%d dbi=%ld\n",typ1,dbi1);
+
+  UTO_sav_ost (&typ2, &dbi2, Typ_PT, Typ_PT, 1, &ptc);
+    printf("IB1-typ=%d dbi=%ld\n",typ1,dbi1);
+
+
+  //----------------------------------------------------------------
+  // hide temporary (obj is not hidden after save - load)
+  // get dispListIndex from typ,dbi
+  dli1 = DL_dli__dbo (typ1, dbi1, -1L);
+
+  // wait 2 sec
+  UI_freeze (2000, "- visible - wait 2 seconds ..");
+
+  // hide
+  DL_hide__ (dli1, 1);
+
+  // wait 2 sec
+  UI_freeze (2000, "- hidden - wait 2 seconds ..");
+
+
+  DL_hide__ (dli1, 0);   // reset
+  DL_Redraw ();
+  TX_Print("- redisplayed - exit;");
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int cre_perm_src_note () {
+//================================================================
+// cre_perm_src_note         create 2D-text, 2D-text-tag, 3D-grafic-text, image;
+// - image can be applied to 3D-point (billboard - always full size)
 // - image can be applied to 3D-surface (texture); not shown here ..
 //   - Tex_addBas1 APT_work_ATTS GA_Tex__
 
@@ -381,9 +941,9 @@ char myMemspc[50000];
   char    s1[512];
 
 
-  printf("\ncre_perm_src_img_tag \n");
+  printf("\ncre_perm_src_note \n");
 
-  UTF_clear1(); // init buffer for sourcecodes
+  UTF_clear1(); // init buffer1 for sourcecodes
 
 
   //----------------------------------------------------------------
@@ -392,25 +952,37 @@ char myMemspc[50000];
   dbi = DB_QueryNxtFree (Typ_Note, 20); printf(" dbi=%ld\n",dbi);
 
   sprintf (s1,"N%ld=IMG P(20., 0., 0.) \"Data/SteinMarmor1.jpg\"",dbi);
-    printf(" s1 |%s|\n",s1);
-
-  // add s1 to buffer
-  UTF_add1_line (s1);
-
+  UTF_add1_line (s1); // add s1 to buffer
 
 
   //----------------------------------------------------------------
-  // tag; pos 0,0,0; color 5 (see INF_COL_SYMB);
+  // 3D-grafic-text
+  ++dbi;
+  // position, [size [angle]]
+  sprintf (s1,"N%ld=P(0., -50., 0.) 10 \"3D-grafic-text\"",dbi);
+  UTF_add1_line (s1); // add s1 to buffer
+
+
+  //----------------------------------------------------------------
+  // 2D-text (billboard)
+  // TAG position [startPos leaderline]
+  // - simple text without color
   ++dbi; 
-  sprintf (s1,"N%ld=TAG P(0., 0., 0.) 5 \"SteinMarmor1.jpg\"",dbi);
+  sprintf (s1,"N%ld=TAG P(200., -50., 0.)  \"2D-text\"",dbi);
   UTF_add1_line (s1);
 
 
+  // 2D-text (billboard-tag)
+  // TAG position [startPos leaderline] [color]
+  // - simple text without color, else colored tag (INF_COL_SYMB)
+  ++dbi; 
+  sprintf (s1,"N%ld=TAG P(20., 0., 0.) %d \"SteinMarmor1.jpg\"",dbi,ATT_COL_GREEN);
+  UTF_add1_line (s1);
+
 
   //----------------------------------------------------------------
-  UTF_insert1 (-1L);  // add buffer to model
-  ED_load__ ();       // update model
-  UI_but_END ();      // process additional src
+  // add buffer1 to model, update model;
+  APED_do_buf1 ();
 
 
   return 0;
@@ -444,9 +1016,10 @@ char myMemspc[50000];
 
 
   //----------------------------------------------------------------
-  // create 2 points (only for automatic scaling) - temp-objs cannot scale; 
-  i1 = cre_sav_obj (Typ_PT, "P(-200., -100., 0.)", 0);
-  i1 = cre_sav_obj (Typ_PT, "P(200., 100., 0.)", 0);
+  // create 2 perm. points (only for automatic scaling) - temp-objs cannot scale; 
+  // viewBox from lower left point and upper right point;
+  cre_viewBoxPts (-200., -100., 0.,
+                  200.,  100., 0.);
 
 
 
@@ -942,12 +1515,152 @@ char myMemspc[50000];
 
 
 //================================================================
+  int cre_temp_note () {
+//================================================================
+// cre_temp_note             temp. 2D-text, 3D-grafic-text, image;
+// - temp, tDyn
+
+// cre_perm_src_note         create 2D-text, 2D-text-tag, 3D-grafic-text, image;
+// - image can be applied to 3D-point (billboard - always full size)
+// - image can be applied to 3D-surface (texture); not shown here ..
+//   - Tex_addBas1 APT_work_ATTS GA_Tex__
+
+  long    dbi;
+  char    s1[512];
+  Point   pTxtA = {0., 10., 0.};
+  AText   Atxt;
+  GText   txG = {{0., 0., 0.}, 0.f, 0.f, "GrafText", 1, 1};
+  char    fNam[] = "Data/SteinMarmor1.jpg";
+
+
+  printf("\ncre_temp_note \n");
+
+  //----------------------------------------------------------------
+  // create 2 points (only for automatic scaling) - temp-objs cannot scale; 
+  // viewBox from lower left point and upper right point;
+  cre_viewBoxPts (-10.,   0.,  0.,
+                  50., 50.,  0.);
+
+
+  //----------------------------------------------------------------
+  // grafic text (rotated, scaled)
+  GR_temp_txtG (&txG, ATT_COL_BLACK);
+
+
+  // 2D-text at position with color
+  GR_temp_txtA  (&pTxtA, "2D-Text", ATT_COL_RED);
+
+
+  // 2D-integer at position 
+  pTxtA.y += 10.;
+  GR_temp_txiA (&pTxtA, 234, 0);
+
+
+
+  //----------------------------------------------------------------
+  // image (billboard)
+  Atxt.aTyp = 1;
+  Atxt.p1.x = 0.;
+  Atxt.p1.y = 40.;
+  Atxt.p1.z = 0.;
+  Atxt.scl  = 1.;
+  Atxt.txt  = fNam;
+  Atxt.ltyp = -1;   // no Leaderline
+  
+  GR_temp_txt__ (&Atxt, 0);
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int obj_temp_attrib_lno () {
+//================================================================
+// obj_temp_attrib_lno                 define and use complete new linear-attribute
+// - for temp or tDyn objects (not stored in model)
+// 
+// col    see INF_COL_CV
+// lty    0=full, 1=dash-dot, 2=shortDash, 3=longDash
+// thi    thickness in pixels
+
+#define indAtt1      20      // temp. dispListIndex; 0-19 used internal; 
+#define indAtt2      21 
+
+  Line  ln1 = {{0., 20., 0.},{10., 30., 15.}};
+  Line  ln2 = {{0., 20., 0.},{10., 30.,  0.}};
+
+
+  printf("\nobj_temp_attrib_lno \n");
+
+
+  //----------------------------------------------------------------
+  // create 2 points (only for automatic scaling) - temp-objs cannot scale; 
+  // viewBox from lower left point and upper right point;
+  cre_viewBoxPts (0.,   0.,  0.,
+                  10., 30., 20.);
+
+
+  //----------------------------------------------------------------
+  // create 2 new attributes;
+                       //  col lty thi
+  DL_InitAttRec (indAtt1, 105,  1,  2);
+  DL_InitAttRec (indAtt2, 510,  2,  3);
+
+
+  // use attribs
+  GR_tDyn_ocv (Typ_LN, &ln1, 0L, indAtt1);
+  GR_tDyn_ocv (Typ_LN, &ln2, 0L, indAtt2);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int cre_temp_crv () {
+//================================================================
+// cre_temp_crv                      temporary curves
+// 
+// GR_temp_src           tempDisp obj from sourcecode
+// GR_temp_dbo           tempDisp DB-obj
+// GR_temp_ocv           tempDisp binary Curve-obj (C, S)
+
+  Point    pp1[]={60.,30., 0.,   65.,30., 0.,
+                  65.,40., 0.,   60.,40., 0.,   60.,30., 0.};
+  CurvPoly plg1;         // see INF_Typ_CVPOL
+
+
+
+
+  UT3D_plg_npt (&plg1, pp1, 5);
+
+
+  GR_temp_nobj (10,             // temp-dispListIndex
+                0L,             // DB-index if known
+                Typ_CVPOL,      // form of obj to display
+                &plg1,          // obj
+                1,              // nr objs
+                Typ_Att_top2,   // attrib for curve
+                0);             // unused for Typ_CV*
+
+
+  // delete with "GL_temp_del_1 (10);"
+
+
+  return 0;
+
+}
+
+
+//================================================================
   int cre_temp_1 () {
 //================================================================
 // cre_temp_1                   Create Temporary-objects:
-// - max 30 aux.objects
+// - max 30 aux.objects simultaneous
 // - cannot analyze, scale;
-// - GR_temp_* for display; clear with GL_temp_del_1 (index);
+// - GR_temp_* for display; clear with GL_temp_del_1 (dispListIndex);
 
   int     i1, dbi;
   Point   pt1={ 0., 0., 0.};
@@ -959,9 +1672,10 @@ char myMemspc[50000];
 
 
   //----------------------------------------------------------------
-  // create 2 points (only for automatic scaling) - temp-objs cannot scale; 
-  dbi = cre_sav_obj (Typ_PT, "P(-5., -1., 0.)", 0);
-  dbi = cre_sav_obj (Typ_PT, "P(10., 10., 0.)", 0);
+  // create 2 perm. points (only for automatic scaling) - temp-objs cannot scale; 
+  // viewBox from lower left point and upper right point;
+  cre_viewBoxPts (-5., -1., 0.,
+                  10., 10., 0.);
 
 
   //----------------------------------------------------------------
@@ -1000,6 +1714,7 @@ char myMemspc[50000];
   DL_temp_ind = 8;     // use a fixed index
   GR_temp_pt (&pt1, ATT_PT_YELLOW);
     printf(" last temp-index is %ld\n",GL_temp_iLast());
+    // delete with "GL_temp_del_1 (8);"
 
 
 
@@ -1015,7 +1730,7 @@ char myMemspc[50000];
   pt1.x += 2;
   GR_temp_vc (&vc1, &pt1, ATT_COL_GREEN, 1);
   i1 = GL_temp_iNxt () - 1;   printf(" temp-index=%d\n",i1);
-  GL_temp_del_1 (i1);
+  GL_temp_del_1 (i1);         // delete temp. obj
 
   // disp at screenCenter
   // GR_temp_vc (&vc1, NULL, ATT_COL_CYAN, 1);
@@ -1071,17 +1786,62 @@ char myMemspc[50000];
 
 
 //================================================================
+  int cre_temp_mdr () {      // temporary modelRefs;
+//================================================================
+// cre_temp_mdr              temporary modelRefs;
+
+// // ../gr/ut_DL.c
+// extern long       GR_TAB_IND;
+
+
+  int       irc, i1, bmi;
+  long      dbi;
+  double    scale;
+  ModelRef  mdr;
+
+
+  printf("\ncre_temp_mdr \n");
+  
+  //----------------------------------------------------------------
+  // must create internal submodel (temp);
+
+//TODO: test if model isnt already loaded ..
+  i1 = DB_get_ModBasNr();  // get nr of existing basic-models
+    printf(" DYN_MB_IND=%d\n",i1);
+
+
+  // preview native model 
+  irc = MDL_prev__ ("\"NAS/Renault1.gcad\" R(P(10 20 0))", GR_TMP_HILI);
+
+  UI_GR_ScalAuto (0);  // rescale all
+
+  // wait until user presses Esc-key
+  UI_wait_Esc__ ();
+
+  // remove active preview-model
+  MDL_prev_stat_del ();
+  DL_Redraw ();
+  TX_Print("- removed - exit ..");
+
+
+  return 0;
+
+}
+
+
+//================================================================
   int cre_tDyn_mdr () {      // temporary modelRefs;
 //================================================================
-// cre_tDyn_mdr             add temporary modelRefs; internal subModel must exist;
-//   (load or create subModel: eg call cre_perm_src)
+// cre_tDyn_mdr             add temporary-dynamic modelRefs;
+// - load or create subModel: eg call cre_perm_src
+// - internal subModel must exist;
 
 
 
   int       irc, i1, bmi;
   long      dbi;
   double    scale;
-  Point     pt1 = { 20., 20., 0.};
+  Point     pt1 = { 22., 12., 0.};
   Plane     pl1;
   ModelRef  mdr;
 
@@ -1089,14 +1849,23 @@ char myMemspc[50000];
   printf("\ncre_tDyn_mdr \n");
 
   //----------------------------------------------------------------
-  // must create internal submodel;
+  // must create internal submodel (perm);
 
   i1 = DB_get_ModBasNr();  // get nr of existing basic-models
     printf(" DYN_MB_IND=%d\n",i1);
 
   if(i1 < 1) {
     // load catalogPart at pos 10,10,0
-    cre_sav_obj (Typ_Model, "\"Schrauben/SKS_6x30.ctlg\" R(PERP P(10 10 0) DZ)", 0);
+    // cre_sav_obj (Typ_Model, "\"Schrauben/SKS_6x30.ctlg\" R(PERP P(10 10 0) DZ)", 0);
+
+    // or load mockup-model (obj, stl, lwo, 3ds, wrl)
+    // cre_sav_obj (Typ_Model, "\"Data/sample_obj1.obj\" R(PERP P(0 0 0) DZ)", 0);
+
+    // or load import-model (step, iges, dxf)
+    cre_sav_obj (Typ_Model, "\"Data/sample_Iges2.igs\" R(PERP P(0 0 0) DZ)", 0);
+
+    // or load native-model
+    // cre_sav_obj (Typ_Model, "\"Data/Haus1.gcad\" R(PERP P(0 0 0) DZ)", 0);
   }
 
   i1 = DB_get_ModBasNr();
@@ -1104,11 +1873,12 @@ char myMemspc[50000];
 
 
   //----------------------------------------------------------------
+  // disp (already existing) internal subModel, defined by its basicModelNr bmi
+
   // get refSys (origin & orientation) for modelRef from origin (pt1) and z-vec;
   UT3D_pl_ptvc (&pl1, &pt1, (Vector*)&UT3D_VECTOR_Z);
     DEB_dump_obj__ (Typ_PLN, &pl1, "  temp_mdr-pl1: ");
 
-  // disp (already existing) internal subModel, defined by its basicModelNr bmi
   // create modelRef
   bmi = 0;      // internal subModel <bmi> must exist !
   scale = 1.;
@@ -1124,6 +1894,9 @@ char myMemspc[50000];
   // disp. temp.Dyn:
   irc = GR_tDyn_mdr (&mdr, GR_TMP_HILI);
               // modelRef,    att:  GR_TMP_DEF|GR_TMP_HILI|GR_TMP_DIM
+
+  // remove with GL_temp_del_1
+
 
 
 
@@ -1154,10 +1927,10 @@ char myMemspc[50000];
   printf("cre_tDyn_sym \n");
 
   //----------------------------------------------------------------
-  // create 2 points (only for automatic scaling) - temp-objs cannot scale; 
-  i1 = cre_sav_obj (Typ_PT, "P(-5., -15., 0.)", 0);
-  i1 = cre_sav_obj (Typ_PT, "P(15., 0., 0.)", 0);
-
+  // create 2 perm. points (only for automatic scaling) - temp-objs cannot scale; 
+  // viewBox from lower left point and upper right point;
+  cre_viewBoxPts (-5., -15., 0.,
+                  15.,   0., 0.);
 
 
   //----------------------------------------------------------------
@@ -1279,9 +2052,9 @@ char myMemspc[50000];
 
   //----------------------------------------------------------------
   // create 2 points (only for automatic scaling) - temp-objs cannot scale; 
-  i1 = cre_sav_obj (Typ_PT, "P(-1., 5., 0.)", 0);
-  i1 = cre_sav_obj (Typ_PT, "P(6., 10., 0.)", 0);
-
+  // viewBox from lower left point and upper right point;
+  cre_viewBoxPts (-1.,  5., 0.,
+                   6., 10., 0.);
 
 
   //----------------------------------------------------------------
@@ -1327,6 +2100,12 @@ char myMemspc[50000];
   Point   pt1={ 20., 0., 0.};
 
 
+
+  printf("\ncre_perm_src \n");
+
+
+
+
   //----------------------------------------------------------------
   // init buffer for sourcecodes
   UTF_clear1();
@@ -1353,19 +2132,35 @@ char myMemspc[50000];
   // get next free dbi for modelReference
   dbi = DB_QueryNxtFree (Typ_Model, 20);
     printf(" dbiNxtM=%ld\n",dbi);
-  // create source
+
+  // create source (activate one of the following lines)
+  // load catalogPart at pos 10,10,0
   sprintf (s1,"M%ld=\"Schrauben/SKS_6x30.ctlg\" R(PERP P(10 10 0) DZ)",dbi);
+
+  // or load mockup-model
+  // sprintf (s1,"M%ld=\"Data/sample_obj1.obj\" R(PERP P(0 0 0) DZ)",dbi);
+
+  // or load import-model
+  // sprintf (s1,"M%ld=\"Data/sample_Iges2.igs\" R(PERP P(10 10 0) DZ)",dbi);
+
+  // or load native-model 
+  // sprintf (s1,"M%ld=\"Data/Haus1.gcad.ctlg\" R(PERP P(10 10 0) DZ)",dbi);
+
+
+
   // add source into buffer
   UTF_add1_line (s1);
 
 
   //----------------------------------------------------------------
-  // add buffer to model
-  UTF_insert1 (-1L);  // add buffer to model
-  ED_load__ ();     // update model
+  // add circ
+  strcpy(mem_cbuf1, "C20=P(7.5 7.5 0) 15");
+  ED_srcLn_add (mem_cbuf1, 0);
 
-  UI_but_END ();    // process additional src
 
+  //----------------------------------------------------------------
+  // add buffer1 to model, update model;
+  APED_do_buf1 ();
 
   return 0;
 
@@ -1386,11 +2181,8 @@ char myMemspc[50000];
   UTF_add1_line ("S22=POL P(10.,16.,0.) P(20.,16.,0.) P(30.,16.,0.)");
   UTF_add1_line ("A20=BSP U(S20 S21 S22)");
 
-  // Add Aux.Buffer -> MainBuffer
-  UTF_insert1 (-1L);
-
-  // execute 
-  UI_but_END ();
+  // add buffer1 to model, update model;
+  APED_do_buf1 ();
 
   return 0;
 
@@ -1539,6 +2331,62 @@ char myMemspc[50000];
 
 
 //================================================================
+  int scr_freeze () {
+//================================================================
+// src_freeze                             wait <ms> millisecs; no display-update
+// OS_Wait makes static display - no zoom, pan -
+
+
+  long      dli1;
+
+
+  // perm. circ
+  ED_srcLn_add ("C20=P(7.5 7.5 0) 15", NULL);
+  UI_GR_ScalAuto (0);  // rescale all
+
+
+  // freeze for 2000 ms - no update
+  UI_freeze (2000, " visible - wait 2 seconds -");
+
+  // hide. exit
+  dli1 = DL_dli__dbo (Typ_CI, 20L, -1L);
+    printf(" dli1=%ld\n",dli1);
+
+  DL_hide__ (dli1, 1);   // hide
+  DL_Redraw ();          // update display - hide
+
+  TX_Print(" - hidden - exit -");
+
+
+  return 0;
+
+}
+
+
+//================================================================
+  int scr_wait_keyEsc () {
+//================================================================
+// scr_wait_keyEsc           wait for pressing the esc-key
+// - display not frozen, zoom, pan .. active;
+
+  // perm. circ
+  ED_srcLn_add ("C20=P(7.5 7.5 0) 15", NULL);
+  UI_GR_ScalAuto (0);  // rescale all
+
+
+  // wait for Esc-key-press;
+  UI_wait_Esc__ ();
+
+
+  TX_Print(" - done - exit -");
+
+
+  return 0;
+
+}
+
+
+//================================================================
   int cre_tDyn_sur_nifac1 () {
 //================================================================
 // indexed-faces
@@ -1634,11 +2482,32 @@ char myMemspc[50000];
 }
 
 
+//================================================================
+  int cre_viewBoxPts (double llx, double lly, double llz,
+                      double urx, double ury, double urz) {
+//================================================================
+// cre_viewBoxPts                 create viewBox (lower left Pt & upper right Pt)
+// - perm. points, user for Scale-all if only temp. objects exist;
+                          
+  char      s1[512];
+
+
+  sprintf(s1, "P(%f %f %f)", llx, lly, llz);
+  cre_sav_obj (Typ_PT, s1, 0);
+
+  sprintf(s1, "P(%f %f %f)", urx, ury, urz);
+  cre_sav_obj (Typ_PT, s1, 0);
+
+  return 0;
+
+}
+
 
 //================================================================
   int cre_sav_obj (int typ, char *src, int att) {
 //================================================================
-// cre_sav_obj                  store DB-obj from source
+// cre_sav_obj                  store DB-obj from source - add objID;
+// retCode:   DB-index
 
   long       dbi;
   char       oid[80];

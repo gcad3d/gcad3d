@@ -1,6 +1,7 @@
 #!/bin/bash
 # script for cscope
-# start without building new DB: "./cs -d"
+# start without building new DB: "./cs"
+# start with building new DB: "./cs -d"
 
 
 # set EDITOR = name of script-file with editor-call
@@ -11,11 +12,13 @@ export EDITOR=/usr/bin/vim
 
 
 if test "$#" == "0"; then
-# use cscope.out, do not create/modify
+# no parameter - use cscope.out, do not update cs-DB.
   cscope -d $1
   exit
 fi
 
+
+# create cs-DB, then start cscope
 
 # create list of gcad-sourcefiles in file srcFiles
 # get DIR_DEV DIR_BIN gcad_dir_bin

@@ -25,8 +25,10 @@ See also:
 ../UIX/DemoPlugin_Create.mak      // create objects
 ../UIX/DemoPlugin_Hili.c          // hilite 
 ../UIX/DemoPlugin_Resolv.mak
-../UIX/DemoPlugin_Mousemove.mak
 ../UIX/DemoPlugin_Dialog.mak
+../UIX/DemoPlugin_KeyIn.mak       // user-callback from keypress in grafic-window
+../UIX/DemoPlugin_Selection.mak   // user-callback from selection in grafic-window
+../UIX/DemoPlugin_Mousemove.mak   // user-callback from mouse-movement in grafic-window
 ../UIX/Demo_gui_plate.mak
 
 
@@ -87,7 +89,7 @@ List_functions_end:
 \endcode *//*----------------------------------------
 
 First time build plugin with:
-. ../options.sh && make -f DemoPlugin_Create.mak
+. ./devbase.sh && make -f DemoPlugin_Create.mak
 
 To compile/Link/Reload while gCad3D is up and running: start with "./do comp"
 

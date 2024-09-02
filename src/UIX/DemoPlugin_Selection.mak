@@ -1,11 +1,11 @@
-# . ../options.sh && make -f DemoPlugin_Dialog.mak
+# . ./devbase.sh && make -f DemoPlugin_Selection.mak
 
 
-DLLNAM = plugins/DemoPlugin_Dialog
+DLLNAM = plugins/DemoPlugin_Selection
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../APP/DemoPlugin_Dialog.c
+	../APP/DemoPlugin_Selection.c
 
 DIRSRC1 := ../APP/
 

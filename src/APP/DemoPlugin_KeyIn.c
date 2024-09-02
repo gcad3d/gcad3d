@@ -1,7 +1,7 @@
-// example user-callback from mousemove.
+// example user-callback from keypress in grafic-window;
 /*
  *
- * Copyright (C) 2015 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
+ * Copyright (C) 2024 CADCAM-Services Franz Reiter (franz.reiter@cadcam.co.at)
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ Modifications:
 */
 /*!
 \file  ../APP/DemoPlugin_Mousemove.c
-\brief example user-callback from mousemove 
+\brief example user-callback from keypress in grafic-window 
 \code
 =====================================================
 List_functions_start:
@@ -37,11 +37,11 @@ List_functions_end:
 \endcode *//*----------------------------------------
 
 
-. ./devbase.sh && make -f DemoPlugin_Mousemove.mak
+. ./devbase.sh && make -f DemoPlugin_KeyIn.mak
 
 
 - user-callback mouse-buttons see ../APP/DemoPlugin_Selection.c
-- user-callback KeyIn         see ../APP/DemoPlugin_KeyIn.c
+- user-callback mousemove     see ../APP/DemoPlugin_Mousemove.c
 - see also ../APP/DemoPlugin_Create.c
 
 */
@@ -68,21 +68,8 @@ export int gCad_fini ();
 
 
 //----------------------------------------------------------------
-// externals:
-
-// ../gr/ut_GL.c
-extern double GL_Scr_Siz_X, GL_Scr_Siz_Y;
-
-
-
-
-//----------------------------------------------------------------
 // protos:
-  int gui_CB_mm (int dx, int dy);                 // mousemove
-  int gui_CB_key1 (int key);                      // keys
-
-
-
+  int gui_CB_key1 (int key);
 
 
 
@@ -92,21 +79,16 @@ extern double GL_Scr_Siz_X, GL_Scr_Siz_Y;
 //=========================================================
 
 
-  // attach mousemovements
-  AP_UserMousemove_get (gui_CB_mm);
-
   // attach KeyIn
   AP_UserKeyIn_get (gui_CB_key1);
 
-
   // display Info
-  TX_Print("DemoPlugin_Mousemove: display mousecoords in consolewindow ..");
-  TX_Print(">>> move mouse, press mousebuttons, key q = quit");
-
-
+  TX_Print("--- start DemoPlugin_KeyIn; key q = quit ---");
 
   return 0;
 }
+
+
 
 
 //=========================================================
@@ -114,45 +96,10 @@ extern double GL_Scr_Siz_X, GL_Scr_Siz_Y;
 //=========================================================
 
   // display Info
-  TX_Print(">>> exit DemoPlugin_Mousemove");
+  TX_Print(">>> exit DemoPlugin_KeyIn");
 
-  AP_User_reset ();      // close application; resets callbacks
-
-  return 0;
-
-}
-
-
-//=========================================================
-  int gui_CB_mm (int dx, int dy) {
-//=========================================================
-// user-callback mouse-move
-
-  int       xpos, ypos;
-  Point     ptUsr, ptScr;
-  Vector    vc2;
-
-
-
-  // incremental mousemove in screencoords
-  // printf("gui_CB_mm %d %d\n",dx,dy);
-
-  // curPos in screen-coords
-  GL_get_curPos_SC (&xpos, &ypos);
-  printf(" src = %d %d\n", xpos, ypos);
-
-  // scrSize in screencoords
-  // printf("GL_Scr_Siz_X=%f GL_Scr_Siz_Y=%f\n", GL_Scr_Siz_X, GL_Scr_Siz_Y);
-
-  // // curPos in world-coords on const-plane
-  // GR_get_curPos_UC (&ptUsr);   // get GR_curPos_WC
-  // printf(" usr = %f %f %f\n", ptUsr.x, ptUsr.y, ptUsr.z);
-
-
-  // UTRA_pt_ucs2wcs (&pt1);
-  // vc2 = GL_GetEyeX ();          // get vc2 =  eye-vector (GL_eyeX,GL_eyeY,GL_eyeZ)
-  // GL_cen = centerpoint of the Viewport
-
+  AP_User_reset ();      // close application
+  // does AP_UserKeyIn_reset - reset KeyIn;
 
   return 0;
 
@@ -170,8 +117,8 @@ extern double GL_Scr_Siz_X, GL_Scr_Siz_Y;
   switch (key) {
 
     case 'q':
-      // DL_hili_off (-1L);         //  -1 = unhilite all
-      // DL_Redraw ();               // Redraw DispList
+      DL_hili_off (-1L);         //  -1 = unhilite all
+      DL_Redraw ();               // Redraw DispList
       gCad_fini ();
       break;
 
@@ -182,6 +129,7 @@ extern double GL_Scr_Siz_X, GL_Scr_Siz_Y;
   return 0;
 
 }
+
 
 
 //======================== EOF ======================

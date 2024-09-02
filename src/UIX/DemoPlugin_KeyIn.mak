@@ -1,11 +1,11 @@
-# . ../options.sh && make -f DemoPlugin_Mousemove.mak
+# . ./devbase.sh && make -f DemoPlugin_KeyIn.mak
 
 
-DLLNAM = plugins/DemoPlugin_Mousemove
+DLLNAM = plugins/DemoPlugin_KeyIn
 
 # die hier befindlichen  Sourcen - recompile!
 SRC1 =\
-	../APP/DemoPlugin_Mousemove.c
+	../APP/DemoPlugin_KeyIn.c
 
 DIRSRC1 := ../APP/
 

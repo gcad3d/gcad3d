@@ -56,6 +56,7 @@ cre_perm_src_surpln       planare surf; trimmed / perforated
 cre_perm_src_note         create 2D-text, 2D-text-tag, 3D-grafic-text, image;
 obj_perm_hide__           hide / redisplay obj permanent
 obj_perm_hide_temp        hide / redisplay perm. obj temporary
+del_perm_obj              remove permanent obj
 obj_perm_state            perm. change of state ..
 
 obj_perm_attrib_lno       define or set attribute for linear objs (line circ curve)
@@ -65,20 +66,23 @@ cre_tDyn_obj              disp. dynamic obj from binary-obj
 cre_tDyn_sym              temporary-dynamic objects (test objects) - symbols
 cre_tDyn_txt              temporary-dynamic text;  (test objects)
 cre_tDyn_mdr              temporary-dynamic modelRefs;
-cre_temp_mdr              temporary modelRefs;
+del_tDyn                  remove temporary-dynamic objects
 
 cre_temp_crv              temporary curves
 cre_temp_1                temporary object
 cre_temp_note             temp. 2D-text, 2D-text-tag, 3D-grafic-text, image;
+cre_temp_mdr              temporary modelRefs;
 obj_temp_attrib_lno       linear-attributes for temp-, tDyn-objects
+del_temp_obj              remove / overwrite temp-obj
 obj_temp_state            temp. change of state ..
 
-obj_del__                 remove obj
 set_perm_viewport         get / set viewport permanent
 set_temp_viewport         get / set viewport temporary
 
 cre_viewBoxPts            create viewBox (lower left Pt & upper right Pt)
 cre_sav_obj               store DB-obj from source - add objID;
+
+fwrite_fread_obj          store / retrieve bin.objects in file;
 
 scr_freeze                wait <ms> millisecs; no display-update
 scr_wait_keyEsc           wait for pressing the esc-key
@@ -134,7 +138,7 @@ permanent objects:
   - obj_perm_hide_temp()
 
   methods to remove perm.objects:
-  - APED_srcLn_del (obj_del__())
+  - APED_srcLn_del (del_perm_obj())
 
 
 //----------------------------------------------------------------
@@ -269,7 +273,7 @@ char myMemspc[50000];
   // permanent objects
 
   // permanent objects from binary-obj
-  cre_perm_obj ();        
+  // cre_perm_obj ();        
 
   // permanent objects from sourceCode
   // cre_perm_src ();
@@ -291,7 +295,7 @@ char myMemspc[50000];
   // obj_perm_state ();              // perm. change of state ..
 
   // remove sourceline (obj)
-  // obj_del__ ();
+  // del_perm_obj ();
 
 
   //================================================================
@@ -306,6 +310,7 @@ char myMemspc[50000];
   // cre_temp_note ();         // temp. 2D-text, 2D-text-tag, 3D-grafic-text, image;
   // cre_temp_mdr ();          // temporary modelRefs;
   // obj_temp_attrib_lno ();   // linear-attributes for temp-, tDyn-objects
+     del_temp_obj ();          // remove / overwrite temp-obj
   // obj_temp_state ();        // temp. change of state ..
 
 
@@ -328,8 +333,11 @@ char myMemspc[50000];
   // Temporary-Dynamic modelRefs;
   // cre_tDyn_mdr ();
  
+  // del_tDyn ();              // remove temporary-dynamic objects
+
 
   //================================================================
+  // fwrite_fread_obj ();      // store / retrieve bin.objects in file;
   // set_perm_viewport (); goto L_exit;          // get / set viewport permanent
   // set_temp_viewport (); goto L_exit;          // get / set viewport temporary
 
@@ -577,6 +585,74 @@ char myMemspc[50000];
 
 
 //================================================================
+  int fwrite_fread_obj () {
+//================================================================
+// fwrite_fread_obj                 store / retrieve bin.objects in file;
+
+#define SIZ_TMP 4000
+
+
+  int        irc;
+  long       dli;
+  char       s1[256];
+  CurvBSpl   sbsp1;
+  ObjGX      ox1;
+  Point      pta[] = {{ 0.,  0.,  0.}, { 2.,  5.,  0.},{16., 17., 0.},
+                      {40., 20.,  0.}, {70.,  8.,  0.},{99.,  0., 0.}};
+  void       *vp1;
+  FILE       *fp1;
+  Memspc     mSeg1, mSegTmp;
+
+
+  printf("\nfwrite_fread_obj \n");
+
+  // create 2 points (only for automatic scaling) - temp-objs cannot scale; 
+  // viewBox from lower left point and upper right point;
+  cre_viewBoxPts (-10.,  0., 0.,
+                  100., 20., 0.);
+
+  // create bspl from pointTab
+  vp1 = MEM_alloc_tmp (SIZ_TMP);
+  UME_init (&mSeg1, vp1, SIZ_TMP);
+  vp1 = MEM_alloc_tmp (SIZ_TMP);
+  UME_init (&mSegTmp, vp1, SIZ_TMP);
+  // irc = UT3D_cbsp_npt (&sbsp1, 6, pta, 0., &mSeg1, &mSegTmp);
+  irc = UT3D_cbsp_ptn (&sbsp1, &mSegTmp, pta, 6, 2);
+  if(irc < 0) {TX_Error("UTO_wrf_obj E1"); return -1;}
+    DEB_dump_obj__ (Typ_CVBSP, &sbsp1, "fwrite_fread_obj-obj");
+
+  // save bin.bspl in file;
+  // open bin-file
+  sprintf(s1, "%sfwfr.tmp",  AP_get_tmp_dir());
+  if(!(fp1 = fopen (s1, "wb"))) return MSG_ERR__ (ERR_file_open, "E-open-write");
+  irc = UTO_wrf_obj (fp1, Typ_CVBSP, &sbsp1, 1);  // write sbsp1
+  if(irc < 0) {TX_Error("UTO_wrf_obj E2"); return -1;}
+  fclose (fp1);
+
+  // change point, display;
+  sbsp1.cpTab[0].x = -10.;
+  dli = GL_Get_DLind ();          // get DL-index (for later delete)
+  GR_tDyn_ocv (Typ_CVBSP, &sbsp1, 0L, Typ_Att_blue);
+
+  // wait 3 seconds
+  UI_freeze (3000, " display modified obj - wait 3 seconds -");
+
+  // undo = read from file, display;
+  if(!(fp1 = fopen (s1, "rb"))) return MSG_ERR__ (ERR_file_open, "E-open-read");
+  irc = UTO_rdf_obj (&vp1, &mSeg1, Typ_CVBSP, 1, fp1);  // read sbsp1 from file
+  if(irc < 0) {TX_Error("UTO_rdf_obj E3"); return -1;}
+  fclose (fp1);
+  GL_Delete (dli);          // remove modified obj (and all following)
+  GR_tDyn_ocv (Typ_CVBSP, vp1, 0L, Typ_Att_blue); // disp obj from file
+
+  TX_Print (" - modification removed - exit plugin");
+
+  return 0;
+
+}
+
+
+//================================================================
   int set_perm_viewport () {
 //================================================================
 // set_perm_viewport         get / set viewport permanent
@@ -675,9 +751,9 @@ char myMemspc[50000];
 
 
 //================================================================
-  int obj_del__ () {
+  int del_perm_obj () {
 //================================================================
-// obj_del__                                remove obj
+// del_perm_obj                                remove obj
 // - if objID starts with '_' obj is marked for deletion;
 // - "_P20=P(10 20 30)"  - this point is not active;
 // - to reactivate remove '_' and rework obj
@@ -1058,7 +1134,7 @@ char myMemspc[50000];
   // circ from startPt, center, z-vector, opening angle (pos. = CCW)
   UT3D_ci_ptptvcangr (&ci1, &pt1, &ptc, &vz, UT_RADIANS(90.));
   // curve, dbi=unknown=0
-  GR_tDyn_ocv (Typ_CI, &ci1, 0, Typ_Att_blue);
+  GR_tDyn_ocv (Typ_CI, &ci1, 0L, Typ_Att_blue);
 
 
 
@@ -1069,7 +1145,7 @@ char myMemspc[50000];
   //           (cvBsp, &memSeg1, pTab, ptNr, deg);
   UT3D_cbsp_ptn (&bsp1, &memSeg1, cvp,     5,   3); 
   // disp
-  GR_tDyn_ocv (Typ_CVBSP, &bsp1, 0, Typ_Att_blue);
+  GR_tDyn_ocv (Typ_CVBSP, &bsp1, 0L, Typ_Att_blue);
 
 
   return 0;
@@ -1621,6 +1697,37 @@ char myMemspc[50000];
 
 
 //================================================================
+  int del_temp_obj () {
+//================================================================
+// del_temp_obj              remove / overwrite temp-obj
+    // GL_temp_del_1      // remove one
+    // GL_temp_del_all    // remove all
+// see also INF_GR_RECORDS
+
+  Point    pt1 = {10.,5.,0.};
+
+
+  // display temp (explicite index)
+  DL_temp_ind = 1;            // use a fixed index
+  GR_temp_txtA (&pt1, "abc", ATT_COL_YELLOW);
+  UI_freeze (3000, " display - wait 3 seconds -");
+
+  // overwrite temp (explicite index)
+  DL_temp_ind = 1;            // use a fixed index
+  GR_temp_txtA (&pt1, "Test2", ATT_COL_RED);
+  UI_freeze (3000, " display - wait 3 seconds -");
+
+  // remove temp (explicite index)
+  GL_temp_del_1 (1);
+  DL_Redraw ();
+  TX_Print (" - temp-obj removed - exit plugin");
+
+  return 0;
+
+}
+
+
+//================================================================
   int cre_temp_crv () {
 //================================================================
 // cre_temp_crv                      temporary curves
@@ -1903,6 +2010,40 @@ char myMemspc[50000];
 
 
   return irc;
+
+}
+
+
+//================================================================
+  int del_tDyn () {
+//================================================================
+// del_tDyn                  remove temporary-dynamic objects
+// delete display of obj with GL_Del1 or -
+// delete display of obj and of all following objs with GL_Delete
+// see also INF_GR_RECORDS
+
+
+  long  dli;
+  Point pta[] = {{0., 0., 0.}, {20., 0., 0.},{0., 20., 0.},{20., 20., 0.}};
+
+  // get dispListIndex before displaying tDyn-obj with GL_Get_DLind
+  dli = GL_Get_DLind ();          // get DL-index (for later delete)
+
+
+  // disp  tDyn
+  GR_tDyn_npti (4, pta, SYM_TRI_B,
+                ATT_COL_BLACK, ATT_COL_BLUE);
+
+  // wait 3 seconds
+  UI_freeze (3000, " display - wait 3 seconds -");
+
+  // remove modified obj (and all following)
+  GL_Delete (dli);
+  DL_Redraw ();
+  TX_Print (" - tdyn-objs removed - exit plugin");
+
+
+  return 0;
 
 }
 
@@ -2303,9 +2444,9 @@ char myMemspc[50000];
   UT3D_cbsp_ptn (&cvTab[2], &msCv, cv3,   3,   2);
 
     // disp
-    // GR_tDyn_ocv (Typ_CVBSP, &cvTab[0], 0, Typ_Att_blue);
-    // GR_tDyn_ocv (Typ_CVBSP, &cvTab[1], 0, Typ_Att_blue);
-    // GR_tDyn_ocv (Typ_CVBSP, &cvTab[2], 0, Typ_Att_blue);
+    // GR_tDyn_ocv (Typ_CVBSP, &cvTab[0], 0L, Typ_Att_blue);
+    // GR_tDyn_ocv (Typ_CVBSP, &cvTab[1], 0L, Typ_Att_blue);
+    // GR_tDyn_ocv (Typ_CVBSP, &cvTab[2], 0L, Typ_Att_blue);
 
 
   // get temp memspc
@@ -2509,7 +2650,15 @@ char myMemspc[50000];
   int cre_sav_obj (int typ, char *src, int att) {
 //================================================================
 // cre_sav_obj                  store DB-obj from source - add objID;
-// retCode:   DB-index
+// Input:
+//   typ
+//   src      srcText for obj <typ>;
+//   att      UNUSED
+// retCode:   DB-index of stored obj;
+//
+// Example: cre_sav_obj (Typ_LN, "P20 P(100 0 0)");
+// - istores in DB and executes  "L<newDbi>=P20 P(100 0 0)"
+// - retCode is newDbi;
 
   long       dbi;
   char       oid[80];

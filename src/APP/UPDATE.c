@@ -24,6 +24,362 @@
 
 
 
+//================================================================
+// ../ut/ut_rbspl.c
+//================================================================
+// INF_Typ_CVRBSP
+
+
+//===================================================================
+  int UT3D_rbsp_ci360 (CurvRBSpl *rb1, Memspc *memSeg1, Circ *ci1) {
+//===================================================================
+// UT3D_rbsp_ci360              get CurvRBSpl from 360-deg-circle
+// TODO: rbsp - circ from 0 to 90 deg;
+
+  double   r2h;
+  Vector   vcx, vcy;
+  Point    pt0, pt1, pt2, pt3, pt4, pt5;
+
+
+
+  // printf("===================================== \n");
+  printf("UT3D_rbsp_ci180\n");
+  DEB_dump_obj__ (Typ_CI, ci1, "  ci1");
+  UME_dump(memSeg1, "      memSeg1:");
+
+//   // test 180 or 360 deg
+//   if((!UT3D_ck_ci360(ci)) || (!UT3D_ck_ci180(ci))) {
+//     // irc = UT3D_rbsp_ci_180 (nrCv, rba, memSeg1, ci);
+// 
+//   } else {
+//     // create 1-3 curves
+//     irc = UT3D_rbsp_ci_0 (nrCv, rba, memSeg1, ci);
+//   }
+
+
+/*
+  //================================================================
+  // 0-90 deg:     NOT-OK !
+  rb1->ptNr = 3;
+  rb1->v0   = 0.;
+  rb1->v1   = 1.;
+  rb1->deg  = 2;
+  rb1->dir  = 0;   // fwd
+  rb1->clo  = 0;   // yes
+  rb1->trm  = 1;   // no
+  
+  r2h = SR_2 / 2.;
+
+
+  //----------------------------------------------------------------
+  // add cpTab = ptNr Point-s to memSeg1
+  rb1->cpTab = UME_reserve (memSeg1, sizeof(Point) * rb1->ptNr);
+  if(!rb1->cpTab) goto L_err1;
+  
+  // pt1 = pt0 + vcy
+  UT3D_pt_mid2pt (&pt1, &ci1->p1, &ci1->p2);
+  UT3D_pt_traptptlen (&pt1, &ci1->pc,  &pt1, fabs(ci1->rad));
+
+  rb1->cpTab[0] = ci1->p1;
+  rb1->cpTab[1] = pt1;
+  rb1->cpTab[2] = ci1->p2;
+  
+
+  //----------------------------------------------------------------
+  // add wTab = ptNr weigths (double) to memSeg1
+  rb1->wTab = UME_reserve (memSeg1, sizeof(double) * rb1->ptNr);
+  if(!rb1->wTab) goto L_err1;
+  
+  rb1->wTab[0] = 1.;
+  rb1->wTab[1] = 6.59;
+  rb1->wTab[2] = 1.;
+  
+
+  //----------------------------------------------------------------
+  // add kvTab = ptNr+deg+1 knots (double) to memSeg1
+  rb1->kvTab = UME_reserve (memSeg1, sizeof(double) * (rb1->ptNr + rb1->deg + 1));
+  if(!rb1->kvTab) goto L_err1;
+  rb1->kvTab[0] = 0.;
+  rb1->kvTab[1] = 0.;
+  rb1->kvTab[2] = 0.;
+  rb1->kvTab[3] = 1.;
+  rb1->kvTab[4] = 1.;
+  rb1->kvTab[5] = 1.; 
+*/
+/*
+  //================================================================
+  // 90-deg:
+  rb1->ptNr = 3;
+  rb1->v0   = 0.;
+  rb1->v1   = 1.;
+  rb1->deg  = 2;
+  rb1->dir  = 0;   // fwd
+  rb1->clo  = 0;   // yes
+  rb1->trm  = 1;   // no
+  
+  r2h = SR_2 / 2.;
+
+  // vcx = vector pc -> p1
+  UT3D_vc_2pt (&vcx, &ci1->pc, &ci1->p1);
+    DEB_dump_obj__ (Typ_VC, &vcx, "vcx");
+
+  // vcy = normal to vcx and vz
+  UT3D_vc_perp2vc (&vcy, &ci1->vz, &vcx);
+    DEB_dump_obj__ (Typ_VC, &vcy, "vcy");
+  
+
+  //----------------------------------------------------------------
+  // add cpTab = ptNr Point-s to memSeg1
+  rb1->cpTab = UME_reserve (memSeg1, sizeof(Point) * rb1->ptNr);
+  if(!rb1->cpTab) goto L_err1;
+
+  // pt0 = startPt
+  pt0 = ci1->p1;
+
+  // pt1 = pt0 + vcy
+  UT3D_pt_traptvc (&pt1, &pt0, &vcy);
+
+  // pt2 = ptc - vcx
+  UT3D_pt_traptivc (&pt2, &pt1, &vcx);
+    
+  rb1->cpTab[0] = pt0;
+  rb1->cpTab[1] = pt1;
+  rb1->cpTab[2] = pt2; 
+
+
+  //----------------------------------------------------------------
+  // add wTab = ptNr weigths (double) to memSeg1
+  rb1->wTab = UME_reserve (memSeg1, sizeof(double) * rb1->ptNr);
+  if(!rb1->wTab) goto L_err1;
+
+  rb1->wTab[0] = 1.;
+  rb1->wTab[1] = r2h;
+  rb1->wTab[2] = 1.;
+
+
+  //----------------------------------------------------------------
+  // add kvTab = ptNr+deg+1 knots (double) to memSeg1
+  rb1->kvTab = UME_reserve (memSeg1, sizeof(double) * (rb1->ptNr + rb1->deg + 1));
+  if(!rb1->kvTab) goto L_err1;
+  rb1->kvTab[0] = 0.;
+  rb1->kvTab[1] = 0.;
+  rb1->kvTab[2] = 0.;
+  rb1->kvTab[3] = 1.;
+  rb1->kvTab[4] = 1.;
+  rb1->kvTab[5] = 1.;
+*/
+/*
+  //================================================================
+  // 180-deg:
+  rb1->ptNr = 4;
+  rb1->v0   = 0.;
+  rb1->v1   = 1.;
+  rb1->deg  = 2;
+  rb1->dir  = 0;   // fwd
+  rb1->clo  = 0;   // yes
+  rb1->trm  = 1;   // no
+
+  r2h = SR_2 / 2.;
+
+  // vcx = vector pc -> p1
+  UT3D_vc_2pt (&vcx, &ci1->pc, &ci1->p1);
+    DEB_dump_obj__ (Typ_VC, &vcx, "vcx");
+
+  // vcy = normal to vcx and vz
+  UT3D_vc_perp2vc (&vcy, &ci1->vz, &vcx);
+    DEB_dump_obj__ (Typ_VC, &vcy, "vcy");
+  
+
+  //----------------------------------------------------------------
+  // add cpTab = ptNr Point-s to memSeg1
+  rb1->cpTab = UME_reserve (memSeg1, sizeof(Point) * rb1->ptNr);
+  if(!rb1->cpTab) goto L_err1;
+
+  // pt0 = startPt
+  pt0 = ci1->p1;
+
+  // pt1 = pt0 + vcy
+  UT3D_pt_traptvc (&pt1, &pt0, &vcy);
+
+  // pt2 = pt1 + (-2 * vcx)
+  UT3D_pt_traptmultvc (&pt2, &pt1, &vcx, -2.);
+
+  // pt3 = ptc - vcx
+  UT3D_pt_traptivc (&pt3, &ci1->pc, &vcx);
+
+  rb1->cpTab[0] = pt0;
+  rb1->cpTab[1] = pt1;
+  rb1->cpTab[2] = pt2;
+  rb1->cpTab[3] = pt3;
+
+
+  //----------------------------------------------------------------
+  // add wTab = ptNr weigths (double) to memSeg1
+  rb1->wTab = UME_reserve (memSeg1, sizeof(double) * rb1->ptNr);
+  if(!rb1->wTab) goto L_err1;
+
+  rb1->wTab[0] = 1.;
+  rb1->wTab[1] = 0.5;
+  rb1->wTab[2] = 0.5;
+  rb1->wTab[3] = 1.;
+
+
+  //----------------------------------------------------------------
+  // add kvTab = ptNr+deg+1 knots (double) to memSeg1
+  rb1->kvTab = UME_reserve (memSeg1, sizeof(double) * (rb1->ptNr + rb1->deg + 1));
+  if(!rb1->kvTab) goto L_err1;
+  rb1->kvTab[0] = 0.;
+  rb1->kvTab[1] = 0.;
+  rb1->kvTab[2] = 0.;
+  rb1->kvTab[3] = 0.5;
+  rb1->kvTab[4] = 1.;
+  rb1->kvTab[5] = 1.;
+  rb1->kvTab[6] = 1.;
+*/
+
+  //================================================================
+  // 360-deg:
+  rb1->ptNr = 7;
+  rb1->v0   = 0.;
+  rb1->v1   = 1.;
+  rb1->deg  = 2;
+  rb1->dir  = 0;   // fwd
+  rb1->clo  = 0;   // yes
+  rb1->trm  = 1;   // no
+
+  // vcx = vector pc -> p1
+  UT3D_vc_2pt (&vcx, &ci1->pc, &ci1->p1);
+    DEB_dump_obj__ (Typ_VC, &vcx, "vcx");
+
+  // vcy = normal to vcx and vz
+  UT3D_vc_perp2vc (&vcy, &ci1->vz, &vcx);
+    DEB_dump_obj__ (Typ_VC, &vcy, "vcy");
+  
+
+  //----------------------------------------------------------------
+  // add cpTab = ptNr Point-s to memSeg1
+  rb1->cpTab = UME_reserve (memSeg1, sizeof(Point) * rb1->ptNr);
+  if(!rb1->cpTab) goto L_err1;
+
+  // pt0 = startPt
+  pt0 = ci1->p1;
+
+  // pt3 = ptc - vcx
+  UT3D_pt_traptivc (&pt3, &ci1->pc, &vcx);
+
+  // pt1 = pt0 + vcy
+  UT3D_pt_traptvc (&pt1, &pt0, &vcy);
+
+  // pt2 = pt3 + vcy
+  UT3D_pt_traptvc (&pt2, &pt3, &vcy);
+
+  // pt4 = pt3 - vcy
+  UT3D_pt_traptivc (&pt4, &pt3, &vcy);
+
+  // pt5 = pt0 - vcy
+  UT3D_pt_traptivc (&pt5, &pt0, &vcy);
+
+  rb1->cpTab[0] = pt0;
+  rb1->cpTab[1] = pt1;
+  rb1->cpTab[2] = pt2;
+  rb1->cpTab[3] = pt3;
+  rb1->cpTab[4] = pt4;
+  rb1->cpTab[5] = pt5;
+  rb1->cpTab[6] = pt0;
+
+
+  //----------------------------------------------------------------
+  // add wTab = ptNr weigths (double) to memSeg1
+  rb1->wTab = UME_reserve (memSeg1, sizeof(double) * rb1->ptNr);
+  if(!rb1->wTab) goto L_err1;
+
+  rb1->wTab[0] = 1.;
+  rb1->wTab[1] = 0.5;
+  rb1->wTab[2] = 0.5;
+  rb1->wTab[3] = 1.;
+  rb1->wTab[4] = 0.5;
+  rb1->wTab[5] = 0.5;
+  rb1->wTab[6] = 1.;
+
+
+  //----------------------------------------------------------------
+  // add kvTab = ptNr+deg+1 knots (double) to memSeg1
+  rb1->kvTab = UME_reserve (memSeg1, sizeof(double) * (rb1->ptNr + rb1->deg + 1));
+  if(!rb1->kvTab) goto L_err1;
+  rb1->kvTab[0] = 0.;
+  rb1->kvTab[1] = 0.;
+  rb1->kvTab[2] = 0.;
+  rb1->kvTab[3] = 0.25;
+  rb1->kvTab[4] = 0.5;
+  rb1->kvTab[5] = 0.5;
+  rb1->kvTab[6] = 0.75;
+  rb1->kvTab[7] = 1.;
+  rb1->kvTab[8] = 1.;
+  rb1->kvTab[9] = 1.;
+
+  
+  //----------------------------------------------------------------
+    DEB_dump_obj__ (Typ_CVRBSP, rb1, "ex-UT3D_rbsp_360");
+
+  return 0;
+
+
+  L_err1:
+    TX_Error("UT3D_rbsp_360: out of memspace");
+    return -1;
+
+}
+
+
+//================================================================
+// ../ut/ut_txt.c
+//================================================================
+  
+// #include "../ut/ut_umem.h"                     // Memspc
+
+
+//================================================================
+  int UTX_fwrite (char *txt, FILE *fp1) {
+//================================================================
+// UTX_fwrite              write string into bin.file (fread needs stringlength)
+
+  int      cNr;
+
+  cNr = strlen(txt) + 1;
+    // printf("UTX_fwrite |%s| %d\n",txt,cNr);
+
+  fwrite (&cNr, sizeof(int), 1, fp1);
+  fwrite (txt, sizeof(char), cNr, fp1);
+
+  return 0;
+
+}
+
+
+//================================================================
+  int UTX_fread (char *txt, int siz, FILE *fp1) {
+//================================================================
+// UTX_fread                  read string from bin.file (written by UTX_fwrite)
+// Input:
+//   siz        size of txt
+// Output:
+//   txt        characters read;
+//   retCode    nr of characters read, including terminator;
+
+
+  int     ii, cNr;
+
+
+  ii = fread(&cNr, sizeof(int), 1, fp1);
+  if(cNr >= siz) return MSG_ERR__ (ERR_EOM, "");
+
+  ii = fread(txt, sizeof(char), cNr, fp1);
+
+    // printf(" ex-UTX_fread %d |%s|\n",ii,txt);
+
+  return ii;
+
+}
 
 
 //================================================================
@@ -533,4 +889,451 @@ extern char *UTF_FilBuf0;
 }
 
 
+//================================================================
+// ../ut/ut_obj.c
+//================================================================
+
+
+//=====================================================================
+  int UTO_wrf_ogx (FILE *fp1, ObjGX *ox1) {
+//=====================================================================
+// UTO__wrf_ogx                    write binary complex-obj into file
+//   File must be open wb
+// Output:
+//   oo      startpos of obj read into memSpc
+//   memSpc  copy here
+//   retCod  0=OK; -1=out-of-mem
+
+  int   irc=0;
+
+
+  DEB_dump_obj__ (Typ_ObjGX, ox1, "----- UTO_wrf_ogx-in");
+
+  fwrite (ox1, sizeof(ObjGX), 1, fp1);
+
+  // skip obj with no pointers
+  if(ox1->form == Typ_Index) goto L_exit;    // Link
+  if(ox1->form == Typ_Int4)  goto L_exit;    // Typ_Color
+  if(ox1->form == Typ_Typ)   goto L_exit;    // Typ_Typ
+
+
+  // resolv obj 
+  irc = UTO_wrf_obj (fp1, ox1->form, ox1->data, ox1->siz);
+
+  L_exit:
+
+    return irc;
+
+}
+
+
+//================================================================
+  int UTO_wrf_obj (FILE *fp1, int form, void *obj, int oNr) {
+//================================================================
+// UTO_wrf_obj            write obj into file
+//   File must be open wb.
+// TODO: surfaces, bodies.
+// was UTO__wrf_obj UTO__rdf_obj UTO__wrf_ox UTO__rdf_ox
+// see also UTO_wrf_ogx OGX_ox_copy_obj
+
+
+  int    recSiz, recNr;
+  void   *p1;
+
+
+  printf("------------------ UTO_wrf_obj form=%d oNr=%d\n",form,oNr);
+  DEB_dump_obj__(form, obj, "UTO_wrf_obj-in");
+
+
+
+  //----------------------------------------------------------------
+  switch (form) {
+
+
+  //----------------------------------------------------------------
+  case Typ_VC:
+    recSiz = sizeof(Vector);
+    goto L_cpy_noPtr;
+
+  //----------------------------------------------------------------
+  case Typ_PT:
+    recSiz = sizeof(Point);
+    goto L_cpy_noPtr;
+
+  //----------------------------------------------------------------
+  case Typ_LN:
+    recSiz = sizeof(Line);
+    goto L_cpy_noPtr;
+
+  //----------------------------------------------------------------
+  case Typ_CI:
+    recSiz = sizeof(Circ);
+    goto L_cpy_noPtr;
+
+  //----------------------------------------------------------------
+  case Typ_CVELL:
+    recSiz = sizeof(CurvElli);
+    goto L_cpy_noPtr;
+
+  //----------------------------------------------------------------
+  case Typ_Model:
+    recSiz = sizeof(ModelRef);
+    goto L_cpy_noPtr;
+
+
+  //----------------------------------------------------------------
+  case Typ_CVPOL:
+    if(oNr != 1) goto L_errNr;
+    fwrite (obj, sizeof(CurvPoly), 1, fp1);
+    // copy cpTab
+    fwrite (((CurvPoly*)obj)->cpTab, sizeof(Point), ((CurvPoly*)obj)->ptNr, fp1);
+    // copy lvTab
+    fwrite (((CurvPoly*)obj)->lvTab, sizeof(double), ((CurvPoly*)obj)->ptNr, fp1);
+    break;
+
+  //-------------------------------------------------------
+  case Typ_CVBSP:   // see OGX_ox_copy_obj
+    if(oNr != 1) goto L_errNr;
+    fwrite (obj, sizeof(CurvBSpl), 1, fp1);
+    // copy cpTab
+    fwrite (((CurvPoly*)obj)->cpTab, sizeof(Point), ((CurvBSpl*)obj)->ptNr, fp1);
+    // copy kvTab
+    recNr = ((CurvBSpl*)obj)->ptNr + ((CurvBSpl*)obj)->deg + 1;
+    fwrite (((CurvBSpl*)obj)->kvTab, sizeof(double), recNr, fp1);
+    break;
+
+  //----------------------------------------------------------------
+  case Typ_CVRBSP:
+    if(oNr != 1) goto L_errNr;
+    fwrite (obj, sizeof(CurvRBSpl), 1, fp1);
+    // copy cpTab
+    fwrite (((CurvRBSpl*)obj)->cpTab, sizeof(Point), ((CurvRBSpl*)obj)->ptNr, fp1);
+    // copy kvTab
+    recNr = ((CurvRBSpl*)obj)->ptNr + ((CurvRBSpl*)obj)->deg + 1;
+    fwrite (((CurvRBSpl*)obj)->kvTab, sizeof(double), recNr, fp1);
+    // copy wTab
+    fwrite (((CurvRBSpl*)obj)->wTab, sizeof(double), ((CurvRBSpl*)obj)->ptNr, fp1);
+    break;
+
+  //----------------------------------------------------------------
+  case Typ_CVBEZ:
+    if(oNr != 1) goto L_errNr;
+    fwrite (obj, sizeof(CurvBez), 1, fp1);
+    // copy cpTab
+    fwrite (((CurvBez*)obj)->cptab, sizeof(Point), ((CurvBez*)obj)->ptNr, fp1);
+    break;
+
+
+  //----------------------------------------------------------------
+  case Typ_CVRBEZ:
+    if(oNr != 1) goto L_errNr;
+    fwrite (obj, sizeof(CurvRBez), 1, fp1);
+    // copy cpTab
+    fwrite (((CurvRBez*)obj)->cptab, sizeof(Point), ((CurvRBez*)obj)->ptNr, fp1);
+    // copy wTab
+    fwrite (((CurvRBez*)obj)->wtab, sizeof(double), ((CurvRBez*)obj)->ptNr, fp1);
+    break;
+
+  //----------------------------------------------------------------
+  case Typ_Refsys:
+    if(oNr != 1) goto L_errNr;
+    fwrite (obj, sizeof(Refsys), 1, fp1);
+    // copy pln
+    fwrite (((Refsys*)obj)->pln, sizeof(Plane), 1, fp1);
+    break;
+
+  //-------------------------------------------------------
+  case Typ_GTXT:                          // write grafTex
+    if(oNr != 1) goto L_errNr;
+    fwrite (obj, sizeof(GText), 1, fp1);
+    // copy txt
+    UTX_fwrite (((GText*)obj)->txt, fp1);
+    break;
+
+  //----------------------------------------------------------------
+  case Typ_ATXT:
+    if(oNr != 1) goto L_errNr;
+    fwrite (obj, sizeof(AText), 1, fp1);
+    // copy txt
+    UTX_fwrite (((AText*)obj)->txt, fp1);
+    break;
+
+  //----------------------------------------------------------------
+  case Typ_SubModel:                    // write basic model
+    if(oNr != 1) goto L_errNr;
+    fwrite (obj, sizeof(ModelBas), 1, fp1);
+    // copy txt
+    UTX_fwrite (((ModelBas*)obj)->mnam, fp1);
+    break;
+
+  //----------------------------------------------------------------
+  case Typ_ObjGX:
+    if(oNr != 1) goto L_errNr;
+    UTO_wrf_ogx (fp1, (ObjGX*)obj);
+    break;
+
+  //----------------------------------------------------------------
+  default:
+    TX_Error("UTO_wrf_obj E002 - unsupported struct %d\n",form);
+    goto L_err_ex;
+  }
+
+  goto L_exit;
+
+
+  //----------------------------------------------------------------
+  L_cpy_noPtr:
+    // write struct with no pointers
+    fwrite (obj, recSiz, oNr, fp1);
+
+
+  //================================================================
+  L_exit:
+
+    // TESTBLOCK
+    // printf("ex-UTO_wrf_obj\n");
+    // END TESTBLOCK
+
+  return 0;
+
+
+  //================================================================
+  L_errM:
+    TX_Error("UTO_wrf E001 - EOM\n");
+    goto L_err_ex;
+
+  L_errNr:
+    TX_Error("UTO_wrf E002 - mult.objs not supp.\n");
+
+  L_err_ex:
+    return -1;
+
+}
+
+
+//=====================================================================
+  int UTO_rdf_ogx (void **oo, Memspc *memSpc, FILE *fp1) {
+//=====================================================================
+// UTO__rdf_ogx                    read binary complex-obj from file
+//   File must be open rb
+// Output:
+//   oo      startpos of obj read into memSpc
+//   memSpc  copy here
+//   retCod  0=OK; -1=out-of-mem
+
+
+  int     irc, ii;
+
+  // reserve space
+  *oo = UME_reserve (memSpc, sizeof(ObjGX));
+  if(*oo == NULL) MSG_ERR__ (ERR_EOM, "E1");
+
+  // read primary obj
+  ii = fread(*oo, sizeof(ObjGX), 1, fp1);
+  if(ii != 1) {TX_Error("UTO_rdf_ogx E1"); return -1;}
+    printf(" UTO_rdf_ogx- typ=%d form=%d siz=%d\n",
+           ((ObjGX*)*oo)->typ,((ObjGX*)*oo)->form,((ObjGX*)*oo)->siz);
+
+
+  // skip obj with no pointers
+  if(((ObjGX*)*oo)->form == Typ_Index) goto L_exit;
+  if(((ObjGX*)*oo)->form == Typ_Int4) goto L_exit;
+  if(((ObjGX*)*oo)->form == Typ_Typ) goto L_exit;
+
+
+  // get obj to data
+  irc = UTO_rdf_obj (&((ObjGX*)*oo)->data, memSpc,
+                     ((ObjGX*)*oo)->form, ((ObjGX*)*oo)->siz, fp1);
+
+
+  L_exit:
+    DEB_dump_obj__ (((ObjGX*)*oo)->form, ((ObjGX*)*oo)->data, "  rdf_ogx-4");
+    DEB_dump_obj__ (Typ_ObjGX, *oo, "  rdf_ogx-5");
+    
+  return irc;
+
+}
+
+
+//=====================================================================
+  int UTO_rdf_obj (void **oo, Memspc *memSpc,
+                    int recTyp, int recNr, FILE *fp1) {
+//=====================================================================
+// UTO__rdf_obj                    read binary obj from file
+//   File must be open rb
+// Output:
+//   oo      startpos of obj read into memSpc
+//   memSpc  copy here
+//   retCod  >0 = objTyp in oo; 
+//           <=0 = Error;
+
+
+  int    irc, ii, osiz, recSiz;
+  long   l1;
+  char   tmpSpc[4096];
+
+
+  printf("UTO__rdf_obj recTyp=%d recNr=%d\n",recTyp,recNr);
+
+  recSiz = UTO_siz_stru (recTyp);  // form;
+  if(recSiz <= 0) return -1;
+    // printf("  rdf_obj recSiz=%d\n",recSiz);
+
+  osiz = recNr * recSiz;
+
+  // reserve space
+  *oo = UME_reserve (memSpc, osiz);
+  if(*oo == NULL) MSG_ERR__ (ERR_EOM, "E1");
+
+  // read primary obj
+  ii = fread(*oo, recSiz, recNr, fp1);
+  if(ii != recNr) {TX_Error("UTO__rdf_obj E2"); return -1;}
+
+
+
+  //----------------------------------------------------------------
+  switch (recTyp) {
+
+    case Typ_VC:
+    case Typ_PT:
+    case Typ_LN:
+    case Typ_CI:
+    case Typ_CVELL:
+    case Typ_CVCLOT:
+    case Typ_CVTRM:
+    case Typ_Val:
+    case Typ_Model:
+      break;  // no pointers;
+
+
+  //----------------------------------------------------------------
+  case Typ_CVPOL:
+    if(recNr != 1) goto L_errNr;
+    // get cpTab
+    irc = UTO_rdf_obj ((void**)&(((CurvPoly*)*oo)->cpTab), memSpc,
+                       Typ_PT, ((CurvPoly*)*oo)->ptNr, fp1);
+    if(irc < 0) return irc;
+    // copy lvTab
+    irc = UTO_rdf_obj ((void**)&(((CurvPoly*)*oo)->lvTab), memSpc,
+                       Typ_Val, ((CurvPoly*)*oo)->ptNr, fp1);
+    if(irc < 0) return irc;
+    break;
+
+
+  //----------------------------------------------------------------
+  case Typ_CVBSP:
+    if(recNr != 1) goto L_errNr;
+    // get cpTab
+    irc = UTO_rdf_obj ((void**)&(((CurvBSpl*)*oo)->cpTab), memSpc,
+                       Typ_PT, ((CurvBSpl*)*oo)->ptNr, fp1);
+    if(irc < 0) return irc;
+    // copy kvTab
+    ii = ((CurvBSpl*)*oo)->ptNr + ((CurvBSpl*)*oo)->deg + 1;
+    irc = UTO_rdf_obj ((void**)&(((CurvBSpl*)*oo)->kvTab), memSpc,
+                       Typ_Val, ii, fp1);
+    if(irc < 0) return irc;
+    break;
+
+
+  //----------------------------------------------------------------
+  case Typ_CVRBSP:
+    if(recNr != 1) goto L_errNr;
+    // get cpTab
+    irc = UTO_rdf_obj ((void**)&(((CurvRBSpl*)*oo)->cpTab), memSpc,
+                       Typ_PT, ((CurvRBSpl*)*oo)->ptNr, fp1);
+    if(irc < 0) return irc;
+    // copy kvTab
+    ii = ((CurvBSpl*)*oo)->ptNr + ((CurvRBSpl*)*oo)->deg + 1;
+    irc = UTO_rdf_obj ((void**)&(((CurvRBSpl*)*oo)->kvTab), memSpc,
+                       Typ_Val, ii, fp1);
+    if(irc < 0) return irc;
+    // copy wTab
+    irc = UTO_rdf_obj ((void**)&(((CurvRBSpl*)*oo)->wTab), memSpc,
+                       Typ_Val, ((CurvRBSpl*)*oo)->ptNr, fp1);
+    if(irc < 0) return irc;
+    break;
+
+
+  //----------------------------------------------------------------
+  case Typ_CVBEZ:
+    if(recNr != 1) goto L_errNr;
+    // get cpTab
+    irc = UTO_rdf_obj ((void**)&(((CurvBez*)*oo)->cptab), memSpc,
+                       Typ_PT, ((CurvBez*)*oo)->ptNr, fp1);
+    if(irc < 0) return irc;
+    break;
+
+
+  //----------------------------------------------------------------
+  case Typ_CVRBEZ:
+    if(recNr != 1) goto L_errNr;
+    // get cpTab
+    irc = UTO_rdf_obj ((void**)&(((CurvRBez*)*oo)->cptab), memSpc,
+                       Typ_PT, ((CurvRBez*)*oo)->ptNr, fp1);
+    if(irc < 0) return irc;
+    // copy wTab
+    irc = UTO_rdf_obj ((void**)&(((CurvRBez*)*oo)->wtab), memSpc,
+                       Typ_Val, ((CurvRBez*)*oo)->ptNr, fp1);
+    if(irc < 0) return irc;
+    break;
+
+
+  //----------------------------------------------------------------
+  case Typ_Refsys:
+    if(recNr != 1) goto L_errNr;
+    // copy pln
+    irc = UTO_rdf_obj ((void**)&(((Refsys*)*oo)->pln), memSpc,
+                       Typ_PLN, 1, fp1);
+    if(irc < 0) return irc;
+    break;
+
+
+  //----------------------------------------------------------------
+  case Typ_GTXT:                     // read grafTex
+    if(recNr != 1) goto L_errNr;
+      // DEB_dump_obj__ (Typ_GTXT, (GText*)*oo, "tmpSpc-1");
+    // copy txt
+    ii = UTX_fread (tmpSpc, sizeof(tmpSpc), fp1);
+    ((GText*)*oo)->txt = UME__copy (memSpc, NULL, tmpSpc, ii);
+    break;
+
+
+  //----------------------------------------------------------------
+  case Typ_ATXT:
+    if(recNr != 1) goto L_errNr;
+    // copy txt
+    ii = UTX_fread (tmpSpc, sizeof(tmpSpc), fp1);
+    ((AText*)*oo)->txt = UME__copy (memSpc, &l1, tmpSpc, ii);
+    break;
+
+
+  //----------------------------------------------------------------
+  case Typ_SubModel:                    // read basic model
+    if(recNr != 1) goto L_errNr;
+    // copy txt
+    ii = UTX_fread (tmpSpc, sizeof(ModelBas), fp1);
+    ((ModelBas*)*oo)->mnam = UME__copy (memSpc, &l1, tmpSpc, ii);
+    break;
+
+
+  //----------------------------------------------------------------
+  default:
+    TX_Error("UTO_rdf_obj - unsupported struct %d\n",recTyp);
+    return -1;
+  }
+
+
+  return recTyp;
+
+ 
+  //----------------------------------------------------------------
+  L_errNr:
+    TX_Error("UTO_rdf_obj - mult.objs not supp. for %d\n",recTyp);
+    return -2;
+
+}
+
+
+
+ 
 // EOF

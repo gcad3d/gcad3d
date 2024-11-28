@@ -11,7 +11,8 @@ SRC1 =\
  ../APP/tst.c\
  ../APP/tst1.c\
  ../APP/tst2.c\
- ../APP/tst_exp.c
+ ../APP/tst_exp.c\
+ ../APP/UPDATE.c
 
 
 # ../APP/tst_mdl__.c              // ../xa/mdl__.c

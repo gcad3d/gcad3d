@@ -187,7 +187,7 @@ int tess_analyz_CB (ObjGX*);
   FILE *fp=NULL;
 
 
-  // printf("tess_write__ |%s|\n",fnam);
+  printf("tess_write__ |%s|\n",fnam);
 
 //   sprintf(cBuf, "%s%s.tess",AP_get_tmp_dir(),fnam);
 //     // printf("    _write_ |%s|\n",cBuf);

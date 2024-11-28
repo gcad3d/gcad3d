@@ -1,0 +1,12 @@
+/mnt/serv2/devel/cadfiles/gcad/
+de
+firefox  // act. html-browser
+lpr -PKyocera-FS-1920  // act. printCommand
+sample_catalog1  // act. Modelname
+gcad  // act. Filetype
+/mnt/serv2/devel/gcad3d/gCAD3D/prg/   // Dir for programs
+PRC process_procDemo2   // active application
+gedit   // Texteditor
+-1342,-1166   // size of application-window
+500.000000   // Modelsize
+dir.lst   // SymbolDirFile

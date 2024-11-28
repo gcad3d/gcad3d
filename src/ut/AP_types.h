@@ -9,6 +9,14 @@
 
 
 -------------------------------------------
+TODO:
+- Typ_VC2 after Typ_VC;
+- Typ_VC3F after Typ_VC;
+- Typ_PT2 after Typ_PT;
+- Typ_LN starts Typ_LFIG (linear figure) ((typ >= Typ_LN)&&(typ < Typ_PLN))
+
+
+-------------------------------------------
 Korr:
 2013-08-24  extracted from ut_geo.h. RF.
 
@@ -475,6 +483,9 @@ void INF_OTYP (){}
 #define TimeStamp  float
 // typedef float TimeStamp;
 #endif
+
+#define CLOSED_YES         0
+#define CLOSED_NO          1
 
 
 #define OBJSTAT_undef     -1

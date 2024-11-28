@@ -29,7 +29,8 @@ HOWTO ADD new tags:
 HOWTO ADD new tagfile:
 - add in ../inf/<newTagfileName>.c
 
-
+FIND word in helpfiles:
+  ifind <word>
 
 -------------------------------------------
 TODO:
@@ -618,6 +619,8 @@ INF_ato__       atomic-objects ato
 INF_DBO__       DB-obj DB-type & DB-index (int, long) dbo
 INF_dlo__       dispList-object    dlo
 
+Functions:
+AP_typDB_typ        get DB-typ from struct-typ
 
 
 ================================================================== \endcode */}
@@ -1043,6 +1046,7 @@ UT3D_pta_bsp
 
 
 Files:
+../ut/ubscrv.c             UCBS - B-Spline-Curve-functions
 ../ut/ut_bspl.c	           B-Spline-Curve-Utilityfunctions 
 ../ut/ut_bsp_approx.c	     Approximation Polygon -> B-Spline 
 ../ut/cirMoeb.c	           Curves (bsplines, conic sections, etc.) 
@@ -2056,6 +2060,7 @@ IE_txt2par1        get next parameter(s) from atomicObjects IF USEFUL
 sele_src_cnvt__    test if component of obj is useful
 IE_inpTxtOut
 
+UI_GR_Sel_Filt_set        select for special-function;
 
 UNUSED:
   sele_decode     converts the selected obj into a requested obj
@@ -2064,7 +2069,7 @@ UNUSED:
 VARIABLES:
 static Point  GR_selPos_vtx;     // last sel. vertex in WCS
 static Point  GR_selPos_CP;      // curPos last sel. on constPlane in WCS
-
+	int  GR_Sel_Filter             select for special-function; see UI_GR_Sel_Filt_set();
 
 
 

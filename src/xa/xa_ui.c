@@ -5443,7 +5443,9 @@ return 0;
   int UI_ToolBars (int inr, int mode) {
 //=====================================================================
 // Toolbars ein/ausschalten.
-// 0 = OFF; 1=ON.
+// Input:
+//   inr      1=main-toolbar (above); 2=message-toolbar (bottom)
+//   mode     0 = OFF; 1=ON.
 
   if(inr == 1) {
     GUI_menu_checkbox_set (&ckb_Bar1, mode);

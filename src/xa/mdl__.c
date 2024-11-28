@@ -5207,6 +5207,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
 
     // load dll, exec "gCad_main"
     return AP_kex_exec (&dll_imp, dllnam, "gCad_main", data, DLL_LOAD_EXEC);
+    // return AP_kex_exec (&dll_imp, dllnam, "gCad_main", data, DLL_LOAD_EXEC_UNLOAD);
 
 }
 
@@ -5370,7 +5371,7 @@ return MSG_ERR__ (ERR_TEST, "MDL_load_mNam__ TODO2");
     // get ImportTyp; nativ oder Mockup. (user-checkBox)
     if(AP_impTyp_get()) { irc = -4; goto L_exit;}
     // create native file - not tess-data.
-    UTO_rec_set (&oTab[0], Typ_ObjGX,  Typ_ObjGX,  3, &oTab[1]);
+    UTO_rec_set (&oTab[0], Typ_ObjGX,  Typ_ObjGX,  2, &oTab[1]);
     UTO_rec_set (&oTab[1], Typ_Int4,   Typ_Int4,   1, PTR_INT(0));  // mode
     UTO_rec_set (&oTab[2], Typ_Txt,    Typ_Txt,    1, fNam);
     // UTO_rec_set (&oTab[3], Typ_Memspc, Typ_Memspc, 1, &impSpc);     // unused

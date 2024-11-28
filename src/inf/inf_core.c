@@ -94,7 +94,7 @@ AP_stat.APP_stat     1=active;
 
 
 Doc:
-../../doc/html/Plugin_en.htm                        <<<< update- include HERE
+../../doc/html/dev_doc_en.htm                        <<<< update- include HERE
 ../../doc/gcad_doxygen/Userinteractions.dox
 ../../doc/gcad_doxygen/Objects-Create.dox
 ../../doc/gcad_doxygen/Objects-Resolve.dox

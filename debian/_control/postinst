@@ -18,11 +18,11 @@ echo "gcad_dir_bin: $gcad_dir_bin"
 #  echo "gtk3-libs: $libInf"
 #  ln -fs ${gcad_dir_bin}/xa_gui_gtk3.so ${gcad_dir_bin}/xa_gui.so
 #fi
-libInf=`ldconfig -p | grep "libgtk-x11-2"`
-if [ ! -z "$libInf" ]; then
-  echo "gtk2-libs: $libInf"
-  ln -fs ${gcad_dir_bin}/xa_gui_gtk2.so ${gcad_dir_bin}/xa_gui.so
-fi
+#libInf=`ldconfig -p | grep "libgtk-x11-2"`
+#if [ ! -z "$libInf" ]; then
+#  echo "gtk2-libs: $libInf"
+#  ln -fs ${gcad_dir_bin}/xa_gui_gtk2.so ${gcad_dir_bin}/xa_gui.so
+#fi
 
 
 

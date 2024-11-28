@@ -293,6 +293,8 @@ GR_perm_pt
 ================================================================== \endcode */}
 void INF_GL_disp_curve (){        /*! \code
 
+- see also DL_InitAttRec (define new attribute)
+
 - set color, stipple, thickness
 
 - MAN command ATTL

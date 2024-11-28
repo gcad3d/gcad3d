@@ -1,0 +1,51 @@
+FileFormatDescriptions_en.txt
+
+All temporary files are in ~/gCAD3D/tmp/.
+
+  Model*, *.tess, *.write, *.ptab, *.msh, *.dlg, *.bmp
+
+
+Structure_Modelfile
+
+
+
+
+=================================================================
+Structure_Modelfile
+=================================================================
+Modelfile keeps all geometric objects as ascii-text.
+Sequence is:
+- subModels
+- mainModel
+
+All subModels start with:
+SECTION <sectionTyp> <parameter>
+- end with
+SECTIONEND
+
+Types of subModels:
+  - Models             SECTION MODEL <modelname>
+  - Meshes             SECTION MESH  <ModelNr> <ObjID>
+  - Pointtables        SECTION PTAB  <ModelNr> <ObjID>
+
+
+SECTION MESH  <ModelNr><ObjID>
+<nr of faces>
+<faces (3 indices for one face per line)>
+SECTIONEND
+
+
+SECTION PTAB <ModelNr><ObjID>
+<nr of points>
+<pointCoords, one point per line>
+SECTIONEND
+
+
+SECTION MODEL <modelname>
+- Dynamic-Datazone (settings standards, ens with: ":DYNAMIC_DATA")
+- Objekts
+SECTIONEND
+
+
+
+// EOF

@@ -1,0 +1,12 @@
+# Setupparameters for gCAD.
+#  Delimiter is ' ';     '#' starts commentline.
+ZBUFSIZ        24        Z-Buffersize; 16 24 28 30 makes best surface-edges;
+#                        0=automatic detection.
+MODELSIZ       500       Affects tolerances !!
+# Standards / Text: (Activate with "Reset")
+NTEXTSIZ       3.5       Textsize for Notes without size.
+DIMTEXTSIZ     2.5       Textsize for Dimension-text.
+GTEXTSIZ       1.0       General Textscalefactor (mm / inch ?)
+DNTEXT         2         DigitNumbers Text 
+TEXTURE_ON     1         0=do not display textures; 1=display textures.
+############## EOF #########################

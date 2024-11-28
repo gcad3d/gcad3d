@@ -13,16 +13,20 @@
 #if [ $? -ne 0 ]; then exit 1; fi
 
 
-# get version
-export gcad_version=`cat ../gcad_version`
+# get version and subversion
+s1=`cat ../gcad_version`
+export gcad_version=`echo ${s1} | cut -d- -f1`
+export gcad_subversion=`echo ${s1} | cut -d- -f2`
+
 echo "gcad_version = ${gcad_version}"
+echo "gcad_subversion = ${gcad_subversion}"
 
 #================================================================
 # set gcad_dir_dev - only used for recompile plugin while main is active ..
 export gcad_dir_dev="${PWD}/"
 
 #================================================================
-# gcad_dir_bin = home of all executables, shared-overlays, ..
+# set gcad_dir_bin = home of all executables, shared-overlays, ..
 
 #i1=`expr $ii + 8`
 #export gcad_dir_bin=`expr substr ${gcad_dir_dev} 1 $i1`bin_${HTYP}/
@@ -44,6 +48,7 @@ export LD_LIBRARY_PATH=${gcad_dir_bin}
 ii=`expr length ${gcad_dir_dev}`
 i1=`expr $ii - 8`
 export gcad_dir_bas=`expr substr ${gcad_dir_dev} 1 $i1`
+export gcad_dir_doc=${gcad_dir_bas}doc/
 
 
 #================================================================
@@ -63,10 +68,10 @@ fi
 echo gcad_dir_dev = "${gcad_dir_dev}"
 echo gcad_dir_bin = "${gcad_dir_bin}"
 echo gcad_dir_bas = "${gcad_dir_bas}"
+echo gcad_dir_doc = "${gcad_dir_doc}"
 echo gcad_dir_local = "${gcad_dir_local}"
 echo DEB     = `cat ./gcad_deb_${OSTYP}`
 echo VGUI    = `cat ./gcad_gui_version_${OSTYP}`
-
 
 # create gcad_dir_bin
 if ! test -d "${gcad_dir_bin}"; then

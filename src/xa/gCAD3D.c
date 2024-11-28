@@ -441,7 +441,9 @@ static int     lngNr;
   // UI_AP (UI_FuncInit, UID_WinMain, NULL);
 
   // Init und display Windows
+  printf("main-b.UI_win_main \n");
   UI_win_main (&win0, GUI_SETDAT_EI(TYP_EventPress,UI_FuncInit));
+  printf("main-f.UI_win_main \n");
   // starts Grafic-window GUI_gl__ UI_GL_draw__ ..
 
 
@@ -472,6 +474,7 @@ static int     lngNr;
   // GUI: GTK<version> - <subversion>
   GUI_get_version (txbuf2, &i1, &i2);
   TX_Print("%s     GUI: %s%d.%d", txbuf1, txbuf2, i1, i2);
+  printf("main-GUI: %s %s %d.%d", txbuf1, txbuf2, i1, i2);
 
 
   // strcat(txbuf1, " - Host ");
@@ -767,7 +770,7 @@ static int     lngNr;
     strcpy(s1, AP_bas_dir);
   }
 
-  strcat(s1, "doc");
+  // strcat(s1, "doc");       2024-11-24
   UTX_fdir_add_del (s1);   // add closing "/" or "\\"
 
   if(!OS_checkFilExist(s1, 1)) {
@@ -926,11 +929,12 @@ static int     lngNr;
   ii = strlen (cbuf1);
     // printf(" _scan_- %d |%s|\n",ii,cbuf1);
 // 
+  lNr = 0;
   iNr = 0;
   OS_dir_scan_ (cbuf1, &iNr);   // Init
     // printf(" _scan_%d |%s|\n",ii,cbuf1);
 
-  lNr = 0;
+  iNr = 0;                                                  // 2024-11-25
   for(;;)  {
     OS_dir_scan_ (cbuf1, &iNr);
       // printf(" _scan_%d |%s|\n",iNr,cbuf1);

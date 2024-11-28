@@ -3358,6 +3358,10 @@ remote control nur in VWR, nicht MAN, CAD;
   int AP_tmr_init () {
 //================================================================
 // start timer for remote control
+// TODO:
+//  during long operations (open/save/workLine) stop/continue remote-control-timer
+
+
 
   printf("AP_tmr_init ............ \n");
 

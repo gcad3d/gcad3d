@@ -823,7 +823,7 @@ UT3D_npt_ci                circular polygon
 // Output:
 //   mtpa         polygon from bin-obj
 //   mtpn         nr of points of obj; CCV has one records per segment; can be NULL;
-//   mtsr         sense of rot of curve as indicated in DB; 0=fwd; 1=bwd;
+//   mtsr         sense of rot of curve as indicated in DB; 0=fwd; 1=bwd; can be NULL;
 // RetCod:  0=OK; -1=Error; -2=pTab_overflow;
 //
 // replaces UT3D_npt_obj

@@ -178,7 +178,7 @@ extern long   GR_selDbi;
   DEB_dump_obj__ (oTyp, obj, "obj-data - nr = %d",oNr);
 
 
-  if((GR_selTyp >= Typ_LN)&&(GR_selTyp < Typ_PLN)) {
+  if((GR_selTyp >= Typ_LN)&&(GR_selTyp < Typ_PLN)) {         // see TYP_IS_LFIG
     // linear figure: get selected parameter on curve
     UT3D_par_pt__pt_prj_cv (&uPar, &pt2, 1, 2, &pt1, oTyp, obj, UT_DISP_cv);
     printf(" uPar = %f\n",uPar);

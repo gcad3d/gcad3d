@@ -76,6 +76,16 @@ Build-gCAD3D
 # for unix and MS-Msys -
 # Gcad3d Installation from git-repository:
 
+# install git
+
+sudo apt install git
+git --version
+git config --global user.name "Your Name"
+git config --global user.email "youremail@domain.com"
+git config --global core.editor "vim"
+git config --list
+
+
 # start Terminal (Linux: eg gnome-terminal; Win/MSYS: icon urct64.exe)
 cd
 mkdir devel

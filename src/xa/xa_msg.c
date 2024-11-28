@@ -986,16 +986,16 @@ char *MSG_ERR_tab[]={
 //================================================================
   char* MSG_const__ (int iMsg) {
 //================================================================
-/// \code
-/// MSG_const__     get const-message from nr
-///
-/// message-constants: see file msg_const_de.txt
-/// p1 = MSG_const__ (MSG_ok);         // 0=first message = yes
-///   iMsg - eg MSG_ok - see xa_msg.h
-/// Add new constants:    see INF_MSGconst_new
-///   add ID in xa_msg.h;
-///   add msg in msg_const_de.txt (and all others, msg_const_en.txt ..)
-/// \endcode
+// MSG_const__     get const-message from nr
+//
+// message-constants: see file msg_const_de.txt
+// p1 = MSG_const__ (MSG_ok);         // 0=first message = yes
+//   iMsg - eg MSG_ok - see xa_msg.h
+// Add new constants:    see INF_MSGconst_new
+//   add ID in xa_msg.h;
+//   add msg in msg_const_de.txt (and all others, msg_const_en.txt ..)
+
+  static char errMsg[128];
 
   int    i1;
   char   *cp1, *cp2;
@@ -1004,7 +1004,7 @@ char *MSG_ERR_tab[]={
   // printf("MSG_const__ %d\n",iMsg);
 
   // if(!MSG_tab) {TX_Error("MSG_const__ E000"); return NULL;}
-  if(!MSG_tab) {printf("MSG_const__ E000-%d\n",iMsg); return NULL;}
+  if(!MSG_tab) { i1 = 1; goto L_err; }
 
   i1  = -1;
   cp1 = MSG_tab;
@@ -1012,7 +1012,7 @@ char *MSG_ERR_tab[]={
   L_nxt:
     if(*cp1 != '#') ++i1;
     cp2 = strchr(cp1, '\0');
-    if(cp2 == NULL) return NULL;
+    if(cp2 == NULL) { i1 = 2; goto L_err; }
 
     if(i1 == iMsg) {
         // printf("ex MSG_const__ |%s|\n",cp1);
@@ -1022,8 +1022,14 @@ char *MSG_ERR_tab[]={
     cp1 = cp2 + 1;
     goto L_nxt;
 
-    // printf("ex MSG_const__ |NULL|\n");
-  return NULL;
+
+  i1 = 3;
+
+  L_err:
+    sprintf(errMsg,"*** ERR MSG_const__ %d %d",i1,iMsg);
+    printf("**** %s\n",errMsg);
+
+    return errMsg;
 
 }
 

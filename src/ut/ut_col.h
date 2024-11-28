@@ -32,6 +32,10 @@ ColRGB* COL_DL_ATT (DL_Att *dla);
 void COL_ISTYL (ColRGB* col, int styl);
 #define COL_ISTYL(col,styl) ((*(col)).vsym = (styl))
 
+// COL_TRANSP       set transparency; 0=not, 1=25% transparent, 2=50%, 3=75%
+void COL_TRANSP (ColRGB* col, int transp);
+#define COL_TRANSP(col,transp) ((*(col)).vtra = (transp))
+
 
 int UTcol__3i (ColRGB *col1, int cr, int cg, int cb);
 int UTcol__3db (ColRGB *col1, double d1, double d2, double d3);

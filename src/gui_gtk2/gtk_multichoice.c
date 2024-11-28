@@ -591,10 +591,10 @@ extern GtkStyle  *UI_stylTab[];      // 0=default; 1=red; 2=blue
 // 11 = GDK_LEAVE_NOTIFY
 // 15 = GDK_UNMAP
 
-  int  typ, i1;
+  int  typ, i1=0;
 
 
-  // printf("GUI_popup_cb2 ev=%d\n",((GdkEventAny*)event)->type);
+  printf("GUI_popup_cb2 ev=%d\n",((GdkEventAny*)event)->type);
                   
   typ  = ((GdkEventAny*)event)->type;
   

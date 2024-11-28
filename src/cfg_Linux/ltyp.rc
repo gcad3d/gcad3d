@@ -1,0 +1,22 @@
+  0 000  0  1      // Normal               Typ_Att_def
+  1 116  0  2      // text blue            Typ_Att_blue
+  2 000  2  1      // dashed               Typ_Att_dash__
+  3 000  1  1      // dash-dot             Typ_Att_dash_dot
+  4 755  0  1      // faces1 thick1        Typ_Att_Fac
+  5 116  3  2      // faces2 thick1        Typ_Att_dash_long
+  6 555  0  1      // faces3 thick1        Typ_Att_Fac2
+  7 990  0  3      // yellow thick3        Typ_Att_Symb
+  8 090  0  3      // green  thick3        Typ_Att_hili
+  9 822  0  4      // hilite thick4        Typ_Att_hili1
+ 10 447  0  1      // dimmed thick4        Typ_Att_dim
+ 11 000  0  4      // black  thick4        Typ_Att_top1
+ 12 990  2  6      // yellow dash thick6   Typ_Att_top2
+#
+# Format: indexNr colour lineTyp lineThick // comment
+#
+#   colour     3 digits; red, green, blue.
+#              900 = red,   090 = green, 009 = blue;
+#              000 = black; 999 = white, 990 = yellow ..
+#   lineTyp:   0 = full-line (VollLinie);    1 = dash-dot (Strich-Punkt),
+#              2 = dashed (kurz strichliert) 3 = dashed-long (lang strichliert),
+#   lineThick: 1-6, thickness in pixels

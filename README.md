@@ -1,4 +1,4 @@
-# gCAD3D   2.60.06 / 2024-06-26
+# gCAD3D   2.60.06-2 / 2024-11-28
 
 ![](https://www.gcad3d.org/Renault2.png)
 
@@ -66,7 +66,7 @@
 ---
 ## This version
 
-  V2.60.04 - see [logfile](https://www.gcad3d.org/gCAD3D_log.txt)
+  V2.60.06-2 - see [logfile](https://www.gcad3d.org/gCAD3D_log.txt)
 
 ---
 ## Installation
@@ -92,7 +92,7 @@
 ---
 ## Todo:
 
- - see [Todo](https://www.gcad3d.org/Todo.htm)
+ - see [Todo](https://www.gcad3d.org/doc/TODO/Todo.htm)
 
 ---
 // EOF

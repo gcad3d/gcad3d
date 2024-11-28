@@ -70,6 +70,7 @@ UP: INF_permanent_attributes
 - struct ColRGB type is Typ_Color
 - source ../ut/ut_col.c and ../ut/ut_col.h
 - ColRGB is used as INT32 for GL-functions (COL_INT32 / INT32P_COL)
+  - see INF_COL_CV
 
 
 ================================================================== \endcode */}

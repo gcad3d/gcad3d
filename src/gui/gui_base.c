@@ -59,7 +59,7 @@ void GUI(){}
 GUI_DATA_EVENT           *(int*)data[0]        callbackEventType
 GUI_DATA_I1              *(int*)data[1]
 GUI_DATA_D1              *(double*)data[1]
-GUI_DATA_S1              (char*)data[1]
+GUI_DATA_S1              (char*)data[1]        make (event,*txt) -> [event,**txt];
 GUI_DATA_PTR_I1          (int*)(data[1])       a pointer to integer 1
 
 GUI_OBJ_TYP(*mo)         returns widgetType  

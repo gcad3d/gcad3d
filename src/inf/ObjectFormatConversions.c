@@ -42,6 +42,8 @@ AP_typChar_typ           make typChar from typ (Typ_PT -> 'P')
 AP_typDB_typ             give basictyp from typ (eg Typ_SUR from Typ_SURRU)
 APED_dbo_oid             give typ and index from objectID eg "P12"
 
+UTO_siz_stru             get size of struct
+
 AP_typ_srcExpr           decode expression
 AP_typ_FncNam            get type of function
 AP_src_typ__             get objTypTxt from typ
@@ -55,6 +57,7 @@ UTO_ck_surfTyp           returns surfSubTyp
 
 AP_src_typ__             get objTypTxt from typ
 MDL_typInf               infoText from modeltype
+
 
 
 ================================================================== \endcode */}

@@ -409,15 +409,14 @@ char  *ObjCodTab[] = {
 //====================================================================
   int APED_oid_dbo__ (char *buf, int typ, long ind) {
 //====================================================================
-/// \code
-/// APED_oid_dbo__      make name from typ and DB-Index  (visible object types)
-/// Input:
-///   typ,ind    DB-obj
-/// Output:
-///   buf        name for DB-obj
-/// see also APED_dbo_oid APED_oid_dbo_all AP_typDB_typ AP_cre_defHdr
-/// \endcode
-
+// APED_oid_dbo__      make name from typ and DB-Index  (visible object types)
+// Input:
+//   typ,ind    DB-obj
+// Output:
+//   buf        name for DB-obj
+//   retCode    -1=KO, 1=OK;
+// see also APED_dbo_oid APED_oid_dbo_all AP_typDB_typ AP_cre_defHdr
+//
 // FuncNam should be APED_oid_dbo_all
 
   char   *p1;

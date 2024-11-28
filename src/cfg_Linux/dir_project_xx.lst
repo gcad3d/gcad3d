@@ -1,0 +1,9 @@
+# symbolic_name     path
+# test for project xx ..
+Data    /mnt/serv2/devel/cadfiles/gcad/
+CATALOG /mnt/serv2/devel/gcad3d/gCAD3D/ctlg/
+APPLI   /mnt/serv2/devel/gcad3d/gCAD3D/prg/
+#----------------------------------------------
+PRJ_XX  /mnt/serv2/devel/cadfiles/ele1/
+#----------------------------------------------
+#

@@ -1,3 +1,15 @@
+
+Version 2.60.06-2 / 2024-11-28
+
+- Bugfix "BSPL-decode-parlSeg" 
+- Bugfix "startup-crash-1" - crash before gui was up;
+- update plugin DemoPlugin_Create
+
+Programlines (C)       529680
+Functions              4917
+
+
+===========================================================================
 Version 2.60.06 / 2024-06-26
 - Bugfix "JUMP_<label>-in-MAN"
 - BUGfix "ESC-in-CAD-MODIFY"

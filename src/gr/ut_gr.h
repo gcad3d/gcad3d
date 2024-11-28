@@ -135,12 +135,27 @@ void GR_perm_pln (long dbi, Plane *pl1, int att, int mode);
  GR_set_obj(OPERS_PERM+OPERS_CLOSE,dbi,Typ_PLN,pl1,att,mode);
 
 
+
 // display polygon temp.
+void GR_temp_pta__ (Point *pta, int ptnr, int clo, int att);
+#define GR_temp_pta__(pta,ptnr,clo,att)\
+ GR_set_pta(OPERS_TEMP+OPERS_CLOSE,pta,ptnr,clo,att);
+
+// display polygon temp.
+// DO NOT USE - replaced by GR_temp_pta
 void GR_temp_pcv__ (Point *pta, int ptnr, int att);
 #define GR_temp_pcv__(pta,ptnr,att)\
  GR_set_pcv(OPERS_TEMP+OPERS_CLOSE,pta,ptnr,att);
 
+
 // display polygon temp-dyn.
+//   att      see INF_COL_CV
+void GR_tDyn_pta (Point *pta, int ptnr, int clo, int att);
+#define GR_tDyn_pta(pta,ptnr,clo,att)\
+ GR_set_pta(OPERS_TDYN+OPERS_CLOSE,pta,ptnr,clo,att);
+
+// display polygon temp-dyn.
+// DO NOT USE - replaced by GR_tDyn_pta
 //   att      see INF_COL_CV
 void GR_tDyn_pcv (Point *pta, int ptnr, int att);
 #define GR_tDyn_pcv(pta,ptnr,att)\

@@ -987,6 +987,19 @@ extern long      GLT_cta_SIZ;
         *atoVal = DB_PLZ_IND;
         goto L_constantObject_PLN;
 
+      } else if (!strcmp (cmd, "RIX")) {
+        *atoVal = DB_PLIX_IND;
+        goto L_constantObject_PLN;
+
+      } else if (!strcmp (cmd, "RIY")) {
+        *atoVal = DB_PLIY_IND;
+        goto L_constantObject_PLN;
+
+      } else if (!strcmp (cmd, "RIZ")) {
+        *atoVal = DB_PLIZ_IND;
+        goto L_constantObject_PLN;
+
+
       } else if (!strcmp (cmd, "RAD_360")) {
         *atoVal = RAD_360;
         goto L_constantValue;
@@ -1456,7 +1469,7 @@ extern long      GLT_cta_SIZ;
   if(i1 >= 0) {
     // found math. operation; resolve next 3 records
     irc = ATO_ato_eval_3ope (ato, i1);
-    if(irc < 0) return MSG_ERROR (irc, "");
+    if(irc < 0) return irc;  // return MSG_ERROR (irc, "");
     nGrp -= 2;
     goto L_res_nxt_ope;
   }
@@ -1893,14 +1906,14 @@ extern long      GLT_cta_SIZ;
 //   ato     group is replaced by a single data-record (ato->rNr changes)
 
 
-  int    irc, ii, fTyp, nxtTyp, fVal;
+  int    irc, ii, fTyp, fVal;
 
   // ATO_dump_grp (ato, iGrp, nGrp, "ATO_ato_eval_Grp-in");
 
   fTyp = ato->typ[iGrp];
   fVal = (int)ato->val[iGrp];
 
-  nxtTyp = ato->typ[iGrp + 1];
+  // nxtTyp = ato->typ[iGrp + 1];
 
 
   if(fTyp == Typ_FncNam) {
@@ -2013,7 +2026,7 @@ extern long      GLT_cta_SIZ;
     if(nGrp == 1) goto L_nxt__;
     // evaluate FncNam-group, remove evaluated records, restart.
     irc = ATO_ato_eval_Grp (ato, iGrp, nGrp);
-    if(irc < 0) goto L_err1;
+    if(irc < 0) return irc;  // goto L_err1;
       // ATO_dump__ (ato, "ATO_ato_eval__-f-eval_Grp");
     goto L_nxt_fnc;
 
@@ -2025,7 +2038,7 @@ extern long      GLT_cta_SIZ;
     if(ato->nr >= 3) {
       // only values remaining: evaluate math.operators (*+-/)
       irc = ATO_ato_eval_nope (ato, 0, ato->nr);
-      if(irc < 0) return MSG_ERROR (irc, "");
+      if(irc < 0) return irc;  // return MSG_ERROR (irc, "");
     }
 
   irc = 0;
@@ -2041,9 +2054,9 @@ extern long      GLT_cta_SIZ;
 
 
   //----------------------------------------------------------------
-  L_err1:
-  irc = -1;
-  return MSG_ERROR (irc, "");
+//   L_err1:
+//   irc = -1;
+//   return MSG_ERROR (irc, "");
 
 }
 
@@ -2819,6 +2832,16 @@ extern long      GLT_cta_SIZ;
       oTyp = iTyp + tso[its].form;
       ATO_ato_expr_add (ato, oTyp, 0., tso[its].ipar);
 // see APT_decode_Opm
+
+
+    //----------------------------------------------------------------
+    // test for Typ_dynSym "TDS"
+    } else if(iTyp == Typ_dynSym) {
+      // oTyp = iTyp + tso[its].form;
+      sPos += 3;
+      d1 = strtod (&sl[sPos], &p1);   // d1 = dbi
+      ATO_ato_expr_add (ato, iTyp, d1, tso[its].ipar);
+        // printf(" ATO_ato_txo__-TDS typ=%d d1=%f |%s|\n",iTyp,d1,&sl[sPos]);
 
 
     //----------------------------------------------------------------

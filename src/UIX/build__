@@ -10,66 +10,70 @@ echo entering build__ $1 -------------------------------------------------
 
 if test "$1" = "help"; then
 echo "---------------------------------------------------------------------"
-echo "./do debug_ON           # debug ON for following builds (development)"
-echo "./do debug_OFF          # debug OFF for following builds (production)"
-echo "./do complete           # compile, link all."
-echo "./do                    # start gcad3d in local-test-environment"
+echo "./do debug_ON             # debug ON for following builds (development)"
+echo "./do debug_OFF            # debug OFF for following builds (production)"
+echo "./do complete             # compile, link all."
+echo "./do                      # start gcad3d in local-test-environment"
 echo "---------------------------------------------------------------------"
-#echo "./do gui-gtk2           # set GUI gtk2"
-#echo "./do gui-gtk3           # set GUI gtk3"
-#echo "./do guiinit            # recompile all sources of active GUI-version"
-echo "./do guiexe             # rebuild executables GUI_*"
-echo "./do gui                # rebuild xa_gui_gtk-*.so"
-echo "./do c                  # compile & link core"
-echo "./do all                # compile & link corelibs"
-echo "./do allDemos           # compile & link demos"
-echo "./do allPrcs            # compile & link processes"
-echo "./do allExtras          # compile & link postprocessors and extras"
+#echo "./do gui-gtk2            # set GUI gtk2"
+#echo "./do gui-gtk3            # set GUI gtk3"
+#echo "./do guiinit             # recompile all sources of active GUI-version"
+echo "./do guiexe               # rebuild executables GUI_*"
+echo "./do gui                  # rebuild xa_gui_gtk-*.so"
+echo "./do c                    # compile & link core"
+echo "./do all                  # compile & link corelibs"
+echo "./do allDemos             # compile & link demos"
+echo "./do allPrcs              # compile & link processes"
+echo "./do allExtras            # compile & link postprocessors and extras"
+echo "./do plugin <namPlu>      # (initial) compile & link plugin (initial build)"
 echo "---------------------------------------------------------------------"
-echo "./do pack_deb           # create gCAD3D.<version>-<machine>.deb"
-echo "./do uninstall_deb      # remove installation (sudo)"
-echo "./do install_deb        # install into system (sudo -E)"
+echo "./do pack_deb             # create gCAD3D.<version>-bin-<mach>.deb"
+echo "./do pack_plu <nam> <ver> # create gCAD3D-<version>-<plu>-V<ver>-bin-<mach>.deb"
+echo "./do uninstall_deb        # remove installation (sudo)"
+echo "./do install_deb          # install into system (sudo -E)"
 #echo "./do install_test_deb   # test-install into system (sudo -E)"
 #echo "./do uninstall_test_deb # remove test-installation (sudo)"
 #echo "./do pack_src           # create zip-file of sources "
 #echo "./do pack_doc           # create zip-file of complete doc"
 echo "---------------------------------------------------------------------"
-echo "./do pack_rpm           # create gCAD3D.<version>-<machine>.rpm"
-echo "./do uninstall_rpm      # remove installation (sudo)"
-echo "./do install_rpm        # install into system (sudo -E)"
+echo "./do pack_rpm             # create gCAD3D.<version>-<machine>.rpm"
+echo "./do uninstall_rpm        # remove installation (sudo)"
+echo "./do install_rpm          # install into system (sudo -E)"
 echo "---------------------------------------------------------------------"
-echo "./do pack_MSYS          # create gCAD3D..<version>-win64.exe"
+echo "./do pack_MSYS            # create gCAD3D..<version>-win64.exe"
 echo "---------------------------------------------------------------------"
-echo "./do examples_init      # unpack examples.gz into $HOME"
-echo "./do examples_pack      # create examples.gz - ONLY HOST HDEV4"
-echo "./do delete             # delete all objects"
-echo "./do fnd_sym <sym_x>    # find & touch all files using symbol <sym_x>"
-echo "./do fnd_inc <incFile>  # find & touch all files with #include <incFilNam>"
-echo "./do fnd_inf <text>     # find <text> in Info-files"
-echo "./do fnd_msg <text>     # find <text> in message-file msg_en"
-echo "./do *.mak              # link a plugin (for the first time)"
-echo "./do gdb_ed             # edit debug-file, start with debugger"
-echo "./do gdb <params>       # start with debugger gdb"
-echo "./do valgrind <params>  # start valgrind (Linux only; creates ~/t1)"
-echo "./do windbg             # start windbg (Windows only)"
-echo "./do gprof              # start gprof"
-echo "./do trc                # start with mtrace"
+echo "./do examples_init        # unpack examples.gz into $HOME"
+echo "./do examples_pack        # create examples.gz - ONLY HOST HDEV4"
+echo "./do delete               # delete all objects"
+echo "./do fnd_sym <sym_x>      # find & touch all files using symbol <sym_x>"
+echo "./do fnd_inc <incFile>    # find & touch all files with #include <incFilNam>"
+echo "./do fnd_inf <text>       # find <text> in Info-files"
+echo "./do fnd_msg <text>       # find <text> in message-file msg_en"
+echo "./do *.mak                # start linkfile (extra-module, GUI_*, ..)"
+echo "./do gdb_ed               # edit debug-file, start with debugger"
+echo "./do gdb <params>         # start with debugger gdb"
+echo "./do valgrind <params>    # start valgrind (Linux only; creates ~/t1)"
+echo "./do windbg               # start windbg (Windows only)"
+echo "./do gprof                # start gprof"
+echo "./do trc                  # start with mtrace"
 echo "---------------------------------------------------------------------"
-echo "./do ud                 # display userDoc"
-echo "./do dd                 # display devDoc"
-echo "./do udd                # update & display devDoc"
-echo "./do gty                # display AP_types.h"
-echo "./do gh                 # display ut_geo.h"
-echo "./do g2                 # display ut_geo3d.c"
-echo "./do g3                 # display ut_geo3d.c"
-echo "./do gmon               # analyze time"
-echo "./do edm                # edit model"
-echo "./do inf                # update DevDoc infotext.c"
-echo "./do msg-files          # tools for language-files: ls lang*.csh"
-echo "./do tmpClean1          # rm <tmpDir> CTRL* Mod*"
-echo "./do clean              # rm *.out"
-echo "./i                     # display dev-doc"
-echo "./i <text>              # find <text> in dev-doc"
+echo "./do ud                   # display userDoc"
+echo "./do dd                   # display devDoc"
+echo "./do udd                  # update & display devDoc"
+echo "./do gty                  # display AP_types.h"
+echo "./do gh                   # display ut_geo.h"
+echo "./do g2                   # display ut_geo3d.c"
+echo "./do g3                   # display ut_geo3d.c"
+echo "./do gmon                 # analyze time"
+echo "./do edm                  # edit model"
+echo "./do inf                  # update DevDoc infotext.c"
+echo "./do msg-files            # tools for language-files: ls lang*.csh"
+echo "./do tmpClean1            # rm <tmpDir> CTRL* Mod*"
+echo "./do clean                # rm *.out"
+echo "./i                       # display dev-doc"
+echo "./i <text>                # find <text> in dev-doc"
+echo "./cs i                    # init and start cscope"
+echo "./cs                      # start cscope with existing DB"
 echo "---------------------------------------------------------------------"
 exit 0
 fi
@@ -112,7 +116,6 @@ if test "${OSTYP}" = "MSYS"; then
 #    if [ $? -ne 0 ]; then exit -1; fi
 # fi
 fi
-
 
 
 #================================================================================
@@ -267,12 +270,24 @@ fi
 
 
 #================================================================================
-# create debian-package
+# create debian-package for gcad3d
 # MUST SET SW-version in file ../gcad_version
 if test "$1" = "pack_deb"; then
   ../../debian/pack_deb.sh
   if [ $? -ne 0 ]; then
     echo "****** ERROR create debian-package *******"
+    exit 1;
+  fi
+  exit 0
+fi
+
+
+# create debian-package for gcad3d-plugin
+# MUST SET SW-version in file ../gcad_version
+if test "$1" = "pack_plu"; then
+  ../../debian/pack_plu.sh $2 $3
+  if [ $? -ne 0 ]; then
+    echo "****** ERROR create debian-package for plugin $2 *******"
     exit 1;
   fi
   exit 0
@@ -291,7 +306,8 @@ fi
 
 # uninstall testfiles in system-directories. Must be root (sudo).
 if test "$1" = "uninstall_deb"; then
-  apt-get remove gcad3d
+  #apt-get remove gcad3d
+  dpkg -r gcad3d
   exit 0
 fi
 
@@ -317,6 +333,14 @@ if test "$1" = "uninstall_test_deb"; then
   echo "*** REMOVE ~/gCAD3D manually !"
   exit 0
 fi
+
+
+# (initial) compile & link plugin
+if test "$1" = "plugin"; then
+  . ./devbase.sh && make -f $2.mak
+  exit 0
+fi
+
 
 
 #================================================================================

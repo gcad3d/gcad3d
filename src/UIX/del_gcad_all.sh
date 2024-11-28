@@ -37,7 +37,7 @@ $rmCmd plugins/*.*
 
 
 # remove PP's
-echo $rmCmd plugins/cut1/*
+echo $rmCmd plugins/cut1/*.*
 $rmCmd plugins/cut1/*
 
 

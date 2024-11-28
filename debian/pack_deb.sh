@@ -1,21 +1,11 @@
 #!/bin/bash
-
+#
 # create debian-package                         ./pack_deb.sh
 # start in <basDir>/gcad3d/src/APP
 #
-# remove gcad:       sudo apt-get remove gcad3d
-# install gcad-32    sudo dpkg -i /mnt/serv1/gCAD3D-1.80-Linux-x86.deb
-# install gcad-64    sudo dpkg -i /mnt/serv1/gCAD3D-1.80-Linux64.deb
-# start gcad:        gcad3d
+# install gcad-64    sudo dpkg -i <packNam>
 #
-# check Installed-Size (_control/control)
-# du -c /usr/lib/gCAD3D /usr/share/gcad3d /usr/share/doc/gcad3d
-#
-#
-# Local/HDEV3:
-# cd ../../debian
-# ./pack_deb.sh
-## creates /mnt/serv1/Devel/gcad3d/packages/gCAD3D-#.##-bin-amd64.deb
+## creates /mnt/serv1/Devel/gcad3d/packages/gCAD3D-<Version>-<pluNam>-amd64.deb
 ## instDir =  gcad3d/debian/gCAD3D/debian
 #
 # Software-Layout see <basDir>/gcad3d/doc/html/SW_layout_en.htm
@@ -78,7 +68,7 @@ chmod 0755 ${instDir}/DEBIAN/p*
 # copy all application-files
 echo "copy APP-files -> ${instDir}"
 ${debDir}/install_deb.sh ${instDir}
-
+if [ $? -ne 0 ]; then exit 1; fi
 
 
 #-----------------------------------------------------
@@ -108,7 +98,8 @@ rm -f debian.deb
 
 
 # build
-fakeroot dpkg-deb --build debian && lintian debian.deb
+#fakeroot dpkg-deb --build debian && lintian debian.deb
+fakeroot dpkg-deb --build debian
 mv -f debian.deb ${outDir}/${packNam}
 
 echo "${outDir}/${packNam} created."

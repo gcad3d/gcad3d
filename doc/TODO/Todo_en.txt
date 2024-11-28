@@ -1,0 +1,120 @@
+doc/Todo_en.txt                 Todo_en.txt                       2024-10-04
+============================================================================
+
+
+Open issues:
+
+
+============================================================================
+- UI gtk2 to gtk4
+============================================================================
+  - gcad3d is using legacy-OpenGL 1.2 (displaylist-support).
+  - Gtk3-port exist,but does not support displaylists.
+  - all calls to gtk are concentrated in toolkit (src/gui_gtk2/*.c)
+
+
+
+============================================================================
+- Boolean operations with surfaces 
+============================================================================
+  - consistency checks of surface-boundaries (body-net)       -
+  - boolean operations with surfaces                          -
+  - boolean operations with planar surfaces                   90 %
+  - trimmed polygonal_representation_of_curve                 OK
+
+
+
+============================================================================
+- Add offset-surfaces                                         -
+============================================================================
+
+
+
+============================================================================
+- Add rounding surfaces
+============================================================================
+  - circular surface along spine                              -
+  - intersection surfaces                                     OK
+
+
+
+============================================================================
+- interactive editor - modify object:
+============================================================================
+    - display objects not affected dimmed,
+    - update all child-objects dynamic.
+    - "edit object" in MAN and CAD shall display all objects following dimmed.
+Example:
+
+P20=P(20 0 0)
+C20=P20 50
+A20=C20
+L20=P20 P(100 0 0)
+
+Edit obj C20 (eg change radius 50)
+- P20 - displayed normal;
+- C20 - hilited; active obj to be modified,
+- A20 - dimmed; following the obj C20 and child of C20
+- L20 - dimmed; following, not child of C20.
+
+- exit modifications with OK:
+  - update all child-objects of modified obj C20 (A20)
+  - change display of all objects following obj C20 from dimmed to to normal
+
+
+
+============================================================================
+- interactive editor - insert object:
+============================================================================
+
+only in mode MODIFY:
+- provide button INSERT mit info "insert obj before active obj"
+- activate INSERT: display text "ADD / INSERT" (replacing MODIFY);
+  - active mode CAD/add; after OK back into MODIFY;
+
+
+- Funcs:
+  - insert new CAD-code into line before active modify-line;
+  - display new created obj
+
+
+
+
+============================================================================
+============================================================================
+- Project and Mirror currently only for individual objects,
+  not for CCV (currently Translate only).
+
+- mirror CCV (S#=MIR S# L#)
+
+- update interactive editor to modify B-splines. 
+
+- Search/Name ObjList objID edit - does not find and edit obj eg P24 ..
+
+- Transformation of 3D Text: currently is always set in the XY plane.
+
+- NC machining is graphically not yet active in the transformed reference system.
+
+- NC-function are not yet completely implemented for alternative construction-planes
+
+- Function for interactive positioning of sub-models to a contact position.
+
+- Drawing 2D from 3D 
+
+- With hatching, no islands are possible yet
+
+- The programming interfaces are only partially documented.
+
+- Step-Export only partially implemented
+
+- Perspective view (only parallel view)
+
+
+
+
+============================================================================
+Send bug reports, suggestions for improvements to support@gcad3d.org
+If you can help testing, programming .. contact us via support@gcad3d.org
+
+
+EOF

@@ -2248,23 +2248,20 @@ static int lnr1, lnr2;
 //===========================================================================
   int ED_work_CurSet (int new_lnr_act) {
 //===========================================================================
-/// \code
-/// Cursor wurde in Editor-Line new_lnr_act gesetzt.
-/// Alle Zeilen bis einschliesslich Zeile new_lnr_act anzeigen (ausfuehren).
-/// Obj der Zeile new_lnr_act hiliten
-/// 
-/// von der zuletzt bearbeiteten Zeile bis zu lNr new_lnr_act abarbeiten
+// set cursor to new position (line-nr)
+// - new_lnr_act before active-new_lnr_act: remove all obj's from actLnr to newlNr;
+// - new_lnr_act following active-new_lnr_act: work obj's from actLnr to newlNr;
+// - hilite obj of line new_lnr_act;
+// 
 // Input:
 //   new_lnr_act    new curPos to be set;
 //                  -1           query active lineNr (ED_lnr_act)
 //                  UT_INT_MAX   work from ED_lnr_act to end
-/// \endcode
-
 // Example:
 // ED_work_CurSet (lNr);          // go fwd or back to line lNr
 // ED_work_CurSet (UT_INT_MAX);   // work until end of model
 //
-// ED_lnr_act     ist die CurPos im Editor
+//
 
   int    irc, i1, mode, typ;
   long   l1, dbi, dli;

@@ -3975,7 +3975,7 @@ static  CurvPoly plg1;
   long      l1, dbi;
   double    kv0, kv1;
   ObjGX     *ox1;
-  Memspc    workSeg;
+  Memspc    workSeg, tempSeg;
   char      obj2[OBJ_SIZ_MAX];
   void      *vp1;
 
@@ -3999,11 +3999,13 @@ static  CurvPoly plg1;
 
     } else if(i1 == T_BSP0) {
       UME_init (&workSeg, memspc101, sizeof(memspc101));
-      return APT_decode_bsp_ (cvo, &workSeg, NULL, aus_anz, aus_typ, aus_tab);
+      UME_init (&tempSeg, memspc201, sizeof(memspc201));
+      return APT_decode_bsp_ (cvo, &workSeg, &tempSeg, aus_anz, aus_typ, aus_tab);
 
     } else if(i1 == T_BSP1) {
       UME_init (&workSeg, memspc101, sizeof(memspc101));
-      return APT_decode_bsp1 (cvo, &workSeg, NULL, aus_anz, aus_typ, aus_tab);
+      UME_init (&tempSeg, memspc201, sizeof(memspc201));
+      return APT_decode_bsp1 (cvo, &workSeg, &tempSeg, aus_anz, aus_typ, aus_tab);
 
     } else goto Par_err;
   }

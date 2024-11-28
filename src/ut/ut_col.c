@@ -38,8 +38,10 @@ UTcol__3i          create colour from red,green,blue
 UTcol__3db         colour from 3 doubles
 UTcol_dump         dump ColRGB
 
-COL_DL_ATT         get pointer -> Color out of DL_Att     INLINE
-COL_ISTYL          set style, symbolic|shaded
+COL_ISTYL          set style, symbolic|shaded                                    INLINE
+COL_TRANSP         set transparency; 0=not, 1=25% transparent, 2=50%, 3=75%      INLINE
+
+COL_DL_ATT         get pointer -> Color out of DL_Att                            INLINE
 COL_INT32          *ColRGB from *int
 CHAR_ICOL          *char from *int (&att)
 INT32P_COL         *int from *ColRGB

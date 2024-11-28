@@ -211,7 +211,9 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 // import OBJ as tesselated; see also obj_read__
 // Input:
 // fdat besteht aus 3 objects;
-// 1) Typ_Int4   mode; 1=work, 3=free.
+// 1) Typ_Int4   0 = export as native gcad-obj;
+//               1 = export as mockup;
+//               3 = free.
 // 2) Typ_Txt    filename
 // 3) Typ_Memspc outSpc
 
@@ -228,10 +230,12 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
   oTab   = ((ObjGX*)fdat)->data;
   mode   = INT__PTR(oTab[0].data);  // int mode; 0=native; 1=mock-work, 3=mock/free
   fnam   = oTab[1].data;            // Typ_Txt    filename
-  if(mode)                          // only for mockup
-  impSpc = oTab[2].data;            // Typ_Memspc outSpc
+  if(mode) {                        // only for mockup
+    impSpc = oTab[2].data;            // Typ_Memspc outSpc
+  }
 
-  // printf("gCad_main/xa_WRL_R mode=%d fnam=|%s|\n",mode,fnam);
+
+  printf("gCad_main-xa_obj_r-V2_60_06 mode=%d fnam=|%s|\n",mode,fnam);
 
 
 
@@ -247,11 +251,14 @@ static MemTab(ColRGB) colTab = _MEMTAB_NUL;
 
   // export as mockup
   irc = obj_readTess__ (fnam);
+  if(irc < 0) {printf ("obj_readTess__ E%d",irc); return irc;}
 
 
 
   L_exit:
-    printf("ex-plugin-obj-imp %d\n",irc);
+    printf("ex-plugin-obj-imp irc=%d\n",irc);
+    if(mode) printf("  size=%ld\n",impSpc->next - impSpc->start);
+
 
   return irc;
 

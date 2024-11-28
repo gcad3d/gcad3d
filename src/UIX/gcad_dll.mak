@@ -4,6 +4,9 @@
 # gcad_dir_bin SRC1
 # 
 
+$(info - entering gcad_dll.mak)
+$(info - OSTYP = $(OSTYP))
+
 
 ifndef OSTYP
 $(error ERROR gcad_gui_lib.mak - OSTYP undefined. Start with ". ./devbase.sh")

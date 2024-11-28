@@ -1,0 +1,46 @@
+
+% alias:
+/p {lineto} def
+/l {lineto stroke} def
+/m {moveto} def
+/s {stroke} def
+/n {newpath} def
+/gs {gsave} def
+/gr {grestore} def
+/clp {closepath} def
+/_pt {newpath _rPt 0 360 arc stroke} def
+/tri {lineto closepath fill} def
+
+% graf. atts:
+/_ltyp0 {[] 0 setdash} def
+/_ltyp1 {[5 5 1 5] 0 setdash} def
+/_ltyp2 {[3] 0 setdash} def
+/_ltyp3 {[6] 0 setdash} def
+/_lthick0 {0.10 setlinewidth} def
+/_lthick1 {0.20 setlinewidth} def
+/_lthick2 {0.35 setlinewidth} def
+/_lthick3 {0.50 setlinewidth} def
+
+% colors:
+/g {setgray} def
+/col-1 {} def                    % Default = none (sw)
+/col0 {0 0 0 setrgbcolor} def    % sw
+/col1 {0 0 1 setrgbcolor} def    % blau
+/col2 {0 1 0 setrgbcolor} def    % gr
+/col3 {0 1 1 setrgbcolor} def    % hellblau
+/col4 {1 0 0 setrgbcolor} def    % r
+/col5 {1 0 1 setrgbcolor} def    % violett
+/col6 {1 1 0 setrgbcolor} def    % gelb
+/col7 {1 1 1 setrgbcolor} def    % weiss = sinnlos
+
+% fonts:
+/fNote /Helvetica findfont 12 scalefont def
+
+% Defaults:
+0 setlinecap
+0 setlinejoin
+_ltyp0
+_lthick0
+fNote setfont
+
+% data:

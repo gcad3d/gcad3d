@@ -7,8 +7,7 @@
 # 32|64
 #osVer=${HOSTTYPE}
 hTyp=`uname -s`_`uname -m`
-
-#export LD_LIBRARY_PATH=`dirname $0`
+echo ${PWD}/gcad3d ${hTyp}
 
 # <gcad_dir_bin>                     executable, dll's     ReadOnly
 # <gcad_dir_bin>plugins/             dll's                 ReadOnly
@@ -21,7 +20,7 @@ export gcad_dir_bin=/usr/lib/gcad3d/${hTyp}/
 
 # <gcad_dir_doc>html/                helpfiles .htm        ReadOnly
 # <gcad_dir_doc>msg/                 helpfiles .txt        ReadOnly
-#export gcad_dir_doc=/usr/share/doc/gcad3d/
+export gcad_dir_doc=/usr/share/doc/gcad3d/
 
 # <gcad_dir_local>gCAD3D/            application-files     ReadWrite
 # <gcad_dir_local>gCAD3D/tmp/        temp-files            ReadWrite
@@ -36,13 +35,20 @@ export gcad_dir_bin=/usr/lib/gcad3d/${hTyp}/
 #export gcad_dir_dev=${HOME}/
 
 
-## if menu is unvisible: (ubuntu 11):
-#if [ -n "$UBUNTU_MENUPROXY" ]; then
-#  echo "disactivate ubuntu-global-menu"
-#  export UBUNTU_MENUPROXY=
-#fi
+export LD_LIBRARY_PATH=${gcad_dir_bin}
+
+
+# start in debug-mode
+if [ "$1" = "gdb" ]; then
+# file ${gcad_dir_bin}gCAD3D
+# ldd ${gcad_dir_bin}/gCAD3D
+  shift
+  gdb ${gcad_dir_bin}/gCAD3D $*
+  exit
+fi
+
 
 # start it ..
-export LD_LIBRARY_PATH=${gcad_dir_bin}
-${gcad_dir_bin}/gCAD3D $*
+echo "starting " ${gcad_dir_bin}gCAD3D $*
+${gcad_dir_bin}gCAD3D $*
 # eof

@@ -23,6 +23,204 @@
 #include "../APP/UPDATE.h"
 
 
+// ../ci/NC_Main.c
+extern int APT_dispPT;
+extern int APT_dispPL;
+
+
+
+
+
+//================================================================
+// ../ut/ut_geo3d.h
+//================================================================
+
+// // replace all UT3D_acos_vc2pt with UT3D_cos_2vcn
+// // REPLACEMENT FOR UT3D_acos_2vc :
+
+// UT3D_cos_2vcn       cos of opening angle of 2 vectors;
+// - returns factor of lengt of V1 / length of rc -
+//   - true length of rc if V1-length = 1;
+// - test if 2 vectors normal: if(fabs(UT3D_cos_2vcn(&v1,&v2)) < UT_TOL_min1) yes
+// - test if 2 vectors parallel: if(UT3D_cos_2vcn(&v1,&v2)) > 1. - UT_TOL_min1) yes
+// - test if 2 vectors normal: if(fabs(UT3D_cos_2vcn(&v1,&v2)) < UT_TOL_min1) yes
+// get opening-angle: vectors must be normalized -
+// - angr = ACOS(UT3D_cos_2vcn (&v1, &v2));
+// 
+//            /|
+//        V2/  |
+//        /    |
+//      /      |
+//    x--------+------>  V1
+//    <---rc-->
+// 
+#define UT3D_cos_2vcn UT3D_skp_2vc
+
+
+
+
+
+
+
+
+ 
+//================================================================
+// ../ut/ut_geo3d.c
+//================================================================
+ 
+//================================================================
+  int UT3D_2vc_ck_parl_pa (Vector *v1, Vector *v2, double tol) {
+//================================================================
+// UT3D_2vc_ck_parl_pa              compare 2 vectors for parallel and antiparallel
+// - vectors must not be normalized;
+// Input:
+//   tol     radians = Pi / degree; eg 1 deg = 0.017 (RAD_1); Pi = RAD_180;
+// retCode   1   vectors are parallel
+//           -1  vectors are antiparallel
+//           0   not (anti)parallel
+
+
+  double    ang;
+
+  // printf("==================== UT3D_2vc_ck_parl_pa %f\n",tol);
+  // DEB_dump_obj__ (Typ_VC, v1, " V1:");
+  // DEB_dump_obj__ (Typ_VC, v2, " V2:");
+
+  ang = UT3D_angr_2vc__ (v1, v2);
+
+  if(fabs(ang) < tol) return 1;
+  if(fabs(ang - RAD_180) < tol) return -1;
+
+  return 0;
+
+}
+
+
+
+
+
+
+//================================================================
+// ../ut/ubscrv.c
+//================================================================
+
+
+//================================================================
+  int UCBS_disp__ (CurvBSpl *cvi, char *opts, char *inf) {
+//================================================================
+// UCBS_disp__                   test-display BSpline-Curve
+// - 'p' - display controlPoints as tDyn-symbols;
+// retCode:  index DL of first tDyn-obj;
+
+  int     i1;
+  long    dli = 0;
+
+  // printf("UCBS_disp__ %s\n",inf);
+
+
+  if(strchr(opts, 'p')) {
+    dli = GL_Get_DLind ();          // get DL-index (for later delete)
+    // display points also in mode "VWR"
+    APT_dispPT = 0;
+    // disp Knotpoints
+    for(i1=0; i1<cvi->ptNr; ++i1)
+      GR_tDyn_symB__ (&cvi->cpTab[i1], SYM_SQU_S, ATT_COL_RED);
+  }
+
+
+
+    // printf(" ex-UCBS_disp__ %ld\n",dli);
+
+  return (int)dli;
+
+}
+
+//================================================================
+// ../ut/ut_bspl.c
+//================================================================
+// INF_Typ_CVBSP
+
+
+//=========================================================================
+  int UT3D_cbsp_ln (CurvBSpl **bspo, Memspc *memSeg, Line *ln1, int deg) {
+//=========================================================================
+// UT3D_cbsp_ln                    BSP-Curv from Line; deg 1 or 2;
+// deg = 1
+
+  int      irc, ptNr, kvNr;
+  CurvBSpl *bsp1;
+
+
+  // DEB_dump_obj__ (Typ_LN, ln1, "UT3D_cbsp_ln-in");
+
+  bsp1 = memSeg->next;
+  irc = UME_add (memSeg, sizeof(CurvBSpl));
+  if(irc < 0) return -1;
+
+
+  *bsp1 = UT3D_CVBSP_NUL;   // init
+  // bsp1->deg  = 1;
+  // bsp1->v0   = 0.;
+  // bsp1->v1   = 1.;
+
+
+  ptNr = deg + 1;
+
+  bsp1->ptNr = ptNr;
+  bsp1->deg = deg;
+  bsp1->ptNr = ptNr;
+
+  // create cpTab
+  bsp1->cpTab = memSeg->next;
+  irc = UME_add (memSeg, sizeof(Point) * ptNr);
+  if(irc < 0) return -1;
+
+  bsp1->cpTab[0] = ln1->p1;
+
+  if(deg == 1) {
+    bsp1->cpTab[1] = ln1->p2;
+
+  } else if(deg == 2) {
+    UT3D_pt_mid2pt (&bsp1->cpTab[1], &ln1->p1, &ln1->p2);
+    bsp1->cpTab[2] = ln1->p2;
+
+  } else {TX_Error("UT3D_cbsp_ln TODO: deg > 2"); return -1;}
+
+
+
+  // create kvTab
+  bsp1->kvTab = memSeg->next;
+  kvNr = ptNr + deg + 1;
+  irc = UME_add (memSeg, sizeof(double) * kvNr);
+  if(irc < 0) return -1;
+
+  if(irc < 0) return -1;
+  bsp1->kvTab[0] = 0.;
+  bsp1->kvTab[1] = 0.;
+
+  if(deg == 1) {
+    bsp1->kvTab[2] = 1.;
+    bsp1->kvTab[3] = 1.;
+
+  } else if(deg == 2) {
+    bsp1->kvTab[2] = 0.;
+    bsp1->kvTab[3] = 1.;
+    bsp1->kvTab[4] = 1.;
+    bsp1->kvTab[5] = 1.;
+  }
+
+  *bspo = bsp1;
+
+    // DEB_dump_obj__ (Typ_CVBSP, *bspo, "ex-UT3D_cbsp_ln");
+    // GR_Disp_CvBSp (bsp, 9, memSeg);
+
+  return 0;
+
+}
+
+
+
+
 
 //================================================================
 // ../ut/ut_rbspl.c
@@ -423,10 +621,6 @@ extern long       GR_TAB_IND;
 // ../xa/xa_ui.c
 //================================================================
 
-// ../ci/NC_Main.c
-extern int APT_dispPT;
-extern int APT_dispPL;
-
 
 //================================================================
   int UI_ckb_dispPT (int mode) {
@@ -734,6 +928,68 @@ extern int       AP_src;
     // printf(" ex-APED_do_buf1\n");
 
   return 0;
+
+}
+
+#include "../ut/ut_ox_base.h"          // OGX_..
+
+//================================================================
+  int APED_src_ln_chg (int typo, long dbio, int formo, void *objo,
+                       int typi, long dbii) {
+//================================================================
+// APED_src_ln_chg        change sourceline <typ,dbi> to src of obj ox1  
+// - removes existing sourceline starting with "_<typ><dbi>"
+// - create and insert sourceline from inputs typo,formo,dbio,objo
+// Input:
+//   typi,dbii    deactivated sourcecodeline of this obj
+//   typo,formo,dbio,objo   output his as new sourceObj
+// Output:
+//   irc    <0=error; else lineNr of deactivated sourcecodeline
+
+  int      irc, lLen;
+  long     lNr, dli;
+  char     *src, sOid[80], *p1, *p2;
+  ObjGX    ox1;
+
+
+  // printf("\n------ APED_src_ln_chg typ1=%d dbii=%ld typo=%d dbio=%ld formo=%d\n",
+          // typi, dbii, typo, dbio, formo);
+  // UTF_dump__ ("APED_src_ln_chg-in UTF_FilBuf0");  // UTF_FilBuf0
+
+
+  // get obj-ID; eg "S20"
+  irc = APED_oid_dbo__ (sOid, typi, dbii);
+  if(irc < 0) return irc;
+
+  // get sourcelineNr of obj <sOid[1]>
+  irc = APED_search_defLn (&p1, &lNr, &lLen, sOid, -1L, 0);
+  if(irc < 0) return irc;
+    // printf(" f-APED_find_dbo-irc=%d lNr=%ld\n",irc,lNr); fflush(stdout);
+
+  // get src = space for mem_cbuf1_SIZ chars
+  src = &mem_cbuf1[0];
+
+  // encode curve cv1 into src
+  OGX_SET_OBJ (&ox1, typo, formo, 1, objo);
+    // DEB_dump_obj__ (Typ_ObjGX, &ox1, "cv");
+  irc = AP_stru_2_txt (src, (long)mem_cbuf1_SIZ, &ox1, dbio);
+  if(irc < 0) return irc;
+    // printf("src-new |%s|\n",src);
+
+  // deactivate line <lNr> (insert '_'), following this line insert new line <src>;
+  irc = APED_src_chg (lNr, src);
+
+  // return lineNr of deactivated sourcecodeline
+  if(irc >= 0) irc = lNr;
+
+
+
+    // TESTBLOCK
+    // UTF_dump__ ("ex-APED_src_ln_chg UTF_FilBuf0");  // UTF_FilBuf0
+    // dump editor
+    // END TESTBLOCK
+
+  return irc;
 
 }
 
@@ -1335,5 +1591,4 @@ extern char *UTF_FilBuf0;
 
 
 
- 
 // EOF

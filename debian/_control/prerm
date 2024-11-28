@@ -16,6 +16,7 @@ rm -rf /usr/lib/gcad3d
 rm -rf /usr/share/gcad3d
 rm -rf /usr/share/doc/gcad3d
 rm -rf /usr/share/menu/gcad3d
+rm -rf /usr/share/pixmaps/gcad3d.xpm
 
 
 echo "******************************"

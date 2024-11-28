@@ -117,7 +117,8 @@ GR_tDyn_npt__         disp. points
 GR_tDyn_npti          display ptNr points and point-numbers
 GR_tDyn_ln            temp.Dyn line
 GR_tDyn_ln_2pt        disp line from 2 points
-GR_tDyn_pcv           temp.Dyn polygon
+GR_tDyn_pta           temp.Dyn polygon
+GR_tDyn_pcv        DO-NOT-USE    temp.Dyn polygon
 GR_tDyn_box__         disp 3D-boundingBox (lines)
 
 GR_tDyn_vc__          3D-vector at 3D-point; length true or normalized.
@@ -4918,6 +4919,42 @@ int GR_Delete (long ind)                               {return 0;}
 }
 
 
+//==============================================================================
+  int GR_set_pta (int opers, Point *pta, int ptNr, int clo, int att) {
+//==============================================================================
+// GR_set_pta       display polygon 
+// - replacing GR_set_pcv
+// Input:
+//   opers    object-persistence; TDYN|TEMP|NONE;  see INF_OPERS
+//   ptNr     nr of points
+//   clo      0=CLOSED_YES, 1=CLOSED_NO; -1=undefined; -2=degen;
+//   att      see INF_COL_CV
+//
+
+  // printf("GR_set_pta opers=%d ptNr=%d att=%d\n",opers,ptNr,att);
+  // DEB_dump_nobj__ (Typ_PT, ptNr, pta, " set_pcv");
+
+
+  // tdyn
+  if(opers & OPERS_TDYN) {
+    DL_tDyn_init (att);
+    GL_att_cv (att);
+
+  // temp
+  } else if(opers & OPERS_TEMP) {
+    DL_temp_init ();
+    GL_att_cv (att);
+  }
+
+  GL_set_pcv (ptNr, pta, clo);
+
+  if(opers & OPERS_CLOSE) GL_list_close (); // close GL-record
+
+  return 0;
+
+}
+
+
 //===================================================================
   int GR_tDyn_box__ (Point *p1, Point *p2, int att) {
 //===================================================================
@@ -7339,7 +7376,7 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
     UTO_rec_set (&oTab[2], Typ_Txt,    Typ_Txt,    1, ffnam);
     UTO_rec_set (&oTab[3], Typ_Memspc, Typ_Memspc, 1, &impSpc);
 
-    // load dll, exec "gCad_main"
+    // load dll, exec "gCad_main" - do not yet unload
     irc = MDL_load_import_mock (dllnam, oTab);
     if(irc < 0) goto L_exit;
 
@@ -7348,8 +7385,8 @@ Alte Version, arbeitet nicht in die Ausgabebuffer ...
 
     // find box of tess-model in memory
     tess_box_get (&pb1, &pb2, &impSpc);
-       // DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
-       // DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
+       DEB_dump_obj__ (Typ_PT, &pb1, "pb1");
+       DEB_dump_obj__ (Typ_PT, &pb2, "pb2");
 
     // set box in basicModel mdb
     mdb->pb1 = pb1;

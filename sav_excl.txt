@@ -14,6 +14,8 @@ core
 .git/
 my*
 src/my*/
+src/gui_gtk3/
+src/msh3d/
 doc/gcad/
 doc/gui/
 bin_*/
@@ -22,5 +24,6 @@ packages/
 gCAD3D/
 debian/gCAD3D/
 debian/exa_dir/
+
 */t1*
 */t2*

@@ -5772,6 +5772,7 @@ return MSG_ERR__ (ERR_TODO_I, "BAUSTELLE-1");
   // DEB_dump_obj__ (Typ_VC, v2, "              ");
 
 
+  // UT3D_skp_2vc
   sk = v1->dx * v2->dx + v1->dy * v2->dy + v1->dz * v2->dz;
 
   // irc = UTP_COMP_0(sk);
@@ -15344,19 +15345,34 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 //================================================================
   double UT3D_angr_2vc__ (Vector *v1, Vector *v2) {
 //================================================================
-// UT3D_angr_2vc__d            angle between two vec's (always 0 <= PI)
+// UT3D_angr_2vc__d            angle between two vec's (always 0 <= PI =-180 deg))
+// - for CCW-direction / angles (0 < 2PI)  use UT3D_angr_3vcn_CCW
 //   v1, v2 must not be normalized.
 // see UT3D_angr_2vc_n
 
 
-  double   ang, pr;
+  double   ang, dot, cross_x, cross_y, cross_z, det;
 
 
   // DEB_dump_obj__ (Typ_VC, v1, "UT3D_angr_2vc__ - v1");
   // DEB_dump_obj__ (Typ_VC, v2, "UT3D_angr_2vc__ - v2");
 
-  pr = UT3D_len_vc (v1) * UT3D_len_vc (v2);
+// Method atan2:
 
+  dot = v1->dx * v2->dx + v1->dy * v2->dy +  v1->dz * v2->dz;
+
+  cross_x = v1->dy * v2->dz - v1->dz * v2->dy;
+  cross_y = v1->dz * v2->dx - v1->dx * v2->dz;
+  cross_z = v1->dx * v2->dy - v1->dy * v2->dx;
+
+  det = sqrt(cross_x * cross_x + cross_y * cross_y + cross_z*cross_z);
+
+  ang = atan2(det, dot);
+
+
+/* Method acos:
+  double   ang, pr;
+  pr = UT3D_len_vc (v1) * UT3D_len_vc (v2);
 
   // check for zero - length
   if (fabs(pr) < UT_TOL_min2) {
@@ -15364,10 +15380,11 @@ Oeffnungswinkel ist ACOS(UT3D_acos_2vc(..));
 
   } else {
     ang = ACOS(UT3D_acos_2vc (v1, v2) / pr);
-
   }
+*/
 
   // printf("ex UT3D_angr_2vc__ %f %f\n",ang,UT_DEGREES(ang));
+
 
   return ang;
 

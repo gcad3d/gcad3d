@@ -92,7 +92,7 @@
 ---
 ## Todo:
 
- - see [Todo](https://www.gcad3d.org/doc/TODO/Todo.htm)
+ - see [Todo](https://www.gcad3d.org/doc/TODO/Todo_en.txt)
 
 ---
 // EOF

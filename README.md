@@ -47,16 +47,18 @@
   
   
 ## The program interface makes possible -
-~~~
+>
       The creation and analysis of geometry Objects
       interactive dialogue functions (selections..)
       automatic compiling, link and reload at execution time
+>
 
-~~~
+---
 ## License -
-~~~
+>
      License is GPLv3,
      the complete sourcecode is 100% free and fully documented
+>
 
 ---
 ## Examples, videos, binary-packages -

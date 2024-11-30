@@ -58,11 +58,10 @@
      License is GPLv3,
      the complete sourcecode is 100% free and fully documented
 
-     For examples, videos, binary-packages see [gcad3d.org](https://www.gcad3d.org)
+---
+## Examples, videos, binary-packages -
+ - see [gcad3d.org](https://www.gcad3d.org)
 
-     Send bug reports, suggestions for improvements to support@gcad3d.org
-
-~~~
 ---
 ## This version
 
@@ -71,23 +70,12 @@
 ---
 ## Installation
 
- - see [install_en.txt](https://www.gcad3d.org/doc/install_en.txt)
-
----
-## Build
-
- - see [build_en.txt](https://www.gcad3d.org/doc/build_en.txt)
+ - see [install_en.txt](https://www.gcad3d.org/doc/install_en.htm)
 
 ---
 ## Development:
 
  - see [dev_doc_en](https://www.gcad3d.org/doc/html/dev_doc_en.htm)
-
-~~~
-  for USING-DEVELOPMENT-DOCUMENTATION  
-      UPDATE-DEVELOPMENT-DOCUMENTATION
-~~~
- - see [dev_inf_en](https://www.gcad3d.org/doc/html/dev_inf_en.htm)
 
 ---
 ## Todo:
@@ -95,4 +83,4 @@
  - see [Todo](https://www.gcad3d.org/doc/TODO/Todo_en.txt)
 
 ---
-// EOF
+     Send bug reports, suggestions for improvements to support@gcad3d.org

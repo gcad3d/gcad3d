@@ -2,27 +2,127 @@
 <HEAD>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" >
 <TITLE>dev_doc_en.htm</TITLE>
-<style>body{font: 10pt Verdana,sans-serif;}</style>
+
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
+
 </HEAD>
 <BODY LANG="en-US">
 <PRE>
 
-________________________________________________________________________
+
+<h3>gCAD3D - Development</h3>
+
+<A HREF='install_en.htm#Li_inst_src'>Linux-Installation-source</A>
+<A HREF='#Li_inst_dir'>Linux-installed-directories</A>
+<A HREF='#dev_packs'>Development-packages</A>
+<A HREF='#dev_inf'>Development-documentation</A>
+<A HREF='Plugin_en.htm'>Create_plugin</A>
+
+
+
+<HR><!-- ============================================================ -->
+<A NAME='dev_packs'> </A>
+<h4>Linux-Installation-devenv</h4>
+
+
+Required Debian-dev-packages:
+
+  libgtk2.0-dev [libgtk2.0-doc gtk2.0-examples]
+  [libjpeg-progs libjpeg-turbo-utils]
+  [mesa-common-dev mesa-utils]
+  libgl1-mesa-dev libglu1-mesa-dev
+  [fakeroot lintian]
+
+
+  git gitk
+  [dpkg]
+  ctags
+  [cscope]
 
 
 
 
-  <a href="../install_en.txt">Install gCAD3D</a>
-  <a href="../SW_layout_en.txt">SW_layout - directories</a>
-  <a href="./dev_inf_en.htm">Development - documentation</a>
-  <a href="./Plugin_en.htm">Create new plugin</a>
-  <a href="../Todo_en.txt">Todo</a>
-  <a href="../known_bugs_en.txt">Known_bugs</a>
+<HR><!-- ============================================================ -->
+<A NAME='Li_inst_dir'> </A>
+<h4>Linux-installed_direcories</h4>
+
+
+Basedirectory Default is ~/devel/gcad3d/
+
+
+working-directory is ~/devel/gcad3d/src/UIX
+  - primary tool is script "do"
 
 
 
+  src/UIX         build unix-executables; "./do help"
+     |            build MS-Windows--executables; "do help"
+     |
+     /APP         aux-sources - testProgs
+     |
+     /DEB         build debian-package (makefiles);
+     |
+     /RPM         build rpm-package (not active; no gtk2_glarea-lib)
+     |
+     /MSVC        build MS-VC-Windows-executable (not active; was used for Win-32-bit)
+
+  debian/         create debian-package
+
+  pack_MSYS/      create MS-Windows-package
+
+  rpm/            create rpm-package (not active; no gtk2_glarea-lib)
+
+  icons           icons
+
+  doc             documentation
+
+  packages        install-packages
+
+
+<HR><!-- ============================================================ -->
+<A NAME='dev_inf'> </A>
+<h4>development-documentation</h4>
+
+
+
+- Development - documentation is located in ~/devel/gcad3d/src/inf/*
+- Development-documentation can be shown by accessing tags
+- The editor should be capable of using tagfiles.
+- all tags start with INF_
+- primary tag is "INF"
+- access primary tag with:  "vi -t INF" (in directory ${DIR_DEV}gcad3d/src/UIX/)
+- access info object-types with:  "vi -t INF_obj_types"
+- access tag in vi-editor: key Ctrl-r jumps to tag under cursor; Ctrl-o returns.
+- aceess tag direct - eg: vim -t INF   or vim -t DLL_dyn__
+- acess direct: vi ../inf/infotext.c
+
+
+
+<h4>Update-development-documentation</h4>
+
+- in directory ${DIR_DEV}gcad3d/src/UIX/
+- the development-documentation consists of textfiles (../inf/*.c)
+- create new documentation-file eg with "vi ../inf/<fnam>.c"
+- each reBuild of gcad ("./do c") also recompiles all new / modified info-files
+
+
+
+History Development-documentation:
+
+  1990-2018  doxygen was used,  see ../../doc/gcad/index.htm
+  since 2019 the development-documentation consists of textfiles
+
+
+
+
+<HR><!-- ============================================================ -->
  Send bug reports, suggestions for improvements to support@gcad3d.org
-
+________________________________________________________________________
 </PRE>
 </BODY>
 </HTML>

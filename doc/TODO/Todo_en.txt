@@ -23,9 +23,16 @@ Open issues:
   - trimmed polygonal_representation_of_curve                 OK
 
 
+============================================================================
+- Translate messagefiles
+============================================================================
+  - Existing languages: 
+  - es fr it to be updated, new languages ..
+  - eg with translate-shell "trans -b de:es \"text to translate ..\""
+
 
 ============================================================================
-- Add offset-surfaces                                         -
+ offset-surfaces                                         -
 ============================================================================
 
 

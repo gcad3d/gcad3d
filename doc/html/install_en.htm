@@ -2,24 +2,198 @@
 <HEAD>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" >
 <TITLE>install_en.htm</TITLE>
-<style>body{font: 10pt Verdana,sans-serif;}</style>
+
+<STYLE TYPE="text/css">
+  H1 { color: #000000; font-family:"Helvetica"; font-size:32pt; font-weight:medium }
+  H3 { color: #000000; font-family:"Helvetica"; font-size:16pt; font-weight:medium }
+  H4 { color: #000000; font-family:"Helvetica"; font-weight:medium }
+  hr { border: none; width: 100%; height: 8; background: #ffcc99;}
+</STYLE>
+
 </HEAD>
 <BODY LANG="en-US">
 <PRE>
 
 
+<h3>gCAD3D - Installation</h3>
 
 
-<A HREF='../install_en.txt'>installation</A>
+<A HREF='#Li_inst_bin'>Linux-Installation-binary</A>
+<A HREF='#Li_inst_src'>Linux-Installation-source</A>
+<A HREF='#Li_inst_dir'>Linux-installed_direcories</A>
 
-<A HREF='../build_en.txt'>build</A>
+<A HREF='#Li_uninst'>Linux-uninstall</A>
+
+
+
+<HR><!-- ============================================================ -->
+  <P><A NAME='Li_inst_bin'> </A></P>
+<h4>Linux-Installation-binary</h4>
+
+Linux Prerequisites for binary installation:
+
+
+# OpenGL or Mesa must be installed:
+# Test if OpenGL is working:
+# eg install mesa-utils; run glxgears or glxheads
+
+
+
+Install for debian-os:  (eg Debian, Ubuntu ..)
+- Download package gCAD3D-#.##-bin-amd64.de
+  - interactiv: select package with eg "software-center"
+  - or from terminal:
+  sudo gdebi gCAD3D-#.##-bin-amd64.deb
+  - or
+  sudo dpkg -i gCAD3D-#.##-bin-amd64.deb
+
+
+Install for rpm-os  (eg CentOS Fedora ..)    (not active - no gtk2glarea-lib)
+- Download package gcad3d-#.##-#.x86_64.rpm
+  - from terminal:
+  sudo rpm -i gcad3d-#.##-#.x86_64.rpm
+
+
+# Used directories: see DIRECTORIES-INSTALLED-Linux below
+
+
+<HR><!-- ============================================================ -->
+  <P><A NAME='Li_inst_dir'> </A></P>
+<h4>Linux-installed_direcories</h4>
+
+
+Basedirectory - Default is ~/gCAD3D/ - gcad_dir_local
+  cfg_Linux/    configfiles; eg dir.lst
+  dat/          default-model-directory; symbolic-name is "Data"
+  ctlg/         default-catalog-files; symbolic-name is "CATALOG"
+  prg/          application-programs (CAD-script-programs); symbolic-name is "APPLI"
+  tmp/          temporary used files
+
+/usr/bin/gcad3d                        startscript
+/usr/lib/gcad3d/Linux_x86_64/          binaries    - gcad_dir_bin
+/usr/share/gcad3d/                     examples.gz gcad3d.desktop
+/usr/share/gcad3d/icons/               icons       - gcad_dir_ico
+/usr/share/doc/gcad3d/                 doc         - gcad_dir_doc
+
+
+  This symbols can be set in startscript:
+    gcad_dir_bin     (Def. = /usr/lib/gcad3d/Linux_x86_64/)
+    gcad_dir_bas     (Def. = /usr/share/gcad3d/)
+    gcad_dir_ico     (Def. = ${gcad_dir_bas}/icons/)
+    gcad_dir_doc     (Def. = ${gcad_dir_bas}/doc/)
+    gcad_dir_local   (Def. = ${HOME}/gCAD3D/)
+
+
+If file $HOME/gCAD3D/cfg_Linux/gCAD3D.rc does not exist:
+  /usr/share/gcad3d/examples.zip will be extracted,
+  - this will overwrite all startup-userfiles with the original version,
+  - also the user-config-files  in $HOME/gCAD3D/cfg_Linux/ !
 
 
 
 
-=====================================================================
-../../doc/html/install_en.htm
-EOF
+
+
+<HR><!-- ============================================================ -->
+  <P><A NAME='Li_inst_src'> </A></P>
+<h4>Linux-Installation-source</h4>
+
+Linux Prerequisites for binary installation:
+
+
+# OpenGL or Mesa must be installed:
+# Test if OpenGL is working:
+# eg install mesa-utils; run glxgears or glxheads
+
+
+
+# install gtk-dev:
+sudo apt install libgtk2.0-0
+sudo apt install libgtk2.0-dev
+sudo apt install libgtkgl2.0-1
+sudo apt install libgtkgl2.0-dev
+
+
+# install git
+sudo apt install git
+git --version
+git config --global user.name "Your Name"
+git config --global user.email "youremail@domain.com"
+git config --global core.editor "vim"
+git config --list
+
+
+# get gcad3d:
+cd
+mkdir devel
+cd devel
+#  copy software to ~/devel/gcad3d/*
+git clone https://github.com/gcad3d/gcad3d.git
+
+
+# (re)build gcad3d:
+cd ~/devel/gcad3d/src/UIX
+./do complete
+
+
+# test after sucessful build:
+./do
+
+
+# gCAD3D.exe and all plugins are built by scripts do, build__, *.mak, ..
+# see devbase.sh - creates all necessary output-directories
+# - directories: see doc/directories_en.txt
+# display all options of script:
+./do help
+
+
+
+<h4>Update-source-from-github</h4>
+ - does not modify / remove private files in gcad3d-directory-tree
+
+  cd ~/devel/gcad3d
+  git remote -v
+  git pull
+
+
+
+<HR><!-- ============================================================ -->
+  <P><A NAME='Li_uninst'> </A></P>
+<h4>Linux-uninstall</h4>
+
+If you did install with a packet-manager-program then you should
+  uninstall with the same program.
+
+
+Uninstall manually:
+
+Uninstall for debian-os:  (eg Debian, Ubuntu ..)
+sudo apt-get --purge remove gcad3d
+
+
+Uninstall for rpm-os  (eg CentOS Fedora ..)
+rpm -qa | grep -i gcad3d                 # find <pkgNam>
+sudo rpm -e <pkgNam>
+
+
+All local settings, models in directory $HOME/gCAD3D must be removed manually.
+# rm -rf ~/gCAD3D
+
+
+
+
+
+
+
+
+<HR><!-- ============================================================ -->
+<!--
+MS-Win-Installation-binary
+MS-Win-Installation-source
+MS-Win-uninstall
+-->
+Send bug reports, suggestions for improvements to support@gcad3d.org
+
 </PRE>
 </BODY>
 </HTML>

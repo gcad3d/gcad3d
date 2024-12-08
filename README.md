@@ -1,4 +1,4 @@
-# gCAD3D   2.60.06-2 / 2024-11-28
+# gCAD3D   2.60.06-2 / 2024-12-08
 
 ![](https://www.gcad3d.org/Renault2.png)
 
@@ -72,7 +72,7 @@
 ---
 ## Installation
 
- - see [install_en.txt](https://www.gcad3d.org/doc/install_en.htm)
+ - see [install_en.txt](https://www.gcad3d.org/doc/html/install_en.htm)
 
 ---
 ## Development:

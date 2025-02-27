@@ -47,6 +47,11 @@ Install for debian-os:  (eg Debian, Ubuntu ..)
   - or
   sudo dpkg -i gCAD3D-#.##-bin-amd64.deb
 
+  Ubuntu 22: install with "apt-get  install" or "dpkg -i"
+             - not with the default-installer snap-store
+  Ubuntu 24: cannot be installed - libgtkgl2 does not exist.
+
+
 
 Install for rpm-os  (eg CentOS Fedora ..)    (not active - no gtk2glarea-lib)
 - Download package gcad3d-#.##-#.x86_64.rpm
@@ -107,7 +112,7 @@ Linux Prerequisites for binary installation:
 
 
 
-# install gtk-dev:
+# install gtk-dev:   (not available for Ubuntu 24)
 sudo apt install libgtk2.0-0
 sudo apt install libgtk2.0-dev
 sudo apt install libgtkgl2.0-1
